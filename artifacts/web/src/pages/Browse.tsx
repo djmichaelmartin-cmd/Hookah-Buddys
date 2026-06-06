@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Star, Search, X, Video, Circle } from "lucide-react";
+import { ShieldCheck, Star, Search, X, Video, Circle, ArrowRight } from "lucide-react";
 
 export default function Browse() {
   const [search, setSearch] = useState("");
@@ -190,6 +190,19 @@ export default function Browse() {
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-80" />
 
                     <div className="absolute top-3 left-3 flex flex-col gap-2 items-start">
+                      {doll.featured && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary/25 border border-secondary/50 px-2.5 py-1 text-[10px] font-medium text-secondary backdrop-blur-md">
+                          <Star className="h-3 w-3 fill-current" /> Featured
+                        </span>
+                      )}
+                      {doll.verified && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/20 border border-primary/40 px-2.5 py-1 text-[10px] font-medium text-primary backdrop-blur-md">
+                          <ShieldCheck className="h-3 w-3" /> Verified
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
                       {doll.online && (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/20 border border-green-500/40 px-2.5 py-1 text-[10px] font-medium text-green-300 backdrop-blur-md">
                           <Circle className="h-2 w-2 fill-green-400 text-green-400" /> Online
@@ -212,6 +225,12 @@ export default function Browse() {
                       <p className="text-sm text-muted-foreground">
                         {doll.city}, {doll.state}
                       </p>
+                      <Button
+                        size="sm"
+                        className="mt-3 w-full bg-white/10 hover:bg-primary text-white hover:text-primary-foreground border border-white/15 hover:border-primary backdrop-blur-md font-medium tracking-wide uppercase text-[11px] transition-all"
+                      >
+                        View Profile <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
                 </Link>
