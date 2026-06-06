@@ -83,11 +83,23 @@ export function Navbar() {
 
   const isAuthed = session?.authenticated && session.user;
 
+  // Transparent over the hero; solid opaque white once scrolled or off-home.
+  const solid = scrolled || !isHome;
+  const navLink = solid
+    ? "text-zinc-600 hover:text-zinc-900"
+    : "text-white/85 hover:text-white";
+  const outlineBtn = solid
+    ? "border-zinc-300 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-400"
+    : "border-white/25 text-white/90 hover:bg-white/10 hover:border-white/40";
+  const ctaBtn = solid
+    ? "bg-primary text-zinc-900 hover:bg-primary/90"
+    : "bg-white text-background hover:bg-white/90";
+
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
-        scrolled || !isHome
-          ? "border-b border-white/15 bg-white/10 backdrop-blur-xl supports-[backdrop-filter]:bg-white/10"
+        solid
+          ? "border-b border-zinc-200 bg-white shadow-sm"
           : "border-b border-transparent bg-transparent"
       }`}
     >
@@ -99,14 +111,14 @@ export function Navbar() {
               key={l.label}
               href={l.href}
               onClick={(e) => handleNavClick(e, l.href)}
-              className="text-sm font-medium text-white/85 hover:text-white transition-colors"
+              className={`text-sm font-medium ${navLink} transition-colors`}
             >
               {l.label}
             </Link>
           ))}
 
           <DropdownMenu>
-            <DropdownMenuTrigger className="group flex items-center gap-1 text-sm font-medium text-white/85 hover:text-white transition-colors outline-none">
+            <DropdownMenuTrigger className={`group flex items-center gap-1 text-sm font-medium ${navLink} transition-colors outline-none`}>
               Resources
               <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
             </DropdownMenuTrigger>
@@ -130,7 +142,7 @@ export function Navbar() {
 
           <Link
             href="/signup/doll"
-            className="inline-flex items-center h-9 px-5 rounded-full border border-white/25 text-sm font-medium text-white/90 hover:bg-white/10 hover:border-white/40 transition-colors"
+            className={`inline-flex items-center h-9 px-5 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
           >
             Become a Doll
           </Link>
@@ -150,7 +162,7 @@ export function Navbar() {
         <div className="ml-auto flex items-center gap-3">
           <Link
             href="/browse"
-            className="hidden xl:inline-flex items-center gap-2 h-10 pl-4 pr-5 rounded-full border border-white/25 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+            className={`hidden xl:inline-flex items-center gap-2 h-10 pl-4 pr-5 rounded-full border text-sm ${outlineBtn} transition-colors`}
           >
             <Search className="h-4 w-4" />
             Find a Doll
@@ -268,13 +280,13 @@ export function Navbar() {
             <>
               <Link
                 href="/login"
-                className="hidden sm:inline-flex items-center h-10 px-6 rounded-full border border-white/25 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+                className={`hidden sm:inline-flex items-center h-10 px-6 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
               >
                 Log in
               </Link>
               <Link
                 href="/signup/member"
-                className="inline-flex items-center h-10 px-6 rounded-full bg-white text-background text-sm font-semibold hover:bg-white/90 transition-colors"
+                className={`inline-flex items-center h-10 px-6 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
               >
                 Get Started
               </Link>
@@ -288,7 +300,7 @@ export function Navbar() {
             aria-expanded={menuOpen}
             aria-controls="primary-mobile-menu"
             onClick={() => setMenuOpen((v) => !v)}
-            className="xl:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/25 text-white hover:bg-white/10 transition-colors"
+            className={`xl:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border ${outlineBtn} transition-colors`}
           >
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -297,14 +309,19 @@ export function Navbar() {
 
       {/* Mobile dropdown panel */}
       {menuOpen && (
-        <div id="primary-mobile-menu" className="xl:hidden border-t border-white/10 bg-background/95 backdrop-blur-xl">
+        <div
+          id="primary-mobile-menu"
+          className={`xl:hidden border-t backdrop-blur-xl ${
+            solid ? "border-zinc-200 bg-white" : "border-white/10 bg-background/95"
+          }`}
+        >
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
             {NAV_LINKS.map((l) => (
               <Link
                 key={l.label}
                 href={l.href}
                 onClick={(e) => handleNavClick(e, l.href)}
-                className="py-2.5 text-base font-medium text-white/85 hover:text-primary transition-colors"
+                className={`py-2.5 text-base font-medium ${navLink} transition-colors`}
               >
                 {l.label}
               </Link>
@@ -315,7 +332,7 @@ export function Navbar() {
                 key={r.href}
                 href={r.href}
                 onClick={() => setMenuOpen(false)}
-                className="py-2 text-sm text-white/70 hover:text-primary transition-colors"
+                className={`py-2 text-sm ${navLink} transition-colors`}
               >
                 {r.label}
               </Link>
@@ -323,7 +340,7 @@ export function Navbar() {
             <Link
               href="/signup/doll"
               onClick={() => setMenuOpen(false)}
-              className="mt-3 inline-flex items-center justify-center h-11 rounded-full border border-white/25 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              className={`mt-3 inline-flex items-center justify-center h-11 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
             >
               Become a Doll
             </Link>
@@ -332,14 +349,14 @@ export function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMenuOpen(false)}
-                  className="inline-flex items-center justify-center h-11 rounded-full border border-white/25 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+                  className={`inline-flex items-center justify-center h-11 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
                 >
                   Log in
                 </Link>
                 <Link
                   href="/signup/member"
                   onClick={() => setMenuOpen(false)}
-                  className="inline-flex items-center justify-center h-11 rounded-full bg-white text-background text-sm font-semibold hover:bg-white/90 transition-colors"
+                  className={`inline-flex items-center justify-center h-11 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
                 >
                   Get Started
                 </Link>
