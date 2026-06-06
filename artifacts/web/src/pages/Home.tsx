@@ -1,6 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { Link } from "wouter";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, type TransitionEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useListFeaturedDolls } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
@@ -21,51 +21,112 @@ const HERO_FALLBACK = `${import.meta.env.BASE_URL}dolls/hero.png`;
 export default function Home() {
   const { data: featuredDolls } = useListFeaturedDolls();
   const slides = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl).slice(0, 5);
-  const [active, setActive] = useState(0);
+  const n = slides.length;
+  const hasLoop = n > 1;
 
-  const go = useCallback(
-    (dir: number) => {
-      if (slides.length === 0) return;
-      setActive((prev) => (prev + dir + slides.length) % slides.length);
-    },
-    [slides.length],
-  );
+  // Track with a clone of the last slide prepended and the first slide
+  // appended so the horizontal slide can loop seamlessly in both directions
+  // (the same effect Patreon's hero uses).
+  const track = hasLoop ? [slides[n - 1], ...slides, slides[0]] : slides;
 
+  // `pos` is the index into `track`; real slides occupy positions 1..n.
+  const [pos, setPos] = useState(hasLoop ? 1 : 0);
+  const [animate, setAnimate] = useState(true);
+
+  const realIndex = hasLoop ? (((pos - 1) % n) + n) % n : 0;
+
+  // Locks navigation while a slide transition is in flight so rapid clicks
+  // can't push `pos` past the sentinel clones before the snap-back runs.
+  const moving = useRef(false);
+
+  // Reset when the slide set changes (async load / refetch).
   useEffect(() => {
-    if (active >= slides.length) setActive(0);
-  }, [slides.length, active]);
+    moving.current = false;
+    setAnimate(false);
+    setPos(hasLoop ? 1 : 0);
+  }, [n, hasLoop]);
 
+  const go = useCallback((dir: number) => {
+    if (moving.current) return;
+    moving.current = true;
+    setAnimate(true);
+    setPos((p) => p + dir);
+  }, []);
+
+  const goTo = useCallback((i: number) => {
+    setPos((p) => {
+      if (moving.current || p === i + 1) return p;
+      moving.current = true;
+      setAnimate(true);
+      return i + 1;
+    });
+  }, []);
+
+  // After a silent snap-back to a real slide, re-enable the transition on the
+  // next frame so the following move animates again.
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (animate) return;
+    const id = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setAnimate(true)),
+    );
+    return () => cancelAnimationFrame(id);
+  }, [animate]);
+
+  // Auto-advance (disabled for reduced-motion users and single slides).
+  useEffect(() => {
+    if (!hasLoop) return;
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduced) return;
-    const t = setInterval(() => setActive((p) => (p + 1) % slides.length), 6000);
+    const t = setInterval(() => go(1), 6000);
     return () => clearInterval(t);
-  }, [slides.length]);
+  }, [hasLoop, go]);
 
-  const current = slides[active] ?? slides[0];
+  // When a clone scrolls fully into view, jump (without animating) to the
+  // matching real slide so the loop is invisible.
+  const handleTransitionEnd = (e: TransitionEvent) => {
+    if (e.propertyName !== "transform") return;
+    moving.current = false;
+    if (!hasLoop) return;
+    if (pos >= n + 1) {
+      setAnimate(false);
+      setPos(1);
+    } else if (pos <= 0) {
+      setAnimate(false);
+      setPos(n);
+    }
+  };
+
+  const current = slides[realIndex] ?? slides[0];
 
   return (
     <Layout>
       {/* ============ HERO (Patreon-style immersive carousel) ============ */}
       <section className="relative h-[calc(100svh-4rem)] min-h-[600px] w-full overflow-hidden">
-        {/* Background slides */}
-        <div className="absolute inset-0">
-          {slides.length > 0 ? (
-            slides.map((d, i) => (
-              <img
-                key={d.id}
-                src={d.profilePhotoUrl!}
-                alt=""
-                aria-hidden="true"
-                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
-                  i === active ? "opacity-100 scale-105" : "opacity-0"
-                }`}
-                style={{ transitionProperty: "opacity, transform", transitionDuration: "1200ms" }}
-              />
-            ))
+        {/* Background slides — horizontal sliding track (Patreon-style) */}
+        <div className="absolute inset-0 overflow-hidden">
+          {n > 0 ? (
+            <div
+              className="flex h-full w-full"
+              style={{
+                transform: `translateX(-${pos * 100}%)`,
+                transition: animate
+                  ? "transform 800ms cubic-bezier(0.7, 0, 0.2, 1)"
+                  : "none",
+              }}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              {track.map((d, i) => (
+                <img
+                  key={`${d.id}-${i}`}
+                  src={d.profilePhotoUrl!}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-full w-full shrink-0 object-cover"
+                />
+              ))}
+            </div>
           ) : (
             <img src={HERO_FALLBACK} alt="HookahDolls lounge" className="absolute inset-0 h-full w-full object-cover" />
           )}
@@ -76,7 +137,7 @@ export default function Home() {
         </div>
 
         {/* Carousel arrows */}
-        {slides.length > 1 && (
+        {hasLoop && (
           <>
             <button
               onClick={() => go(-1)}
@@ -152,15 +213,15 @@ export default function Home() {
         )}
 
         {/* Slide indicators */}
-        {slides.length > 1 && (
+        {hasLoop && (
           <div className="absolute bottom-8 right-8 z-20 hidden md:flex items-center gap-2">
             {slides.map((s, i) => (
               <button
                 key={s.id}
-                onClick={() => setActive(i)}
+                onClick={() => goTo(i)}
                 aria-label={`Go to slide ${i + 1}`}
                 className={`h-1.5 rounded-full transition-all ${
-                  i === active ? "w-8 bg-primary" : "w-3 bg-white/30 hover:bg-white/60"
+                  i === realIndex ? "w-8 bg-primary" : "w-3 bg-white/30 hover:bg-white/60"
                 }`}
               />
             ))}
