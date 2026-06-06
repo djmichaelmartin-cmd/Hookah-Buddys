@@ -87,7 +87,7 @@ export function Navbar() {
     <header
       className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
         scrolled || !isHome
-          ? "border-b border-white/10 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
+          ? "border-b border-white/15 bg-white/10 backdrop-blur-xl supports-[backdrop-filter]:bg-white/10"
           : "border-b border-transparent bg-transparent"
       }`}
     >
