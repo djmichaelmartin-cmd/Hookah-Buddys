@@ -3,13 +3,45 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: HookahDolls platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication and accounts
+  - name: dolls
+    description: Doll profiles and discovery
+  - name: media
+    description: Media uploads and moderation
+  - name: verification
+    description: Doll verification workflow
+  - name: favorites
+    description: Member favorites
+  - name: plans
+    description: Pricing plans
+  - name: subscriptions
+    description: Member and Doll subscriptions
+  - name: credits
+    description: Interaction credits
+  - name: messages
+    description: Messaging
+  - name: unlocks
+    description: Premium content unlocks
+  - name: videochat
+    description: Video chat sessions
+  - name: boosts
+    description: Doll profile boosts
+  - name: reports
+    description: Reports
+  - name: admin
+    description: Admin moderation and management
+  - name: checkout
+    description: Payments
+  - name: contact
+    description: Support
 paths:
   /healthz:
     get:
@@ -24,6 +56,776 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register/doll:
+    post:
+      operationId: registerDoll
+      tags: [auth]
+      summary: Register a Doll application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DollRegistration"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/register/member:
+    post:
+      operationId: registerMember
+      tags: [auth]
+      summary: Register a Member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberRegistration"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Log out
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get the current session user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUser"
+
+  /dolls:
+    get:
+      operationId: listDolls
+      tags: [dolls]
+      summary: Browse and search Dolls
+      parameters:
+        - { name: search, in: query, required: false, schema: { type: string } }
+        - { name: city, in: query, required: false, schema: { type: string } }
+        - { name: state, in: query, required: false, schema: { type: string } }
+        - { name: flavor, in: query, required: false, schema: { type: string } }
+        - { name: experience, in: query, required: false, schema: { type: string } }
+        - { name: verified, in: query, required: false, schema: { type: boolean } }
+        - { name: featured, in: query, required: false, schema: { type: boolean } }
+        - { name: online, in: query, required: false, schema: { type: boolean } }
+        - { name: videoChat, in: query, required: false, schema: { type: boolean } }
+        - { name: premium, in: query, required: false, schema: { type: boolean } }
+        - { name: minAge, in: query, required: false, schema: { type: integer } }
+        - { name: maxAge, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Doll"
+
+  /dolls/featured:
+    get:
+      operationId: listFeaturedDolls
+      tags: [dolls]
+      summary: Featured Dolls for the homepage
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Doll"
+
+  /dolls/{id}:
+    get:
+      operationId: getDoll
+      tags: [dolls]
+      summary: Get a Doll profile with media
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DollDetail"
+
+  /dolls/me/profile:
+    get:
+      operationId: getMyDollProfile
+      tags: [dolls]
+      summary: Get the signed-in Doll's own profile
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DollDetail"
+    patch:
+      operationId: updateMyDollProfile
+      tags: [dolls]
+      summary: Update the signed-in Doll's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DollProfileUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DollDetail"
+
+  /dolls/me/analytics:
+    get:
+      operationId: getMyDollAnalytics
+      tags: [dolls]
+      summary: Analytics for the signed-in Doll
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DollAnalytics"
+
+  /media:
+    post:
+      operationId: uploadMedia
+      tags: [media]
+      summary: Upload a media item (Doll only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Media"
+
+  /media/mine:
+    get:
+      operationId: listMyMedia
+      tags: [media]
+      summary: Media uploaded by the signed-in Doll
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Media"
+
+  /media/pending:
+    get:
+      operationId: listPendingMedia
+      tags: [media]
+      summary: Media awaiting moderation (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Media"
+
+  /media/{id}/moderate:
+    patch:
+      operationId: moderateMedia
+      tags: [media]
+      summary: Approve or reject a media item (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Media"
+
+  /verification:
+    post:
+      operationId: submitVerification
+      tags: [verification]
+      summary: Submit verification materials (Doll)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerificationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationSubmission"
+    get:
+      operationId: getMyVerification
+      tags: [verification]
+      summary: Get the signed-in Doll's verification status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationSubmission"
+
+  /verification/pending:
+    get:
+      operationId: listPendingVerifications
+      tags: [verification]
+      summary: Verification submissions awaiting review (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VerificationSubmission"
+
+  /verification/{id}/review:
+    patch:
+      operationId: reviewVerification
+      tags: [verification]
+      summary: Approve or reject a verification submission (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationSubmission"
+
+  /favorites:
+    get:
+      operationId: listFavorites
+      tags: [favorites]
+      summary: Member's favorite Dolls
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Favorite"
+    post:
+      operationId: addFavorite
+      tags: [favorites]
+      summary: Favorite a Doll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FavoriteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Favorite"
+
+  /favorites/{dollId}:
+    delete:
+      operationId: removeFavorite
+      tags: [favorites]
+      summary: Remove a favorite
+      parameters:
+        - { name: dollId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /plans:
+    get:
+      operationId: listPlans
+      tags: [plans]
+      summary: List pricing plans
+      parameters:
+        - { name: audience, in: query, required: false, schema: { type: string, enum: [member, doll] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+
+  /subscriptions:
+    get:
+      operationId: listSubscriptions
+      tags: [subscriptions]
+      summary: Current user's subscriptions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subscription"
+    post:
+      operationId: createSubscription
+      tags: [subscriptions]
+      summary: Subscribe to a plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  /credits:
+    get:
+      operationId: getCredits
+      tags: [credits]
+      summary: Member credit balance and transactions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditBalance"
+
+  /credits/purchase:
+    post:
+      operationId: purchaseCredits
+      tags: [credits]
+      summary: Purchase interaction credits (placeholder checkout)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditPurchaseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditBalance"
+
+  /threads:
+    get:
+      operationId: listThreads
+      tags: [messages]
+      summary: Message threads for the current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MessageThread"
+    post:
+      operationId: createThread
+      tags: [messages]
+      summary: Start a thread with a Doll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThreadInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageThread"
+
+  /threads/{id}/messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: Messages in a thread
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message in a thread (uses a credit for members)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /unlocks:
+    get:
+      operationId: listUnlocks
+      tags: [unlocks]
+      summary: Member's unlocked content
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentUnlock"
+    post:
+      operationId: unlockContent
+      tags: [unlocks]
+      summary: Unlock a premium media item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnlockInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentUnlock"
+
+  /video-chats:
+    get:
+      operationId: listVideoChats
+      tags: [videochat]
+      summary: Video chat sessions for the current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VideoChatSession"
+    post:
+      operationId: requestVideoChat
+      tags: [videochat]
+      summary: Request or schedule a video chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoChatInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoChatSession"
+
+  /boosts:
+    get:
+      operationId: listBoosts
+      tags: [boosts]
+      summary: Boost purchases for the signed-in Doll
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BoostPurchase"
+    post:
+      operationId: purchaseBoost
+      tags: [boosts]
+      summary: Purchase a profile boost (Doll)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BoostInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BoostPurchase"
+
+  /reports:
+    get:
+      operationId: listReports
+      tags: [reports]
+      summary: Reported content and users (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+    post:
+      operationId: createReport
+      tags: [reports]
+      summary: Report content or a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Admin dashboard summary metrics
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/applications:
+    get:
+      operationId: listDollApplications
+      tags: [admin]
+      summary: Pending Doll applications (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DollApplication"
+
+  /admin/applications/{id}/review:
+    patch:
+      operationId: reviewDollApplication
+      tags: [admin]
+      summary: Approve or reject a Doll application (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DollApplication"
+
+  /admin/users:
+    get:
+      operationId: listUsers
+      tags: [admin]
+      summary: Manage users (Admin)
+      parameters:
+        - { name: role, in: query, required: false, schema: { type: string, enum: [doll, member, admin] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{id}/status:
+    patch:
+      operationId: updateUserStatus
+      tags: [admin]
+      summary: Suspend, ban, or reactivate a user (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserStatusInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /checkout:
+    post:
+      operationId: createCheckout
+      tags: [checkout]
+      summary: Create a checkout session (Stripe-ready placeholder)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSession"
+
+  /contact:
+    post:
+      operationId: submitContact
+      tags: [contact]
+      summary: Submit a support request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +836,537 @@ components:
       required:
         - status
 
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+
+    User:
+      type: object
+      required: [id, role, email, name, accountStatus]
+      properties:
+        id: { type: integer }
+        role: { type: string, enum: [doll, member, admin] }
+        email: { type: string }
+        name: { type: string }
+        accountStatus: { type: string, enum: [active, pending, suspended, banned] }
+        dollId: { type: ["integer", "null"] }
+        createdAt: { type: string }
+
+    CurrentUser:
+      type: object
+      required: [authenticated]
+      properties:
+        authenticated: { type: boolean }
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+
+    AuthResponse:
+      type: object
+      required: [user]
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+
+    DollRegistration:
+      type: object
+      required:
+        - legalName
+        - stageName
+        - email
+        - password
+        - city
+        - state
+        - bio
+        - favoriteFlavor
+        - experienceLevel
+        - ageConfirmed
+        - rulesAccepted
+      properties:
+        legalName: { type: string, minLength: 1 }
+        stageName: { type: string, minLength: 1 }
+        email: { type: string, minLength: 3 }
+        password: { type: string, minLength: 6 }
+        phone: { type: string }
+        city: { type: string, minLength: 1 }
+        state: { type: string, minLength: 1 }
+        age: { type: integer }
+        bio: { type: string }
+        favoriteFlavor: { type: string }
+        experienceLevel: { type: string }
+        preferences: { type: string }
+        profilePhotoUrl: { type: string }
+        verificationPhotoUrl: { type: string }
+        verificationVideoUrl: { type: string }
+        governmentIdUrl: { type: string }
+        ageConfirmed: { type: boolean }
+        rulesAccepted: { type: boolean }
+
+    MemberRegistration:
+      type: object
+      required:
+        - name
+        - email
+        - username
+        - password
+        - ageConfirmed
+        - rulesAccepted
+      properties:
+        name: { type: string, minLength: 1 }
+        email: { type: string, minLength: 3 }
+        phone: { type: string }
+        city: { type: string }
+        state: { type: string }
+        username: { type: string, minLength: 1 }
+        password: { type: string, minLength: 6 }
+        profilePhotoUrl: { type: string }
+        ageConfirmed: { type: boolean }
+        rulesAccepted: { type: boolean }
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string }
+
+    Doll:
+      type: object
+      required:
+        - id
+        - stageName
+        - city
+        - state
+        - verified
+        - featured
+        - elite
+        - online
+        - tier
+      properties:
+        id: { type: integer }
+        stageName: { type: string }
+        city: { type: string }
+        state: { type: string }
+        age: { type: ["integer", "null"] }
+        bio: { type: string }
+        favoriteFlavor: { type: string }
+        experienceLevel: { type: string }
+        preferences: { type: string }
+        profilePhotoUrl: { type: string }
+        verified: { type: boolean }
+        featured: { type: boolean }
+        elite: { type: boolean }
+        online: { type: boolean }
+        availableForVideoChat: { type: boolean }
+        tier: { type: string, enum: [free, premium, featured, elite] }
+        premiumPhotoCount: { type: integer }
+        premiumVideoCount: { type: integer }
+        freePhotoCount: { type: integer }
+        shortVideoCount: { type: integer }
+        favoriteCount: { type: integer }
+        subscriptionPrice: { type: number }
+        messagePrice: { type: number }
+        videoChatRate: { type: number }
+        createdAt: { type: string }
+
+    DollDetail:
+      allOf:
+        - $ref: "#/components/schemas/Doll"
+        - type: object
+          properties:
+            verificationStatus: { type: string, enum: [unverified, pending, approved, rejected] }
+            isFavorited: { type: boolean }
+            media:
+              type: array
+              items:
+                $ref: "#/components/schemas/Media"
+
+    DollProfileUpdate:
+      type: object
+      properties:
+        stageName: { type: string }
+        city: { type: string }
+        state: { type: string }
+        bio: { type: string }
+        favoriteFlavor: { type: string }
+        experienceLevel: { type: string }
+        preferences: { type: string }
+        profilePhotoUrl: { type: string }
+        online: { type: boolean }
+        availableForVideoChat: { type: boolean }
+        subscriptionPrice: { type: number }
+        messagePrice: { type: number }
+        videoChatRate: { type: number }
+
+    DollAnalytics:
+      type: object
+      required: [profileViews, favorites, contentUnlocks, messageRevenue, videoChatRevenue, subscriptionRevenue]
+      properties:
+        profileViews: { type: integer }
+        favorites: { type: integer }
+        contentUnlocks: { type: integer }
+        messageRevenue: { type: number }
+        videoChatRevenue: { type: number }
+        subscriptionRevenue: { type: number }
+        totalEarnings: { type: number }
+        pendingPayout: { type: number }
+        viewsTrend:
+          type: array
+          items: { $ref: "#/components/schemas/RevenuePoint" }
+        earningsTrend:
+          type: array
+          items: { $ref: "#/components/schemas/RevenuePoint" }
+
+    Media:
+      type: object
+      required: [id, dollId, type, status, containsHookah, premium]
+      properties:
+        id: { type: integer }
+        dollId: { type: integer }
+        type: { type: string, enum: [profile, free_photo, premium_photo, premium_video, short_video, verification] }
+        url: { type: string }
+        thumbnailUrl: { type: string }
+        caption: { type: string }
+        status: { type: string, enum: [pending_review, approved, rejected] }
+        containsHookah: { type: boolean }
+        premium: { type: boolean }
+        price: { type: number }
+        moderationNotes: { type: ["string", "null"] }
+        dollName: { type: string }
+        createdAt: { type: string }
+
+    MediaInput:
+      type: object
+      required: [type, url, containsHookah]
+      properties:
+        type: { type: string, enum: [profile, free_photo, premium_photo, premium_video, short_video, verification] }
+        url: { type: string, minLength: 1 }
+        thumbnailUrl: { type: string }
+        caption: { type: string }
+        premium: { type: boolean }
+        price: { type: number }
+        containsHookah: { type: boolean }
+
+    ModerationInput:
+      type: object
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [approve, reject] }
+        notes: { type: string }
+
+    VerificationSubmission:
+      type: object
+      required: [id, dollId, status]
+      properties:
+        id: { type: integer }
+        dollId: { type: integer }
+        dollName: { type: string }
+        governmentIdUrl: { type: string }
+        selfieUrl: { type: string }
+        hookahPhotoUrl: { type: string }
+        hookahVideoUrl: { type: string }
+        status: { type: string, enum: [pending, approved, rejected] }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    VerificationInput:
+      type: object
+      required: [governmentIdUrl, selfieUrl, hookahPhotoUrl, hookahVideoUrl]
+      properties:
+        governmentIdUrl: { type: string, minLength: 1 }
+        selfieUrl: { type: string, minLength: 1 }
+        hookahPhotoUrl: { type: string, minLength: 1 }
+        hookahVideoUrl: { type: string, minLength: 1 }
+
+    Favorite:
+      type: object
+      required: [id, dollId]
+      properties:
+        id: { type: integer }
+        dollId: { type: integer }
+        doll: { $ref: "#/components/schemas/Doll" }
+        createdAt: { type: string }
+
+    FavoriteInput:
+      type: object
+      required: [dollId]
+      properties:
+        dollId: { type: integer }
+
+    Plan:
+      type: object
+      required: [id, name, audience, price, tier]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        audience: { type: string, enum: [member, doll] }
+        price: { type: number }
+        interval: { type: string }
+        tier: { type: string }
+        description: { type: string }
+        features:
+          type: array
+          items: { type: string }
+        highlighted: { type: boolean }
+
+    Subscription:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: integer }
+        planId: { type: integer }
+        planName: { type: string }
+        audience: { type: string }
+        dollId: { type: ["integer", "null"] }
+        dollName: { type: ["string", "null"] }
+        price: { type: number }
+        status: { type: string, enum: [active, canceled] }
+        startedAt: { type: string }
+
+    SubscriptionInput:
+      type: object
+      required: [planId]
+      properties:
+        planId: { type: integer }
+        dollId: { type: integer }
+
+    CreditBalance:
+      type: object
+      required: [balance]
+      properties:
+        balance: { type: integer }
+        transactions:
+          type: array
+          items: { $ref: "#/components/schemas/CreditTransaction" }
+
+    CreditTransaction:
+      type: object
+      required: [id, amount, type]
+      properties:
+        id: { type: integer }
+        amount: { type: integer }
+        type: { type: string, enum: [purchase, spend] }
+        description: { type: string }
+        createdAt: { type: string }
+
+    CreditPurchaseInput:
+      type: object
+      required: [credits]
+      properties:
+        credits: { type: integer }
+        price: { type: number }
+
+    MessageThread:
+      type: object
+      required: [id]
+      properties:
+        id: { type: integer }
+        dollId: { type: integer }
+        dollName: { type: string }
+        dollPhotoUrl: { type: string }
+        memberId: { type: integer }
+        memberName: { type: string }
+        lastMessage: { type: string }
+        lastMessageAt: { type: string }
+        unreadCount: { type: integer }
+
+    ThreadInput:
+      type: object
+      required: [dollId]
+      properties:
+        dollId: { type: integer }
+        message: { type: string }
+
+    Message:
+      type: object
+      required: [id, threadId, senderRole, body]
+      properties:
+        id: { type: integer }
+        threadId: { type: integer }
+        senderRole: { type: string, enum: [doll, member] }
+        body: { type: string }
+        paid: { type: boolean }
+        createdAt: { type: string }
+
+    MessageInput:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1 }
+
+    ContentUnlock:
+      type: object
+      required: [id, mediaId]
+      properties:
+        id: { type: integer }
+        mediaId: { type: integer }
+        dollId: { type: integer }
+        media: { $ref: "#/components/schemas/Media" }
+        createdAt: { type: string }
+
+    UnlockInput:
+      type: object
+      required: [mediaId]
+      properties:
+        mediaId: { type: integer }
+
+    VideoChatSession:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: integer }
+        dollId: { type: integer }
+        dollName: { type: string }
+        memberId: { type: integer }
+        memberName: { type: string }
+        scheduledAt: { type: string }
+        status: { type: string, enum: [requested, confirmed, completed, canceled] }
+        ratePerMinute: { type: number }
+        durationMinutes: { type: integer }
+        createdAt: { type: string }
+
+    VideoChatInput:
+      type: object
+      required: [dollId, scheduledAt]
+      properties:
+        dollId: { type: integer }
+        scheduledAt: { type: string }
+        durationMinutes: { type: integer }
+
+    BoostPurchase:
+      type: object
+      required: [id, type, expiresAt]
+      properties:
+        id: { type: integer }
+        dollId: { type: integer }
+        type: { type: string, enum: [boost_24h, boost_3d, boost_7d] }
+        label: { type: string }
+        price: { type: number }
+        expiresAt: { type: string }
+        createdAt: { type: string }
+
+    BoostInput:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [boost_24h, boost_3d, boost_7d] }
+
+    Report:
+      type: object
+      required: [id, targetType, reason, status]
+      properties:
+        id: { type: integer }
+        reporterId: { type: integer }
+        reporterName: { type: string }
+        targetType: { type: string, enum: [user, media, doll, message] }
+        targetId: { type: integer }
+        reason: { type: string }
+        details: { type: string }
+        status: { type: string, enum: [open, resolved, dismissed] }
+        createdAt: { type: string }
+
+    ReportInput:
+      type: object
+      required: [targetType, targetId, reason]
+      properties:
+        targetType: { type: string, enum: [user, media, doll, message] }
+        targetId: { type: integer }
+        reason: { type: string, minLength: 1 }
+        details: { type: string }
+
+    AdminStats:
+      type: object
+      required: [totalDolls, totalMembers]
+      properties:
+        totalDolls: { type: integer }
+        totalMembers: { type: integer }
+        verifiedDolls: { type: integer }
+        pendingApplications: { type: integer }
+        pendingMedia: { type: integer }
+        pendingVerifications: { type: integer }
+        openReports: { type: integer }
+        featuredDolls: { type: integer }
+        totalRevenue: { type: number }
+        monthlyRevenue: { type: number }
+        revenueTrend:
+          type: array
+          items: { $ref: "#/components/schemas/RevenuePoint" }
+
+    RevenuePoint:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string }
+        value: { type: number }
+
+    DollApplication:
+      type: object
+      required: [id, stageName, status]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        legalName: { type: string }
+        stageName: { type: string }
+        email: { type: string }
+        city: { type: string }
+        state: { type: string }
+        favoriteFlavor: { type: string }
+        experienceLevel: { type: string }
+        bio: { type: string }
+        profilePhotoUrl: { type: string }
+        verificationPhotoUrl: { type: string }
+        verificationVideoUrl: { type: string }
+        governmentIdUrl: { type: string }
+        status: { type: string, enum: [pending, approved, rejected] }
+        createdAt: { type: string }
+
+    AdminUser:
+      type: object
+      required: [id, role, email, name, accountStatus]
+      properties:
+        id: { type: integer }
+        role: { type: string, enum: [doll, member, admin] }
+        email: { type: string }
+        name: { type: string }
+        accountStatus: { type: string, enum: [active, pending, suspended, banned] }
+        dollId: { type: ["integer", "null"] }
+        verified: { type: boolean }
+        createdAt: { type: string }
+
+    UserStatusInput:
+      type: object
+      required: [accountStatus]
+      properties:
+        accountStatus: { type: string, enum: [active, suspended, banned] }
+
+    CheckoutInput:
+      type: object
+      required: [purpose, amount]
+      properties:
+        purpose: { type: string, enum: [membership, credits, unlock, subscription, video_chat, boost, featured] }
+        amount: { type: number }
+        referenceId: { type: integer }
+        description: { type: string }
+
+    CheckoutSession:
+      type: object
+      required: [id, status, amount]
+      properties:
+        id: { type: string }
+        status: { type: string, enum: [requires_payment, paid, placeholder] }
+        amount: { type: number }
+        purpose: { type: string }
+        message: { type: string }
+
+    ContactInput:
+      type: object
+      required: [name, email, category, message]
+      properties:
+        name: { type: string, minLength: 1 }
+        email: { type: string, minLength: 3 }
+        accountType: { type: string }
+        category: { type: string }
+        message: { type: string, minLength: 1 }
+        screenshotUrl: { type: string }

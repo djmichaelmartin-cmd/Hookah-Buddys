@@ -1,0 +1,659 @@
+Replit Agent Prompt: Build HookahDolls.com Platform
+
+Build a full-stack web platform for HookahDolls.com, a hookah-themed social and creator platform where verified women creators called “Dolls” create hookah-centered profiles and content, and paying members called “I Love Dolls” browse, subscribe, message, unlock content, and request private video chats.
+
+This is not a traditional dating site. It is a hookah-centered creator/social platform. The hookah theme is mandatory across the entire user experience. Every Doll profile, upload, verification item, premium media item, short video, featured card, and live/video chat session must include a visible hookah. Content without a visible hookah must be rejected or held for admin moderation.
+
+Build the platform with a polished, modern, premium nightlife/lounge aesthetic. Use dark backgrounds, smoke-inspired gradients, gold or rose-gold accents, glassmorphism cards, rounded UI, and strong mobile responsiveness.
+
+Recommended Tech Stack
+
+Use:
+
+React / Vite frontend
+Node.js / Express backend
+PostgreSQL database
+Prisma ORM
+Stripe for payments
+JWT/auth sessions
+Role-based access control
+File uploads for images/videos
+Admin moderation workflow
+Placeholder integration structure for video chat, such as Daily.co, Twilio Video, or LiveKit
+Cloud storage-ready architecture for media uploads
+
+Do not hardcode everything as static pages. Build a real app structure with routes, reusable components, database models, authentication, dashboards, and admin controls.
+
+Required User Roles
+
+Create these user roles:
+
+Doll
+Creator profile
+Upload photos/videos/short content
+Complete verification
+Receive messages
+Offer video chat availability
+Earn revenue
+Upgrade visibility
+Manage subscribers
+View analytics
+Member / I Love Dolls
+Create profile
+Browse/search Dolls
+Favorite profiles
+Subscribe to content
+Send paid messages
+Unlock premium content
+Access video chat features
+Purchase interaction credits
+Admin
+Approve/reject Doll applications
+Review IDs, selfies, hookah verification photos/videos
+Review uploaded media
+Remove content without hookah
+Manage users, payments, boosts, subscriptions, featured placements, and reports
+Critical Brand Rule
+
+Add this rule throughout the platform:
+
+“All Doll content must include a visible hookah.”
+
+Apply this to:
+
+Doll profile photos
+Verification photos
+Verification videos
+Premium photos
+Premium videos
+Short-form content
+Featured content
+Promotional content
+Live/video chat sessions
+
+Add a required upload confirmation checkbox:
+
+“I confirm this content includes a visible hookah.”
+
+Uploaded Doll content should be marked as pending_review until approved by admin.
+
+Age & Compliance Requirements
+
+Because the platform centers around hookah culture, add strict age-gating:
+
+All users must confirm they are 21+
+Dolls must complete ID verification before becoming visible
+Members must confirm 21+ before account creation
+Add legal disclaimers that hookah/tobacco use is restricted to adults
+Add Terms, Privacy Policy, Refund Policy, Content Rules, and Community Guidelines pages
+Do not position this as an explicit adult platform
+Include rules prohibiting illegal content, harassment, stolen images, impersonation, spam, explicit illegal activity, and underage participation
+Sitemap / Pages to Build
+
+Build the following pages and routes based on the provided sitemap.
+
+1. Homepage
+
+Route: /
+
+Sections:
+
+Hero:
+Headline: HookahDolls.com
+Subheadline: A hookah-centered social platform connecting Dolls and Doll lovers.
+Buttons:
+I’m a Doll
+I Love Dolls
+How It Works:
+Dolls create hookah-centered profiles and content
+Members browse, unlock content, message, and book private video chats
+Hookah must be visible in all Doll content
+Featured Dolls Preview:
+Carousel/grid of featured Doll cards
+Each card shows profile photo with hookah, name, city, verified badge, featured badge, and View Profile button
+CTA Blocks:
+For Dolls: Create Your Doll Profile
+For Members: Start Browsing Dolls
+Footer:
+About
+Terms
+Privacy Policy
+Content Rules
+Contact
+Login
+2. Doll Signup Page
+
+Route: /signup/doll
+
+Fields:
+
+Legal name
+Stage/profile name
+Email
+Phone
+City/state
+Age verification / 21+ confirmation
+Bio
+Favorite hookah flavor
+Hookah experience level
+Hookah preferences
+Profile photo upload with hookah
+Verification photo with hookah
+Short verification video upload with hookah
+Government ID upload
+Agreement to Doll content rules
+
+Buttons:
+
+Start Doll Application
+Upload Verification
+Submit for Review
+
+After submission, set Doll status to pending_verification.
+
+3. Member Signup Page
+
+Route: /signup/member
+
+Fields:
+
+Name
+Email
+Phone
+City/state
+Username
+Password
+Profile photo optional
+21+ confirmation
+Agreement to member rules
+Payment setup
+
+Buttons:
+
+Create Member Account
+Choose Membership Plan
+4. Login Page
+
+Route: /login
+
+Universal login for Dolls, Members, and Admins.
+
+Include:
+
+Email
+Password
+Forgot password
+Login as Doll
+Login as Member
+Create account links
+5. Search / Browse Dolls Page
+
+Route: /browse
+
+Only members can access full browsing.
+
+Features:
+
+Search bar
+Filter by:
+City
+State
+Age range
+Verified Dolls
+Featured Dolls
+Online now
+Premium content available
+Favorite hookah flavor
+Available for video chat
+Hookah experience level
+
+Profile cards show:
+
+Main profile photo with hookah
+Name
+City
+Verified badge
+Featured badge
+Online status
+View Profile button
+6. Doll Profile Page
+
+Route: /dolls/:id
+
+Sections:
+
+Profile header:
+Main photo with hookah
+Name
+City
+Verified badge
+Featured badge
+Online status
+Bio:
+About me
+Favorite hookah flavor
+Hookah style/preferences
+Availability
+Content tabs:
+Free Photos
+Premium Photos
+Premium Videos
+Short Videos
+Live / Video Chat
+Paid actions:
+Send Message
+Unlock Photos
+Unlock Videos
+Request Video Chat
+Subscribe to Doll
+Favorite Profile
+
+Locked premium content should display blurred previews with unlock buttons.
+
+7. Pricing Page
+
+Route: /pricing
+
+Include both Doll and Member pricing.
+
+Member Pricing
+
+Basic Membership — $19.99/month
+
+Browse profiles
+Save favorites
+Limited interaction
+
+Premium Membership — $39.99/month
+
+Enhanced messaging
+Additional profile access
+Premium browsing features
+
+Paid extras:
+
+Message credits
+Premium photo unlocks
+Premium video unlocks
+Private video chat
+Doll subscriptions
+Doll Pricing
+
+Free Doll:
+
+Basic profile
+Limited uploads
+Standard placement
+
+Premium Doll — $19–$49/month
+
+More uploads
+Profile customization
+Premium badge
+Higher search ranking
+Analytics dashboard
+
+Featured Doll — $99+/month
+
+Homepage placement
+Featured sections
+Priority category placement
+Increased exposure
+
+Elite Doll — $199+/month
+
+First-page placement
+Rotating homepage spotlight
+Verification priority
+Concierge support
+Maximum visibility
+
+Boosts:
+
+24-Hour Boost — $9.99
+3-Day Boost — $24.99
+7-Day Boost — $49.99
+8. Doll Dashboard
+
+Route: /dashboard/doll
+
+Sections:
+
+Profile management
+Upload photos
+Upload videos
+Upload short videos
+Verification status
+Messages
+Video chat availability
+Earnings
+Payout settings
+Analytics:
+Profile views
+Favorites
+Content unlocks
+Message revenue
+Video chat revenue
+
+Upgrade buttons:
+
+Upgrade to Premium Doll
+Become Featured Doll
+Become Elite Doll
+Buy Profile Boost
+9. Member Dashboard
+
+Route: /dashboard/member
+
+Sections:
+
+Profile settings
+Favorite Dolls
+Active subscriptions
+Message inbox
+Credit balance
+Purchase history
+Video chat history
+Payment methods
+Account settings
+
+Buttons:
+
+Buy Credits
+Upgrade Membership
+Browse Dolls
+View Favorites
+10. Admin Dashboard
+
+Route: /admin
+
+Admin features:
+
+Approve/reject Doll applications
+Review verification photos
+Review verification videos
+Review ID uploads
+Manage users
+Manage Dolls
+Manage members
+Review reported content
+Remove content without hookah
+Manage payments
+Manage payouts
+Manage memberships
+Manage featured placements
+Manage boosts
+View analytics
+Suspend accounts
+Ban users
+
+Admin should be able to approve or reject each media upload with notes.
+
+11. Content Upload Page
+
+Route: /upload
+
+For Dolls only.
+
+Upload types:
+
+Profile photos
+Free photos
+Premium photos
+Premium videos
+Short videos
+Verification content
+
+Before upload is accepted, require:
+
+“I confirm this content includes a visible hookah.”
+
+Set uploaded media status to pending_review.
+
+12. Verification Page
+
+Route: /verification
+
+Steps:
+
+Submit government ID
+Submit selfie
+Submit photo with hookah
+Submit short video with hookah
+Wait for admin approval
+
+Only approved Dolls receive verified badge.
+
+13. Messaging Page
+
+Route: /messages
+
+Features:
+
+Inbox
+Message threads
+Pay-to-message system
+Credit balance
+Locked messaging prompt if unpaid
+Report/block user button
+
+Member side:
+
+Must pay or use credits to message Dolls
+
+Doll side:
+
+Can receive/respond to paid messages
+Can manage message availability
+14. Video Chat Page
+
+Route: /video-chat
+
+Features:
+
+Schedule video chat
+Start live video chat
+Per-minute or flat-rate pricing
+Doll availability calendar
+Member payment confirmation
+Timer
+End session button
+Report button
+
+Add placeholder integration for Daily.co, Twilio Video, or LiveKit.
+
+Important visible notice:
+
+“A visible smoking hookah must be present during Doll video chat sessions.”
+
+15. Checkout / Payments Page
+
+Route: /checkout
+
+Use Stripe-ready structure for:
+
+Monthly membership
+Message credits
+Content unlocks
+Doll subscriptions
+Video chat payments
+Doll profile boosts
+Featured placement payments
+16. Legal / Support Pages
+
+Build:
+
+/terms
+/privacy
+/content-rules
+/refund-policy
+/contact
+
+Contact form fields:
+
+Name
+Email
+Account type
+Issue category
+Message
+Screenshot upload
+
+Issue categories:
+
+Billing
+Login issue
+Verification issue
+Report user
+Content issue
+Technical problem
+General support
+Database Models
+
+Create Prisma models for:
+
+User
+DollProfile
+MemberProfile
+Media
+VerificationSubmission
+SubscriptionPlan
+UserSubscription
+CreditTransaction
+MessageThread
+Message
+Favorite
+ContentUnlock
+VideoChatSession
+BoostPurchase
+Report
+AdminAction
+Payment
+Payout
+
+Include fields for:
+
+user role
+account status
+verification status
+media type
+media approval status
+contains hookah confirmation
+featured status
+premium status
+elite status
+online status
+boost expiration dates
+Stripe customer ID
+Stripe subscription ID
+created/updated timestamps
+Core Logic
+
+Implement:
+
+Role-based dashboards
+Doll verification workflow
+Admin approval workflow
+Media moderation queue
+Hookah confirmation checkbox
+Search and filters
+Favorite Doll profiles
+Basic member subscriptions
+Doll upgrade plans
+Boost purchases
+Locked premium content
+Message credits placeholder
+Video chat scheduling placeholder
+Stripe checkout placeholder
+Mock data for featured Dolls
+Responsive mobile-first design
+Phase Build Priority
+
+Build in phases.
+
+Phase 1
+Homepage
+Doll signup
+Member signup
+Login
+Search/Browse Dolls
+Doll Profile Page
+Pricing Page
+Admin Dashboard
+Verification Page
+Payment Page
+Phase 2
+Messaging
+Premium content unlocks
+Doll Dashboard
+Member Dashboard
+Boost system
+Featured placement system
+Phase 3
+Live two-way video chat
+Doll analytics
+Payout dashboard
+Advanced search
+Hookah events
+Hookah brand sponsorship pages
+UI/Brand Direction
+
+Use copy and visual style that feels like:
+
+Premium hookah lounge
+Creator platform
+Social discovery app
+Dark luxury nightlife
+Smoke, neon, gold accents
+Elegant but not explicit
+Modern mobile app feel
+
+Suggested colors:
+
+Background: #080608
+Card background: #151018
+Accent gold: #D4AF37
+Accent rose: #E85D75
+Smoke gray: #B8B8B8
+White text: #FFFFFF
+Muted text: #A9A3A9
+Seed Data
+
+Create mock data for at least 8 sample Dolls:
+
+Each should include:
+
+Stage name
+City/state
+Verified status
+Featured status
+Favorite hookah flavor
+Hookah experience level
+Short bio
+Mock profile image placeholder
+Online status
+Premium content count
+
+Every mock card should visually imply hookah-themed content.
+
+Important Notes
+
+Do not build this as a static landing page only. Build the foundation of a real platform.
+
+Prioritize clean code, reusable components, clear folder structure, and scalable architecture.
+
+Make sure all Doll-facing upload areas clearly remind users:
+
+“No hookah, no approval.”
+
+Final deliverable should include:
+
+Working frontend
+Backend API structure
+Database schema
+Auth flow
+Role-based navigation
+Dashboards
+Admin moderation queue
+Stripe-ready checkout placeholders
+Mobile responsive design
+Clear README explaining setup and future integrations
