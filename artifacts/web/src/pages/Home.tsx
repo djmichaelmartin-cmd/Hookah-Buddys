@@ -313,7 +313,7 @@ export default function Home() {
         )}
 
         {/* Hero copy */}
-        <div className="relative z-10 h-full container mx-auto px-4 flex flex-col justify-end pb-32 md:pb-48">
+        <div className="relative z-10 h-full container mx-auto px-4 flex flex-col justify-center pb-24">
           <div className="max-w-4xl">
             <Badge className="mb-6 bg-white/5 hover:bg-white/10 text-primary border-primary/20 backdrop-blur-md px-4 py-1.5 uppercase tracking-[0.2em] text-xs font-medium">
               The Premium Hookah Lounge · 21+
