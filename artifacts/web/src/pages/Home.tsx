@@ -16,119 +16,165 @@ import {
   ArrowDown,
 } from "lucide-react";
 
-const HERO_FALLBACK = `${import.meta.env.BASE_URL}dolls/hero.png`;
+const BASE = import.meta.env.BASE_URL;
+const HERO_IMAGES = [1, 2, 3, 4, 5].map((i) => `${BASE}lounge/lounge${i}.png`);
+const N = HERO_IMAGES.length;
 
 export default function Home() {
   const { data: featuredDolls } = useListFeaturedDolls();
-  const slides = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl).slice(0, 5);
-  const n = slides.length;
-  const hasLoop = n > 1;
+  const dolls = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl);
 
-  // Track with a clone of the last slide prepended and the first slide
-  // appended so the horizontal slide can loop seamlessly in both directions
-  // (the same effect Patreon's hero uses).
-  const track = hasLoop ? [slides[n - 1], ...slides, slides[0]] : slides;
-
-  // `pos` is the index into `track`; real slides occupy positions 1..n.
-  const [pos, setPos] = useState(hasLoop ? 1 : 0);
-  const [animate, setAnimate] = useState(true);
-
-  const realIndex = hasLoop ? (((pos - 1) % n) + n) % n : 0;
-
-  // Locks navigation while a slide transition is in flight so rapid clicks
-  // can't push `pos` past the sentinel clones before the snap-back runs.
+  // ---- Hero reveal carousel (atmospheric lounge imagery) ----
+  // The next image is "opened up" over the current one with an animated
+  // clip-path wipe, mirroring Patreon's hero transition.
+  const [current, setCurrent] = useState(0);
+  const [incoming, setIncoming] = useState<{ index: number; dir: 1 | -1 } | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const [reduced, setReduced] = useState(false);
   const moving = useRef(false);
+  const currentRef = useRef(0);
+  const incomingRef = useRef(incoming);
+  const reducedRef = useRef(false);
+  const fallbackTimer = useRef<number | null>(null);
 
-  // Reset when the slide set changes (async load / refetch).
   useEffect(() => {
+    currentRef.current = current;
+  }, [current]);
+  useEffect(() => {
+    incomingRef.current = incoming;
+  }, [incoming]);
+  useEffect(() => {
+    reducedRef.current = reduced;
+  }, [reduced]);
+
+  // Track the user's reduced-motion preference (and react to changes).
+  useEffect(() => {
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    if (!mq) return;
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener?.("change", handler);
+    return () => mq.removeEventListener?.("change", handler);
+  }, []);
+
+  // Promote the incoming image to current and release the transition lock.
+  const commit = useCallback(() => {
+    const inc = incomingRef.current;
+    if (!inc) return;
+    setCurrent(inc.index);
+    setIncoming(null);
+    setRevealed(false);
     moving.current = false;
-    setAnimate(false);
-    setPos(hasLoop ? 1 : 0);
-  }, [n, hasLoop]);
-
-  const go = useCallback((dir: number) => {
-    if (moving.current) return;
-    moving.current = true;
-    setAnimate(true);
-    setPos((p) => p + dir);
+    if (fallbackTimer.current !== null) {
+      clearTimeout(fallbackTimer.current);
+      fallbackTimer.current = null;
+    }
   }, []);
 
-  const goTo = useCallback((i: number) => {
-    setPos((p) => {
-      if (moving.current || p === i + 1) return p;
+  const start = useCallback(
+    (index: number, dir: 1 | -1) => {
+      if (moving.current || index === currentRef.current) return;
+      // Reduced motion: swap instantly, no animated wipe.
+      if (reducedRef.current) {
+        setCurrent(index);
+        return;
+      }
       moving.current = true;
-      setAnimate(true);
-      return i + 1;
-    });
-  }, []);
+      setIncoming({ index, dir });
+      setRevealed(false);
+    },
+    [],
+  );
 
-  // After a silent snap-back to a real slide, re-enable the transition on the
-  // next frame so the following move animates again.
+  const go = useCallback(
+    (dir: 1 | -1) => start((currentRef.current + dir + N) % N, dir),
+    [start],
+  );
+
+  const goTo = useCallback(
+    (index: number) => start(index, index > currentRef.current ? 1 : -1),
+    [start],
+  );
+
+  // Once the incoming layer has mounted in its hidden state, flip to revealed
+  // on the next frame so the clip-path animates.
   useEffect(() => {
-    if (animate) return;
+    if (!incoming || revealed) return;
     const id = requestAnimationFrame(() =>
-      requestAnimationFrame(() => setAnimate(true)),
+      requestAnimationFrame(() => setRevealed(true)),
     );
     return () => cancelAnimationFrame(id);
-  }, [animate]);
+  }, [incoming, revealed]);
 
-  // Auto-advance (disabled for reduced-motion users and single slides).
+  // Safety net: if the transitionend event is missed (browser quirks), force
+  // the commit after the wipe duration so navigation can never deadlock.
   useEffect(() => {
-    if (!hasLoop) return;
-    const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (!incoming || !revealed) return;
+    fallbackTimer.current = window.setTimeout(commit, 1100);
+    return () => {
+      if (fallbackTimer.current !== null) {
+        clearTimeout(fallbackTimer.current);
+        fallbackTimer.current = null;
+      }
+    };
+  }, [incoming, revealed, commit]);
+
+  // Auto-advance (disabled for reduced-motion users).
+  useEffect(() => {
     if (reduced) return;
     const t = setInterval(() => go(1), 6000);
     return () => clearInterval(t);
-  }, [hasLoop, go]);
+  }, [go, reduced]);
 
-  // When a clone scrolls fully into view, jump (without animating) to the
-  // matching real slide so the loop is invisible.
+  // When the wipe finishes, promote the incoming image to current.
   const handleTransitionEnd = (e: TransitionEvent) => {
-    if (e.propertyName !== "transform") return;
-    moving.current = false;
-    if (!hasLoop) return;
-    if (pos >= n + 1) {
-      setAnimate(false);
-      setPos(1);
-    } else if (pos <= 0) {
-      setAnimate(false);
-      setPos(n);
-    }
+    if (e.target !== e.currentTarget) return;
+    if (e.propertyName !== "clip-path" && e.propertyName !== "-webkit-clip-path") return;
+    commit();
   };
 
-  const current = slides[realIndex] ?? slides[0];
+  const prevIndex = (current - 1 + N) % N;
+  const nextIndex = (current + 1) % N;
+
+  const hiddenClip = incoming?.dir === -1 ? "inset(0 100% 0 0)" : "inset(0 0 0 100%)";
+  const clip = revealed ? "inset(0 0 0 0)" : hiddenClip;
 
   return (
     <Layout>
-      {/* ============ HERO (Patreon-style immersive carousel) ============ */}
+      {/* ============ HERO (Patreon-style reveal carousel) ============ */}
       <section className="relative h-[calc(100svh-4rem)] min-h-[600px] w-full overflow-hidden">
-        {/* Background slides — horizontal sliding track (Patreon-style) */}
-        <div className="absolute inset-0 overflow-hidden">
-          {n > 0 ? (
+        {/* Slides */}
+        <div className="absolute inset-0">
+          {/* Current image */}
+          <img
+            src={HERO_IMAGES[current]}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          {/* Incoming image, revealed via an animated clip-path wipe */}
+          {incoming && (
             <div
-              className="flex h-full w-full"
+              className="absolute inset-0 overflow-hidden will-change-[clip-path]"
               style={{
-                transform: `translateX(-${pos * 100}%)`,
-                transition: animate
-                  ? "transform 800ms cubic-bezier(0.7, 0, 0.2, 1)"
-                  : "none",
+                clipPath: clip,
+                WebkitClipPath: clip,
+                transition: revealed ? "clip-path 900ms cubic-bezier(0.76, 0, 0.24, 1)" : "none",
+                boxShadow: "inset 0 0 120px 0 rgba(0,0,0,0.55)",
               }}
               onTransitionEnd={handleTransitionEnd}
             >
-              {track.map((d, i) => (
-                <img
-                  key={`${d.id}-${i}`}
-                  src={d.profilePhotoUrl!}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-full w-full shrink-0 object-cover"
-                />
-              ))}
+              <img
+                src={HERO_IMAGES[incoming.index]}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{
+                  transform: revealed ? "scale(1)" : "scale(1.12)",
+                  transition: revealed ? "transform 1200ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
+                }}
+              />
             </div>
-          ) : (
-            <img src={HERO_FALLBACK} alt="HookahDolls lounge" className="absolute inset-0 h-full w-full object-cover" />
           )}
           {/* Brand color wash + legibility gradients */}
           <div className="absolute inset-0 bg-secondary/10 mix-blend-overlay" />
@@ -136,25 +182,38 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/30 to-transparent" />
         </div>
 
-        {/* Carousel arrows */}
-        {hasLoop && (
-          <>
-            <button
-              onClick={() => go(-1)}
-              aria-label="Previous"
-              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-            <button
-              onClick={() => go(1)}
-              aria-label="Next"
-              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-          </>
-        )}
+        {/* Carousel arrows with hover-preview bubbles */}
+        <div className="group absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20">
+          <button
+            onClick={() => go(-1)}
+            aria-label="Previous slide"
+            className="h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-4 origin-bottom opacity-0 scale-50 translate-y-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0">
+            <div className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-primary/70 shadow-[0_0_30px_rgba(212,175,55,0.45)] ring-4 ring-primary/10">
+              <img src={HERO_IMAGES[prevIndex]} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+              <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
+            </div>
+          </div>
+        </div>
+
+        <div className="group absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20">
+          <button
+            onClick={() => go(1)}
+            aria-label="Next slide"
+            className="h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+          <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-4 origin-bottom opacity-0 scale-50 translate-y-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0">
+            <div className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-primary/70 shadow-[0_0_30px_rgba(212,175,55,0.45)] ring-4 ring-primary/10">
+              <img src={HERO_IMAGES[nextIndex]} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+              <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
+            </div>
+          </div>
+        </div>
 
         {/* Hero copy */}
         <div className="relative z-10 h-full container mx-auto px-4 flex flex-col justify-end pb-16 md:pb-24">
@@ -195,38 +254,19 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Spotlight chip (active doll) */}
-        {current && (
-          <Link
-            href={`/dolls/${current.id}`}
-            className="hidden lg:flex absolute right-8 top-1/2 -translate-y-1/2 z-20 items-center gap-4 max-w-xs group"
-          >
-            <div className="relative h-16 w-16 shrink-0 rounded-full overflow-hidden border-2 border-primary/60 shadow-[0_0_25px_rgba(212,175,55,0.35)]">
-              <img src={current.profilePhotoUrl!} alt={current.stageName} className="h-full w-full object-cover" />
-            </div>
-            <p className="text-white/90 text-sm leading-snug">
-              <span className="font-serif text-primary text-base">{current.stageName}</span> is lighting up{" "}
-              {current.city}, {current.state}
-              <ArrowRight className="inline-block ml-1 h-4 w-4 -translate-y-px group-hover:translate-x-1 transition-transform" />
-            </p>
-          </Link>
-        )}
-
         {/* Slide indicators */}
-        {hasLoop && (
-          <div className="absolute bottom-8 right-8 z-20 hidden md:flex items-center gap-2">
-            {slides.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => goTo(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === realIndex ? "w-8 bg-primary" : "w-3 bg-white/30 hover:bg-white/60"
-                }`}
-              />
-            ))}
-          </div>
-        )}
+        <div className="absolute bottom-8 right-8 z-20 hidden md:flex items-center gap-2">
+          {HERO_IMAGES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${
+                i === current ? "w-8 bg-primary" : "w-3 bg-white/30 hover:bg-white/60"
+              }`}
+            />
+          ))}
+        </div>
 
         {/* Scroll cue */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/50 animate-bounce hidden md:block">
@@ -303,8 +343,8 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {slides.length > 0 ? (
-              slides.slice(0, 4).map((doll) => (
+            {dolls.length > 0 ? (
+              dolls.slice(0, 4).map((doll) => (
                 <Link key={doll.id} href={`/dolls/${doll.id}`} className="group block">
                   <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] bg-card">
                     <img

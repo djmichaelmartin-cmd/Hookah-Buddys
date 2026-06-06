@@ -54,3 +54,33 @@ id = "W-ansFCDlezIlrYIUm54E"
 uri = "file://artifacts/web/public/dolls/hero.png"
 type = "image"
 title = "generated_image"
+
+[[generated]]
+id = "HwnKABMvQ7s02rC2gO5va"
+uri = "file://artifacts/web/public/lounge/lounge1.png"
+type = "image"
+title = "lounge hookah one"
+
+[[generated]]
+id = "RshcL7aGlCX9FbH8CCrUU"
+uri = "file://artifacts/web/public/lounge/lounge2.png"
+type = "image"
+title = "lounge hookah two"
+
+[[generated]]
+id = "HPkTU0V2Kj9EcGF3z4t1a"
+uri = "file://artifacts/web/public/lounge/lounge3.png"
+type = "image"
+title = "lounge hookah three"
+
+[[generated]]
+id = "7xSuF8qBcEf3Kcnqd5RBK"
+uri = "file://artifacts/web/public/lounge/lounge4.png"
+type = "image"
+title = "lounge hookah four"
+
+[[generated]]
+id = "Kbqe6YbHz-cVf3OXfhAxY"
+uri = "file://artifacts/web/public/lounge/lounge5.png"
+type = "image"
+title = "lounge hookah five"
