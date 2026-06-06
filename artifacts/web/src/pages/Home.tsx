@@ -1,6 +1,13 @@
 import { Layout } from "@/components/Layout";
 import { Link } from "wouter";
-import { useState, useEffect, useCallback, useRef, type TransitionEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type TransitionEvent,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { useListFeaturedDolls } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +40,10 @@ export default function Home() {
   const [incoming, setIncoming] = useState<{ index: number; dir: 1 | -1 } | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [reduced, setReduced] = useState(false);
+  // Cursor-tracking preview bubble over the hero.
+  const [pointer, setPointer] = useState<{ x: number; y: number; dir: 1 | -1 } | null>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const pointerRaf = useRef<number | null>(null);
   const moving = useRef(false);
   const currentRef = useRef(0);
   const incomingRef = useRef(incoming);
@@ -148,10 +159,47 @@ export default function Home() {
   // Each panel opens vertically from its center outward when revealed.
   const panelClip = revealed ? "inset(0 0 0 0)" : "inset(50% 0 50% 0)";
 
+  // Track the cursor over the hero so the preview bubble can follow it. The
+  // left half previews the previous slide; the right half previews the next.
+  const onHeroMove = (e: ReactMouseEvent<HTMLElement>) => {
+    const rect = heroRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const dir: 1 | -1 = x < rect.width / 2 ? -1 : 1;
+    // Throttle pointer updates to one per animation frame to avoid re-rendering
+    // the hero on every raw mousemove event.
+    if (pointerRaf.current !== null) return;
+    pointerRaf.current = requestAnimationFrame(() => {
+      pointerRaf.current = null;
+      setPointer({ x, y, dir });
+    });
+  };
+  const onHeroLeave = () => {
+    if (pointerRaf.current !== null) {
+      cancelAnimationFrame(pointerRaf.current);
+      pointerRaf.current = null;
+    }
+    setPointer(null);
+  };
+  // Click an empty area of the hero to navigate (ignore clicks on buttons/links).
+  const onHeroClick = (e: ReactMouseEvent<HTMLElement>) => {
+    if ((e.target as HTMLElement).closest("a,button")) return;
+    const rect = heroRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    go(e.clientX - rect.left < rect.width / 2 ? -1 : 1);
+  };
+
   return (
     <Layout>
       {/* ============ HERO (Patreon-style reveal carousel) ============ */}
-      <section className="relative h-[calc(100svh-5rem)] min-h-[600px] w-full overflow-hidden">
+      <section
+        ref={heroRef}
+        onMouseMove={onHeroMove}
+        onMouseLeave={onHeroLeave}
+        onClick={onHeroClick}
+        className="relative h-[calc(100svh-5rem)] min-h-[600px] w-full overflow-hidden md:cursor-pointer"
+      >
         {/* Slides */}
         <div className="absolute inset-0">
           {/* Current image */}
@@ -208,40 +256,44 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/30 to-transparent" />
         </div>
 
-        {/* Carousel arrows with hover-preview bubbles */}
-        <div className="group absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20">
-          <button
-            onClick={() => go(-1)}
-            aria-label="Previous slide"
-            className="h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <div className="pointer-events-none absolute left-full ml-4 top-1/2 -translate-y-1/2 origin-left opacity-0 scale-75 -translate-x-3 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0">
-            <div className="relative h-32 w-32 rounded-full overflow-hidden border-2 border-primary/70 shadow-[0_0_40px_rgba(212,175,55,0.5)] ring-4 ring-primary/10">
-              <img src={HERO_IMAGES[prevIndex]} alt="" aria-hidden="true" className="h-full w-full object-cover" />
-              <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
-              <span className="absolute inset-x-0 bottom-0 text-center text-[10px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/70 to-transparent pb-1.5 pt-3">Prev</span>
-            </div>
-          </div>
-        </div>
+        {/* Carousel arrows */}
+        <button
+          onClick={() => go(-1)}
+          aria-label="Previous slide"
+          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <button
+          onClick={() => go(1)}
+          aria-label="Next slide"
+          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
 
-        <div className="group absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20">
-          <button
-            onClick={() => go(1)}
-            aria-label="Next slide"
-            className="h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
+        {/* Living preview bubble that follows the cursor across the hero —
+            previous slide on the left half, next slide on the right half. */}
+        {pointer && (
+          <div
+            className="pointer-events-none absolute z-30 hidden md:block"
+            style={{ left: pointer.x, top: pointer.y, transform: "translate(-50%, -50%)" }}
           >
-            <ChevronRight className="h-6 w-6" />
-          </button>
-          <div className="pointer-events-none absolute right-full mr-4 top-1/2 -translate-y-1/2 origin-right opacity-0 scale-75 translate-x-3 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0">
-            <div className="relative h-32 w-32 rounded-full overflow-hidden border-2 border-primary/70 shadow-[0_0_40px_rgba(212,175,55,0.5)] ring-4 ring-primary/10">
-              <img src={HERO_IMAGES[nextIndex]} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+            <div className="relative h-32 w-32 rounded-full overflow-hidden border-2 border-primary/80 shadow-[0_0_45px_rgba(212,175,55,0.55)] ring-4 ring-primary/10 animate-in fade-in zoom-in-75 duration-200">
+              <img
+                src={HERO_IMAGES[pointer.dir === -1 ? prevIndex : nextIndex]}
+                alt=""
+                aria-hidden="true"
+                className="h-full w-full object-cover"
+              />
               <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
-              <span className="absolute inset-x-0 bottom-0 text-center text-[10px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/70 to-transparent pb-1.5 pt-3">Next</span>
+              <span className="pointer-events-none absolute -inset-1 rounded-full ring-1 ring-primary/40 animate-pulse" />
+              <span className="absolute inset-x-0 bottom-0 text-center text-[10px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/70 to-transparent pb-1.5 pt-4">
+                {pointer.dir === -1 ? "Prev" : "Next"}
+              </span>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Hero copy */}
         <div className="relative z-10 h-full container mx-auto px-4 flex flex-col justify-end pb-16 md:pb-24">
