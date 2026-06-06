@@ -279,18 +279,19 @@ export default function Home() {
             className="pointer-events-none absolute z-30 hidden md:block"
             style={{ left: pointer.x, top: pointer.y, transform: "translate(-50%, -50%)" }}
           >
-            <div className="relative h-32 w-32 rounded-full overflow-hidden border-2 border-primary/80 shadow-[0_0_45px_rgba(212,175,55,0.55)] ring-4 ring-primary/10 animate-in fade-in zoom-in-75 duration-200">
-              <img
-                src={HERO_IMAGES[pointer.dir === -1 ? prevIndex : nextIndex]}
-                alt=""
-                aria-hidden="true"
-                className="h-full w-full object-cover"
-              />
-              <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
-              <span className="pointer-events-none absolute -inset-1 rounded-full ring-1 ring-primary/40 animate-pulse" />
-              <span className="absolute inset-x-0 bottom-0 text-center text-[10px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/70 to-transparent pb-1.5 pt-4">
-                {pointer.dir === -1 ? "Prev" : "Next"}
-              </span>
+            <div className="animate-in fade-in zoom-in-75 duration-200">
+              <div className="animate-blob relative h-32 w-32 overflow-hidden border-2 border-primary/80 shadow-[0_0_45px_rgba(212,175,55,0.55)]">
+                <img
+                  src={HERO_IMAGES[pointer.dir === -1 ? prevIndex : nextIndex]}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-full w-full object-cover"
+                />
+                <span className="animate-blob absolute inset-0 ring-1 ring-inset ring-white/20" />
+                <span className="absolute inset-x-0 bottom-0 text-center text-[10px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/70 to-transparent pb-1.5 pt-4">
+                  {pointer.dir === -1 ? "Prev" : "Next"}
+                </span>
+              </div>
             </div>
           </div>
         )}
