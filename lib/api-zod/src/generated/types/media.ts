@@ -19,6 +19,7 @@ export interface Media {
   containsHookah: boolean;
   premium: boolean;
   price?: number;
+  locked?: boolean;
   /** @nullable */
   moderationNotes?: string | null;
   dollName?: string;

@@ -12,5 +12,6 @@ import type { Media } from './media';
 export type DollDetail = Doll & {
   verificationStatus?: DollDetailVerificationStatus;
   isFavorited?: boolean;
+  viewerSubscribed?: boolean;
   media?: Media[];
 };

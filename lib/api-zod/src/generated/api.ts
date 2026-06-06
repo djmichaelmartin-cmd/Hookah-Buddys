@@ -240,6 +240,7 @@ export const GetDollResponse = zod.object({
 }).and(zod.object({
   "verificationStatus": zod.enum(['unverified', 'pending', 'approved', 'rejected']).optional(),
   "isFavorited": zod.boolean().optional(),
+  "viewerSubscribed": zod.boolean().optional(),
   "media": zod.array(zod.object({
   "id": zod.number(),
   "dollId": zod.number(),
@@ -251,6 +252,7 @@ export const GetDollResponse = zod.object({
   "containsHookah": zod.boolean(),
   "premium": zod.boolean(),
   "price": zod.number().optional(),
+  "locked": zod.boolean().optional(),
   "moderationNotes": zod.string().nullish(),
   "dollName": zod.string().optional(),
   "createdAt": zod.string().optional()
@@ -290,6 +292,7 @@ export const GetMyDollProfileResponse = zod.object({
 }).and(zod.object({
   "verificationStatus": zod.enum(['unverified', 'pending', 'approved', 'rejected']).optional(),
   "isFavorited": zod.boolean().optional(),
+  "viewerSubscribed": zod.boolean().optional(),
   "media": zod.array(zod.object({
   "id": zod.number(),
   "dollId": zod.number(),
@@ -301,6 +304,7 @@ export const GetMyDollProfileResponse = zod.object({
   "containsHookah": zod.boolean(),
   "premium": zod.boolean(),
   "price": zod.number().optional(),
+  "locked": zod.boolean().optional(),
   "moderationNotes": zod.string().nullish(),
   "dollName": zod.string().optional(),
   "createdAt": zod.string().optional()
@@ -356,6 +360,7 @@ export const UpdateMyDollProfileResponse = zod.object({
 }).and(zod.object({
   "verificationStatus": zod.enum(['unverified', 'pending', 'approved', 'rejected']).optional(),
   "isFavorited": zod.boolean().optional(),
+  "viewerSubscribed": zod.boolean().optional(),
   "media": zod.array(zod.object({
   "id": zod.number(),
   "dollId": zod.number(),
@@ -367,6 +372,7 @@ export const UpdateMyDollProfileResponse = zod.object({
   "containsHookah": zod.boolean(),
   "premium": zod.boolean(),
   "price": zod.number().optional(),
+  "locked": zod.boolean().optional(),
   "moderationNotes": zod.string().nullish(),
   "dollName": zod.string().optional(),
   "createdAt": zod.string().optional()
@@ -428,6 +434,7 @@ export const ListMyMediaResponseItem = zod.object({
   "containsHookah": zod.boolean(),
   "premium": zod.boolean(),
   "price": zod.number().optional(),
+  "locked": zod.boolean().optional(),
   "moderationNotes": zod.string().nullish(),
   "dollName": zod.string().optional(),
   "createdAt": zod.string().optional()
@@ -449,6 +456,7 @@ export const ListPendingMediaResponseItem = zod.object({
   "containsHookah": zod.boolean(),
   "premium": zod.boolean(),
   "price": zod.number().optional(),
+  "locked": zod.boolean().optional(),
   "moderationNotes": zod.string().nullish(),
   "dollName": zod.string().optional(),
   "createdAt": zod.string().optional()
@@ -479,6 +487,7 @@ export const ModerateMediaResponse = zod.object({
   "containsHookah": zod.boolean(),
   "premium": zod.boolean(),
   "price": zod.number().optional(),
+  "locked": zod.boolean().optional(),
   "moderationNotes": zod.string().nullish(),
   "dollName": zod.string().optional(),
   "createdAt": zod.string().optional()
@@ -769,6 +778,7 @@ export const ListUnlocksResponseItem = zod.object({
   "containsHookah": zod.boolean(),
   "premium": zod.boolean(),
   "price": zod.number().optional(),
+  "locked": zod.boolean().optional(),
   "moderationNotes": zod.string().nullish(),
   "dollName": zod.string().optional(),
   "createdAt": zod.string().optional()

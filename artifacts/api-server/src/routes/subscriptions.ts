@@ -42,6 +42,14 @@ router.post("/subscriptions", requireAuth("member"), async (req, res): Promise<v
     res.status(404).json({ error: "Plan not found" });
     return;
   }
+  if (plan.audience !== "member") {
+    res.status(400).json({ error: "Members can only subscribe to member plans" });
+    return;
+  }
+  if (parsed.data.dollId && plan.tier === "free") {
+    res.status(400).json({ error: "A paid membership is required to subscribe to a Doll" });
+    return;
+  }
   const [sub] = await db
     .insert(subscriptionsTable)
     .values({

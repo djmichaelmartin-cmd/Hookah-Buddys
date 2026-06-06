@@ -6,6 +6,9 @@ import {
   mediaTable,
   favoritesTable,
   verificationsTable,
+  subscriptionsTable,
+  contentUnlocksTable,
+  plansTable,
 } from "@workspace/db";
 import { ListDollsQueryParams, GetDollParams, UpdateMyDollProfileBody } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
@@ -154,13 +157,50 @@ router.get("/dolls/:id", async (req, res): Promise<void> => {
   const counts = await getDollCounts(id);
   const base = toDollResponse(doll, counts);
 
+  const sessionUser = await getSessionUser(req);
+
+  let viewerSubscribed = false;
+  const unlockedMediaIds = new Set<number>();
+  if (sessionUser && sessionUser.role === "member") {
+    const subs = await db
+      .select({ tier: plansTable.tier, audience: plansTable.audience })
+      .from(subscriptionsTable)
+      .innerJoin(plansTable, eq(subscriptionsTable.planId, plansTable.id))
+      .where(
+        and(
+          eq(subscriptionsTable.memberUserId, sessionUser.id),
+          eq(subscriptionsTable.dollId, id),
+          eq(subscriptionsTable.status, "active"),
+        ),
+      );
+    viewerSubscribed = subs.some((s) => s.audience === "member" && s.tier !== "free");
+
+    const unlocks = await db
+      .select({ mediaId: contentUnlocksTable.mediaId })
+      .from(contentUnlocksTable)
+      .where(
+        and(
+          eq(contentUnlocksTable.memberUserId, sessionUser.id),
+          eq(contentUnlocksTable.dollId, id),
+        ),
+      );
+    for (const u of unlocks) unlockedMediaIds.add(u.mediaId);
+  }
+
+  const isOwner = sessionUser?.role === "doll" && sessionUser.id === doll.userId;
+  const isAdmin = sessionUser?.role === "admin";
+  const hasFullAccess = isOwner || isAdmin || viewerSubscribed;
+
   const mediaRows = await db
     .select()
     .from(mediaTable)
     .where(and(eq(mediaTable.dollId, id), eq(mediaTable.status, "approved")));
   const media = mediaRows
     .filter((m) => m.type !== "verification")
-    .map((m) => toMediaResponse(m, doll.stageName));
+    .map((m) => {
+      const locked = m.premium && !hasFullAccess && !unlockedMediaIds.has(m.id);
+      return toMediaResponse(m, doll.stageName, locked);
+    });
 
   const [verification] = await db
     .select()
@@ -175,7 +215,6 @@ router.get("/dolls/:id", async (req, res): Promise<void> => {
       : "unverified";
 
   let isFavorited = false;
-  const sessionUser = await getSessionUser(req);
   if (sessionUser && sessionUser.role === "member") {
     const [fav] = await db
       .select()
@@ -184,7 +223,7 @@ router.get("/dolls/:id", async (req, res): Promise<void> => {
     isFavorited = !!fav;
   }
 
-  res.json({ ...base, verificationStatus, isFavorited, media });
+  res.json({ ...base, verificationStatus, isFavorited, viewerSubscribed, media });
 });
 
 export default router;

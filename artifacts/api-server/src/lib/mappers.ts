@@ -54,7 +54,7 @@ export function toDollResponse(doll: Doll, counts: DollCounts) {
   };
 }
 
-export function toMediaResponse(media: Media, dollName?: string) {
+export function toMediaResponse(media: Media, dollName?: string, locked = false) {
   return {
     id: media.id,
     dollId: media.dollId,
@@ -65,13 +65,14 @@ export function toMediaResponse(media: Media, dollName?: string) {
       | "premium_video"
       | "short_video"
       | "verification",
-    url: media.url ?? "",
+    url: locked ? "" : (media.url ?? ""),
     thumbnailUrl: media.thumbnailUrl ?? "",
     caption: media.caption ?? "",
     status: media.status as "pending_review" | "approved" | "rejected",
     containsHookah: media.containsHookah,
     premium: media.premium,
     price: media.price,
+    locked,
     moderationNotes: media.moderationNotes ?? null,
     dollName: dollName ?? "",
     createdAt: iso(media.createdAt),

@@ -978,6 +978,7 @@ components:
           properties:
             verificationStatus: { type: string, enum: [unverified, pending, approved, rejected] }
             isFavorited: { type: boolean }
+            viewerSubscribed: { type: boolean }
             media:
               type: array
               items:
@@ -1033,6 +1034,7 @@ components:
         containsHookah: { type: boolean }
         premium: { type: boolean }
         price: { type: number }
+        locked: { type: boolean }
         moderationNotes: { type: ["string", "null"] }
         dollName: { type: string }
         createdAt: { type: string }

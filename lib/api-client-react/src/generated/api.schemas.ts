@@ -182,6 +182,7 @@ export interface Media {
   containsHookah: boolean;
   premium: boolean;
   price?: number;
+  locked?: boolean;
   /** @nullable */
   moderationNotes?: string | null;
   dollName?: string;
@@ -191,6 +192,7 @@ export interface Media {
 export type DollDetail = Doll & {
   verificationStatus?: DollDetailVerificationStatus;
   isFavorited?: boolean;
+  viewerSubscribed?: boolean;
   media?: Media[];
 };
 

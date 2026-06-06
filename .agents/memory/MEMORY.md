@@ -1,1 +1,2 @@
 - [connect-pg-simple session table](connect-pg-simple-table.md) — createTableIfMissing ignores custom tableName; define the session table in Drizzle and push it.
+- [Premium content entitlement](premium-content-gating.md) — gate premium media by subscription PLAN tier (join plans), not by sub-row existence; blank locked URLs server-side.
