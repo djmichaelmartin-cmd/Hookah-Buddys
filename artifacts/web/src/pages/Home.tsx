@@ -595,6 +595,18 @@ export default function Home() {
                       className="object-cover w-full h-full opacity-90 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                    <div className="absolute top-3 left-3 flex flex-col gap-2 items-start">
+                      {doll.featured && (
+                        <Badge className="bg-secondary/25 text-secondary border-secondary/50 backdrop-blur-md text-[10px] gap-1">
+                          <Star className="h-3 w-3 fill-current" /> Featured
+                        </Badge>
+                      )}
+                      {doll.verified && (
+                        <Badge className="bg-primary/20 text-primary border-primary/50 backdrop-blur-md text-[10px] gap-1">
+                          <ShieldCheck className="h-3 w-3" /> Verified
+                        </Badge>
+                      )}
+                    </div>
                     <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
                       {doll.online && (
                         <Badge className="bg-green-500/20 text-green-400 border-green-500/50 backdrop-blur-md text-[10px]">
@@ -617,6 +629,12 @@ export default function Home() {
                       <p className="text-xs text-muted-foreground">
                         {doll.city}, {doll.state}
                       </p>
+                      <Button
+                        size="sm"
+                        className="mt-3 w-full bg-white/10 hover:bg-primary text-white hover:text-primary-foreground border border-white/15 hover:border-primary backdrop-blur-md font-medium tracking-wide uppercase text-[11px] transition-all"
+                      >
+                        View Profile <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
                 </Link>
