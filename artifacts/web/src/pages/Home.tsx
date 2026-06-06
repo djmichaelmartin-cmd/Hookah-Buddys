@@ -371,7 +371,7 @@ export default function Home() {
           aria-label="Scroll to next section"
           className="absolute bottom-8 right-8 z-20 text-white animate-scroll-cue drop-shadow-[0_2px_12px_rgba(0,0,0,0.75)] hidden md:block"
         >
-          <ArrowDown className="h-16 w-16" strokeWidth={2.75} />
+          <ArrowDown className="h-24 w-24" strokeWidth={2.5} />
         </button>
       </section>
 
