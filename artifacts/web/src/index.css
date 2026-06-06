@@ -326,3 +326,33 @@
     animation: none;
   }
 }
+
+/* Bold scroll cue: drifts down while fading out, then reappears at the top. */
+@keyframes scroll-cue {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  25% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.animate-scroll-cue {
+  animation: scroll-cue 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-cue {
+    animation: none;
+    opacity: 0.8;
+  }
+}

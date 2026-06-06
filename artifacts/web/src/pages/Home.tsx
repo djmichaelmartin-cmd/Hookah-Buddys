@@ -365,10 +365,14 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Scroll cue */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/50 animate-bounce hidden md:block">
-          <ArrowDown className="h-6 w-6" />
-        </div>
+        {/* Scroll cue — bold white arrow that drifts down, fades out and reappears */}
+        <button
+          onClick={() => window.scrollBy({ top: window.innerHeight * 0.9, behavior: "smooth" })}
+          aria-label="Scroll to next section"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white animate-scroll-cue drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] hidden md:block"
+        >
+          <ArrowDown className="h-9 w-9" strokeWidth={3} />
+        </button>
       </section>
 
       {/* ============ TRUST STRIP ============ */}
