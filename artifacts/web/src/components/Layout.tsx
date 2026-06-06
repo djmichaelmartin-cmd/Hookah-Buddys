@@ -9,7 +9,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary/30 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/30 selection:text-white">
       <div className="fixed inset-0 pointer-events-none opacity-20 mix-blend-screen bg-[radial-gradient(ellipse_at_top_right,var(--primary),transparent_50%),radial-gradient(ellipse_at_bottom_left,var(--secondary),transparent_50%)]" />
       <div className="fixed inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
       

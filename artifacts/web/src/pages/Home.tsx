@@ -151,7 +151,7 @@ export default function Home() {
   return (
     <Layout>
       {/* ============ HERO (Patreon-style reveal carousel) ============ */}
-      <section className="relative h-[calc(100svh-4rem)] min-h-[600px] w-full overflow-hidden">
+      <section className="relative h-[calc(100svh-5rem)] min-h-[600px] w-full overflow-hidden">
         {/* Slides */}
         <div className="absolute inset-0">
           {/* Current image */}
