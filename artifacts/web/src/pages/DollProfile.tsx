@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { useGetDoll } from "@workspace/api-client-react";
+import { useGetDoll, getGetDollQueryKey } from "@workspace/api-client-react";
 import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, MessageSquare, Video, Star } from "lucide-react";
@@ -7,7 +7,7 @@ import { ShieldCheck, MessageSquare, Video, Star } from "lucide-react";
 export default function DollProfile() {
   const { id } = useParams();
   const dollId = parseInt(id || "0", 10);
-  const { data: doll, isLoading } = useGetDoll(dollId, { query: { enabled: !!dollId } });
+  const { data: doll, isLoading } = useGetDoll(dollId, { query: { enabled: !!dollId, queryKey: getGetDollQueryKey(dollId) } });
 
   if (isLoading) return <Layout><div className="container p-12 text-center text-muted-foreground">Loading...</div></Layout>;
   if (!doll) return <Layout><div className="container p-12 text-center text-muted-foreground">Doll not found</div></Layout>;

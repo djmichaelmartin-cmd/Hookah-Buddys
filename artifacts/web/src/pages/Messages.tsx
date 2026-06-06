@@ -11,7 +11,7 @@ export default function Messages() {
   const { data: threads } = useListThreads();
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
   
-  const { data: messages } = useListMessages(activeThreadId || 0, { query: { enabled: !!activeThreadId } });
+  const { data: messages } = useListMessages(activeThreadId || 0, { query: { enabled: !!activeThreadId, queryKey: getListMessagesQueryKey(activeThreadId || 0) } });
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState("");
 
@@ -20,7 +20,8 @@ export default function Messages() {
     if (!activeThreadId || !newMessage.trim()) return;
 
     sendMessage.mutate({
-      data: { body: newMessage, threadId: activeThreadId } as any // Simplified for demo
+      id: activeThreadId,
+      data: { body: newMessage }
     }, {
       onSuccess: () => {
         setNewMessage("");

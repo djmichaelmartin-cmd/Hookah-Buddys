@@ -1,0 +1,481 @@
+import bcrypt from "bcryptjs";
+import {
+  db,
+  pool,
+  usersTable,
+  dollsTable,
+  mediaTable,
+  verificationsTable,
+  plansTable,
+  creditBalancesTable,
+  subscriptionsTable,
+  creditTransactionsTable,
+  favoritesTable,
+  messagesTable,
+  messageThreadsTable,
+  contentUnlocksTable,
+  videoChatsTable,
+  boostsTable,
+  reportsTable,
+  contactMessagesTable,
+} from "@workspace/db";
+
+async function hash(plain: string) {
+  return bcrypt.hash(plain, 10);
+}
+
+const PHOTO = (n: number) => `/dolls/doll${n}.png`;
+
+type DollSeed = {
+  email: string;
+  name: string;
+  stageName: string;
+  city: string;
+  state: string;
+  age: number;
+  bio: string;
+  favoriteFlavor: string;
+  experienceLevel: string;
+  photo: number;
+  verified: boolean;
+  featured: boolean;
+  elite: boolean;
+  online: boolean;
+  videoChat: boolean;
+  tier: string;
+  subscriptionPrice: number;
+  messagePrice: number;
+  videoChatRate: number;
+  profileViews: number;
+};
+
+const DOLLS: DollSeed[] = [
+  {
+    email: "scarlett@hookahdolls.com",
+    name: "Scarlett Vance",
+    stageName: "Scarlett",
+    city: "Miami",
+    state: "FL",
+    age: 26,
+    bio: "Lounge queen with a love for thick clouds and slow nights. Double-apple devotee. Pull up a seat, the coals are hot.",
+    favoriteFlavor: "Double Apple",
+    experienceLevel: "Expert",
+    photo: 1,
+    verified: true,
+    featured: true,
+    elite: true,
+    online: true,
+    videoChat: true,
+    tier: "elite",
+    subscriptionPrice: 24.99,
+    messagePrice: 2,
+    videoChatRate: 6,
+    profileViews: 4820,
+  },
+  {
+    email: "luna@hookahdolls.com",
+    name: "Luna Reyes",
+    stageName: "Luna",
+    city: "Las Vegas",
+    state: "NV",
+    age: 24,
+    bio: "Vegas nights, mint smoke, and good vibes only. I host the smoothest sessions in the desert.",
+    favoriteFlavor: "Blue Mist",
+    experienceLevel: "Advanced",
+    photo: 2,
+    verified: true,
+    featured: true,
+    elite: false,
+    online: true,
+    videoChat: true,
+    tier: "featured",
+    subscriptionPrice: 19.99,
+    messagePrice: 2,
+    videoChatRate: 5,
+    profileViews: 3110,
+  },
+  {
+    email: "aria@hookahdolls.com",
+    name: "Aria Knox",
+    stageName: "Aria",
+    city: "Los Angeles",
+    state: "CA",
+    age: 27,
+    bio: "Rose-gold everything. Sunset sessions on the rooftop with a perfectly packed bowl.",
+    favoriteFlavor: "Watermelon Mint",
+    experienceLevel: "Expert",
+    photo: 3,
+    verified: true,
+    featured: true,
+    elite: false,
+    online: false,
+    videoChat: true,
+    tier: "featured",
+    subscriptionPrice: 21.99,
+    messagePrice: 2,
+    videoChatRate: 5,
+    profileViews: 2740,
+  },
+  {
+    email: "noir@hookahdolls.com",
+    name: "Noir Sinclair",
+    stageName: "Noir",
+    city: "New York",
+    state: "NY",
+    age: 25,
+    bio: "Midnight in Manhattan. Sleek, mysterious, and always wrapped in smoke.",
+    favoriteFlavor: "Grape Mint",
+    experienceLevel: "Advanced",
+    photo: 4,
+    verified: true,
+    featured: false,
+    elite: true,
+    online: true,
+    videoChat: false,
+    tier: "elite",
+    subscriptionPrice: 22.99,
+    messagePrice: 3,
+    videoChatRate: 0,
+    profileViews: 1980,
+  },
+  {
+    email: "jade@hookahdolls.com",
+    name: "Jade Monroe",
+    stageName: "Jade",
+    city: "Houston",
+    state: "TX",
+    age: 23,
+    bio: "Southern charm and champagne clouds. Let's make some memories in the lounge.",
+    favoriteFlavor: "Peach",
+    experienceLevel: "Intermediate",
+    photo: 5,
+    verified: true,
+    featured: false,
+    elite: false,
+    online: true,
+    videoChat: true,
+    tier: "premium",
+    subscriptionPrice: 16.99,
+    messagePrice: 1,
+    videoChatRate: 4,
+    profileViews: 1450,
+  },
+  {
+    email: "ivy@hookahdolls.com",
+    name: "Ivy Laurent",
+    stageName: "Ivy",
+    city: "Chicago",
+    state: "IL",
+    age: 28,
+    bio: "Velvet, burgundy, and slow exhales. The windy city's coziest session host.",
+    favoriteFlavor: "Cherry",
+    experienceLevel: "Advanced",
+    photo: 6,
+    verified: true,
+    featured: false,
+    elite: false,
+    online: false,
+    videoChat: false,
+    tier: "premium",
+    subscriptionPrice: 15.99,
+    messagePrice: 1,
+    videoChatRate: 0,
+    profileViews: 1120,
+  },
+  {
+    email: "zara@hookahdolls.com",
+    name: "Zara Bello",
+    stageName: "Zara",
+    city: "Atlanta",
+    state: "GA",
+    age: 25,
+    bio: "Gold accents and good energy. ATL's brightest doll, always down for a smooth session.",
+    favoriteFlavor: "Mango Tango",
+    experienceLevel: "Expert",
+    photo: 7,
+    verified: true,
+    featured: true,
+    elite: false,
+    online: true,
+    videoChat: true,
+    tier: "featured",
+    subscriptionPrice: 18.99,
+    messagePrice: 2,
+    videoChatRate: 5,
+    profileViews: 2360,
+  },
+  {
+    email: "mila@hookahdolls.com",
+    name: "Mila Sokolova",
+    stageName: "Mila",
+    city: "Scottsdale",
+    state: "AZ",
+    age: 24,
+    bio: "Satin and smoke. Desert sunsets pair best with a tall glass and a fresh bowl.",
+    favoriteFlavor: "Lemon Mint",
+    experienceLevel: "Intermediate",
+    photo: 8,
+    verified: true,
+    featured: false,
+    elite: false,
+    online: false,
+    videoChat: true,
+    tier: "premium",
+    subscriptionPrice: 14.99,
+    messagePrice: 1,
+    videoChatRate: 4,
+    profileViews: 870,
+  },
+];
+
+async function clear() {
+  await db.delete(contactMessagesTable);
+  await db.delete(reportsTable);
+  await db.delete(boostsTable);
+  await db.delete(videoChatsTable);
+  await db.delete(contentUnlocksTable);
+  await db.delete(messagesTable);
+  await db.delete(messageThreadsTable);
+  await db.delete(favoritesTable);
+  await db.delete(creditTransactionsTable);
+  await db.delete(creditBalancesTable);
+  await db.delete(subscriptionsTable);
+  await db.delete(verificationsTable);
+  await db.delete(mediaTable);
+  await db.delete(dollsTable);
+  await db.delete(plansTable);
+  await db.delete(usersTable);
+}
+
+async function seedPlans() {
+  await db.insert(plansTable).values([
+    {
+      name: "I Love Dolls — Free",
+      audience: "member",
+      price: 0,
+      interval: "month",
+      tier: "free",
+      description: "Browse verified Dolls and preview free content.",
+      features: ["Browse all verified Dolls", "View free photos", "Add favorites"],
+      highlighted: false,
+    },
+    {
+      name: "I Love Dolls — Premium",
+      audience: "member",
+      price: 19.99,
+      interval: "month",
+      tier: "premium",
+      description: "Unlock messaging credits and premium galleries.",
+      features: [
+        "Everything in Free",
+        "Monthly message credits",
+        "Unlock premium photos & videos",
+        "Priority video chat booking",
+      ],
+      highlighted: true,
+    },
+    {
+      name: "Doll — Free",
+      audience: "doll",
+      price: 0,
+      interval: "month",
+      tier: "free",
+      description: "Get verified and start building your audience.",
+      features: ["Verified profile", "Upload free content", "Receive messages"],
+      highlighted: false,
+    },
+    {
+      name: "Doll — Premium",
+      audience: "doll",
+      price: 9.99,
+      interval: "month",
+      tier: "premium",
+      description: "Sell premium content and set your own prices.",
+      features: ["Everything in Free", "Premium content sales", "Custom pricing", "Basic analytics"],
+      highlighted: false,
+    },
+    {
+      name: "Doll — Featured",
+      audience: "doll",
+      price: 24.99,
+      interval: "month",
+      tier: "featured",
+      description: "Get top placement in browse and search.",
+      features: ["Everything in Premium", "Featured placement", "Boosted in search", "Advanced analytics"],
+      highlighted: true,
+    },
+    {
+      name: "Doll — Elite",
+      audience: "doll",
+      price: 49.99,
+      interval: "month",
+      tier: "elite",
+      description: "Maximum visibility and the Elite badge.",
+      features: [
+        "Everything in Featured",
+        "Elite badge",
+        "Highest ranking priority",
+        "Video chat tools",
+        "Dedicated support",
+      ],
+      highlighted: false,
+    },
+  ]);
+}
+
+async function seedDolls() {
+  for (const d of DOLLS) {
+    const [user] = await db
+      .insert(usersTable)
+      .values({
+        role: "doll",
+        name: d.name,
+        email: d.email,
+        passwordHash: await hash("password123"),
+        city: d.city,
+        state: d.state,
+        username: d.stageName.toLowerCase(),
+        accountStatus: "active",
+        ageConfirmed: true,
+        rulesAccepted: true,
+        profilePhotoUrl: PHOTO(d.photo),
+      })
+      .returning();
+
+    const [doll] = await db
+      .insert(dollsTable)
+      .values({
+        userId: user.id,
+        legalName: d.name,
+        stageName: d.stageName,
+        city: d.city,
+        state: d.state,
+        age: d.age,
+        bio: d.bio,
+        favoriteFlavor: d.favoriteFlavor,
+        experienceLevel: d.experienceLevel,
+        profilePhotoUrl: PHOTO(d.photo),
+        verificationPhotoUrl: PHOTO(d.photo),
+        verified: d.verified,
+        featured: d.featured,
+        elite: d.elite,
+        online: d.online,
+        availableForVideoChat: d.videoChat,
+        tier: d.tier,
+        applicationStatus: "approved",
+        subscriptionPrice: d.subscriptionPrice,
+        messagePrice: d.messagePrice,
+        videoChatRate: d.videoChatRate,
+        profileViews: d.profileViews,
+      })
+      .returning();
+
+    await db.update(usersTable).set({ dollId: doll.id }).where(eqUser(user.id));
+
+    await db.insert(verificationsTable).values({
+      dollId: doll.id,
+      governmentIdUrl: "https://placeholder.hookahdolls.com/id.jpg",
+      selfieUrl: PHOTO(d.photo),
+      hookahPhotoUrl: PHOTO(d.photo),
+      status: "approved",
+      notes: "Verified — visible hookah confirmed.",
+    });
+
+    await db.insert(mediaTable).values([
+      {
+        dollId: doll.id,
+        type: "free_photo",
+        url: PHOTO(d.photo),
+        thumbnailUrl: PHOTO(d.photo),
+        caption: `${d.stageName} in the lounge with her ${d.favoriteFlavor} bowl.`,
+        status: "approved",
+        containsHookah: true,
+        premium: false,
+        price: 0,
+      },
+      {
+        dollId: doll.id,
+        type: "premium_photo",
+        url: PHOTO(d.photo),
+        thumbnailUrl: PHOTO(d.photo),
+        caption: "Exclusive late-night set 🌙",
+        status: "approved",
+        containsHookah: true,
+        premium: true,
+        price: 4.99,
+      },
+      {
+        dollId: doll.id,
+        type: "premium_video",
+        url: PHOTO(d.photo),
+        thumbnailUrl: PHOTO(d.photo),
+        caption: "Smoke ring tutorial — premium clip",
+        status: "approved",
+        containsHookah: true,
+        premium: true,
+        price: 9.99,
+      },
+    ]);
+  }
+}
+
+async function seedAdminAndMembers() {
+  await db.insert(usersTable).values({
+    role: "admin",
+    name: "Platform Admin",
+    email: "admin@hookahdolls.com",
+    passwordHash: await hash("admin123"),
+    accountStatus: "active",
+    ageConfirmed: true,
+    rulesAccepted: true,
+  });
+
+  const members = [
+    { name: "Marcus Lee", email: "marcus@example.com", balance: 25 },
+    { name: "David Chen", email: "david@example.com", balance: 10 },
+  ];
+  for (const m of members) {
+    const [u] = await db
+      .insert(usersTable)
+      .values({
+        role: "member",
+        name: m.name,
+        email: m.email,
+        passwordHash: await hash("password123"),
+        accountStatus: "active",
+        ageConfirmed: true,
+        rulesAccepted: true,
+      })
+      .returning();
+    await db.insert(creditBalancesTable).values({ userId: u.id, balance: m.balance });
+    await db.insert(creditTransactionsTable).values({
+      userId: u.id,
+      amount: m.balance,
+      type: "purchase",
+      description: "Welcome credit pack",
+    });
+  }
+}
+
+import { eq } from "drizzle-orm";
+function eqUser(id: number) {
+  return eq(usersTable.id, id);
+}
+
+async function main() {
+  console.log("Clearing existing data...");
+  await clear();
+  console.log("Seeding plans...");
+  await seedPlans();
+  console.log("Seeding dolls...");
+  await seedDolls();
+  console.log("Seeding admin and members...");
+  await seedAdminAndMembers();
+  console.log("Seed complete.");
+  await pool.end();
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

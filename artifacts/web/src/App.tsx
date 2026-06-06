@@ -18,6 +18,10 @@ import Upload from "@/pages/Upload";
 import Verification from "@/pages/Verification";
 import Checkout from "@/pages/Checkout";
 import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
+import ContentRules from "@/pages/ContentRules";
+import RefundPolicy from "@/pages/RefundPolicy";
+import Contact from "@/pages/Contact";
 import Messages from "@/pages/Messages";
 import VideoChat from "@/pages/VideoChat";
 
@@ -40,9 +44,10 @@ function Router() {
       <Route path="/verification" component={Verification} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/terms" component={Terms} />
-      <Route path="/privacy" component={Terms} />
-      <Route path="/content-rules" component={Terms} />
-      <Route path="/contact" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/content-rules" component={ContentRules} />
+      <Route path="/refund-policy" component={RefundPolicy} />
+      <Route path="/contact" component={Contact} />
       <Route path="/messages" component={Messages} />
       <Route path="/video-chat" component={VideoChat} />
       

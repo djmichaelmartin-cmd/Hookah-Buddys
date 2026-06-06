@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useUploadMedia, useListMyMedia, getListMyMediaQueryKey } from "@workspace/api-client-react";
-import { MediaInputType } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { MediaInputType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

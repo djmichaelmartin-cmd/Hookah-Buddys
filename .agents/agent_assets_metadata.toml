@@ -1,0 +1,56 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "JgqLlasBfk7ZEZthvN406"
+uri = "file://artifacts/web/public/dolls/doll1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Svom3Bq9oZTKETm2uYjA6"
+uri = "file://artifacts/web/public/dolls/doll2.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Cctk1iJNtwZJ-22thJWJd"
+uri = "file://artifacts/web/public/dolls/doll3.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "iEuKlU_XgvqdOFHRQEulV"
+uri = "file://artifacts/web/public/dolls/doll4.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "AdNNqfV5_TkcCG5We4haW"
+uri = "file://artifacts/web/public/dolls/doll5.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "XemlSHi3mGS_NymWk-kdb"
+uri = "file://artifacts/web/public/dolls/doll6.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "IE4jq8EiJaSzrvrxOQYSi"
+uri = "file://artifacts/web/public/dolls/doll7.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "HKdTYxlSDTXb0j3yl3pTD"
+uri = "file://artifacts/web/public/dolls/doll8.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "W-ansFCDlezIlrYIUm54E"
+uri = "file://artifacts/web/public/dolls/hero.png"
+type = "image"
+title = "generated_image"

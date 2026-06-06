@@ -30,7 +30,7 @@ export function buildSessionMiddleware() {
   return session({
     store: new PgStore({
       pool,
-      createTableIfMissing: true,
+      createTableIfMissing: false,
       tableName: "user_sessions",
     }),
     secret,

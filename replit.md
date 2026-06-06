@@ -1,36 +1,59 @@
-# [Project name]
+# HookahDolls.com
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A premium, 21+ hookah-themed creator/social platform connecting verified women creators ("Dolls") with members ("I Love Dolls"), with full admin moderation. Built around a strict brand rule: all Doll content must feature a visible hookah.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server
+- `pnpm --filter @workspace/web run dev` — run the web app (Vite)
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
+- `pnpm --filter @workspace/web run typecheck` — typecheck just the web app
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/scripts run seed` — reset and seed the database (8 Dolls, admin, members, plans, media)
+- Required env: `DATABASE_URL`, `SESSION_SECRET`
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- API: Express 5, session-cookie auth (express-session + connect-pg-simple + bcryptjs)
+- Web: React + Vite + wouter + TanStack Query + shadcn/ui (Tailwind)
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- DB schema (source of truth): `lib/db/src/schema/` (one file per table, barrel in `index.ts`)
+- API contract (source of truth): `lib/api-spec/openapi.yaml` → generates hooks + Zod schemas
+- Generated client hooks/types: `lib/api-client-react/src/generated/`
+- API routes: `artifacts/api-server/src/routes/` (registered in `routes/index.ts`)
+- Auth/session: `artifacts/api-server/src/lib/auth.ts`
+- Web pages: `artifacts/web/src/pages/`; shared layout in `src/components/`
+- Seed script: `scripts/src/seed.ts`
+- Seeded Doll images: `artifacts/web/public/dolls/`
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Session auth via signed HTTP-only cookies; sessions persisted in the `user_sessions` Postgres table. That table is defined in Drizzle (`lib/db/src/schema/sessions.ts`) and pushed like any other table — connect-pg-simple's `createTableIfMissing` is disabled because it does not honor a custom `tableName`.
+- Contract-first: edit `openapi.yaml`, run codegen, then implement server (validates with Zod) and client (uses generated hooks).
+- Roles (`doll`/`member`/`admin`) gate routes via `requireAuth(...roles)`.
+- Checkout is a placeholder (no real Stripe) — returns a placeholder session; refund policy notes no real charges occur.
+- Brand rule enforced in data: Doll media requires `containsHookah = true`.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Age gate (21+), browse/search verified Dolls, Doll profiles with free + premium (paid-unlock) media.
+- Three roles: Dolls (verified creators), Members, Admins.
+- Messaging costs credits; premium content unlocks; video chat; profile boosts.
+- Doll & Member dashboards, Doll verification flow, admin moderation dashboard.
+- Pricing/plans for both audiences; legal pages (Terms, Privacy, Content Rules, Refund Policy) and a working Contact form.
+
+## Test accounts (seeded)
+
+- Admin: `admin@hookahdolls.com` / `admin123`
+- Member: `marcus@example.com` / `password123` (25 credits)
+- Dolls: `scarlett@hookahdolls.com` … `mila@hookahdolls.com` / `password123`
 
 ## User preferences
 
@@ -38,7 +61,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The `/api/dolls` browse list requires authentication; `/api/dolls/featured` is public.
+- Re-running the seed (`pnpm --filter @workspace/scripts run seed`) clears all app tables first — do not run against data you want to keep.
+- Do not run `pnpm dev` at the workspace root; use per-artifact workflows. Verify with `typecheck`, not `build`.
 
 ## Pointers
 

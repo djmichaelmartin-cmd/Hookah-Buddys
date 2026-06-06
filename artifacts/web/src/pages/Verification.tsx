@@ -70,7 +70,7 @@ export default function Verification() {
             </div>
           )}
 
-          {(!verificationStatus || verificationStatus.status === 'unverified') && (
+          {(!verificationStatus || verificationStatus.status === ('unverified' as typeof verificationStatus.status)) && (
             <div className="flex flex-col items-center">
               <ShieldAlert className="w-16 h-16 text-muted-foreground mb-4" />
               <p className="text-xl font-bold text-white">Not Verified</p>
@@ -79,7 +79,7 @@ export default function Verification() {
           )}
         </div>
 
-        {(!verificationStatus || verificationStatus.status === 'unverified' || verificationStatus.status === 'rejected') && (
+        {(!verificationStatus || verificationStatus.status === ('unverified' as typeof verificationStatus.status) || verificationStatus.status === 'rejected') && (
           <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
             <h3 className="text-xl font-serif text-white mb-4">Submit Documents</h3>
             <p className="text-sm text-muted-foreground mb-6">

@@ -1,0 +1,1 @@
+- [connect-pg-simple session table](connect-pg-simple-table.md) — createTableIfMissing ignores custom tableName; define the session table in Drizzle and push it.
