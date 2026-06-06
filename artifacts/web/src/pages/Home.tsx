@@ -21,6 +21,11 @@ import {
   ChevronRight,
   ArrowRight,
   ArrowDown,
+  Sparkles,
+  Heart,
+  Check,
+  DollarSign,
+  Upload,
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL;
@@ -382,6 +387,130 @@ export default function Home() {
           <span className="flex items-center gap-2"><Star className="h-4 w-4 text-primary" /> Hookah in Every Post</span>
           <span className="flex items-center gap-2"><Lock className="h-4 w-4 text-primary" /> Private & Secure</span>
           <span className="flex items-center gap-2"><Video className="h-4 w-4 text-primary" /> 1-on-1 Video Lounge</span>
+        </div>
+      </section>
+
+      {/* ============ JOIN PATHS (two tiles) ============ */}
+      <section className="py-24 relative z-10">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto text-center mb-14">
+            <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">
+              Choose your side of the lounge
+            </p>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
+              Two ways to join HookahDolls.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            {/* I'm a Doll */}
+            <div className="group relative overflow-hidden rounded-3xl border border-rose-400/20 bg-card/50 backdrop-blur-md p-8 md:p-10 hover:border-rose-400/50 transition-all duration-500 hover:-translate-y-1">
+              <div className="absolute -top-24 -right-24 h-56 w-56 rounded-full bg-rose-400/10 blur-3xl pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-14 h-14 rounded-xl bg-rose-400/10 border border-rose-400/30 flex items-center justify-center shadow-[0_0_15px_rgba(232,93,117,0.2)] group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-7 h-7 text-rose-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-serif font-bold text-white">I'm a Doll</h3>
+                    <p className="text-sm text-muted-foreground">For verified women creators</p>
+                  </div>
+                </div>
+
+                <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                  Build a stunning profile, set your own pace, and earn from members
+                  who love hookah culture. Every Doll is identity-verified, and all
+                  content features a visible hookah — tasteful, glamorous, always after dark.
+                </p>
+
+                <p className="text-xs uppercase tracking-[0.2em] text-rose-400/90 font-semibold mb-3">
+                  What you'll set up
+                </p>
+                <ul className="space-y-2.5 mb-8">
+                  {[
+                    "Legal name, stage name, email & password",
+                    "City, state, age & favorite hookah flavor",
+                    "A short bio that sets your vibe",
+                    "Identity verification — 21+ & hookah-in-content agreement",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-sm text-zinc-300">
+                      <Check className="h-4 w-4 mt-0.5 shrink-0 text-rose-400" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-8 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-rose-400" /> Get paid</span>
+                  <span className="flex items-center gap-1.5"><Upload className="h-3.5 w-3.5 text-rose-400" /> Post content</span>
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-rose-400" /> Verified badge</span>
+                </div>
+
+                <Link href="/signup/doll">
+                  <Button className="w-full h-12 rounded-full bg-rose-400 text-zinc-900 font-semibold hover:bg-rose-300 transition-colors">
+                    Create my Doll profile <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <p className="text-center text-xs text-muted-foreground mt-3">
+                  Free to apply · Approval after verification
+                </p>
+              </div>
+            </div>
+
+            {/* I Love Dolls */}
+            <div className="group relative overflow-hidden rounded-3xl border border-primary/20 bg-card/50 backdrop-blur-md p-8 md:p-10 hover:border-primary/50 transition-all duration-500 hover:-translate-y-1">
+              <div className="absolute -top-24 -right-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)] group-hover:scale-110 transition-transform">
+                    <Heart className="w-7 h-7 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-serif font-bold text-white">I Love Dolls</h3>
+                    <p className="text-sm text-muted-foreground">For members &amp; fans</p>
+                  </div>
+                </div>
+
+                <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                  Browse verified Dolls, unlock exclusive content, and start private
+                  conversations. Buy credits once and spend them on the connections
+                  and moments that matter most to you.
+                </p>
+
+                <p className="text-xs uppercase tracking-[0.2em] text-primary/90 font-semibold mb-3">
+                  What you'll set up
+                </p>
+                <ul className="space-y-2.5 mb-8">
+                  {[
+                    "Full name, username, email & password",
+                    "Optional city & state for nearby Dolls",
+                    "A quick 21+ confirmation & Terms agreement",
+                    "Add credits whenever you're ready to unlock",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-sm text-zinc-300">
+                      <Check className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-8 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-primary" /> Private chats</span>
+                  <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5 text-primary" /> Unlock media</span>
+                  <span className="flex items-center gap-1.5"><Video className="h-3.5 w-3.5 text-primary" /> Video lounge</span>
+                </div>
+
+                <Link href="/signup/member">
+                  <Button className="w-full h-12 rounded-full bg-primary text-zinc-900 font-semibold hover:bg-primary/90 transition-colors">
+                    Create my member profile <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <p className="text-center text-xs text-muted-foreground mt-3">
+                  Free to join · Pay only for what you unlock
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
