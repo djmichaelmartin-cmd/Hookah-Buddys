@@ -307,9 +307,6 @@ export default function Home() {
                   }}
                 />
                 <span className="animate-blob pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/15" />
-                <span className="absolute inset-x-0 bottom-0 text-center text-[11px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/60 to-transparent pb-2.5 pt-6">
-                  {pointer.dir === -1 ? "Prev" : "Next"}
-                </span>
               </div>
             </div>
           </div>
