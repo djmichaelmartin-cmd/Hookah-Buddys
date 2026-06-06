@@ -352,7 +352,7 @@ export default function Home() {
         </div>
 
         {/* Slide indicators */}
-        <div className="absolute bottom-8 right-8 z-20 hidden md:flex items-center gap-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 hidden md:flex items-center gap-2">
           {HERO_IMAGES.map((_, i) => (
             <button
               key={i}
@@ -369,9 +369,9 @@ export default function Home() {
         <button
           onClick={() => window.scrollBy({ top: window.innerHeight * 0.9, behavior: "smooth" })}
           aria-label="Scroll to next section"
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white animate-scroll-cue drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] hidden md:block"
+          className="absolute bottom-8 right-8 z-20 text-white animate-scroll-cue drop-shadow-[0_2px_12px_rgba(0,0,0,0.75)] hidden md:block"
         >
-          <ArrowDown className="h-9 w-9" strokeWidth={3} />
+          <ArrowDown className="h-16 w-16" strokeWidth={2.75} />
         </button>
       </section>
 
