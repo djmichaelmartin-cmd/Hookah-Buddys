@@ -37,7 +37,7 @@ const N = HERO_IMAGES.length;
 const BLOB_PATH =
   "M0.5,0.03 C0.64,0.03 0.78,0.08 0.87,0.19 C0.96,0.29 1.0,0.43 0.98,0.56 C0.96,0.70 0.88,0.83 0.76,0.91 C0.64,0.98 0.48,1.0 0.34,0.96 C0.20,0.91 0.08,0.81 0.04,0.67 C0.0,0.53 0.02,0.37 0.10,0.25 C0.18,0.13 0.31,0.05 0.45,0.03 C0.47,0.03 0.48,0.03 0.5,0.03 Z";
 // Reveal/settle timing (kept in sync so the commit fires when both finish).
-const REVEAL_MS = 1100;
+const REVEAL_MS = 1500;
 
 export default function Home() {
   const { data: featuredDolls } = useListFeaturedDolls();
