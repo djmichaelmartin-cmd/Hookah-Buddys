@@ -41,7 +41,9 @@ export default function Home() {
   const [revealed, setRevealed] = useState(false);
   const [reduced, setReduced] = useState(false);
   // Cursor-tracking preview bubble over the hero.
-  const [pointer, setPointer] = useState<{ x: number; y: number; dir: 1 | -1 } | null>(null);
+  const [pointer, setPointer] = useState<
+    { x: number; y: number; dir: 1 | -1; w: number; h: number } | null
+  >(null);
   const heroRef = useRef<HTMLElement>(null);
   const pointerRaf = useRef<number | null>(null);
   const moving = useRef(false);
@@ -159,6 +161,9 @@ export default function Home() {
   // Each panel opens vertically from its center outward when revealed.
   const panelClip = revealed ? "inset(0 0 0 0)" : "inset(50% 0 50% 0)";
 
+  // Diameter of the cursor lens that reveals the adjacent slide.
+  const LENS = 420;
+
   // Track the cursor over the hero so the preview bubble can follow it. The
   // left half previews the previous slide; the right half previews the next.
   const onHeroMove = (e: ReactMouseEvent<HTMLElement>) => {
@@ -166,13 +171,15 @@ export default function Home() {
     if (!rect) return;
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const dir: 1 | -1 = x < rect.width / 2 ? -1 : 1;
+    const w = rect.width;
+    const h = rect.height;
+    const dir: 1 | -1 = x < w / 2 ? -1 : 1;
     // Throttle pointer updates to one per animation frame to avoid re-rendering
     // the hero on every raw mousemove event.
     if (pointerRaf.current !== null) return;
     pointerRaf.current = requestAnimationFrame(() => {
       pointerRaf.current = null;
-      setPointer({ x, y, dir });
+      setPointer({ x, y, dir, w, h });
     });
   };
   const onHeroLeave = () => {
@@ -279,16 +286,28 @@ export default function Home() {
             className="pointer-events-none absolute z-30 hidden md:block"
             style={{ left: pointer.x, top: pointer.y, transform: "translate(-50%, -50%)" }}
           >
-            <div className="animate-in fade-in zoom-in-75 duration-200">
-              <div className="animate-blob relative h-32 w-32 overflow-hidden border-2 border-primary/80 shadow-[0_0_45px_rgba(212,175,55,0.55)]">
+            <div className="animate-in fade-in zoom-in-90 duration-200">
+              <div
+                className="animate-blob relative overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.55)]"
+                style={{ width: LENS, height: LENS }}
+              >
+                {/* Full-size adjacent slide, offset so the slice under the
+                    cursor lines up exactly with the hero beneath it — a true
+                    lens that reveals only the hovered portion. */}
                 <img
                   src={HERO_IMAGES[pointer.dir === -1 ? prevIndex : nextIndex]}
                   alt=""
                   aria-hidden="true"
-                  className="h-full w-full object-cover"
+                  className="absolute max-w-none object-cover"
+                  style={{
+                    width: pointer.w,
+                    height: pointer.h,
+                    left: LENS / 2 - pointer.x,
+                    top: LENS / 2 - pointer.y,
+                  }}
                 />
-                <span className="animate-blob absolute inset-0 ring-1 ring-inset ring-white/20" />
-                <span className="absolute inset-x-0 bottom-0 text-center text-[10px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/70 to-transparent pb-1.5 pt-4">
+                <span className="animate-blob pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/15" />
+                <span className="absolute inset-x-0 bottom-0 text-center text-[11px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/60 to-transparent pb-2.5 pt-6">
                   {pointer.dir === -1 ? "Prev" : "Next"}
                 </span>
               </div>
