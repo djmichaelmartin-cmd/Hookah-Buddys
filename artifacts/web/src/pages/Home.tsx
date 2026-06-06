@@ -133,6 +133,13 @@ export default function Home() {
     commit();
   };
 
+  // Scroll to a hashed section when navigated to (e.g. /#how-it-works).
+  useEffect(() => {
+    if (!window.location.hash) return;
+    const el = document.querySelector(window.location.hash);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
   const prevIndex = (current - 1 + N) % N;
   const nextIndex = (current + 1) % N;
 
@@ -285,7 +292,7 @@ export default function Home() {
       </section>
 
       {/* ============ HOW IT WORKS ============ */}
-      <section className="py-24 relative z-10">
+      <section id="how-it-works" className="py-24 relative z-10 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mb-16">
             <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">How it works</p>

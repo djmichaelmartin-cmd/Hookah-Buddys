@@ -1,3 +1,4 @@
+import { useState, useEffect, type MouseEvent } from "react";
 import { Link, useLocation } from "wouter";
 import { useGetCurrentUser, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -9,51 +10,172 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon, Settings, Heart, Upload, MessageSquare, Video, ShieldCheck, DollarSign } from "lucide-react";
+import {
+  LogOut,
+  User as UserIcon,
+  Settings,
+  Heart,
+  Upload,
+  MessageSquare,
+  Video,
+  ShieldCheck,
+  DollarSign,
+  Search,
+  ChevronDown,
+  Menu,
+  X,
+} from "lucide-react";
+
+const NAV_LINKS = [
+  { label: "Dolls", href: "/browse" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "Pricing", href: "/pricing" },
+];
+
+const RESOURCE_LINKS = [
+  { label: "Contact", href: "/contact" },
+  { label: "Content Rules", href: "/content-rules" },
+  { label: "Terms", href: "/terms" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "Refund Policy", href: "/refund-policy" },
+];
 
 export function Navbar() {
   const [location] = useLocation();
   const { data: session } = useGetCurrentUser();
   const logout = useLogout();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isHome = location === "/";
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close the mobile menu whenever the route changes.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location]);
+
+  // Smooth-scroll for in-page hash links (e.g. /#how-it-works) when the
+  // target already exists on the current page; otherwise let the Link navigate.
+  const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+    const i = href.indexOf("#");
+    if (i === -1) return;
+    const el = document.querySelector(href.slice(i));
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: "smooth" });
+      setMenuOpen(false);
+    }
+  };
 
   const handleLogout = () => {
     logout.mutate(undefined, {
       onSuccess: () => {
         window.location.href = "/";
-      }
+      },
     });
   };
 
+  const isAuthed = session?.authenticated && session.user;
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
+    <header
+      className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
+        scrolled || !isHome
+          ? "border-b border-white/10 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
+      <div className="container relative mx-auto px-4 h-16 flex items-center">
+        {/* Left nav group */}
+        <nav className="hidden xl:flex items-center gap-7">
+          {NAV_LINKS.map((l) => (
+            <Link
+              key={l.label}
+              href={l.href}
+              onClick={(e) => handleNavClick(e, l.href)}
+              className="text-sm font-medium text-white/85 hover:text-white transition-colors"
+            >
+              {l.label}
+            </Link>
+          ))}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger className="group flex items-center gap-1 text-sm font-medium text-white/85 hover:text-white transition-colors outline-none">
+              Resources
+              <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-52 bg-card/95 backdrop-blur-xl border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] text-foreground"
+            >
+              {RESOURCE_LINKS.map((r) => (
+                <DropdownMenuItem
+                  key={r.href}
+                  asChild
+                  className="cursor-pointer hover:bg-white/5 hover:text-primary"
+                >
+                  <Link href={r.href} className="w-full">
+                    {r.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Link
+            href="/signup/doll"
+            className="inline-flex items-center h-9 px-5 rounded-full border border-white/25 text-sm font-medium text-white/90 hover:bg-white/10 hover:border-white/40 transition-colors"
+          >
+            Become a Doll
+          </Link>
+        </nav>
+
+        {/* Centered wordmark */}
+        <Link
+          href="/"
+          className="flex items-center xl:absolute xl:left-1/2 xl:-translate-x-1/2"
+        >
           <span className="font-serif text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#F3E5AB] to-rose-400 drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">
             HookahDolls
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
-          <Link href="/browse" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-            Browse Dolls
+        {/* Right action group */}
+        <div className="ml-auto flex items-center gap-3">
+          <Link
+            href="/browse"
+            className="hidden xl:inline-flex items-center gap-2 h-10 pl-4 pr-5 rounded-full border border-white/25 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <Search className="h-4 w-4" />
+            Find a Doll
           </Link>
-          <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-            Pricing
-          </Link>
-        </nav>
 
-        <div className="flex items-center gap-4">
           {session?.authenticated && session.user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-primary/30 p-0 hover:bg-white/5 transition-all">
+                <Button
+                  variant="ghost"
+                  className="relative h-10 w-10 rounded-full border border-primary/30 p-0 hover:bg-white/5 transition-all"
+                >
                   <Avatar className="h-9 w-9">
                     <AvatarImage src="" alt={session.user.name} />
-                    <AvatarFallback className="bg-card text-primary font-serif">{session.user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback className="bg-card text-primary font-serif">
+                      {session.user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-card/95 backdrop-blur-xl border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] text-foreground" align="end" forceMount>
+              <DropdownMenuContent
+                className="w-56 bg-card/95 backdrop-blur-xl border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] text-foreground"
+                align="end"
+                forceMount
+              >
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium text-primary font-serif">{session.user.name}</p>
@@ -63,8 +185,8 @@ export function Navbar() {
                   </div>
                 </div>
                 <DropdownMenuSeparator className="bg-white/10" />
-                
-                {session.user.role === 'doll' && (
+
+                {session.user.role === "doll" && (
                   <>
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                       <Link href="/dashboard/doll" className="flex items-center w-full">
@@ -87,7 +209,7 @@ export function Navbar() {
                   </>
                 )}
 
-                {session.user.role === 'member' && (
+                {session.user.role === "member" && (
                   <>
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                       <Link href="/dashboard/member" className="flex items-center w-full">
@@ -110,7 +232,7 @@ export function Navbar() {
                   </>
                 )}
 
-                {session.user.role === 'admin' && (
+                {session.user.role === "admin" && (
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                     <Link href="/admin" className="flex items-center w-full">
                       <ShieldCheck className="mr-2 h-4 w-4" />
@@ -133,24 +255,99 @@ export function Navbar() {
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator className="bg-white/10" />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link href="/login" className="hidden sm:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:text-primary h-10 px-4 py-2">
-                Log In
+            <>
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center h-10 px-6 rounded-full border border-white/25 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              >
+                Log in
               </Link>
-              <Link href="/signup/member" className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-                Join Now
+              <Link
+                href="/signup/member"
+                className="inline-flex items-center h-10 px-6 rounded-full bg-white text-background text-sm font-semibold hover:bg-white/90 transition-colors"
+              >
+                Get Started
               </Link>
-            </div>
+            </>
           )}
+
+          {/* Mobile menu toggle */}
+          <button
+            type="button"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="primary-mobile-menu"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="xl:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/25 text-white hover:bg-white/10 transition-colors"
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile dropdown panel */}
+      {menuOpen && (
+        <div id="primary-mobile-menu" className="xl:hidden border-t border-white/10 bg-background/95 backdrop-blur-xl">
+          <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
+            {NAV_LINKS.map((l) => (
+              <Link
+                key={l.label}
+                href={l.href}
+                onClick={(e) => handleNavClick(e, l.href)}
+                className="py-2.5 text-base font-medium text-white/85 hover:text-primary transition-colors"
+              >
+                {l.label}
+              </Link>
+            ))}
+            <p className="pt-3 pb-1 text-xs uppercase tracking-widest text-muted-foreground">Resources</p>
+            {RESOURCE_LINKS.map((r) => (
+              <Link
+                key={r.href}
+                href={r.href}
+                onClick={() => setMenuOpen(false)}
+                className="py-2 text-sm text-white/70 hover:text-primary transition-colors"
+              >
+                {r.label}
+              </Link>
+            ))}
+            <Link
+              href="/signup/doll"
+              onClick={() => setMenuOpen(false)}
+              className="mt-3 inline-flex items-center justify-center h-11 rounded-full border border-white/25 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+            >
+              Become a Doll
+            </Link>
+            {!isAuthed && (
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="inline-flex items-center justify-center h-11 rounded-full border border-white/25 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup/member"
+                  onClick={() => setMenuOpen(false)}
+                  className="inline-flex items-center justify-center h-11 rounded-full bg-white text-background text-sm font-semibold hover:bg-white/90 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
