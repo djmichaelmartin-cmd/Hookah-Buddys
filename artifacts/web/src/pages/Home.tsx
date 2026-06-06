@@ -31,8 +31,13 @@ import {
 const BASE = import.meta.env.BASE_URL;
 const HERO_IMAGES = [1, 2, 3, 4, 5].map((i) => `${BASE}lounge/lounge${i}.png`);
 const N = HERO_IMAGES.length;
-// Number of vertical panels that "open up" in sequence during a hero transition.
-const PANELS = 6;
+// Organic "blob" outline (normalized to a 0..1 bounding box, centered) that
+// scales up from a point to reveal the incoming hero image — mirroring
+// Patreon's hero transition.
+const BLOB_PATH =
+  "M0.5,0.03 C0.64,0.03 0.78,0.08 0.87,0.19 C0.96,0.29 1.0,0.43 0.98,0.56 C0.96,0.70 0.88,0.83 0.76,0.91 C0.64,0.98 0.48,1.0 0.34,0.96 C0.20,0.91 0.08,0.81 0.04,0.67 C0.0,0.53 0.02,0.37 0.10,0.25 C0.18,0.13 0.31,0.05 0.45,0.03 C0.47,0.03 0.48,0.03 0.5,0.03 Z";
+// Reveal/settle timing (kept in sync so the commit fires when both finish).
+const REVEAL_MS = 1100;
 
 export default function Home() {
   const { data: featuredDolls } = useListFeaturedDolls();
@@ -130,7 +135,7 @@ export default function Home() {
   // the commit after the wipe duration so navigation can never deadlock.
   useEffect(() => {
     if (!incoming || !revealed) return;
-    fallbackTimer.current = window.setTimeout(commit, 1500);
+    fallbackTimer.current = window.setTimeout(commit, REVEAL_MS + 700);
     return () => {
       if (fallbackTimer.current !== null) {
         clearTimeout(fallbackTimer.current);
@@ -146,10 +151,10 @@ export default function Home() {
     return () => clearInterval(t);
   }, [go, reduced]);
 
-  // When the wipe finishes, promote the incoming image to current.
+  // When the blob reveal finishes, promote the incoming image to current.
   const handleTransitionEnd = (e: TransitionEvent) => {
     if (e.target !== e.currentTarget) return;
-    if (e.propertyName !== "clip-path" && e.propertyName !== "-webkit-clip-path") return;
+    if (e.propertyName !== "transform") return;
     commit();
   };
 
@@ -163,8 +168,8 @@ export default function Home() {
   const prevIndex = (current - 1 + N) % N;
   const nextIndex = (current + 1) % N;
 
-  // Each panel opens vertically from its center outward when revealed.
-  const panelClip = revealed ? "inset(0 0 0 0)" : "inset(50% 0 50% 0)";
+  // The blob grows from a point (scale 0) to fully cover the hero.
+  const blobScale = revealed ? "scale(2.4) rotate(7deg)" : "scale(0)";
 
   // Diameter of the cursor lens that reveals the adjacent slide.
   const LENS = 420;
@@ -221,44 +226,51 @@ export default function Home() {
             aria-hidden="true"
             className="absolute inset-0 h-full w-full object-cover"
           />
-          {/* Incoming image, revealed through staggered vertical panels that
-              "open up" in sequence, left-to-right (mirroring Patreon's hero). */}
+          {/* Incoming image, revealed through an organic blob that opens up
+              from a point and grows to cover the hero (mirroring Patreon). */}
           {incoming && (
             <div className="absolute inset-0">
-              {Array.from({ length: PANELS }).map((_, i) => {
-                // Reveal order follows the navigation direction.
-                const order = incoming.dir === 1 ? i : PANELS - 1 - i;
-                const isLast = order === PANELS - 1;
-                return (
-                  <div
-                    key={i}
-                    className="absolute top-0 h-full overflow-hidden will-change-[clip-path]"
-                    style={{
-                      left: `${(i * 100) / PANELS}%`,
-                      width: `${100 / PANELS}%`,
-                      clipPath: panelClip,
-                      WebkitClipPath: panelClip,
-                      transition: revealed
-                        ? `clip-path 760ms cubic-bezier(0.76, 0, 0.24, 1) ${order * 95}ms`
-                        : "none",
-                    }}
-                    onTransitionEnd={isLast ? handleTransitionEnd : undefined}
-                  >
-                    {/* Full-bleed image, shifted so all panels tile seamlessly. */}
-                    <img
-                      src={HERO_IMAGES[incoming.index]}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute top-0 h-full max-w-none object-cover"
-                      style={{ width: `${PANELS * 100}%`, left: `${-i * 100}%` }}
+              <svg className="absolute h-0 w-0" aria-hidden="true">
+                <defs>
+                  <clipPath id="hero-blob" clipPathUnits="objectBoundingBox">
+                    <path
+                      d={BLOB_PATH}
+                      style={{
+                        transformBox: "fill-box",
+                        transformOrigin:
+                          incoming.dir === 1 ? "42% 58%" : "58% 42%",
+                        transform: blobScale,
+                        transition: revealed
+                          ? `transform ${REVEAL_MS}ms cubic-bezier(0.65, 0, 0.35, 1)`
+                          : "none",
+                      }}
                     />
-                  </div>
-                );
-              })}
-              {/* Subtle vignette for depth over the revealing panels. */}
+                  </clipPath>
+                </defs>
+              </svg>
+              <img
+                src={HERO_IMAGES[incoming.index]}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover will-change-transform"
+                style={{
+                  clipPath: "url(#hero-blob)",
+                  WebkitClipPath: "url(#hero-blob)",
+                  transform: revealed ? "scale(1)" : "scale(1.1)",
+                  transition: revealed
+                    ? `transform ${REVEAL_MS + 300}ms cubic-bezier(0.22, 1, 0.36, 1)`
+                    : "none",
+                }}
+                onTransitionEnd={handleTransitionEnd}
+              />
+              {/* Subtle vignette for depth, clipped to the same blob. */}
               <div
                 className="pointer-events-none absolute inset-0"
-                style={{ boxShadow: "inset 0 0 120px 0 rgba(0,0,0,0.5)" }}
+                style={{
+                  clipPath: "url(#hero-blob)",
+                  WebkitClipPath: "url(#hero-blob)",
+                  boxShadow: "inset 0 0 120px 0 rgba(0,0,0,0.5)",
+                }}
               />
             </div>
           )}
