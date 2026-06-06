@@ -83,23 +83,18 @@ export function Navbar() {
 
   const isAuthed = session?.authenticated && session.user;
 
-  // Transparent over the hero; solid opaque white once scrolled or off-home.
+  // Transparent over the hero; a faint white (10% opacity) frosted bar on scroll.
   const solid = scrolled || !isHome;
-  const navLink = solid
-    ? "text-zinc-600 hover:text-zinc-900"
-    : "text-white/85 hover:text-white";
-  const outlineBtn = solid
-    ? "border-zinc-300 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-400"
-    : "border-white/25 text-white/90 hover:bg-white/10 hover:border-white/40";
-  const ctaBtn = solid
-    ? "bg-primary text-zinc-900 hover:bg-primary/90"
-    : "bg-white text-background hover:bg-white/90";
+  const navLink = "text-white/85 hover:text-white";
+  const outlineBtn =
+    "border-white/25 text-white/90 hover:bg-white/10 hover:border-white/40";
+  const ctaBtn = "bg-white text-background hover:bg-white/90";
 
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
         solid
-          ? "border-b border-zinc-200 bg-white shadow-sm"
+          ? "border-b border-white/15 bg-white/10 backdrop-blur-xl supports-[backdrop-filter]:bg-white/10"
           : "border-b border-transparent bg-transparent"
       }`}
     >
@@ -311,9 +306,7 @@ export function Navbar() {
       {menuOpen && (
         <div
           id="primary-mobile-menu"
-          className={`xl:hidden border-t backdrop-blur-xl ${
-            solid ? "border-zinc-200 bg-white" : "border-white/10 bg-background/95"
-          }`}
+          className="xl:hidden border-t border-white/10 bg-background/95 backdrop-blur-xl"
         >
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
             {NAV_LINKS.map((l) => (
