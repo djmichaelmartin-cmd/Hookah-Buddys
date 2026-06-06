@@ -10,7 +10,7 @@ import {
   creditTransactionsTable,
 } from "@workspace/db";
 import { CreateThreadBody, ListMessagesParams, SendMessageParams, SendMessageBody } from "@workspace/api-zod";
-import { requireAuth } from "../lib/auth";
+import { requireAuth, requirePaidMember } from "../lib/auth";
 
 const router: IRouter = Router();
 
@@ -46,7 +46,7 @@ router.get("/threads", requireAuth("member", "doll"), async (req, res): Promise<
   res.json(await Promise.all(rows.map(threadView)));
 });
 
-router.post("/threads", requireAuth("member"), async (req, res): Promise<void> => {
+router.post("/threads", requireAuth("member"), requirePaidMember(), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const parsed = CreateThreadBody.safeParse(req.body);
   if (!parsed.success) {

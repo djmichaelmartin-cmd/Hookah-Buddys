@@ -1,18 +1,30 @@
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import {
   useGetDoll,
   getGetDollQueryKey,
   useGetCurrentUser,
   useListPlans,
+  useListSubscriptions,
+  getListSubscriptionsQueryKey,
   useUnlockContent,
   useCreateSubscription,
+  useCreateThread,
+  useRequestVideoChat,
   type Media,
 } from "@workspace/api-client-react";
 import { useParams, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, MessageSquare, Video, Star, Lock, Play, ImageIcon } from "lucide-react";
+import { ShieldCheck, MessageSquare, Video, Star, Lock, Play, ImageIcon, Check, Sparkles } from "lucide-react";
 
 const VIDEO_TYPES = new Set(["premium_video", "short_video"]);
 
@@ -56,6 +68,43 @@ export default function DollProfile() {
         refetchDoll();
       },
       onError: () => toast({ title: "Subscription failed", description: "Please try again.", variant: "destructive" }),
+    },
+  });
+
+  const { data: subscriptions, isPending: subscriptionsPending } = useListSubscriptions({
+    query: { enabled: isMember, queryKey: getListSubscriptionsQueryKey() },
+  });
+  const isPayingMember = (subscriptions ?? []).some(
+    (s) => s.audience === "member" && s.status === "active" && !s.dollId && (s.price ?? 0) > 0,
+  );
+
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+
+  const upgrade = useCreateSubscription({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Membership upgraded", description: "You can now message and request video chats." });
+        setUpgradeOpen(false);
+        queryClient.invalidateQueries({ queryKey: getListSubscriptionsQueryKey() });
+      },
+      onError: () => toast({ title: "Upgrade failed", description: "Please try again.", variant: "destructive" }),
+    },
+  });
+
+  const startThread = useCreateThread({
+    mutation: {
+      onSuccess: () => navigate("/messages"),
+      onError: () => toast({ title: "Couldn't open chat", description: "Please try again.", variant: "destructive" }),
+    },
+  });
+
+  const requestVideo = useRequestVideoChat({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Video chat requested", description: "She'll be notified to confirm a time." });
+        navigate("/video-chat");
+      },
+      onError: () => toast({ title: "Request failed", description: "Please try again.", variant: "destructive" }),
     },
   });
 
@@ -106,6 +155,34 @@ export default function DollProfile() {
     unlock.mutate({ data: { mediaId: m.id } });
   };
 
+  const requirePaidMember = (action: () => void) => {
+    if (!session?.user) {
+      navigate("/login");
+      return;
+    }
+    if (!isMember) {
+      toast({ title: "Members only", description: "Sign in as a member to use this feature.", variant: "destructive" });
+      return;
+    }
+    if (subscriptionsPending) {
+      toast({ title: "One moment", description: "Checking your membership..." });
+      return;
+    }
+    if (!isPayingMember) {
+      setUpgradeOpen(true);
+      return;
+    }
+    action();
+  };
+
+  const handleMessage = () => requirePaidMember(() => startThread.mutate({ data: { dollId } }));
+  const handleVideoChat = () =>
+    requirePaidMember(() =>
+      requestVideo.mutate({ data: { dollId, scheduledAt: new Date().toISOString() } }),
+    );
+
+  const memberPlans = (plans ?? []).filter((p) => p.audience === "member" && p.tier !== "free");
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
@@ -146,11 +223,23 @@ export default function DollProfile() {
                       : `Subscribe${doll.subscriptionPrice ? ` · $${doll.subscriptionPrice}/mo` : ""}`}
                   </Button>
                 )}
-                <Button variant="outline" className="w-full border-primary/50 text-primary hover:bg-primary/10">
-                  <MessageSquare className="w-4 h-4 mr-2" /> Message
+                <Button
+                  variant="outline"
+                  className="w-full border-primary/50 text-primary hover:bg-primary/10"
+                  onClick={handleMessage}
+                  disabled={startThread.isPending}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  {startThread.isPending ? "Opening..." : "Message"}
                 </Button>
-                <Button variant="outline" className="w-full border-secondary/50 text-secondary hover:bg-secondary/10">
-                  <Video className="w-4 h-4 mr-2" /> Request Video Chat
+                <Button
+                  variant="outline"
+                  className="w-full border-secondary/50 text-secondary hover:bg-secondary/10"
+                  onClick={handleVideoChat}
+                  disabled={requestVideo.isPending}
+                >
+                  <Video className="w-4 h-4 mr-2" />
+                  {requestVideo.isPending ? "Requesting..." : "Request Video Chat"}
                 </Button>
               </div>
             </div>
@@ -198,6 +287,66 @@ export default function DollProfile() {
           </div>
         </div>
       </div>
+
+      <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
+        <DialogContent className="bg-card border-white/10 sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" /> Upgrade your membership
+            </DialogTitle>
+            <DialogDescription>
+              Messaging and video chat are for premium "I Love Dolls" members. Upgrade to unlock them.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            {memberPlans.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No upgrade plans available right now.</p>
+            ) : (
+              memberPlans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className="rounded-xl border border-primary/30 bg-background/40 p-5"
+                >
+                  <div className="flex items-baseline justify-between mb-1">
+                    <h3 className="font-serif text-lg text-white">{plan.name}</h3>
+                    <p className="text-primary font-bold">
+                      ${plan.price}
+                      <span className="text-xs text-muted-foreground font-normal">/{plan.interval ?? "mo"}</span>
+                    </p>
+                  </div>
+                  {plan.description && (
+                    <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
+                  )}
+                  {plan.features && plan.features.length > 0 && (
+                    <ul className="space-y-1.5 mb-4">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-sm text-zinc-300">
+                          <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" /> {f}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    onClick={() => upgrade.mutate({ data: { planId: plan.id } })}
+                    disabled={upgrade.isPending}
+                  >
+                    {upgrade.isPending ? "Upgrading..." : `Upgrade to ${plan.name}`}
+                  </Button>
+                </div>
+              ))
+            )}
+            <Button
+              variant="ghost"
+              className="w-full text-muted-foreground hover:text-white"
+              onClick={() => navigate("/pricing")}
+            >
+              Compare all plans
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

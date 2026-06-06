@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, sql } from "drizzle-orm";
 import { db, videoChatsTable, dollsTable, usersTable } from "@workspace/db";
 import { RequestVideoChatBody } from "@workspace/api-zod";
-import { requireAuth } from "../lib/auth";
+import { requireAuth, requirePaidMember } from "../lib/auth";
 
 const router: IRouter = Router();
 
@@ -41,7 +41,7 @@ router.get("/video-chats", requireAuth("member", "doll"), async (req, res): Prom
   res.json(rows.map((r) => toSession(r.v, r.dollName ?? "", r.memberName ?? "")));
 });
 
-router.post("/video-chats", requireAuth("member"), async (req, res): Promise<void> => {
+router.post("/video-chats", requireAuth("member"), requirePaidMember(), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const parsed = RequestVideoChatBody.safeParse(req.body);
   if (!parsed.success) {
