@@ -1,187 +1,340 @@
 import { Layout } from "@/components/Layout";
 import { Link } from "wouter";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useListFeaturedDolls } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
-import { Star, ShieldCheck, Video, Heart } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Star,
+  ShieldCheck,
+  Video,
+  MessageSquare,
+  Lock,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  ArrowDown,
+} from "lucide-react";
+
+const HERO_FALLBACK = `${import.meta.env.BASE_URL}dolls/hero.png`;
 
 export default function Home() {
-  const { data: featuredDolls, isLoading } = useListFeaturedDolls();
+  const { data: featuredDolls } = useListFeaturedDolls();
+  const slides = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl).slice(0, 5);
+  const [active, setActive] = useState(0);
+
+  const go = useCallback(
+    (dir: number) => {
+      if (slides.length === 0) return;
+      setActive((prev) => (prev + dir + slides.length) % slides.length);
+    },
+    [slides.length],
+  );
+
+  useEffect(() => {
+    if (active >= slides.length) setActive(0);
+  }, [slides.length, active]);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+    const t = setInterval(() => setActive((p) => (p + 1) % slides.length), 6000);
+    return () => clearInterval(t);
+  }, [slides.length]);
+
+  const current = slides[active] ?? slides[0];
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[90svh] flex items-center justify-center overflow-hidden border-b border-white/5">
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Subtle smoke/glow effects */}
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen opacity-50 animate-pulse" style={{ animationDuration: '8s' }} />
-          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[150px] mix-blend-screen opacity-40 animate-pulse" style={{ animationDuration: '12s' }} />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
+      {/* ============ HERO (Patreon-style immersive carousel) ============ */}
+      <section className="relative h-[calc(100svh-4rem)] min-h-[600px] w-full overflow-hidden">
+        {/* Background slides */}
+        <div className="absolute inset-0">
+          {slides.length > 0 ? (
+            slides.map((d, i) => (
+              <img
+                key={d.id}
+                src={d.profilePhotoUrl!}
+                alt=""
+                aria-hidden="true"
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
+                  i === active ? "opacity-100 scale-105" : "opacity-0"
+                }`}
+                style={{ transitionProperty: "opacity, transform", transitionDuration: "1200ms" }}
+              />
+            ))
+          ) : (
+            <img src={HERO_FALLBACK} alt="HookahDolls lounge" className="absolute inset-0 h-full w-full object-cover" />
+          )}
+          {/* Brand color wash + legibility gradients */}
+          <div className="absolute inset-0 bg-secondary/10 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/30 to-transparent" />
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center pt-20 pb-32">
-          <Badge className="mb-6 bg-white/5 hover:bg-white/10 text-primary border-primary/20 backdrop-blur-md px-4 py-1.5 uppercase tracking-widest font-medium">
-            The Premium Lounge Experience
-          </Badge>
-          
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold tracking-wider mb-6 text-white drop-shadow-[0_0_25px_rgba(212,175,55,0.4)] max-w-5xl leading-tight">
-            HookahDolls<span className="text-primary">.com</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-12 leading-relaxed">
-            A tasteful, hookah-centered social platform connecting Verified Dolls and enthusiasts. Step into the lounge after dark.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6 w-full max-w-md justify-center">
-            <Link href="/signup/member" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-widest uppercase h-14 px-8 shadow-[0_0_30px_rgba(212,175,55,0.4)] border-none">
-                I Love Dolls
-              </Button>
-            </Link>
-            <Link href="/signup/doll" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full border-primary/50 text-white hover:bg-primary/10 hover:text-white hover:border-primary font-semibold tracking-widest uppercase h-14 px-8 backdrop-blur-md">
-                I'm a Doll
-              </Button>
-            </Link>
+        {/* Carousel arrows */}
+        {slides.length > 1 && (
+          <>
+            <button
+              onClick={() => go(-1)}
+              aria-label="Previous"
+              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              onClick={() => go(1)}
+              aria-label="Next"
+              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full border border-white/20 bg-background/30 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-primary hover:border-primary/60 transition-all"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </>
+        )}
+
+        {/* Hero copy */}
+        <div className="relative z-10 h-full container mx-auto px-4 flex flex-col justify-end pb-16 md:pb-24">
+          <div className="max-w-4xl">
+            <Badge className="mb-6 bg-white/5 hover:bg-white/10 text-primary border-primary/20 backdrop-blur-md px-4 py-1.5 uppercase tracking-[0.2em] text-xs font-medium">
+              The Premium Hookah Lounge · 21+
+            </Badge>
+            <h1 className="font-serif font-bold text-white leading-[0.95] tracking-tight text-5xl sm:text-7xl lg:text-[7rem] drop-shadow-[0_4px_30px_rgba(0,0,0,0.7)]">
+              Your after-dark
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#F3E5AB] to-rose-400">
+                lounge fantasy
+              </span>
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
+              Connect with verified Dolls over a shared love of hookah. Exclusive content, private chats, and
+              intimate video sessions — tasteful, glamorous, always after dark.
+            </p>
+            <div className="mt-9 flex flex-col sm:flex-row gap-4">
+              <Link href="/signup/member">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-widest uppercase h-14 px-9 shadow-[0_0_30px_rgba(212,175,55,0.4)] border-none"
+                >
+                  Join as a Member
+                </Button>
+              </Link>
+              <Link href="/browse">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-primary font-semibold tracking-widest uppercase h-14 px-9 backdrop-blur-md bg-white/5"
+                >
+                  Browse Dolls
+                </Button>
+              </Link>
+            </div>
           </div>
+        </div>
+
+        {/* Spotlight chip (active doll) */}
+        {current && (
+          <Link
+            href={`/dolls/${current.id}`}
+            className="hidden lg:flex absolute right-8 top-1/2 -translate-y-1/2 z-20 items-center gap-4 max-w-xs group"
+          >
+            <div className="relative h-16 w-16 shrink-0 rounded-full overflow-hidden border-2 border-primary/60 shadow-[0_0_25px_rgba(212,175,55,0.35)]">
+              <img src={current.profilePhotoUrl!} alt={current.stageName} className="h-full w-full object-cover" />
+            </div>
+            <p className="text-white/90 text-sm leading-snug">
+              <span className="font-serif text-primary text-base">{current.stageName}</span> is lighting up{" "}
+              {current.city}, {current.state}
+              <ArrowRight className="inline-block ml-1 h-4 w-4 -translate-y-px group-hover:translate-x-1 transition-transform" />
+            </p>
+          </Link>
+        )}
+
+        {/* Slide indicators */}
+        {slides.length > 1 && (
+          <div className="absolute bottom-8 right-8 z-20 hidden md:flex items-center gap-2">
+            {slides.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => setActive(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === active ? "w-8 bg-primary" : "w-3 bg-white/30 hover:bg-white/60"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Scroll cue */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/50 animate-bounce hidden md:block">
+          <ArrowDown className="h-6 w-6" />
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="py-24 bg-background relative z-10 border-b border-white/5">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">The Experience</h2>
-            <div className="h-1 w-20 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto"></div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="bg-card/50 backdrop-blur-md border border-white/5 rounded-2xl p-8 text-center hover:bg-card/80 transition-all duration-500 hover:-translate-y-1">
-              <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-6 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
-                <ShieldCheck className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-serif font-bold text-white mb-3">100% Verified Dolls</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Every creator is strictly verified. Authentic profiles, real connections, and premium content you won't find anywhere else.
-              </p>
-            </div>
-
-            <div className="bg-card/50 backdrop-blur-md border border-white/5 rounded-2xl p-8 text-center hover:bg-card/80 transition-all duration-500 hover:-translate-y-1">
-              <div className="w-16 h-16 rounded-full bg-secondary/10 border border-secondary/30 flex items-center justify-center mx-auto mb-6 shadow-[0_0_15px_rgba(232,93,117,0.2)]">
-                <Star className="w-8 h-8 text-secondary" />
-              </div>
-              <h3 className="text-xl font-serif font-bold text-white mb-3">Hookah Centered</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Our strict aesthetic rule: a visible hookah in all content. We curate a tasteful, glamorous lounge atmosphere.
-              </p>
-            </div>
-
-            <div className="bg-card/50 backdrop-blur-md border border-white/5 rounded-2xl p-8 text-center hover:bg-card/80 transition-all duration-500 hover:-translate-y-1">
-              <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-6 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
-                <Video className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-serif font-bold text-white mb-3">Private Video Chats</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Unlock exclusive content, send private messages, and request 1-on-1 video lounge sessions with your favorite Dolls.
-              </p>
-            </div>
-          </div>
+      {/* ============ TRUST STRIP ============ */}
+      <section className="border-y border-white/5 bg-card/30 backdrop-blur-md">
+        <div className="container mx-auto px-4 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> 100% Verified Creators</span>
+          <span className="flex items-center gap-2"><Star className="h-4 w-4 text-primary" /> Hookah in Every Post</span>
+          <span className="flex items-center gap-2"><Lock className="h-4 w-4 text-primary" /> Private & Secure</span>
+          <span className="flex items-center gap-2"><Video className="h-4 w-4 text-primary" /> 1-on-1 Video Lounge</span>
         </div>
       </section>
 
-      {/* Featured Dolls */}
+      {/* ============ HOW IT WORKS ============ */}
       <section className="py-24 relative z-10">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mb-16">
+            <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">How it works</p>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
+              Everything you need to enjoy the lounge.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: ShieldCheck,
+                title: "Verified Dolls only",
+                body: "Every creator is identity-verified before they earn a single credit. Authentic profiles, real connections.",
+              },
+              {
+                icon: MessageSquare,
+                title: "Message & unlock",
+                body: "Spend credits to start conversations and unlock premium photos and videos from your favorite Dolls.",
+              },
+              {
+                icon: Video,
+                title: "Private video sessions",
+                body: "Book intimate 1-on-1 video lounge time. Set the mood, light the coals, and enjoy the evening.",
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="group bg-card/50 backdrop-blur-md border border-white/5 rounded-2xl p-8 hover:bg-card/80 hover:border-primary/30 transition-all duration-500 hover:-translate-y-1"
+              >
+                <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(212,175,55,0.15)] group-hover:scale-110 transition-transform">
+                  <f.icon className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="text-xl font-serif font-bold text-white mb-3">{f.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{f.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FEATURED DOLLS ============ */}
+      <section className="py-24 relative z-10 border-t border-white/5">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">Featured Dolls</h2>
-              <p className="text-muted-foreground">Discover the most captivating creators in the lounge.</p>
+              <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">Tonight's lineup</p>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white">Featured Dolls</h2>
             </div>
             <Link href="/browse">
               <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10">
-                View All Dolls &rarr;
+                View all Dolls <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex flex-col space-y-3">
-                  <Skeleton className="h-[350px] w-full rounded-2xl bg-card" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-[150px] bg-card" />
-                    <Skeleton className="h-4 w-[100px] bg-card" />
-                  </div>
-                </div>
-              ))
-            ) : featuredDolls && featuredDolls.length > 0 ? (
-              featuredDolls.slice(0, 4).map((doll) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {slides.length > 0 ? (
+              slides.slice(0, 4).map((doll) => (
                 <Link key={doll.id} href={`/dolls/${doll.id}`} className="group block">
-                  <div className="relative h-[350px] w-full rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] bg-card">
-                    {doll.profilePhotoUrl ? (
-                      <img src={doll.profilePhotoUrl} alt={doll.stageName} className="object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105" />
-                    ) : (
-                      <div className="w-full h-full bg-card flex items-center justify-center">
-                        <UserPlaceholder />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-80" />
-                    <div className="absolute bottom-0 left-0 p-5 w-full">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-serif text-xl font-bold text-white group-hover:text-primary transition-colors">{doll.stageName}</h3>
-                        {doll.verified && <ShieldCheck className="w-4 h-4 text-primary" />}
-                      </div>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        {doll.city}, {doll.state}
-                      </p>
-                    </div>
-                    <div className="absolute top-4 right-4 flex flex-col gap-2">
+                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] bg-card">
+                    <img
+                      src={doll.profilePhotoUrl!}
+                      alt={doll.stageName}
+                      className="object-cover w-full h-full opacity-90 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
                       {doll.online && (
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/50 backdrop-blur-md">Online</Badge>
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/50 backdrop-blur-md text-[10px]">
+                          Online
+                        </Badge>
                       )}
                       {doll.elite && (
-                        <Badge className="bg-primary/20 text-primary border-primary/50 backdrop-blur-md">Elite</Badge>
+                        <Badge className="bg-primary/20 text-primary border-primary/50 backdrop-blur-md text-[10px]">
+                          Elite
+                        </Badge>
                       )}
+                    </div>
+                    <div className="absolute bottom-0 left-0 p-4 w-full">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <h3 className="font-serif text-lg font-bold text-white group-hover:text-primary transition-colors">
+                          {doll.stageName}
+                        </h3>
+                        {doll.verified && <ShieldCheck className="w-4 h-4 text-primary" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {doll.city}, {doll.state}
+                      </p>
                     </div>
                   </div>
                 </Link>
               ))
             ) : (
               <div className="col-span-full py-12 text-center text-muted-foreground bg-card/30 rounded-2xl border border-white/5">
-                No featured dolls at the moment. Check back soon!
+                No featured Dolls at the moment. Check back soon!
               </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* CTA Block */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-card/40 backdrop-blur-md border-y border-white/5" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[300px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
-        
+      {/* ============ FOR CREATORS BAND ============ */}
+      <section className="py-24 relative z-10 border-t border-white/5">
+        <div className="container mx-auto px-4">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-card/50 backdrop-blur-md p-10 md:p-16">
+            <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/15 blur-[120px] rounded-full pointer-events-none" />
+            <div className="relative z-10 max-w-2xl">
+              <p className="text-secondary uppercase tracking-[0.25em] text-xs font-semibold mb-4">For Dolls</p>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight">
+                Turn your lounge nights into income.
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8">
+                Get verified, set your own prices, and earn from subscriptions, premium content, messages, and video
+                sessions. You're always in control.
+              </p>
+              <Link href="/signup/doll">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-primary to-rose-400 hover:opacity-90 text-primary-foreground font-bold tracking-widest uppercase h-14 px-9 shadow-[0_0_40px_rgba(232,93,117,0.35)] border-none"
+                >
+                  Become a Doll
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FINAL CTA ============ */}
+      <section className="py-28 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
         <div className="container mx-auto px-4 relative z-10 text-center max-w-3xl">
-          <h2 className="text-4xl font-serif font-bold text-white mb-6">Ready to enter the lounge?</h2>
+          <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6 leading-tight">
+            The lounge is open.
+          </h2>
           <p className="text-lg text-muted-foreground mb-10">
-            Join thousands of members enjoying premium content, private chats, and exclusive connections with verified Hookah Dolls.
+            Join thousands enjoying premium content, private chats, and exclusive connections with verified Hookah Dolls.
           </p>
           <Link href="/signup/member">
-            <Button size="lg" className="bg-gradient-to-r from-primary to-rose-400 hover:from-primary/90 hover:to-rose-400/90 text-primary-foreground font-bold tracking-widest uppercase h-14 px-10 shadow-[0_0_40px_rgba(232,93,117,0.4)] border-none">
-              Create Free Account
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-widest uppercase h-14 px-12 shadow-[0_0_40px_rgba(212,175,55,0.4)] border-none"
+            >
+              Create your free account
             </Button>
           </Link>
+          <p className="mt-6 text-xs text-muted-foreground/60 uppercase tracking-widest">Strictly 21+ · Discreet billing</p>
         </div>
       </section>
     </Layout>
-  );
-}
-
-function UserPlaceholder() {
-  return (
-    <svg className="w-24 h-24 text-muted/50" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-    </svg>
   );
 }
