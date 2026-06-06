@@ -205,7 +205,7 @@ export default function Home() {
         onMouseMove={onHeroMove}
         onMouseLeave={onHeroLeave}
         onClick={onHeroClick}
-        className="relative -mt-20 h-svh min-h-[600px] w-full overflow-hidden md:cursor-pointer"
+        className="relative -mt-28 h-svh min-h-[600px] w-full overflow-hidden md:cursor-pointer"
       >
         {/* Slides */}
         <div className="absolute inset-0">

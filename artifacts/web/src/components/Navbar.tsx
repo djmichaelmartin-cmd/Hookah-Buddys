@@ -98,7 +98,7 @@ export function Navbar() {
           : "border-b border-transparent bg-transparent"
       }`}
     >
-      <div className="container relative mx-auto px-4 h-20 flex items-center">
+      <div className="container relative mx-auto px-4 h-28 flex items-center">
         {/* Left nav group */}
         <nav className="hidden xl:flex items-center gap-7">
           {NAV_LINKS.map((l) => (
