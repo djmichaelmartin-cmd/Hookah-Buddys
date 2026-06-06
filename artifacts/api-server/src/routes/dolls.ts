@@ -14,7 +14,7 @@ import { getDollCounts, dollWithCounts } from "../lib/dollHelpers";
 
 const router: IRouter = Router();
 
-router.get("/dolls", requireAuth(), async (req, res): Promise<void> => {
+router.get("/dolls", async (req, res): Promise<void> => {
   const parsed = ListDollsQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
