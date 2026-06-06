@@ -19,6 +19,8 @@ import {
 const BASE = import.meta.env.BASE_URL;
 const HERO_IMAGES = [1, 2, 3, 4, 5].map((i) => `${BASE}lounge/lounge${i}.png`);
 const N = HERO_IMAGES.length;
+// Number of vertical panels that "open up" in sequence during a hero transition.
+const PANELS = 6;
 
 export default function Home() {
   const { data: featuredDolls } = useListFeaturedDolls();
@@ -110,7 +112,7 @@ export default function Home() {
   // the commit after the wipe duration so navigation can never deadlock.
   useEffect(() => {
     if (!incoming || !revealed) return;
-    fallbackTimer.current = window.setTimeout(commit, 1100);
+    fallbackTimer.current = window.setTimeout(commit, 1500);
     return () => {
       if (fallbackTimer.current !== null) {
         clearTimeout(fallbackTimer.current);
@@ -143,8 +145,8 @@ export default function Home() {
   const prevIndex = (current - 1 + N) % N;
   const nextIndex = (current + 1) % N;
 
-  const hiddenClip = incoming?.dir === -1 ? "inset(0 100% 0 0)" : "inset(0 0 0 100%)";
-  const clip = revealed ? "inset(0 0 0 0)" : hiddenClip;
+  // Each panel opens vertically from its center outward when revealed.
+  const panelClip = revealed ? "inset(0 0 0 0)" : "inset(50% 0 50% 0)";
 
   return (
     <Layout>
@@ -159,27 +161,44 @@ export default function Home() {
             aria-hidden="true"
             className="absolute inset-0 h-full w-full object-cover"
           />
-          {/* Incoming image, revealed via an animated clip-path wipe */}
+          {/* Incoming image, revealed through staggered vertical panels that
+              "open up" in sequence, left-to-right (mirroring Patreon's hero). */}
           {incoming && (
-            <div
-              className="absolute inset-0 overflow-hidden will-change-[clip-path]"
-              style={{
-                clipPath: clip,
-                WebkitClipPath: clip,
-                transition: revealed ? "clip-path 900ms cubic-bezier(0.76, 0, 0.24, 1)" : "none",
-                boxShadow: "inset 0 0 120px 0 rgba(0,0,0,0.55)",
-              }}
-              onTransitionEnd={handleTransitionEnd}
-            >
-              <img
-                src={HERO_IMAGES[incoming.index]}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-cover"
-                style={{
-                  transform: revealed ? "scale(1)" : "scale(1.12)",
-                  transition: revealed ? "transform 1200ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
-                }}
+            <div className="absolute inset-0">
+              {Array.from({ length: PANELS }).map((_, i) => {
+                // Reveal order follows the navigation direction.
+                const order = incoming.dir === 1 ? i : PANELS - 1 - i;
+                const isLast = order === PANELS - 1;
+                return (
+                  <div
+                    key={i}
+                    className="absolute top-0 h-full overflow-hidden will-change-[clip-path]"
+                    style={{
+                      left: `${(i * 100) / PANELS}%`,
+                      width: `${100 / PANELS}%`,
+                      clipPath: panelClip,
+                      WebkitClipPath: panelClip,
+                      transition: revealed
+                        ? `clip-path 760ms cubic-bezier(0.76, 0, 0.24, 1) ${order * 95}ms`
+                        : "none",
+                    }}
+                    onTransitionEnd={isLast ? handleTransitionEnd : undefined}
+                  >
+                    {/* Full-bleed image, shifted so all panels tile seamlessly. */}
+                    <img
+                      src={HERO_IMAGES[incoming.index]}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute top-0 h-full max-w-none object-cover"
+                      style={{ width: `${PANELS * 100}%`, left: `${-i * 100}%` }}
+                    />
+                  </div>
+                );
+              })}
+              {/* Subtle vignette for depth over the revealing panels. */}
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{ boxShadow: "inset 0 0 120px 0 rgba(0,0,0,0.5)" }}
               />
             </div>
           )}
@@ -198,10 +217,11 @@ export default function Home() {
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
-          <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-4 origin-bottom opacity-0 scale-50 translate-y-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0">
-            <div className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-primary/70 shadow-[0_0_30px_rgba(212,175,55,0.45)] ring-4 ring-primary/10">
+          <div className="pointer-events-none absolute left-full ml-4 top-1/2 -translate-y-1/2 origin-left opacity-0 scale-75 -translate-x-3 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0">
+            <div className="relative h-32 w-32 rounded-full overflow-hidden border-2 border-primary/70 shadow-[0_0_40px_rgba(212,175,55,0.5)] ring-4 ring-primary/10">
               <img src={HERO_IMAGES[prevIndex]} alt="" aria-hidden="true" className="h-full w-full object-cover" />
               <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
+              <span className="absolute inset-x-0 bottom-0 text-center text-[10px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/70 to-transparent pb-1.5 pt-3">Prev</span>
             </div>
           </div>
         </div>
@@ -214,10 +234,11 @@ export default function Home() {
           >
             <ChevronRight className="h-6 w-6" />
           </button>
-          <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-4 origin-bottom opacity-0 scale-50 translate-y-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0">
-            <div className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-primary/70 shadow-[0_0_30px_rgba(212,175,55,0.45)] ring-4 ring-primary/10">
+          <div className="pointer-events-none absolute right-full mr-4 top-1/2 -translate-y-1/2 origin-right opacity-0 scale-75 translate-x-3 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0">
+            <div className="relative h-32 w-32 rounded-full overflow-hidden border-2 border-primary/70 shadow-[0_0_40px_rgba(212,175,55,0.5)] ring-4 ring-primary/10">
               <img src={HERO_IMAGES[nextIndex]} alt="" aria-hidden="true" className="h-full w-full object-cover" />
               <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
+              <span className="absolute inset-x-0 bottom-0 text-center text-[10px] font-semibold uppercase tracking-widest text-white/90 bg-gradient-to-t from-black/70 to-transparent pb-1.5 pt-3">Next</span>
             </div>
           </div>
         </div>
