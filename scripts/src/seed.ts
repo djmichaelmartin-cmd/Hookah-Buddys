@@ -250,28 +250,37 @@ async function clear() {
 async function seedPlans() {
   await db.insert(plansTable).values([
     {
-      name: "I Love Dolls — Free",
+      name: "Free Membership",
       audience: "member",
       price: 0,
       interval: "month",
       tier: "free",
-      description: "Browse verified Dolls and preview free content.",
-      features: ["Browse all verified Dolls", "View free photos", "Add favorites"],
+      description: "Browse verified Dolls and save your favorites.",
+      features: [
+        "Browse profiles",
+        "Save favorites",
+        "No interaction without purchasing credits or upgrading",
+      ],
       highlighted: false,
     },
     {
-      name: "I Love Dolls — Premium",
+      name: "Basic Membership",
       audience: "member",
       price: 19.99,
       interval: "month",
+      tier: "basic",
+      description: "Everything in Free, plus enhanced messaging.",
+      features: ["Browse profiles", "Save favorites", "Enhanced messaging"],
+      highlighted: false,
+    },
+    {
+      name: "Premium Membership",
+      audience: "member",
+      price: 39.99,
+      interval: "month",
       tier: "premium",
-      description: "Unlock messaging credits and premium galleries.",
-      features: [
-        "Everything in Free",
-        "Monthly message credits",
-        "Unlock premium photos & videos",
-        "Priority video chat booking",
-      ],
+      description: "The full experience with premium browsing and access.",
+      features: ["Enhanced messaging", "Additional profile access", "Premium browsing features"],
       highlighted: true,
     },
     {

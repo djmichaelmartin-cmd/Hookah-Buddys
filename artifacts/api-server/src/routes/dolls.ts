@@ -173,7 +173,7 @@ router.get("/dolls/:id", async (req, res): Promise<void> => {
           eq(subscriptionsTable.status, "active"),
         ),
       );
-    viewerSubscribed = subs.some((s) => s.audience === "member" && s.tier !== "free");
+    viewerSubscribed = subs.some((s) => s.audience === "member" && s.tier === "premium");
 
     const unlocks = await db
       .select({ mediaId: contentUnlocksTable.mediaId })

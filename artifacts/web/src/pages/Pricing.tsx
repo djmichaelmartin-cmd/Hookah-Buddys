@@ -1,44 +1,209 @@
 import { Layout } from "@/components/Layout";
-import { useListPlans } from "@workspace/api-client-react";
+import {
+  useListPlans,
+  useGetCurrentUser,
+  useListSubscriptions,
+  getListSubscriptionsQueryKey,
+  useCreateSubscription,
+  type Plan,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { Check, MessageSquare, ImageIcon, Video, Lock, Star, Crown } from "lucide-react";
+
+const ADDITIONAL_FEATURES = [
+  { icon: MessageSquare, label: "Direct messaging" },
+  { icon: ImageIcon, label: "Premium photo access" },
+  { icon: Video, label: "Premium video access" },
+  { icon: Video, label: "Private video chats" },
+  { icon: Star, label: "Content subscriptions" },
+  { icon: Lock, label: "Exclusive content unlocks" },
+];
 
 export default function Pricing() {
   const { data: plans, isLoading } = useListPlans();
+  const { data: session } = useGetCurrentUser();
+  const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const role = session?.user?.role;
+  const isMember = role === "member";
+
+  const { data: subscriptions } = useListSubscriptions({
+    query: { enabled: isMember, queryKey: getListSubscriptionsQueryKey() },
+  });
+  const currentPlanId = (subscriptions ?? []).find(
+    (s) => s.audience === "member" && s.status === "active" && !s.dollId,
+  )?.planId;
+
+  const subscribe = useCreateSubscription({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Membership active", description: "Your membership has been updated." });
+        queryClient.invalidateQueries({ queryKey: getListSubscriptionsQueryKey() });
+        navigate("/dashboard/member");
+      },
+      onError: () => toast({ title: "Could not update membership", description: "Please try again.", variant: "destructive" }),
+    },
+  });
+
+  const memberPlans = (plans ?? []).filter((p) => p.audience === "member");
+  const dollPlans = (plans ?? []).filter((p) => p.audience === "doll");
+
+  const handleSelect = (plan: Plan) => {
+    if (!session?.user) {
+      navigate("/signup/member");
+      return;
+    }
+    if (plan.audience === "member" && role !== "member") {
+      toast({ title: "Members only", description: "Sign in as a member to choose this plan.", variant: "destructive" });
+      return;
+    }
+    if (plan.audience === "doll" && role !== "doll") {
+      toast({ title: "For Dolls only", description: "This plan is for verified Dolls.", variant: "destructive" });
+      return;
+    }
+    if (plan.audience === "doll") {
+      navigate("/checkout");
+      return;
+    }
+    if (plan.price === 0) {
+      toast({ title: "You're all set", description: "Free membership is active by default." });
+      navigate("/dashboard/member");
+      return;
+    }
+    subscribe.mutate({ data: { planId: plan.id } });
+  };
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-4xl font-serif text-white mb-4">Memberships & Plans</h1>
-        <p className="text-muted-foreground mb-12 max-w-2xl mx-auto">
-          Choose your level of access to the exclusive lounge. Premium members get exclusive perks, early access, and free messages.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {isLoading ? (
-            <p className="col-span-full text-muted-foreground">Loading plans...</p>
-          ) : plans?.map(plan => (
-            <div key={plan.id} className={`bg-card/50 backdrop-blur-xl border ${plan.highlighted ? 'border-primary shadow-[0_0_30px_rgba(212,175,55,0.2)]' : 'border-white/10'} rounded-2xl p-8 flex flex-col`}>
-              <h3 className="text-2xl font-serif font-bold text-white mb-2">{plan.name}</h3>
-              <div className="text-3xl font-bold text-primary mb-4">${plan.price}<span className="text-sm text-muted-foreground font-normal">/{plan.interval}</span></div>
-              <p className="text-muted-foreground mb-6 flex-1">{plan.description}</p>
-              
-              <ul className="space-y-3 mb-8 text-left">
-                {plan.features?.map((f, i) => (
-                  <li key={i} className="text-sm text-white flex items-start">
-                    <span className="text-primary mr-2">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-
-              <Link href="/checkout" className="w-full mt-auto">
-                <Button className={`w-full ${plan.highlighted ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
-                  Select Plan
-                </Button>
-              </Link>
-            </div>
-          ))}
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center">
+          <h1 className="text-4xl font-serif text-white mb-4">Memberships & Plans</h1>
+          <p className="text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Choose your level of access to the exclusive lounge. Upgrade any time as your needs grow.
+          </p>
         </div>
+
+        <h2 className="text-2xl font-serif text-white text-center mb-8">Member Memberships</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {isLoading ? (
+            <p className="col-span-full text-center text-muted-foreground">Loading plans...</p>
+          ) : (
+            memberPlans.map((plan) => {
+              const isCurrent = currentPlanId === plan.id || (isMember && !currentPlanId && plan.price === 0);
+              const pending = subscribe.isPending && subscribe.variables?.data.planId === plan.id;
+              return (
+                <div
+                  key={plan.id}
+                  className={`bg-card/50 backdrop-blur-xl border ${
+                    plan.highlighted ? "border-primary shadow-[0_0_30px_rgba(212,175,55,0.2)]" : "border-white/10"
+                  } rounded-2xl p-8 flex flex-col relative`}
+                >
+                  {plan.highlighted && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                      <Crown className="w-3 h-3" /> Most Popular
+                    </span>
+                  )}
+                  <h3 className="text-2xl font-serif font-bold text-white mb-2">{plan.name}</h3>
+                  <div className="text-3xl font-bold text-primary mb-4">
+                    ${plan.price}
+                    <span className="text-sm text-muted-foreground font-normal">/{plan.interval}</span>
+                  </div>
+                  <p className="text-muted-foreground mb-6">{plan.description}</p>
+
+                  <ul className="space-y-3 mb-8 text-left">
+                    {plan.features?.map((f, i) => (
+                      <li key={i} className="text-sm text-white flex items-start">
+                        <Check className="w-4 h-4 text-primary mr-2 mt-0.5 shrink-0" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    className={`w-full mt-auto ${
+                      plan.highlighted
+                        ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                        : "bg-white/10 hover:bg-white/20 text-white"
+                    }`}
+                    disabled={isCurrent || pending}
+                    onClick={() => handleSelect(plan)}
+                  >
+                    {isCurrent
+                      ? "Current Plan"
+                      : pending
+                        ? "Updating..."
+                        : !session?.user
+                          ? "Get Started"
+                          : plan.price === 0
+                            ? "Continue Free"
+                            : "Select Plan"}
+                  </Button>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <div className="max-w-5xl mx-auto mt-16 bg-card/30 border border-white/10 rounded-2xl p-8">
+          <h2 className="text-2xl font-serif text-white text-center mb-2">Additional Paid Features</h2>
+          <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
+            Some interactions are paid separately with credits or one-off purchases, regardless of your membership.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {ADDITIONAL_FEATURES.map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-3 bg-background/40 border border-white/10 rounded-xl px-4 py-3">
+                <Icon className="w-5 h-5 text-primary shrink-0" />
+                <span className="text-sm text-white">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {dollPlans.length > 0 && (
+          <>
+            <h2 className="text-2xl font-serif text-white text-center mt-20 mb-8">Plans for Dolls</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+              {dollPlans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className={`bg-card/50 backdrop-blur-xl border ${
+                    plan.highlighted ? "border-secondary shadow-[0_0_30px_rgba(232,93,117,0.2)]" : "border-white/10"
+                  } rounded-2xl p-6 flex flex-col`}
+                >
+                  <h3 className="text-xl font-serif font-bold text-white mb-2">{plan.name}</h3>
+                  <div className="text-2xl font-bold text-secondary mb-4">
+                    ${plan.price}
+                    <span className="text-sm text-muted-foreground font-normal">/{plan.interval}</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
+                  <ul className="space-y-2 mb-6 text-left">
+                    {plan.features?.map((f, i) => (
+                      <li key={i} className="text-sm text-white flex items-start">
+                        <Check className="w-4 h-4 text-secondary mr-2 mt-0.5 shrink-0" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  {role === "doll" ? (
+                    <Button
+                      className="w-full mt-auto bg-white/10 hover:bg-white/20 text-white"
+                      onClick={() => handleSelect(plan)}
+                    >
+                      Select Plan
+                    </Button>
+                  ) : (
+                    <Link href="/signup/doll" className="w-full mt-auto">
+                      <Button className="w-full bg-white/10 hover:bg-white/20 text-white">Apply as a Doll</Button>
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </Layout>
   );

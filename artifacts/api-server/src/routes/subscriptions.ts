@@ -46,8 +46,8 @@ router.post("/subscriptions", requireAuth("member"), async (req, res): Promise<v
     res.status(400).json({ error: "Members can only subscribe to member plans" });
     return;
   }
-  if (parsed.data.dollId && plan.tier === "free") {
-    res.status(400).json({ error: "A paid membership is required to subscribe to a Doll" });
+  if (parsed.data.dollId && plan.tier !== "premium") {
+    res.status(400).json({ error: "A Premium membership is required to unlock a Doll's premium content" });
     return;
   }
   const [sub] = await db
