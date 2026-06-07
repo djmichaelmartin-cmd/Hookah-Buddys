@@ -8,7 +8,7 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { CREDIT_COSTS } from "@workspace/pricing";
+import { CREDIT_COST_ITEMS } from "@workspace/pricing";
 import {
   Dialog,
   DialogContent,
@@ -134,24 +134,13 @@ export function CreditPackageGrid({
   );
 }
 
-const CREDIT_USES = [
-  `Start a conversation — ${CREDIT_COSTS.messageStart} credits`,
-  `Send a follow-up message — ${CREDIT_COSTS.messageFollowup} credits`,
-  `Attach a photo to a message — ${CREDIT_COSTS.messagePhoto} credits`,
-  `Send a priority message — ${CREDIT_COSTS.messagePriority} credits`,
-  `Unlock a premium photo — ${CREDIT_COSTS.unlockPhoto} credits`,
-  `Unlock a content bundle — ${CREDIT_COSTS.unlockBundle} credits`,
-  `Unlock a premium video — ${CREDIT_COSTS.unlockVideo} credits`,
-  `Unlock exclusive content — ${CREDIT_COSTS.unlockExclusive} credits`,
-  `Video chat — ${CREDIT_COSTS.videoPerMinute} credits/min (${CREDIT_COSTS.videoMinMinutes} min minimum)`,
-];
-
 export function CreditUsesList() {
   return (
     <ul className="space-y-2">
-      {CREDIT_USES.map((use) => (
-        <li key={use} className="flex items-start gap-2 text-sm text-zinc-300">
-          <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" /> {use}
+      {CREDIT_COST_ITEMS.map((item) => (
+        <li key={item.key} className="flex items-start gap-2 text-sm text-zinc-300">
+          <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />{" "}
+          {item.label} — {item.credits} {item.unit ?? "credits"}
         </li>
       ))}
     </ul>

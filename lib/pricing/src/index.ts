@@ -18,6 +18,41 @@ export const CREDIT_COSTS = {
   unlockExclusive: 250,
 } as const;
 
+/**
+ * A single displayable credit cost line, used by the web app's "How credits
+ * work" lists. Defined here so the labels and amounts share one source of truth
+ * with the costs the server actually charges — change a price (or a line) here
+ * and every place it is displayed updates in lockstep.
+ */
+export type CreditCostItem = {
+  /** Stable key for React lists. */
+  key: string;
+  /** Human-readable description of the action. */
+  label: string;
+  /** Credit amount for the action (per-minute rate for time-based actions). */
+  credits: number;
+  /** Unit/qualifier shown after the amount. Defaults to "credits". */
+  unit?: string;
+};
+
+/** Ordered list of credit costs for display in the "How credits work" UI. */
+export const CREDIT_COST_ITEMS: CreditCostItem[] = [
+  { key: "messageStart", label: "Start a conversation", credits: CREDIT_COSTS.messageStart },
+  { key: "messageFollowup", label: "Send a follow-up message", credits: CREDIT_COSTS.messageFollowup },
+  { key: "messagePhoto", label: "Attach a photo to a message", credits: CREDIT_COSTS.messagePhoto },
+  { key: "messagePriority", label: "Send a priority message", credits: CREDIT_COSTS.messagePriority },
+  { key: "unlockPhoto", label: "Unlock a premium photo", credits: CREDIT_COSTS.unlockPhoto },
+  { key: "unlockBundle", label: "Unlock a content bundle", credits: CREDIT_COSTS.unlockBundle },
+  { key: "unlockVideo", label: "Unlock a premium video", credits: CREDIT_COSTS.unlockVideo },
+  { key: "unlockExclusive", label: "Unlock exclusive content", credits: CREDIT_COSTS.unlockExclusive },
+  {
+    key: "videoPerMinute",
+    label: "Video chat",
+    credits: CREDIT_COSTS.videoPerMinute,
+    unit: `credits/min (${CREDIT_COSTS.videoMinMinutes} min minimum)`,
+  },
+];
+
 const VIDEO_MEDIA_TYPES = new Set(["premium_video", "short_video", "video"]);
 
 /** Media types that are paywalled and therefore require a pricing tier. */
