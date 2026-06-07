@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Star, Search, X, Video, Circle, ArrowRight } from "lucide-react";
+import { ShieldCheck, Star, X, Video, Circle, ArrowRight } from "lucide-react";
 
 export default function Browse() {
-  const [search, setSearch] = useState("");
+  const [minAge, setMinAge] = useState("");
+  const [maxAge, setMaxAge] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [onlineOnly, setOnlineOnly] = useState(false);
@@ -21,19 +22,23 @@ export default function Browse() {
 
   const params = useMemo<ListDollsParams>(() => {
     const p: ListDollsParams = {};
-    if (search.trim()) p.search = search.trim();
+    const min = parseInt(minAge, 10);
+    const max = parseInt(maxAge, 10);
+    if (!Number.isNaN(min)) p.minAge = min;
+    if (!Number.isNaN(max)) p.maxAge = max;
     if (city.trim()) p.city = city.trim();
     if (state.trim()) p.state = state.trim();
     if (onlineOnly) p.online = true;
     if (videoChatOnly) p.videoChat = true;
     if (verifiedOnly) p.verified = true;
     return p;
-  }, [search, city, state, onlineOnly, videoChatOnly, verifiedOnly]);
+  }, [minAge, maxAge, city, state, onlineOnly, videoChatOnly, verifiedOnly]);
 
   const { data: dolls, isLoading, isError } = useListDolls(params);
 
   const hasFilters =
-    !!search ||
+    !!minAge ||
+    !!maxAge ||
     !!city ||
     !!state ||
     onlineOnly ||
@@ -41,7 +46,8 @@ export default function Browse() {
     verifiedOnly;
 
   const clearFilters = () => {
-    setSearch("");
+    setMinAge("");
+    setMaxAge("");
     setCity("");
     setState("");
     setOnlineOnly(false);
@@ -65,17 +71,30 @@ export default function Browse() {
         <div className="mb-10 p-5 md:p-6 bg-card/50 border border-white/10 rounded-2xl backdrop-blur-sm">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
-              <Label htmlFor="f-search" className="text-xs text-muted-foreground mb-1.5 block">
-                Search by name
+              <Label className="text-xs text-muted-foreground mb-1.5 block">
+                Age Range
               </Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
                 <Input
-                  id="f-search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Stage name…"
-                  className="pl-9"
+                  id="f-min-age"
+                  type="number"
+                  inputMode="numeric"
+                  min={21}
+                  value={minAge}
+                  onChange={(e) => setMinAge(e.target.value)}
+                  placeholder="Min"
+                  aria-label="Minimum age"
+                />
+                <span className="text-muted-foreground">–</span>
+                <Input
+                  id="f-max-age"
+                  type="number"
+                  inputMode="numeric"
+                  min={21}
+                  value={maxAge}
+                  onChange={(e) => setMaxAge(e.target.value)}
+                  placeholder="Max"
+                  aria-label="Maximum age"
                 />
               </div>
             </div>
