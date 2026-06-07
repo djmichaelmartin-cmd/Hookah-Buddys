@@ -1,10 +1,12 @@
 import { Layout } from "@/components/Layout";
 import { useState } from "react";
-import { useListThreads, useListMessages, useSendMessage, getListMessagesQueryKey, getListThreadsQueryKey } from "@workspace/api-client-react";
+import { useListThreads, useListMessages, useSendMessage, useGetCurrentUser, getListMessagesQueryKey, getListThreadsQueryKey, ApiError } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Messages() {
   const queryClient = useQueryClient();
@@ -14,6 +16,9 @@ export default function Messages() {
   const { data: messages } = useListMessages(activeThreadId || 0, { query: { enabled: !!activeThreadId, queryKey: getListMessagesQueryKey(activeThreadId || 0) } });
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState("");
+  const { toast } = useToast();
+  const { data: session } = useGetCurrentUser();
+  const myRole = session?.user?.role;
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +32,29 @@ export default function Messages() {
         setNewMessage("");
         queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(activeThreadId) });
         queryClient.invalidateQueries({ queryKey: getListThreadsQueryKey() });
-      }
+      },
+      onError: (err) => {
+        const serverMessage =
+          err instanceof ApiError &&
+          err.data &&
+          typeof err.data === "object" &&
+          "error" in err.data &&
+          typeof (err.data as { error: unknown }).error === "string"
+            ? (err.data as { error: string }).error
+            : null;
+        const outOfCredits = err instanceof ApiError && err.status === 402;
+        toast({
+          title: outOfCredits ? "Out of credits" : "Message not sent",
+          description:
+            serverMessage ?? "Something went wrong sending your message. Please try again.",
+          variant: "destructive",
+          action: outOfCredits ? (
+            <Link href="/pricing">
+              <Button size="sm" variant="outline">Buy credits</Button>
+            </Link>
+          ) : undefined,
+        });
+      },
     });
   };
 
@@ -76,13 +103,16 @@ export default function Messages() {
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages?.map(msg => (
-                    <div key={msg.id} className={`flex ${msg.senderRole === 'member' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] rounded-2xl p-3 ${msg.senderRole === 'member' ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white'}`}>
-                        {msg.body}
+                  {messages?.map(msg => {
+                    const isMine = msg.senderRole === myRole;
+                    return (
+                      <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[75%] rounded-2xl p-3 ${isMine ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white'}`}>
+                          {msg.body}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {(!messages || messages.length === 0) && (
                     <div className="h-full flex items-center justify-center text-muted-foreground">Say hello!</div>
                   )}

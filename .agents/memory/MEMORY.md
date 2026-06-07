@@ -3,3 +3,4 @@
 - [Premium content entitlement](premium-content-gating.md) — gate premium media by subscription PLAN tier (join plans), not by sub-row existence; blank locked URLs server-side.
 - [Messaging/video feature gating](feature-membership-gating.md) — paid-only features need a platform membership (dollId null, paid member plan); enforce server-side via requirePaidMember(), not just the UI.
 - [Lead collector (Google Places)](lead-collector.md) — run collections via background API+poll (script times out); hookah-signal gating for promotion; CSV formula-injection escaping required.
+- [UI mutation error handling](ui-mutation-error-handling.md) — member mutations need onError toasts surfacing server message (esp. 402 credits); align chat bubbles by current user's role.
