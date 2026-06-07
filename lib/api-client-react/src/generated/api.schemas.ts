@@ -990,6 +990,8 @@ export const ListAdminCreditTransactionsType = {
   purchase: 'purchase',
   spend: 'spend',
   adjustment: 'adjustment',
+  membership: 'membership',
+  expiry: 'expiry',
 } as const;
 
 export type ListBusinessLeadsParams = {

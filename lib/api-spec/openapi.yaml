@@ -885,7 +885,7 @@ paths:
       summary: Recent credit transactions across all members (Admin)
       parameters:
         - { name: userId, in: query, required: false, schema: { type: integer } }
-        - { name: type, in: query, required: false, schema: { type: string, enum: [purchase, spend, adjustment] } }
+        - { name: type, in: query, required: false, schema: { type: string, enum: [purchase, spend, adjustment, membership, expiry] } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
         - { name: offset, in: query, required: false, schema: { type: integer } }
       responses:

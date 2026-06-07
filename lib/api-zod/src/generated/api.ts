@@ -1140,7 +1140,7 @@ export const UpdateCreditPackageResponse = zod.object({
  */
 export const ListAdminCreditTransactionsQueryParams = zod.object({
   "userId": zod.coerce.number().optional(),
-  "type": zod.enum(['purchase', 'spend', 'adjustment']).optional(),
+  "type": zod.enum(['purchase', 'spend', 'adjustment', 'membership', 'expiry']).optional(),
   "limit": zod.coerce.number().optional(),
   "offset": zod.coerce.number().optional()
 })
