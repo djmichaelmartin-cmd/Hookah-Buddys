@@ -175,6 +175,9 @@ importers:
       '@workspace/lead-collector':
         specifier: workspace:*
         version: link:../../lib/lead-collector
+      '@workspace/pricing':
+        specifier: workspace:*
+        version: link:../../lib/pricing
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -539,6 +542,9 @@ importers:
       '@workspace/api-client-react':
         specifier: workspace:*
         version: link:../../lib/api-client-react
+      '@workspace/pricing':
+        specifier: workspace:*
+        version: link:../../lib/pricing
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -674,6 +680,8 @@ importers:
         specifier: 'catalog:'
         version: 25.6.2
 
+  lib/pricing: {}
+
   scripts:
     dependencies:
       '@workspace/db':
@@ -682,6 +690,9 @@ importers:
       '@workspace/lead-collector':
         specifier: workspace:*
         version: link:../lib/lead-collector
+      '@workspace/pricing':
+        specifier: workspace:*
+        version: link:../lib/pricing
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@types/pg@8.20.0)(pg@8.20.0)

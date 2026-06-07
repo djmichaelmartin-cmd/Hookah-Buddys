@@ -11,6 +11,10 @@ import {
   useCreateSubscription,
   useCreateThread,
   useRequestVideoChat,
+  useEstimateVideoChat,
+  getEstimateVideoChatQueryKey,
+  getGetCreditsQueryKey,
+  ApiError,
   type Media,
 } from "@workspace/api-client-react";
 import { useParams, useLocation } from "wouter";
@@ -24,7 +28,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, MessageSquare, Video, Star, Lock, Play, ImageIcon, Check, Sparkles } from "lucide-react";
+import { BuyCreditsDialog } from "@/components/BuyCreditsDialog";
+import { ShieldCheck, MessageSquare, Video, Star, Lock, Play, ImageIcon, Check, Sparkles, Coins } from "lucide-react";
+
+function serverError(err: unknown): string | undefined {
+  if (err instanceof ApiError && err.data && typeof err.data === "object" && "error" in err.data) {
+    const e = (err.data as { error: unknown }).error;
+    if (typeof e === "string") return e;
+  }
+  return undefined;
+}
+
+function isOutOfCredits(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 402;
+}
 
 const VIDEO_TYPES = new Set(["premium_video", "short_video"]);
 
@@ -48,8 +65,25 @@ export default function DollProfile() {
   const role = session?.user?.role;
   const isMember = role === "member";
 
-  const refetchDoll = () =>
+  const [buyOpen, setBuyOpen] = useState(false);
+
+  const refetchDoll = () => {
     queryClient.invalidateQueries({ queryKey: getGetDollQueryKey(dollId) });
+    queryClient.invalidateQueries({ queryKey: getGetCreditsQueryKey() });
+  };
+
+  const handleCreditError = (err: unknown, fallbackTitle: string) => {
+    if (isOutOfCredits(err)) {
+      toast({
+        title: "Not enough credits",
+        description: serverError(err) ?? "Buy more credits to continue.",
+        variant: "destructive",
+      });
+      setBuyOpen(true);
+      return;
+    }
+    toast({ title: fallbackTitle, description: serverError(err) ?? "Please try again.", variant: "destructive" });
+  };
 
   const unlock = useUnlockContent({
     mutation: {
@@ -57,7 +91,7 @@ export default function DollProfile() {
         toast({ title: "Content unlocked", description: "Enjoy the full content." });
         refetchDoll();
       },
-      onError: () => toast({ title: "Unlock failed", description: "Please try again.", variant: "destructive" }),
+      onError: (err) => handleCreditError(err, "Unlock failed"),
     },
   });
 
@@ -102,10 +136,15 @@ export default function DollProfile() {
     mutation: {
       onSuccess: () => {
         toast({ title: "Video chat requested", description: "She'll be notified to confirm a time." });
+        queryClient.invalidateQueries({ queryKey: getGetCreditsQueryKey() });
         navigate("/video-chat");
       },
-      onError: () => toast({ title: "Request failed", description: "Please try again.", variant: "destructive" }),
+      onError: (err) => handleCreditError(err, "Request failed"),
     },
+  });
+
+  const { data: videoEstimate } = useEstimateVideoChat(undefined, {
+    query: { enabled: isMember, queryKey: getEstimateVideoChatQueryKey() },
   });
 
   if (isLoading)
@@ -241,6 +280,12 @@ export default function DollProfile() {
                   <Video className="w-4 h-4 mr-2" />
                   {requestVideo.isPending ? "Requesting..." : "Request Video Chat"}
                 </Button>
+                {isMember && videoEstimate && (
+                  <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                    <Coins className="w-3 h-3 text-primary" />
+                    {videoEstimate.creditsPerMinute} credits/min &bull; {videoEstimate.minMinutes} min minimum ({videoEstimate.totalCredits} credits)
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -347,6 +392,8 @@ export default function DollProfile() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <BuyCreditsDialog open={buyOpen} onOpenChange={setBuyOpen} />
     </Layout>
   );
 }

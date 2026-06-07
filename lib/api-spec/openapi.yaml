@@ -495,6 +495,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/Subscription"
 
+  /credit-packages:
+    get:
+      operationId: listCreditPackages
+      tags: [credits]
+      summary: Available credit packages for purchase (public)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CreditPackage"
+
   /credits:
     get:
       operationId: getCredits
@@ -659,6 +674,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/VideoChatSession"
 
+  /video-chats/estimate:
+    get:
+      operationId: estimateVideoChat
+      tags: [videochat]
+      summary: Estimate the credit cost of a video chat
+      parameters:
+        - { name: minutes, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoChatEstimate"
+
   /boosts:
     get:
       operationId: listBoosts
@@ -809,6 +839,79 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminUser"
+
+  /admin/credit-packages:
+    get:
+      operationId: listAdminCreditPackages
+      tags: [admin]
+      summary: All credit packages including inactive (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CreditPackage"
+
+  /admin/credit-packages/{id}:
+    patch:
+      operationId: updateCreditPackage
+      tags: [admin]
+      summary: Update a credit package (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditPackageUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditPackage"
+
+  /admin/credit-transactions:
+    get:
+      operationId: listAdminCreditTransactions
+      tags: [admin]
+      summary: Recent credit transactions across all members (Admin)
+      parameters:
+        - { name: userId, in: query, required: false, schema: { type: integer } }
+        - { name: type, in: query, required: false, schema: { type: string, enum: [purchase, spend, adjustment] } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCreditTransactionPage"
+
+  /admin/credit-adjustments:
+    post:
+      operationId: createCreditAdjustment
+      tags: [admin]
+      summary: Manually grant or deduct member credits (Admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditAdjustmentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCreditTransaction"
 
   /admin/leads:
     get:
@@ -1273,16 +1376,79 @@ components:
       properties:
         id: { type: integer }
         amount: { type: integer }
-        type: { type: string, enum: [purchase, spend] }
+        type: { type: string, enum: [purchase, spend, adjustment] }
         description: { type: string }
+        amountCents: { type: ["integer", "null"] }
         createdAt: { type: string }
+
+    CreditPackage:
+      type: object
+      required: [id, slug, name, priceCents, credits, active, sortOrder]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        name: { type: string }
+        priceCents: { type: integer }
+        credits: { type: integer }
+        label: { type: ["string", "null"] }
+        active: { type: boolean }
+        sortOrder: { type: integer }
+
+    CreditPackageUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        priceCents: { type: integer, minimum: 0 }
+        credits: { type: integer, minimum: 1 }
+        label: { type: ["string", "null"] }
+        active: { type: boolean }
+        sortOrder: { type: integer }
 
     CreditPurchaseInput:
       type: object
-      required: [credits]
+      required: [packageId]
       properties:
-        credits: { type: integer }
-        price: { type: number }
+        packageId: { type: integer }
+
+    AdminCreditTransaction:
+      type: object
+      required: [id, userId, amount, type]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userEmail: { type: string }
+        amount: { type: integer }
+        type: { type: string, enum: [purchase, spend, adjustment] }
+        description: { type: string }
+        amountCents: { type: ["integer", "null"] }
+        createdAt: { type: string }
+
+    AdminCreditTransactionPage:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AdminCreditTransaction" }
+        total: { type: integer }
+
+    CreditAdjustmentInput:
+      type: object
+      required: [userId, amount]
+      properties:
+        userId: { type: integer }
+        amount: { type: integer }
+        note: { type: string }
+
+    VideoChatEstimate:
+      type: object
+      required: [minutes, minMinutes, creditsPerMinute, totalCredits]
+      properties:
+        minutes: { type: integer }
+        minMinutes: { type: integer }
+        creditsPerMinute: { type: integer }
+        totalCredits: { type: integer }
 
     MessageThread:
       type: object

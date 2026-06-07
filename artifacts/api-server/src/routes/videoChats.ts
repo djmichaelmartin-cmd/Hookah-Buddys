@@ -1,8 +1,20 @@
 import { Router, type IRouter } from "express";
 import { eq, sql } from "drizzle-orm";
-import { db, videoChatsTable, dollsTable, usersTable } from "@workspace/db";
-import { RequestVideoChatBody } from "@workspace/api-zod";
+import {
+  db,
+  videoChatsTable,
+  dollsTable,
+  usersTable,
+  creditTransactionsTable,
+} from "@workspace/db";
+import { RequestVideoChatBody, EstimateVideoChatQueryParams } from "@workspace/api-zod";
+import {
+  CREDIT_COSTS,
+  effectiveVideoMinutes,
+  videoChatCreditCost,
+} from "@workspace/pricing";
 import { requireAuth, requirePaidMember } from "../lib/auth";
+import { spendCredits } from "../lib/credits";
 
 const router: IRouter = Router();
 
@@ -41,6 +53,22 @@ router.get("/video-chats", requireAuth("member", "doll"), async (req, res): Prom
   res.json(rows.map((r) => toSession(r.v, r.dollName ?? "", r.memberName ?? "")));
 });
 
+router.get("/video-chats/estimate", requireAuth("member"), async (req, res): Promise<void> => {
+  const q = EstimateVideoChatQueryParams.safeParse(req.query);
+  if (!q.success) {
+    res.status(400).json({ error: q.error.message });
+    return;
+  }
+  const requested = q.data.minutes ?? CREDIT_COSTS.videoMinMinutes;
+  const minutes = effectiveVideoMinutes(requested);
+  res.json({
+    minutes,
+    minMinutes: CREDIT_COSTS.videoMinMinutes,
+    creditsPerMinute: CREDIT_COSTS.videoPerMinute,
+    totalCredits: videoChatCreditCost(requested),
+  });
+});
+
 router.post("/video-chats", requireAuth("member"), requirePaidMember(), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const parsed = RequestVideoChatBody.safeParse(req.body);
@@ -53,18 +81,39 @@ router.post("/video-chats", requireAuth("member"), requirePaidMember(), async (r
     res.status(404).json({ error: "Doll not found" });
     return;
   }
-  const [v] = await db
-    .insert(videoChatsTable)
-    .values({
-      memberUserId: user.id,
-      dollId: parsed.data.dollId,
-      scheduledAt: parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null,
-      durationMinutes: parsed.data.durationMinutes ?? 15,
-      ratePerMinute: doll.videoChatRate,
-      status: "requested",
-    })
-    .returning();
-  res.status(201).json(toSession(v, doll.stageName, user.name));
+  // Enforce the 5-minute minimum, then atomically charge credits and create the
+  // session + ledger entry in one transaction.
+  const minutes = effectiveVideoMinutes(parsed.data.durationMinutes ?? CREDIT_COSTS.videoMinMinutes);
+  const cost = videoChatCreditCost(minutes);
+  const spend = await spendCredits(user.id, cost, async (tx) => {
+    const [created] = await tx
+      .insert(videoChatsTable)
+      .values({
+        memberUserId: user.id,
+        dollId: parsed.data.dollId,
+        scheduledAt: parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null,
+        durationMinutes: minutes,
+        ratePerMinute: doll.videoChatRate,
+        status: "requested",
+      })
+      .returning();
+    await tx.insert(creditTransactionsTable).values({
+      userId: user.id,
+      amount: -cost,
+      type: "spend",
+      description: `Video chat with ${doll.stageName} (${minutes} min)`,
+      dollId: doll.id,
+      videoChatId: created.id,
+    });
+    return created;
+  });
+  if (!spend.ok) {
+    res.status(402).json({
+      error: `Not enough credits — a ${minutes}-minute video chat costs ${cost} credits. Please buy credits.`,
+    });
+    return;
+  }
+  res.status(201).json(toSession(spend.result, doll.stageName, user.name));
 });
 
 export default router;

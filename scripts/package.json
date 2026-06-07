@@ -18,6 +18,7 @@
   "dependencies": {
     "@workspace/db": "workspace:*",
     "@workspace/lead-collector": "workspace:*",
+    "@workspace/pricing": "workspace:*",
     "drizzle-orm": "catalog:",
     "pg": "^8.20.0"
   }

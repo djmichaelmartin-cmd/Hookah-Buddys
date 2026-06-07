@@ -383,6 +383,7 @@ export type CreditTransactionType = typeof CreditTransactionType[keyof typeof Cr
 export const CreditTransactionType = {
   purchase: 'purchase',
   spend: 'spend',
+  adjustment: 'adjustment',
 } as const;
 
 export interface CreditTransaction {
@@ -390,6 +391,8 @@ export interface CreditTransaction {
   amount: number;
   type: CreditTransactionType;
   description?: string;
+  /** @nullable */
+  amountCents?: number | null;
   createdAt?: string;
 }
 
@@ -398,9 +401,73 @@ export interface CreditBalance {
   transactions?: CreditTransaction[];
 }
 
-export interface CreditPurchaseInput {
+export interface CreditPackage {
+  id: number;
+  slug: string;
+  name: string;
+  priceCents: number;
   credits: number;
-  price?: number;
+  /** @nullable */
+  label?: string | null;
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface CreditPackageUpdate {
+  /** @minLength 1 */
+  name?: string;
+  /** @minimum 0 */
+  priceCents?: number;
+  /** @minimum 1 */
+  credits?: number;
+  /** @nullable */
+  label?: string | null;
+  active?: boolean;
+  sortOrder?: number;
+}
+
+export interface CreditPurchaseInput {
+  packageId: number;
+}
+
+export type AdminCreditTransactionType = typeof AdminCreditTransactionType[keyof typeof AdminCreditTransactionType];
+
+
+export const AdminCreditTransactionType = {
+  purchase: 'purchase',
+  spend: 'spend',
+  adjustment: 'adjustment',
+} as const;
+
+export interface AdminCreditTransaction {
+  id: number;
+  userId: number;
+  userName?: string;
+  userEmail?: string;
+  amount: number;
+  type: AdminCreditTransactionType;
+  description?: string;
+  /** @nullable */
+  amountCents?: number | null;
+  createdAt?: string;
+}
+
+export interface AdminCreditTransactionPage {
+  items: AdminCreditTransaction[];
+  total: number;
+}
+
+export interface CreditAdjustmentInput {
+  userId: number;
+  amount: number;
+  note?: string;
+}
+
+export interface VideoChatEstimate {
+  minutes: number;
+  minMinutes: number;
+  creditsPerMinute: number;
+  totalCredits: number;
 }
 
 export interface MessageThread {
@@ -840,6 +907,10 @@ radius?: number;
 limit?: number;
 };
 
+export type EstimateVideoChatParams = {
+minutes?: number;
+};
+
 export type ListUsersParams = {
 role?: ListUsersRole;
 };
@@ -851,6 +922,22 @@ export const ListUsersRole = {
   doll: 'doll',
   member: 'member',
   admin: 'admin',
+} as const;
+
+export type ListAdminCreditTransactionsParams = {
+userId?: number;
+type?: ListAdminCreditTransactionsType;
+limit?: number;
+offset?: number;
+};
+
+export type ListAdminCreditTransactionsType = typeof ListAdminCreditTransactionsType[keyof typeof ListAdminCreditTransactionsType];
+
+
+export const ListAdminCreditTransactionsType = {
+  purchase: 'purchase',
+  spend: 'spend',
+  adjustment: 'adjustment',
 } as const;
 
 export type ListBusinessLeadsParams = {

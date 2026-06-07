@@ -711,6 +711,22 @@ export const CreateSubscriptionBody = zod.object({
 
 
 /**
+ * @summary Available credit packages for purchase (public)
+ */
+export const ListCreditPackagesResponseItem = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "name": zod.string(),
+  "priceCents": zod.number(),
+  "credits": zod.number(),
+  "label": zod.string().nullish(),
+  "active": zod.boolean(),
+  "sortOrder": zod.number()
+})
+export const ListCreditPackagesResponse = zod.array(ListCreditPackagesResponseItem)
+
+
+/**
  * @summary Member credit balance and transactions
  */
 export const GetCreditsResponse = zod.object({
@@ -718,8 +734,9 @@ export const GetCreditsResponse = zod.object({
   "transactions": zod.array(zod.object({
   "id": zod.number(),
   "amount": zod.number(),
-  "type": zod.enum(['purchase', 'spend']),
+  "type": zod.enum(['purchase', 'spend', 'adjustment']),
   "description": zod.string().optional(),
+  "amountCents": zod.number().nullish(),
   "createdAt": zod.string().optional()
 })).optional()
 })
@@ -729,8 +746,7 @@ export const GetCreditsResponse = zod.object({
  * @summary Purchase interaction credits (placeholder checkout)
  */
 export const PurchaseCreditsBody = zod.object({
-  "credits": zod.number(),
-  "price": zod.number().optional()
+  "packageId": zod.number()
 })
 
 
@@ -854,6 +870,21 @@ export const RequestVideoChatBody = zod.object({
   "dollId": zod.number(),
   "scheduledAt": zod.string(),
   "durationMinutes": zod.number().optional()
+})
+
+
+/**
+ * @summary Estimate the credit cost of a video chat
+ */
+export const EstimateVideoChatQueryParams = zod.object({
+  "minutes": zod.coerce.number().optional()
+})
+
+export const EstimateVideoChatResponse = zod.object({
+  "minutes": zod.number(),
+  "minMinutes": zod.number(),
+  "creditsPerMinute": zod.number(),
+  "totalCredits": zod.number()
 })
 
 
@@ -1028,6 +1059,92 @@ export const UpdateUserStatusResponse = zod.object({
   "dollId": zod.number().nullish(),
   "verified": zod.boolean().optional(),
   "createdAt": zod.string().optional()
+})
+
+
+/**
+ * @summary All credit packages including inactive (Admin)
+ */
+export const ListAdminCreditPackagesResponseItem = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "name": zod.string(),
+  "priceCents": zod.number(),
+  "credits": zod.number(),
+  "label": zod.string().nullish(),
+  "active": zod.boolean(),
+  "sortOrder": zod.number()
+})
+export const ListAdminCreditPackagesResponse = zod.array(ListAdminCreditPackagesResponseItem)
+
+
+/**
+ * @summary Update a credit package (Admin)
+ */
+export const UpdateCreditPackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const updateCreditPackageBodyPriceCentsMin = 0;
+
+
+
+
+export const UpdateCreditPackageBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "priceCents": zod.number().min(updateCreditPackageBodyPriceCentsMin).optional(),
+  "credits": zod.number().min(1).optional(),
+  "label": zod.string().nullish(),
+  "active": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const UpdateCreditPackageResponse = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "name": zod.string(),
+  "priceCents": zod.number(),
+  "credits": zod.number(),
+  "label": zod.string().nullish(),
+  "active": zod.boolean(),
+  "sortOrder": zod.number()
+})
+
+
+/**
+ * @summary Recent credit transactions across all members (Admin)
+ */
+export const ListAdminCreditTransactionsQueryParams = zod.object({
+  "userId": zod.coerce.number().optional(),
+  "type": zod.enum(['purchase', 'spend', 'adjustment']).optional(),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const ListAdminCreditTransactionsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userEmail": zod.string().optional(),
+  "amount": zod.number(),
+  "type": zod.enum(['purchase', 'spend', 'adjustment']),
+  "description": zod.string().optional(),
+  "amountCents": zod.number().nullish(),
+  "createdAt": zod.string().optional()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Manually grant or deduct member credits (Admin)
+ */
+export const CreateCreditAdjustmentBody = zod.object({
+  "userId": zod.number(),
+  "amount": zod.number(),
+  "note": zod.string().optional()
 })
 
 

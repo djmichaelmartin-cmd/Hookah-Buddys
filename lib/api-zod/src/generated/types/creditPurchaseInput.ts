@@ -7,6 +7,5 @@
  */
 
 export interface CreditPurchaseInput {
-  credits: number;
-  price?: number;
+  packageId: number;
 }

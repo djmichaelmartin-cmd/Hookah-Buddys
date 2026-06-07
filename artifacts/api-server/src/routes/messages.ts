@@ -6,15 +6,22 @@ import {
   messagesTable,
   dollsTable,
   usersTable,
-  creditBalancesTable,
   creditTransactionsTable,
 } from "@workspace/db";
 import { CreateThreadBody, ListMessagesParams, SendMessageParams, SendMessageBody } from "@workspace/api-zod";
+import { messageCreditCost } from "@workspace/pricing";
 import { requireAuth, requirePaidMember } from "../lib/auth";
+import { spendCredits } from "../lib/credits";
 
 const router: IRouter = Router();
 
-const MESSAGE_CREDIT_COST = 1;
+async function threadMessageCount(threadId: number): Promise<number> {
+  const [{ count }] = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(messagesTable)
+    .where(eq(messagesTable.threadId, threadId));
+  return count;
+}
 
 async function threadView(thread: typeof messageThreadsTable.$inferSelect) {
   const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, thread.dollId));
@@ -76,36 +83,35 @@ router.post("/threads", requireAuth("member"), requirePaidMember(), async (req, 
   }
 
   if (parsed.data.message && parsed.data.message.trim().length > 0) {
-    const [bal] = await db
-      .select()
-      .from(creditBalancesTable)
-      .where(eq(creditBalancesTable.userId, user.id));
-    if (!bal || bal.balance < MESSAGE_CREDIT_COST) {
-      res.status(402).json({ error: "Not enough credits to send a message. Please buy credits." });
+    const messageBody = parsed.data.message;
+    const existingCount = await threadMessageCount(thread.id);
+    const cost = messageCreditCost(existingCount === 0);
+    // Atomically debit credits and persist the message + ledger entry together.
+    const spend = await spendCredits(user.id, cost, async (tx) => {
+      await tx.insert(messagesTable).values({
+        threadId: thread.id,
+        senderRole: "member",
+        senderUserId: user.id,
+        body: messageBody,
+        paid: true,
+      });
+      await tx.insert(creditTransactionsTable).values({
+        userId: user.id,
+        amount: -cost,
+        type: "spend",
+        description: `${existingCount === 0 ? "Started conversation with" : "Message to"} ${doll.stageName}`,
+        dollId: doll.id,
+      });
+      await tx
+        .update(messageThreadsTable)
+        .set({ lastMessage: messageBody, lastMessageAt: new Date() })
+        .where(eq(messageThreadsTable.id, thread.id));
+    });
+    if (!spend.ok) {
+      res.status(402).json({ error: `Not enough credits — sending this message costs ${cost} credits. Please buy credits.` });
       return;
     }
-    await db
-      .update(creditBalancesTable)
-      .set({ balance: bal.balance - MESSAGE_CREDIT_COST })
-      .where(eq(creditBalancesTable.userId, user.id));
-    await db.insert(creditTransactionsTable).values({
-      userId: user.id,
-      amount: -MESSAGE_CREDIT_COST,
-      type: "spend",
-      description: `Message to ${doll.stageName}`,
-    });
-    await db.insert(messagesTable).values({
-      threadId: thread.id,
-      senderRole: "member",
-      senderUserId: user.id,
-      body: parsed.data.message,
-      paid: true,
-    });
-    await db
-      .update(messageThreadsTable)
-      .set({ lastMessage: parsed.data.message, lastMessageAt: new Date() })
-      .where(eq(messageThreadsTable.id, thread.id));
-    thread.lastMessage = parsed.data.message;
+    thread.lastMessage = messageBody;
   }
 
   res.status(201).json(await threadView(thread));
@@ -177,42 +183,68 @@ router.post("/threads/:id/messages", requireAuth("member", "doll"), async (req, 
     return;
   }
 
-  let paid = false;
+  const senderRole = user.role === "doll" ? "doll" : "member";
+  const messageBody = parsed.data.body;
+
+  // Doll replies are free; member messages are charged atomically together with
+  // persisting the message, ledger entry, and thread preview.
   if (isMember) {
-    const [bal] = await db
-      .select()
-      .from(creditBalancesTable)
-      .where(eq(creditBalancesTable.userId, user.id));
-    if (!bal || bal.balance < MESSAGE_CREDIT_COST) {
-      res.status(402).json({ error: "Not enough credits to send a message. Please buy credits." });
+    const existingCount = await threadMessageCount(thread.id);
+    const cost = messageCreditCost(existingCount === 0);
+    const spend = await spendCredits(user.id, cost, async (tx) => {
+      const [created] = await tx
+        .insert(messagesTable)
+        .values({
+          threadId: thread.id,
+          senderRole,
+          senderUserId: user.id,
+          body: messageBody,
+          paid: true,
+        })
+        .returning();
+      await tx.insert(creditTransactionsTable).values({
+        userId: user.id,
+        amount: -cost,
+        type: "spend",
+        description: existingCount === 0 ? "Started a conversation" : "Sent a message",
+        dollId: thread.dollId,
+        messageId: created.id,
+      });
+      await tx
+        .update(messageThreadsTable)
+        .set({ lastMessage: messageBody, lastMessageAt: new Date() })
+        .where(eq(messageThreadsTable.id, thread.id));
+      return created;
+    });
+    if (!spend.ok) {
+      res.status(402).json({ error: `Not enough credits — sending this message costs ${cost} credits. Please buy credits.` });
       return;
     }
-    await db
-      .update(creditBalancesTable)
-      .set({ balance: bal.balance - MESSAGE_CREDIT_COST })
-      .where(eq(creditBalancesTable.userId, user.id));
-    await db.insert(creditTransactionsTable).values({
-      userId: user.id,
-      amount: -MESSAGE_CREDIT_COST,
-      type: "spend",
-      description: "Sent a message",
+    const msg = spend.result;
+    res.status(201).json({
+      id: msg.id,
+      threadId: msg.threadId,
+      senderRole: msg.senderRole as "doll" | "member",
+      body: msg.body,
+      paid: msg.paid,
+      createdAt: msg.createdAt ? msg.createdAt.toISOString() : undefined,
     });
-    paid = true;
+    return;
   }
 
   const [msg] = await db
     .insert(messagesTable)
     .values({
       threadId: thread.id,
-      senderRole: user.role === "doll" ? "doll" : "member",
+      senderRole,
       senderUserId: user.id,
-      body: parsed.data.body,
-      paid,
+      body: messageBody,
+      paid: false,
     })
     .returning();
   await db
     .update(messageThreadsTable)
-    .set({ lastMessage: parsed.data.body, lastMessageAt: new Date() })
+    .set({ lastMessage: messageBody, lastMessageAt: new Date() })
     .where(eq(messageThreadsTable.id, thread.id));
 
   res.status(201).json({

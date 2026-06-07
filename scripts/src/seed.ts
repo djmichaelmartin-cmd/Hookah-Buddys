@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
+import { CREDIT_PACKAGE_SEEDS } from "@workspace/pricing";
 import {
   db,
   pool,
@@ -9,6 +10,7 @@ import {
   verificationsTable,
   plansTable,
   creditBalancesTable,
+  creditPackagesTable,
   subscriptionsTable,
   creditTransactionsTable,
   favoritesTable,
@@ -242,6 +244,7 @@ async function clear() {
   await db.delete(favoritesTable);
   await db.delete(creditTransactionsTable);
   await db.delete(creditBalancesTable);
+  await db.delete(creditPackagesTable);
   await db.delete(subscriptionsTable);
   await db.delete(verificationsTable);
   await db.delete(mediaTable);
@@ -333,6 +336,21 @@ async function seedPlans() {
       highlighted: false,
     },
   ]);
+}
+
+async function seedCreditPackages() {
+  await db.insert(creditPackagesTable).values(
+    CREDIT_PACKAGE_SEEDS.map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      priceCents: p.priceCents,
+      credits: p.credits,
+      label: p.label,
+      stripePriceId: p.stripePriceId,
+      sortOrder: p.sortOrder,
+      active: true,
+    })),
+  );
 }
 
 async function seedDolls() {
@@ -540,6 +558,8 @@ async function main() {
   await clear();
   console.log("Seeding plans...");
   await seedPlans();
+  console.log("Seeding credit packages...");
+  await seedCreditPackages();
   console.log("Seeding dolls...");
   await seedDolls();
   console.log("Seeding admin and members...");

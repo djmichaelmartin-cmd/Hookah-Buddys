@@ -12,4 +12,5 @@ export type CreditTransactionType = typeof CreditTransactionType[keyof typeof Cr
 export const CreditTransactionType = {
   purchase: 'purchase',
   spend: 'spend',
+  adjustment: 'adjustment',
 } as const;

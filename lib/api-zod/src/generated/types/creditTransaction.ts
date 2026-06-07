@@ -12,5 +12,7 @@ export interface CreditTransaction {
   amount: number;
   type: CreditTransactionType;
   description?: string;
+  /** @nullable */
+  amountCents?: number | null;
   createdAt?: string;
 }

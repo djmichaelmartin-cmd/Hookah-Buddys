@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Check, MessageSquare, ImageIcon, Video, Lock, Star, Crown } from "lucide-react";
+import { Check, MessageSquare, ImageIcon, Video, Lock, Star, Crown, Coins } from "lucide-react";
+import { CreditPackageGrid, CreditUsesList } from "@/components/BuyCreditsDialog";
 
 const ADDITIONAL_FEATURES = [
   { icon: MessageSquare, label: "Direct messaging" },
@@ -146,6 +147,24 @@ export default function Pricing() {
               );
             })
           )}
+        </div>
+
+        <div className="max-w-6xl mx-auto mt-20">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-serif text-white mb-2 flex items-center justify-center gap-2">
+              <Coins className="w-6 h-6 text-primary" /> Buy Credits
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Credits power messaging, content unlocks, and video chats — separate from your membership. Buy a pack and use them any time.
+            </p>
+          </div>
+          <CreditPackageGrid />
+          <div className="mt-8 max-w-2xl mx-auto bg-card/30 border border-white/10 rounded-2xl p-6">
+            <h3 className="text-lg font-serif text-white text-center mb-4">How Credits Work</h3>
+            <div className="max-w-sm mx-auto">
+              <CreditUsesList />
+            </div>
+          </div>
         </div>
 
         <div className="max-w-5xl mx-auto mt-16 bg-card/30 border border-white/10 rounded-2xl p-8">
