@@ -3,8 +3,9 @@ import { useGetAdminStats, useListDollApplications, useListPendingMedia, useList
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AdminLeads from "@/pages/AdminLeads";
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
@@ -78,6 +79,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="applications"><Users className="w-4 h-4 mr-2"/> Applications</TabsTrigger>
             <TabsTrigger value="media"><ImageIcon className="w-4 h-4 mr-2"/> Media Moderation</TabsTrigger>
             <TabsTrigger value="verifications"><ShieldCheck className="w-4 h-4 mr-2"/> Verifications</TabsTrigger>
+            <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
           </TabsList>
           
           <TabsContent value="applications" className="space-y-4">
@@ -148,6 +150,10 @@ export default function AdminDashboard() {
               </div>
             ))}
             {(!verifications || verifications.length === 0) && <p className="text-muted-foreground">No pending verifications.</p>}
+          </TabsContent>
+
+          <TabsContent value="leads">
+            <AdminLeads />
           </TabsContent>
         </Tabs>
       </div>

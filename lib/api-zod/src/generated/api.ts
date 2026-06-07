@@ -1032,6 +1032,132 @@ export const UpdateUserStatusResponse = zod.object({
 
 
 /**
+ * @summary List collected hookah business leads with filters (Admin)
+ */
+export const ListBusinessLeadsQueryParams = zod.object({
+  "state": zod.coerce.string().optional(),
+  "city": zod.coerce.string().optional(),
+  "category": zod.coerce.string().optional(),
+  "status": zod.enum(['confirmed', 'likely', 'needs_manual', 'closed']).optional(),
+  "minConfidence": zod.coerce.number().optional(),
+  "q": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const ListBusinessLeadsResponse = zod.object({
+  "total": zod.number(),
+  "leads": zod.array(zod.object({
+  "id": zod.number(),
+  "placeId": zod.string(),
+  "name": zod.string(),
+  "category": zod.string(),
+  "primaryType": zod.string().optional(),
+  "address": zod.string().optional(),
+  "city": zod.string().optional(),
+  "state": zod.string().optional(),
+  "zip": zod.string().optional(),
+  "county": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "website": zod.string().optional(),
+  "googleMapsUrl": zod.string().optional(),
+  "lat": zod.number().optional(),
+  "lng": zod.number().optional(),
+  "businessStatus": zod.string().optional(),
+  "rating": zod.number().optional(),
+  "reviewCount": zod.number().optional(),
+  "priceLevel": zod.number().optional(),
+  "hours": zod.string().optional(),
+  "instagram": zod.string().optional(),
+  "facebook": zod.string().optional(),
+  "sourceQuery": zod.string().optional(),
+  "confidence": zod.number(),
+  "validationStatus": zod.enum(['confirmed', 'likely', 'needs_manual', 'closed']),
+  "dateCollected": zod.string().optional(),
+  "lastVerified": zod.string().optional()
+}))
+})
+
+
+/**
+ * @summary Summary counts for collected leads (Admin)
+ */
+export const GetLeadsSummaryResponse = zod.object({
+  "total": zod.number(),
+  "rejectedTotal": zod.number(),
+  "lastCollectedAt": zod.string().optional(),
+  "byState": zod.array(zod.object({
+  "label": zod.string(),
+  "count": zod.number()
+})),
+  "byCity": zod.array(zod.object({
+  "label": zod.string(),
+  "count": zod.number()
+})),
+  "byCategory": zod.array(zod.object({
+  "label": zod.string(),
+  "count": zod.number()
+})),
+  "byStatus": zod.array(zod.object({
+  "label": zod.string(),
+  "count": zod.number()
+}))
+})
+
+
+/**
+ * @summary Rejected / duplicate records from collection (Admin)
+ */
+export const ListRejectedLeadsQueryParams = zod.object({
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const ListRejectedLeadsResponse = zod.object({
+  "total": zod.number(),
+  "rejected": zod.array(zod.object({
+  "id": zod.number(),
+  "placeId": zod.string().optional(),
+  "name": zod.string().optional(),
+  "address": zod.string().optional(),
+  "city": zod.string().optional(),
+  "state": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "reason": zod.string(),
+  "matchedLeadId": zod.number().optional(),
+  "sourceQuery": zod.string().optional(),
+  "createdAt": zod.string().optional()
+}))
+})
+
+
+/**
+ * @summary Status of the most recent collection run (Admin)
+ */
+export const GetCollectStatusResponse = zod.object({
+  "running": zod.boolean(),
+  "market": zod.string().optional(),
+  "totalQueries": zod.number().optional(),
+  "queriesRun": zod.number().optional(),
+  "fetched": zod.number().optional(),
+  "inserted": zod.number().optional(),
+  "updated": zod.number().optional(),
+  "rejected": zod.number().optional(),
+  "startedAt": zod.string().optional(),
+  "finishedAt": zod.string().optional(),
+  "error": zod.string().optional()
+})
+
+
+/**
+ * @summary Start a background collection run for a market (Admin)
+ */
+export const StartCollectBody = zod.object({
+  "market": zod.enum(['las-vegas', 'nationwide'])
+})
+
+
+/**
  * @summary Create a checkout session (Stripe-ready placeholder)
  */
 export const CreateCheckoutBody = zod.object({

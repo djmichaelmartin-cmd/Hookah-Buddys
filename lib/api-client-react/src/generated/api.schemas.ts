@@ -699,6 +699,111 @@ export interface ContactInput {
   screenshotUrl?: string;
 }
 
+export type BusinessLeadValidationStatus = typeof BusinessLeadValidationStatus[keyof typeof BusinessLeadValidationStatus];
+
+
+export const BusinessLeadValidationStatus = {
+  confirmed: 'confirmed',
+  likely: 'likely',
+  needs_manual: 'needs_manual',
+  closed: 'closed',
+} as const;
+
+export interface BusinessLead {
+  id: number;
+  placeId: string;
+  name: string;
+  category: string;
+  primaryType?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  county?: string;
+  phone?: string;
+  website?: string;
+  googleMapsUrl?: string;
+  lat?: number;
+  lng?: number;
+  businessStatus?: string;
+  rating?: number;
+  reviewCount?: number;
+  priceLevel?: number;
+  hours?: string;
+  instagram?: string;
+  facebook?: string;
+  sourceQuery?: string;
+  confidence: number;
+  validationStatus: BusinessLeadValidationStatus;
+  dateCollected?: string;
+  lastVerified?: string;
+}
+
+export interface BusinessLeadPage {
+  total: number;
+  leads: BusinessLead[];
+}
+
+export interface RejectedLead {
+  id: number;
+  placeId?: string;
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  phone?: string;
+  reason: string;
+  matchedLeadId?: number;
+  sourceQuery?: string;
+  createdAt?: string;
+}
+
+export interface RejectedLeadPage {
+  total: number;
+  rejected: RejectedLead[];
+}
+
+export interface LeadCount {
+  label: string;
+  count: number;
+}
+
+export interface LeadsSummary {
+  total: number;
+  rejectedTotal: number;
+  lastCollectedAt?: string;
+  byState: LeadCount[];
+  byCity: LeadCount[];
+  byCategory: LeadCount[];
+  byStatus: LeadCount[];
+}
+
+export type CollectInputMarket = typeof CollectInputMarket[keyof typeof CollectInputMarket];
+
+
+export const CollectInputMarket = {
+  'las-vegas': 'las-vegas',
+  nationwide: 'nationwide',
+} as const;
+
+export interface CollectInput {
+  market: CollectInputMarket;
+}
+
+export interface CollectStatus {
+  running: boolean;
+  market?: string;
+  totalQueries?: number;
+  queriesRun?: number;
+  fetched?: number;
+  inserted?: number;
+  updated?: number;
+  rejected?: number;
+  startedAt?: string;
+  finishedAt?: string;
+  error?: string;
+}
+
 export type ListDollsParams = {
 search?: string;
 city?: string;
@@ -747,4 +852,30 @@ export const ListUsersRole = {
   member: 'member',
   admin: 'admin',
 } as const;
+
+export type ListBusinessLeadsParams = {
+state?: string;
+city?: string;
+category?: string;
+status?: ListBusinessLeadsStatus;
+minConfidence?: number;
+q?: string;
+limit?: number;
+offset?: number;
+};
+
+export type ListBusinessLeadsStatus = typeof ListBusinessLeadsStatus[keyof typeof ListBusinessLeadsStatus];
+
+
+export const ListBusinessLeadsStatus = {
+  confirmed: 'confirmed',
+  likely: 'likely',
+  needs_manual: 'needs_manual',
+  closed: 'closed',
+} as const;
+
+export type ListRejectedLeadsParams = {
+limit?: number;
+offset?: number;
+};
 

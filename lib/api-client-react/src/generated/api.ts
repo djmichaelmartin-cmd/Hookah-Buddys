@@ -25,8 +25,11 @@ import type {
   AuthResponse,
   BoostInput,
   BoostPurchase,
+  BusinessLeadPage,
   CheckoutInput,
   CheckoutSession,
+  CollectInput,
+  CollectStatus,
   ContactInput,
   ContentUnlock,
   CreditBalance,
@@ -41,9 +44,12 @@ import type {
   Favorite,
   FavoriteInput,
   HealthStatus,
+  LeadsSummary,
+  ListBusinessLeadsParams,
   ListDollsParams,
   ListLoungesParams,
   ListPlansParams,
+  ListRejectedLeadsParams,
   ListUsersParams,
   LoginInput,
   Lounge,
@@ -56,6 +62,7 @@ import type {
   MessageThread,
   ModerationInput,
   Plan,
+  RejectedLeadPage,
   Report,
   ReportInput,
   Subscription,
@@ -3527,6 +3534,399 @@ export const useUpdateUserStatus = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateUserStatusMutationOptions(options));
+    }
+
+export const getListBusinessLeadsUrl = (params?: ListBusinessLeadsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/leads?${stringifiedParams}` : `/api/admin/leads`
+}
+
+/**
+ * @summary List collected hookah business leads with filters (Admin)
+ */
+export const listBusinessLeads = async (params?: ListBusinessLeadsParams, options?: RequestInit): Promise<BusinessLeadPage> => {
+
+  return customFetch<BusinessLeadPage>(getListBusinessLeadsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBusinessLeadsQueryKey = (params?: ListBusinessLeadsParams,) => {
+    return [
+    `/api/admin/leads`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBusinessLeadsQueryOptions = <TData = Awaited<ReturnType<typeof listBusinessLeads>>, TError = ErrorType<unknown>>(params?: ListBusinessLeadsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBusinessLeads>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBusinessLeadsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBusinessLeads>>> = ({ signal }) => listBusinessLeads(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBusinessLeads>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListBusinessLeadsQueryResult = NonNullable<Awaited<ReturnType<typeof listBusinessLeads>>>
+export type ListBusinessLeadsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List collected hookah business leads with filters (Admin)
+ */
+
+export function useListBusinessLeads<TData = Awaited<ReturnType<typeof listBusinessLeads>>, TError = ErrorType<unknown>>(
+ params?: ListBusinessLeadsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBusinessLeads>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListBusinessLeadsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLeadsSummaryUrl = () => {
+
+
+
+
+  return `/api/admin/leads/summary`
+}
+
+/**
+ * @summary Summary counts for collected leads (Admin)
+ */
+export const getLeadsSummary = async ( options?: RequestInit): Promise<LeadsSummary> => {
+
+  return customFetch<LeadsSummary>(getGetLeadsSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadsSummaryQueryKey = () => {
+    return [
+    `/api/admin/leads/summary`
+    ] as const;
+    }
+
+
+export const getGetLeadsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getLeadsSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadsSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadsSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadsSummary>>> = ({ signal }) => getLeadsSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadsSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadsSummary>>>
+export type GetLeadsSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Summary counts for collected leads (Admin)
+ */
+
+export function useGetLeadsSummary<TData = Awaited<ReturnType<typeof getLeadsSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadsSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadsSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListRejectedLeadsUrl = (params?: ListRejectedLeadsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/leads/rejected?${stringifiedParams}` : `/api/admin/leads/rejected`
+}
+
+/**
+ * @summary Rejected / duplicate records from collection (Admin)
+ */
+export const listRejectedLeads = async (params?: ListRejectedLeadsParams, options?: RequestInit): Promise<RejectedLeadPage> => {
+
+  return customFetch<RejectedLeadPage>(getListRejectedLeadsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRejectedLeadsQueryKey = (params?: ListRejectedLeadsParams,) => {
+    return [
+    `/api/admin/leads/rejected`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListRejectedLeadsQueryOptions = <TData = Awaited<ReturnType<typeof listRejectedLeads>>, TError = ErrorType<unknown>>(params?: ListRejectedLeadsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRejectedLeads>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRejectedLeadsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRejectedLeads>>> = ({ signal }) => listRejectedLeads(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRejectedLeads>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRejectedLeadsQueryResult = NonNullable<Awaited<ReturnType<typeof listRejectedLeads>>>
+export type ListRejectedLeadsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Rejected / duplicate records from collection (Admin)
+ */
+
+export function useListRejectedLeads<TData = Awaited<ReturnType<typeof listRejectedLeads>>, TError = ErrorType<unknown>>(
+ params?: ListRejectedLeadsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRejectedLeads>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRejectedLeadsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCollectStatusUrl = () => {
+
+
+
+
+  return `/api/admin/leads/collect`
+}
+
+/**
+ * @summary Status of the most recent collection run (Admin)
+ */
+export const getCollectStatus = async ( options?: RequestInit): Promise<CollectStatus> => {
+
+  return customFetch<CollectStatus>(getGetCollectStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCollectStatusQueryKey = () => {
+    return [
+    `/api/admin/leads/collect`
+    ] as const;
+    }
+
+
+export const getGetCollectStatusQueryOptions = <TData = Awaited<ReturnType<typeof getCollectStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCollectStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCollectStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCollectStatus>>> = ({ signal }) => getCollectStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCollectStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCollectStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getCollectStatus>>>
+export type GetCollectStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Status of the most recent collection run (Admin)
+ */
+
+export function useGetCollectStatus<TData = Awaited<ReturnType<typeof getCollectStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCollectStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCollectStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getStartCollectUrl = () => {
+
+
+
+
+  return `/api/admin/leads/collect`
+}
+
+/**
+ * @summary Start a background collection run for a market (Admin)
+ */
+export const startCollect = async (collectInput: CollectInput, options?: RequestInit): Promise<CollectStatus> => {
+
+  return customFetch<CollectStatus>(getStartCollectUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      collectInput,)
+  }
+);}
+
+
+
+
+export const getStartCollectMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCollect>>, TError,{data: BodyType<CollectInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startCollect>>, TError,{data: BodyType<CollectInput>}, TContext> => {
+
+const mutationKey = ['startCollect'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startCollect>>, {data: BodyType<CollectInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  startCollect(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartCollectMutationResult = NonNullable<Awaited<ReturnType<typeof startCollect>>>
+    export type StartCollectMutationBody = BodyType<CollectInput>
+    export type StartCollectMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Start a background collection run for a market (Admin)
+ */
+export const useStartCollect = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCollect>>, TError,{data: BodyType<CollectInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startCollect>>,
+        TError,
+        {data: BodyType<CollectInput>},
+        TContext
+      > => {
+      return useMutation(getStartCollectMutationOptions(options));
     }
 
 export const getCreateCheckoutUrl = () => {

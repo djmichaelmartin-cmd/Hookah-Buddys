@@ -172,6 +172,9 @@ importers:
       '@workspace/db':
         specifier: workspace:*
         version: link:../../lib/db
+      '@workspace/lead-collector':
+        specifier: workspace:*
+        version: link:../../lib/lead-collector
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -658,11 +661,27 @@ importers:
         specifier: ^0.31.10
         version: 0.31.10
 
+  lib/lead-collector:
+    dependencies:
+      '@workspace/db':
+        specifier: workspace:*
+        version: link:../db
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.20.0)(pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 25.6.2
+
   scripts:
     dependencies:
       '@workspace/db':
         specifier: workspace:*
         version: link:../lib/db
+      '@workspace/lead-collector':
+        specifier: workspace:*
+        version: link:../lib/lead-collector
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@types/pg@8.20.0)(pg@8.20.0)

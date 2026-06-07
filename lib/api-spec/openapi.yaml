@@ -810,6 +810,87 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdminUser"
 
+  /admin/leads:
+    get:
+      operationId: listBusinessLeads
+      tags: [admin]
+      summary: List collected hookah business leads with filters (Admin)
+      parameters:
+        - { name: state, in: query, required: false, schema: { type: string } }
+        - { name: city, in: query, required: false, schema: { type: string } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: status, in: query, required: false, schema: { type: string, enum: [confirmed, likely, needs_manual, closed] } }
+        - { name: minConfidence, in: query, required: false, schema: { type: integer } }
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessLeadPage"
+
+  /admin/leads/summary:
+    get:
+      operationId: getLeadsSummary
+      tags: [admin]
+      summary: Summary counts for collected leads (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadsSummary"
+
+  /admin/leads/rejected:
+    get:
+      operationId: listRejectedLeads
+      tags: [admin]
+      summary: Rejected / duplicate records from collection (Admin)
+      parameters:
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RejectedLeadPage"
+
+  /admin/leads/collect:
+    get:
+      operationId: getCollectStatus
+      tags: [admin]
+      summary: Status of the most recent collection run (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectStatus"
+    post:
+      operationId: startCollect
+      tags: [admin]
+      summary: Start a background collection run for a market (Admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectInput"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectStatus"
+
   /checkout:
     post:
       operationId: createCheckout
@@ -1415,3 +1496,118 @@ components:
         category: { type: string }
         message: { type: string, minLength: 1 }
         screenshotUrl: { type: string }
+
+    BusinessLead:
+      type: object
+      required: [id, placeId, name, category, confidence, validationStatus]
+      properties:
+        id: { type: integer }
+        placeId: { type: string }
+        name: { type: string }
+        category: { type: string }
+        primaryType: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zip: { type: string }
+        county: { type: string }
+        phone: { type: string }
+        website: { type: string }
+        googleMapsUrl: { type: string }
+        lat: { type: number }
+        lng: { type: number }
+        businessStatus: { type: string }
+        rating: { type: number }
+        reviewCount: { type: integer }
+        priceLevel: { type: integer }
+        hours: { type: string }
+        instagram: { type: string }
+        facebook: { type: string }
+        sourceQuery: { type: string }
+        confidence: { type: integer }
+        validationStatus: { type: string, enum: [confirmed, likely, needs_manual, closed] }
+        dateCollected: { type: string }
+        lastVerified: { type: string }
+
+    BusinessLeadPage:
+      type: object
+      required: [total, leads]
+      properties:
+        total: { type: integer }
+        leads:
+          type: array
+          items: { $ref: "#/components/schemas/BusinessLead" }
+
+    RejectedLead:
+      type: object
+      required: [id, reason]
+      properties:
+        id: { type: integer }
+        placeId: { type: string }
+        name: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        phone: { type: string }
+        reason: { type: string }
+        matchedLeadId: { type: integer }
+        sourceQuery: { type: string }
+        createdAt: { type: string }
+
+    RejectedLeadPage:
+      type: object
+      required: [total, rejected]
+      properties:
+        total: { type: integer }
+        rejected:
+          type: array
+          items: { $ref: "#/components/schemas/RejectedLead" }
+
+    LeadCount:
+      type: object
+      required: [label, count]
+      properties:
+        label: { type: string }
+        count: { type: integer }
+
+    LeadsSummary:
+      type: object
+      required: [total, rejectedTotal, byState, byCity, byCategory, byStatus]
+      properties:
+        total: { type: integer }
+        rejectedTotal: { type: integer }
+        lastCollectedAt: { type: string }
+        byState:
+          type: array
+          items: { $ref: "#/components/schemas/LeadCount" }
+        byCity:
+          type: array
+          items: { $ref: "#/components/schemas/LeadCount" }
+        byCategory:
+          type: array
+          items: { $ref: "#/components/schemas/LeadCount" }
+        byStatus:
+          type: array
+          items: { $ref: "#/components/schemas/LeadCount" }
+
+    CollectInput:
+      type: object
+      required: [market]
+      properties:
+        market: { type: string, enum: [las-vegas, nationwide] }
+
+    CollectStatus:
+      type: object
+      required: [running]
+      properties:
+        running: { type: boolean }
+        market: { type: string }
+        totalQueries: { type: integer }
+        queriesRun: { type: integer }
+        fetched: { type: integer }
+        inserted: { type: integer }
+        updated: { type: integer }
+        rejected: { type: integer }
+        startedAt: { type: string }
+        finishedAt: { type: string }
+        error: { type: string }

@@ -14,3 +14,4 @@ export * from "./reports";
 export * from "./contact";
 export * from "./sessions";
 export * from "./lounges";
+export * from "./businessLeads";
