@@ -28,6 +28,18 @@ just the obvious one.
   `onConflictDoNothing`; on conflict, roll back the debit and return the existing
   row (no charge). After a concurrent exact-balance 402, re-check existence
   before returning the error.
+- Tiered pricing must be driven by durable, authoritative metadata (a `tier`
+  column), not inferred from a loose `type` string. Binary type inference silently
+  undercharges when the spec has >2 tiers; reviewers treat an advertised-but-
+  unenforced tier as a blocking gap, not an optional follow-up.
+- Paywall/premium status must be derived server-side from the authoritative media
+  *type*, never from a client-supplied `premium` boolean. A forged
+  `premium: false` on a premium type would otherwise store the item as free and
+  bypass the paywall. Enforce both the create-path persistence AND the DB layer:
+  mirror tier-validity and premium↔tier consistency CHECK constraints in the
+  Drizzle schema (not just applied via psql) so non-API writes and future
+  regressions can't violate them. Only expose tier/unlockCost in responses for
+  premium items so non-premium media never shows a misleading unlock cost.
 
 **Gotcha:** `drizzle-kit push` needs a TTY and offers to truncate before adding a
 unique constraint to a populated table; in this sandbox apply such constraints

@@ -425,8 +425,8 @@ function MediaTile({
         )}
         <div className="absolute inset-0 bg-background/60 flex flex-col items-center justify-center gap-2 p-3 text-center">
           <Lock className="w-6 h-6 text-primary" />
-          <p className="text-[11px] text-muted-foreground">
-            {video ? "Premium video" : "Premium photo"}
+          <p className="text-[11px] text-muted-foreground capitalize">
+            {media.tier ? `Premium ${media.tier}` : video ? "Premium video" : "Premium photo"}
           </p>
           <Button
             size="sm"
@@ -434,7 +434,9 @@ function MediaTile({
             onClick={onUnlock}
             disabled={unlocking}
           >
-            {unlocking ? "Unlocking..." : `Unlock${media.price ? ` $${media.price}` : ""}`}
+            {unlocking
+              ? "Unlocking..."
+              : `Unlock${media.unlockCost ? ` · ${media.unlockCost} credits` : ""}`}
           </Button>
         </div>
       </div>

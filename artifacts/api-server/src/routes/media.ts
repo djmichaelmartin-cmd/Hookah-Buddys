@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, and, sql } from "drizzle-orm";
 import { db, mediaTable, dollsTable } from "@workspace/db";
 import { UploadMediaBody, ModerateMediaParams, ModerateMediaBody } from "@workspace/api-zod";
+import { isPremiumMediaType } from "@workspace/pricing";
 import { requireAuth } from "../lib/auth";
 import { toMediaResponse } from "../lib/mappers";
 
@@ -23,6 +24,18 @@ router.post("/media", requireAuth("doll"), async (req, res): Promise<void> => {
     res.status(400).json({ error: "All Doll content must include a visible hookah. No hookah, no approval." });
     return;
   }
+  // `premium` is derived authoritatively from the media type — never trusted
+  // from the client — so a forged `premium: false` can't sneak a premium media
+  // item past the paywall.
+  const premium = isPremiumMediaType(data.type);
+  // Premium media must carry an explicit pricing tier so it is never silently
+  // under-priced by type inference at unlock time.
+  if (premium && !data.tier) {
+    res.status(400).json({
+      error: "Premium content requires a pricing tier (photo, bundle, video, or exclusive).",
+    });
+    return;
+  }
   const [media] = await db
     .insert(mediaTable)
     .values({
@@ -31,8 +44,9 @@ router.post("/media", requireAuth("doll"), async (req, res): Promise<void> => {
       url: data.url,
       thumbnailUrl: data.thumbnailUrl,
       caption: data.caption,
-      premium: data.premium ?? false,
+      premium,
       price: data.price ?? 0,
+      tier: premium ? data.tier : null,
       containsHookah: data.containsHookah,
       status: "pending_review",
     })

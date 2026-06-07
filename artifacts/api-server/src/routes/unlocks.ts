@@ -47,6 +47,17 @@ router.post("/unlocks", requireAuth("member"), async (req, res): Promise<void> =
     res.status(404).json({ error: "Content not found" });
     return;
   }
+  // Fail closed: only approved, paywalled media is unlockable. This prevents
+  // charging for free content and blocks unlocking (and thereby viewing the URL
+  // of) pending/rejected media by enumerating IDs.
+  if (!media.premium) {
+    res.status(400).json({ error: "This content is free and does not require an unlock." });
+    return;
+  }
+  if (media.status !== "approved") {
+    res.status(404).json({ error: "Content not found" });
+    return;
+  }
   const findExisting = () =>
     db
       .select()
@@ -63,7 +74,7 @@ router.post("/unlocks", requireAuth("member"), async (req, res): Promise<void> =
     // First-time unlock: atomically charge credits and create the unlock row in
     // one transaction. A DB unique constraint plus onConflictDoNothing makes
     // this idempotent under concurrent requests (no double-charge).
-    const cost = unlockCreditCost(media.type);
+    const cost = unlockCreditCost(media.type, media.tier);
     try {
       const spend = await spendCredits(user.id, cost, async (tx) => {
         const [created] = await tx

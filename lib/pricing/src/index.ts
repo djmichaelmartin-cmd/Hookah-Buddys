@@ -20,6 +20,18 @@ export const CREDIT_COSTS = {
 
 const VIDEO_MEDIA_TYPES = new Set(["premium_video", "short_video", "video"]);
 
+/** Media types that are paywalled and therefore require a pricing tier. */
+export const PREMIUM_MEDIA_TYPES = ["premium_photo", "premium_video"] as const;
+const PREMIUM_MEDIA_TYPE_SET = new Set<string>(PREMIUM_MEDIA_TYPES);
+
+/**
+ * Authoritative check for whether a media type is paywalled. The client-supplied
+ * `premium` flag must never be trusted on its own — derive it from the type.
+ */
+export function isPremiumMediaType(mediaType: string): boolean {
+  return PREMIUM_MEDIA_TYPE_SET.has(mediaType);
+}
+
 /** Whole minutes actually charged, honoring the 5-minute minimum. */
 export function effectiveVideoMinutes(minutes: number): number {
   const m = Math.trunc(Number(minutes)) || 0;
@@ -31,9 +43,38 @@ export function videoChatCreditCost(minutes: number): number {
   return effectiveVideoMinutes(minutes) * CREDIT_COSTS.videoPerMinute;
 }
 
-/** Credit cost to unlock a premium media item, derived from its media type. */
-export function unlockCreditCost(mediaType: string): number {
-  return VIDEO_MEDIA_TYPES.has(mediaType) ? CREDIT_COSTS.unlockVideo : CREDIT_COSTS.unlockPhoto;
+/** Premium-content unlock pricing tiers. */
+export const UNLOCK_TIERS = ["photo", "bundle", "video", "exclusive"] as const;
+export type UnlockTier = (typeof UNLOCK_TIERS)[number];
+
+const UNLOCK_TIER_COSTS: Record<UnlockTier, number> = {
+  photo: CREDIT_COSTS.unlockPhoto,
+  bundle: CREDIT_COSTS.unlockBundle,
+  video: CREDIT_COSTS.unlockVideo,
+  exclusive: CREDIT_COSTS.unlockExclusive,
+};
+
+function isUnlockTier(value: unknown): value is UnlockTier {
+  return typeof value === "string" && (UNLOCK_TIERS as readonly string[]).includes(value);
+}
+
+/**
+ * Resolve the authoritative unlock tier for a media item. An explicit, durable
+ * `tier` value always wins; otherwise the tier is inferred from the media type
+ * (video types => "video", everything else => "photo").
+ */
+export function resolveUnlockTier(mediaType: string, tier?: string | null): UnlockTier {
+  if (isUnlockTier(tier)) return tier;
+  return VIDEO_MEDIA_TYPES.has(mediaType) ? "video" : "photo";
+}
+
+/**
+ * Credit cost to unlock a premium media item. Uses the explicit pricing tier
+ * when set, falling back to type-based inference. Covers all four tiers
+ * (photo/bundle/video/exclusive).
+ */
+export function unlockCreditCost(mediaType: string, tier?: string | null): number {
+  return UNLOCK_TIER_COSTS[resolveUnlockTier(mediaType, tier)];
 }
 
 /** Credit cost to send a message: starting a new thread vs. a follow-up. */

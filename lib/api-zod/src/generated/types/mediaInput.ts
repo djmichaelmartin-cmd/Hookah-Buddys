@@ -5,6 +5,7 @@
  * HookahDolls platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { MediaInputTier } from './mediaInputTier';
 import type { MediaInputType } from './mediaInputType';
 
 export interface MediaInput {
@@ -15,5 +16,6 @@ export interface MediaInput {
   caption?: string;
   premium?: boolean;
   price?: number;
+  tier?: MediaInputTier;
   containsHookah: boolean;
 }

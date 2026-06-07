@@ -1240,6 +1240,8 @@ components:
         containsHookah: { type: boolean }
         premium: { type: boolean }
         price: { type: number }
+        tier: { type: string, enum: [photo, bundle, video, exclusive] }
+        unlockCost: { type: integer }
         locked: { type: boolean }
         moderationNotes: { type: ["string", "null"] }
         dollName: { type: string }
@@ -1255,6 +1257,7 @@ components:
         caption: { type: string }
         premium: { type: boolean }
         price: { type: number }
+        tier: { type: string, enum: [photo, bundle, video, exclusive] }
         containsHookah: { type: boolean }
 
     ModerationInput:

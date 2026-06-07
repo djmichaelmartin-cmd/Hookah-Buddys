@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useUploadMedia, useListMyMedia, getListMyMediaQueryKey } from "@workspace/api-client-react";
-import type { MediaInputType } from "@workspace/api-client-react";
+import type { MediaInputType, MediaInputTier } from "@workspace/api-client-react";
+import { CREDIT_COSTS } from "@workspace/pricing";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,10 @@ export default function Upload() {
   const [url, setUrl] = useState("");
   const [type, setType] = useState<MediaInputType>("free_photo");
   const [price, setPrice] = useState("");
+  const [tier, setTier] = useState<NonNullable<MediaInputTier>>("photo");
   const [hookahConfirmed, setHookahConfirmed] = useState(false);
+
+  const isPremium = type === 'premium_photo' || type === 'premium_video';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +38,8 @@ export default function Upload() {
         url,
         type,
         containsHookah: true,
-        premium: type === 'premium_photo' || type === 'premium_video',
+        premium: isPremium,
+        tier: isPremium ? tier : undefined,
         price: price ? parseFloat(price) : undefined,
       }
     }, {
@@ -81,11 +86,27 @@ export default function Upload() {
                   </Select>
                 </div>
 
-                {(type === 'premium_photo' || type === 'premium_video') && (
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Unlock Price ($)</Label>
-                    <Input id="price" type="number" step="0.01" required value={price} onChange={e => setPrice(e.target.value)} className="bg-background/50 border-white/10" />
-                  </div>
+                {isPremium && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Pricing Tier</Label>
+                      <Select value={tier} onValueChange={(v: NonNullable<MediaInputTier>) => setTier(v)}>
+                        <SelectTrigger className="bg-background/50 border-white/10">
+                          <SelectValue placeholder="Select tier" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="photo">Photo — {CREDIT_COSTS.unlockPhoto} credits</SelectItem>
+                          <SelectItem value="bundle">Bundle — {CREDIT_COSTS.unlockBundle} credits</SelectItem>
+                          <SelectItem value="video">Video — {CREDIT_COSTS.unlockVideo} credits</SelectItem>
+                          <SelectItem value="exclusive">Exclusive — {CREDIT_COSTS.unlockExclusive} credits</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Unlock Price ($)</Label>
+                      <Input id="price" type="number" step="0.01" required value={price} onChange={e => setPrice(e.target.value)} className="bg-background/50 border-white/10" />
+                    </div>
+                  </>
                 )}
 
                 <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 flex gap-3">

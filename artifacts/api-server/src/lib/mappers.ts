@@ -1,4 +1,5 @@
 import type { User, Doll, Media } from "@workspace/db";
+import { resolveUnlockTier, unlockCreditCost } from "@workspace/pricing";
 
 function iso(d: Date | null | undefined): string | undefined {
   return d ? d.toISOString() : undefined;
@@ -72,6 +73,10 @@ export function toMediaResponse(media: Media, dollName?: string, locked = false)
     containsHookah: media.containsHookah,
     premium: media.premium,
     price: media.price,
+    // Tier/unlock pricing only applies to paywalled media. Non-premium items
+    // intentionally omit these so clients never show a misleading unlock cost.
+    tier: media.premium ? resolveUnlockTier(media.type, media.tier) : undefined,
+    unlockCost: media.premium ? unlockCreditCost(media.type, media.tier) : undefined,
     locked,
     moderationNotes: media.moderationNotes ?? null,
     dollName: dollName ?? "",

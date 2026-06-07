@@ -171,6 +171,16 @@ export const MediaStatus = {
   rejected: 'rejected',
 } as const;
 
+export type MediaTier = typeof MediaTier[keyof typeof MediaTier];
+
+
+export const MediaTier = {
+  photo: 'photo',
+  bundle: 'bundle',
+  video: 'video',
+  exclusive: 'exclusive',
+} as const;
+
 export interface Media {
   id: number;
   dollId: number;
@@ -182,6 +192,8 @@ export interface Media {
   containsHookah: boolean;
   premium: boolean;
   price?: number;
+  tier?: MediaTier;
+  unlockCost?: number;
   locked?: boolean;
   /** @nullable */
   moderationNotes?: string | null;
@@ -242,6 +254,16 @@ export const MediaInputType = {
   verification: 'verification',
 } as const;
 
+export type MediaInputTier = typeof MediaInputTier[keyof typeof MediaInputTier];
+
+
+export const MediaInputTier = {
+  photo: 'photo',
+  bundle: 'bundle',
+  video: 'video',
+  exclusive: 'exclusive',
+} as const;
+
 export interface MediaInput {
   type: MediaInputType;
   /** @minLength 1 */
@@ -250,6 +272,7 @@ export interface MediaInput {
   caption?: string;
   premium?: boolean;
   price?: number;
+  tier?: MediaInputTier;
   containsHookah: boolean;
 }
 

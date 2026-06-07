@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { MediaStatus } from './mediaStatus';
+import type { MediaTier } from './mediaTier';
 import type { MediaType } from './mediaType';
 
 export interface Media {
@@ -19,6 +20,8 @@ export interface Media {
   containsHookah: boolean;
   premium: boolean;
   price?: number;
+  tier?: MediaTier;
+  unlockCost?: number;
   locked?: boolean;
   /** @nullable */
   moderationNotes?: string | null;
