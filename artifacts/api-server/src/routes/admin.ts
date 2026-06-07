@@ -99,7 +99,7 @@ router.get("/admin/applications", requireAuth("admin"), async (_req, res): Promi
   );
 });
 
-router.post("/admin/applications/:id/review", requireAuth("admin"), async (req, res): Promise<void> => {
+router.patch("/admin/applications/:id/review", requireAuth("admin"), async (req, res): Promise<void> => {
   const params = ReviewDollApplicationParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
