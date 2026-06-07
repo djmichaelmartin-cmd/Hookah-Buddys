@@ -1,4 +1,4 @@
-import { useState, useEffect, type MouseEvent } from "react";
+import { useState, useEffect, useRef, type MouseEvent } from "react";
 import { Link, useLocation } from "wouter";
 import { useGetCurrentUser, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,26 @@ export function Navbar() {
   const logout = useLogout();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
+  const resourcesCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isHome = location === "/";
+
+  // Open the Resources dropdown on hover; a short grace period on close lets the
+  // cursor cross the gap from the trigger into the menu without it snapping shut.
+  const openResources = () => {
+    if (resourcesCloseTimer.current) clearTimeout(resourcesCloseTimer.current);
+    setResourcesOpen(true);
+  };
+  const scheduleCloseResources = () => {
+    if (resourcesCloseTimer.current) clearTimeout(resourcesCloseTimer.current);
+    resourcesCloseTimer.current = setTimeout(() => setResourcesOpen(false), 120);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (resourcesCloseTimer.current) clearTimeout(resourcesCloseTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -113,13 +132,20 @@ export function Navbar() {
             </Link>
           ))}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger className={`group flex items-center gap-1 text-sm font-medium ${navLink} transition-colors outline-none`}>
+          <DropdownMenu open={resourcesOpen} onOpenChange={setResourcesOpen}>
+            <DropdownMenuTrigger
+              onMouseEnter={openResources}
+              onMouseLeave={scheduleCloseResources}
+              className={`group flex items-center gap-1 text-sm font-medium ${navLink} transition-colors outline-none`}
+            >
               Resources
               <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
+              onMouseEnter={openResources}
+              onMouseLeave={scheduleCloseResources}
+              onCloseAutoFocus={(e) => e.preventDefault()}
               className="w-52 bg-card/95 backdrop-blur-xl border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] text-foreground"
             >
               {RESOURCE_LINKS.map((r) => (
