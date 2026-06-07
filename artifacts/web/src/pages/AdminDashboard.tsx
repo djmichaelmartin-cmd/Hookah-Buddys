@@ -3,7 +3,7 @@ import { useGetAdminStats, useListDollApplications, useListPendingMedia, useList
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins } from "lucide-react";
+import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
@@ -87,14 +87,34 @@ export default function AdminDashboard() {
           <TabsContent value="applications" className="space-y-4">
             <h2 className="text-xl font-serif text-white mb-4">Pending Doll Applications</h2>
             {applications?.map(app => (
-              <div key={app.id} className="bg-card/50 border border-white/10 rounded-xl p-6 flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-white">{app.stageName}</p>
-                  <p className="text-sm text-muted-foreground">{app.email} &bull; {app.city}, {app.state}</p>
+              <div key={app.id} className="bg-card/50 border border-white/10 rounded-xl p-6">
+                <div className="flex justify-between items-start gap-4 mb-4">
+                  <div>
+                    <p className="font-bold text-white">{app.stageName}</p>
+                    {app.legalName && (
+                      <p className="text-sm text-muted-foreground">Legal name: {app.legalName}</p>
+                    )}
+                    <p className="text-sm text-muted-foreground">{app.email} &bull; {app.city}, {app.state}</p>
+                    {(app.favoriteFlavor || app.experienceLevel) && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {[app.experienceLevel, app.favoriteFlavor].filter(Boolean).join(" \u2022 ")}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button onClick={() => handleReviewApp(app.id, 'approve')} className="bg-green-600 hover:bg-green-700 text-white">Approve</Button>
+                    <Button onClick={() => handleReviewApp(app.id, 'reject')} variant="destructive">Reject</Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button onClick={() => handleReviewApp(app.id, 'approve')} className="bg-green-600 hover:bg-green-700 text-white">Approve</Button>
-                  <Button onClick={() => handleReviewApp(app.id, 'reject')} variant="destructive">Reject</Button>
+
+                {app.bio && <p className="text-sm text-white/80 mb-4">{app.bio}</p>}
+
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Submitted documents</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <DocTile label="Government ID" url={app.governmentIdUrl} />
+                  <DocTile label="Verification Selfie" url={app.verificationPhotoUrl} />
+                  <DocTile label="Profile Photo" url={app.profilePhotoUrl} />
+                  <DocTile label="Verification Video" url={app.verificationVideoUrl} kind="video" />
                 </div>
               </div>
             ))}
@@ -164,5 +184,47 @@ export default function AdminDashboard() {
         </Tabs>
       </div>
     </Layout>
+  );
+}
+
+function DocTile({
+  label,
+  url,
+  kind = "image",
+}: {
+  label: string;
+  url?: string;
+  kind?: "image" | "video";
+}) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground mb-1">{label}</p>
+      {url ? (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block relative w-full h-28 rounded bg-black/50 border border-white/10 overflow-hidden"
+          title={`Open ${label} in a new tab`}
+        >
+          {kind === "video" ? (
+            <video src={url} className="w-full h-full object-cover" muted preload="metadata" />
+          ) : (
+            <img src={url} alt={label} className="w-full h-full object-cover" />
+          )}
+          <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/50 transition-colors">
+            <span className="opacity-0 group-hover:opacity-100 inline-flex items-center gap-1 text-xs text-white">
+              {kind === "video" ? <Video className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
+              Open
+            </span>
+          </span>
+        </a>
+      ) : (
+        <div className="w-full h-28 rounded bg-black/30 border border-dashed border-white/10 flex flex-col items-center justify-center text-muted-foreground">
+          <FileText className="w-4 h-4 mb-1" />
+          <span className="text-xs">Not provided</span>
+        </div>
+      )}
+    </div>
   );
 }
