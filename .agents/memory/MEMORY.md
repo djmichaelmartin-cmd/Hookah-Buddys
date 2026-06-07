@@ -1,1 +1,3 @@
 - [Contract-route drift](contract-route-drift.md) — server Express route method+path must match openapi.yaml exactly or the generated client 404s silently (no onError = "nothing happens").
+- [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — multiple routes serialize the same schema by hand; adding a `required` field means updating every serializer, codegen won't catch a missing one.
+- [Post-merge schema push](post-merge-schema-push.md) — post-merge must use `drizzle push-force` (non-interactive); plain `push` gets EOF on confirm prompts and silently fails to apply schema changes.
