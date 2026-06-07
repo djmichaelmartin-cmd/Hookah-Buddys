@@ -1,0 +1,68 @@
+Build a lead-generation data collection tool that creates a comprehensive U.S. database of businesses that offer hookah service.
+
+Goal:
+Create a CSV and admin dashboard of hookah lounges, hookah bars, restaurants with hookah, nightclubs with hookah service, smoke shops with hookah lounges, shisha lounges, and related businesses across all U.S. cities and states.
+
+Primary data source:
+Use Google Places API Text Search and Place Details API.
+
+Search strategy:
+For every U.S. state and major city, run the following keyword searches:
+- hookah lounge
+- hookah bar
+- shisha lounge
+- shisha bar
+- hookah cafe
+- Mediterranean hookah
+- Arabian lounge hookah
+- restaurant hookah
+- nightclub hookah
+- smoke shop hookah lounge
+
+Coverage:
+Start with all U.S. cities with population over 10,000, then expand to surrounding ZIP codes and metro areas. Include Las Vegas, North Las Vegas, Henderson, Paradise, Enterprise, Summerlin, Spring Valley, Boulder City, and surrounding Clark County areas as the first test market.
+
+Required fields:
+- Business name
+- Category/type
+- Full address
+- City
+- State
+- ZIP
+- Phone number
+- Website
+- Google Maps URL
+- Latitude
+- Longitude
+- Google Place ID
+- Business status
+- Rating
+- Number of reviews
+- Price level if available
+- Opening hours if available
+- Instagram/Facebook links if found
+- Source query used
+- Date collected
+- Last verified date
+- Confidence score that the business offers hookah
+
+Deduplication:
+Deduplicate by Google Place ID first, then by normalized phone number, then by normalized business name + address.
+
+Validation:
+Mark a business as:
+- Confirmed Hookah: business name, category, website, menu, Google listing, or social media explicitly mentions hookah/shisha.
+- Likely Hookah: returned by Google Places for hookah query but no explicit website/social confirmation.
+- Needs Manual Verification: weak match or conflicting data.
+- Closed/Inactive: business_status is closed or online evidence suggests closure.
+
+Output:
+1. CSV export.
+2. Filterable dashboard by state, city, category, status, and confidence score.
+3. Separate CSV for Las Vegas metro first.
+4. Separate CSV for nationwide master list.
+5. Summary counts by city/state.
+6. A rejected/duplicate records table.
+
+Compliance:
+Do not scrape websites that prohibit scraping. Use official APIs where possible. Respect API rate limits. Store source URLs for verification.
