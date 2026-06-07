@@ -42,9 +42,11 @@ import type {
   FavoriteInput,
   HealthStatus,
   ListDollsParams,
+  ListLoungesParams,
   ListPlansParams,
   ListUsersParams,
   LoginInput,
+  Lounge,
   Media,
   MediaInput,
   MemberRegistration,
@@ -1864,6 +1866,90 @@ export function useListPlans<TData = Awaited<ReturnType<typeof listPlans>>, TErr
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListPlansQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListLoungesUrl = (params?: ListLoungesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/lounges?${stringifiedParams}` : `/api/lounges`
+}
+
+/**
+ * @summary Search hookah lounges across the United States
+ */
+export const listLounges = async (params?: ListLoungesParams, options?: RequestInit): Promise<Lounge[]> => {
+
+  return customFetch<Lounge[]>(getListLoungesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLoungesQueryKey = (params?: ListLoungesParams,) => {
+    return [
+    `/api/lounges`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListLoungesQueryOptions = <TData = Awaited<ReturnType<typeof listLounges>>, TError = ErrorType<unknown>>(params?: ListLoungesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listLounges>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLoungesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLounges>>> = ({ signal }) => listLounges(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLounges>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListLoungesQueryResult = NonNullable<Awaited<ReturnType<typeof listLounges>>>
+export type ListLoungesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Search hookah lounges across the United States
+ */
+
+export function useListLounges<TData = Awaited<ReturnType<typeof listLounges>>, TError = ErrorType<unknown>>(
+ params?: ListLoungesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listLounges>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListLoungesQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

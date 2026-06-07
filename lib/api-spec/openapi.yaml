@@ -441,6 +441,28 @@ paths:
                 items:
                   $ref: "#/components/schemas/Plan"
 
+  /lounges:
+    get:
+      operationId: listLounges
+      tags: [lounges]
+      summary: Search hookah lounges across the United States
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: state, in: query, required: false, schema: { type: string } }
+        - { name: lat, in: query, required: false, schema: { type: number } }
+        - { name: lng, in: query, required: false, schema: { type: number } }
+        - { name: radius, in: query, required: false, schema: { type: number } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lounge"
+
   /subscriptions:
     get:
       operationId: listSubscriptions
@@ -1112,6 +1134,27 @@ components:
           type: array
           items: { type: string }
         highlighted: { type: boolean }
+
+    Lounge:
+      type: object
+      required: [id, name, city, state, lat, lng]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zip: { type: string }
+        lat: { type: number }
+        lng: { type: number }
+        phone: { type: string }
+        website: { type: string }
+        description: { type: string }
+        rating: { type: number }
+        priceLevel: { type: integer }
+        hours: { type: string }
+        imageUrl: { type: string }
+        distanceMiles: { type: number }
 
     Subscription:
       type: object

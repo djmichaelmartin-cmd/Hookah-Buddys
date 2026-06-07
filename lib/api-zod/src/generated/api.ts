@@ -652,6 +652,39 @@ export const ListPlansResponse = zod.array(ListPlansResponseItem)
 
 
 /**
+ * @summary Search hookah lounges across the United States
+ */
+export const ListLoungesQueryParams = zod.object({
+  "q": zod.coerce.string().optional(),
+  "state": zod.coerce.string().optional(),
+  "lat": zod.coerce.number().optional(),
+  "lng": zod.coerce.number().optional(),
+  "radius": zod.coerce.number().optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListLoungesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "address": zod.string().optional(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "zip": zod.string().optional(),
+  "lat": zod.number(),
+  "lng": zod.number(),
+  "phone": zod.string().optional(),
+  "website": zod.string().optional(),
+  "description": zod.string().optional(),
+  "rating": zod.number().optional(),
+  "priceLevel": zod.number().optional(),
+  "hours": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "distanceMiles": zod.number().optional()
+})
+export const ListLoungesResponse = zod.array(ListLoungesResponseItem)
+
+
+/**
  * @summary Current user's subscriptions
  */
 export const ListSubscriptionsResponseItem = zod.object({

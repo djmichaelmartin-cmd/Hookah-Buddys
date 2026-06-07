@@ -1,3 +1,4 @@
+- [API server has no hot-reload](api-server-no-hot-reload.md) — restart the api-server workflow after route changes; dev is build+start, not watch.
 - [connect-pg-simple session table](connect-pg-simple-table.md) — createTableIfMissing ignores custom tableName; define the session table in Drizzle and push it.
 - [Premium content entitlement](premium-content-gating.md) — gate premium media by subscription PLAN tier (join plans), not by sub-row existence; blank locked URLs server-side.
 - [Messaging/video feature gating](feature-membership-gating.md) — paid-only features need a platform membership (dollId null, paid member plan); enforce server-side via requirePaidMember(), not just the UI.

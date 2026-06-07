@@ -331,6 +331,25 @@ export interface Plan {
   highlighted?: boolean;
 }
 
+export interface Lounge {
+  id: number;
+  name: string;
+  address?: string;
+  city: string;
+  state: string;
+  zip?: string;
+  lat: number;
+  lng: number;
+  phone?: string;
+  website?: string;
+  description?: string;
+  rating?: number;
+  priceLevel?: number;
+  hours?: string;
+  imageUrl?: string;
+  distanceMiles?: number;
+}
+
 export type SubscriptionStatus = typeof SubscriptionStatus[keyof typeof SubscriptionStatus];
 
 
@@ -706,6 +725,15 @@ export const ListPlansAudience = {
   member: 'member',
   doll: 'doll',
 } as const;
+
+export type ListLoungesParams = {
+q?: string;
+state?: string;
+lat?: number;
+lng?: number;
+radius?: number;
+limit?: number;
+};
 
 export type ListUsersParams = {
 role?: ListUsersRole;

@@ -28,6 +28,7 @@ import {
 
 const NAV_LINKS = [
   { label: "Dolls", href: "/browse" },
+  { label: "Lounges", href: "/lounges" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
 ];
