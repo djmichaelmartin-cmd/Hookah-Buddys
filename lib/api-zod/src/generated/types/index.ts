@@ -59,6 +59,7 @@ export * from './listBusinessLeadsParams';
 export * from './listBusinessLeadsStatus';
 export * from './listDollsParams';
 export * from './listLoungesParams';
+export * from './listMembersParams';
 export * from './listPlansAudience';
 export * from './listPlansParams';
 export * from './listRejectedLeadsParams';

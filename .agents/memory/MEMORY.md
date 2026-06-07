@@ -1,3 +1,4 @@
 - [Contract-route drift](contract-route-drift.md) — server Express route method+path must match openapi.yaml exactly or the generated client 404s silently (no onError = "nothing happens").
+- [List/detail visibility parity](list-detail-visibility-parity.md) — a list endpoint's status filter (active/approved/published) must also be enforced on the by-id detail route, or hidden rows leak via ID enumeration.
 - [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — multiple routes serialize the same schema by hand; adding a `required` field means updating every serializer, codegen won't catch a missing one.
 - [Post-merge schema push](post-merge-schema-push.md) — post-merge must use `drizzle push-force` (non-interactive); plain `push` gets EOF on confirm prompts and silently fails to apply schema changes.

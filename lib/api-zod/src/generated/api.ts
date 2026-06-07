@@ -1328,6 +1328,27 @@ export const SubmitContactBody = zod.object({
 
 
 /**
+ * @summary Browse/search all members (Doll/Admin only)
+ */
+export const ListMembersQueryParams = zod.object({
+  "search": zod.coerce.string().optional(),
+  "city": zod.coerce.string().optional(),
+  "state": zod.coerce.string().optional()
+})
+
+export const ListMembersResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "memberSince": zod.string().optional()
+})
+export const ListMembersResponse = zod.array(ListMembersResponseItem)
+
+
+/**
  * @summary Get a member's public profile (Doll/Admin)
  */
 export const GetMemberProfileParams = zod.object({

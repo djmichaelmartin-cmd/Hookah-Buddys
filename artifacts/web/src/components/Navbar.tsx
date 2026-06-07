@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LogOut,
   User as UserIcon,
+  Users,
   Settings,
   Heart,
   Upload,
@@ -226,6 +227,12 @@ export function Navbar() {
                       <Link href="/dashboard/doll" className="flex items-center w-full">
                         <UserIcon className="mr-2 h-4 w-4" />
                         <span>Doll Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                      <Link href="/members" className="flex items-center w-full">
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Member Directory</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">

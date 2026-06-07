@@ -12,6 +12,7 @@ import Browse from "@/pages/Browse";
 import Lounges from "@/pages/Lounges";
 import DollProfile from "@/pages/DollProfile";
 import MemberProfile from "@/pages/MemberProfile";
+import MembersDirectory from "@/pages/MembersDirectory";
 import Pricing from "@/pages/Pricing";
 import DashboardDoll from "@/pages/DashboardDoll";
 import DashboardMember from "@/pages/DashboardMember";
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/browse" component={Browse} />
       <Route path="/lounges" component={Lounges} />
       <Route path="/dolls/:id" component={DollProfile} />
+      <Route path="/members" component={MembersDirectory} />
       <Route path="/members/:id" component={MemberProfile} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/dashboard/doll" component={DashboardDoll} />

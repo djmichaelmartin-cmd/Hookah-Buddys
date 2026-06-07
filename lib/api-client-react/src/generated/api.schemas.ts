@@ -1020,3 +1020,9 @@ limit?: number;
 offset?: number;
 };
 
+export type ListMembersParams = {
+search?: string;
+city?: string;
+state?: string;
+};
+

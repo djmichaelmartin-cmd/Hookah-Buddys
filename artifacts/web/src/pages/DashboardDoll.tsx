@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { useGetMyDollProfile, useGetMyDollAnalytics } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Upload, MessageSquare, Video } from "lucide-react";
+import { ShieldCheck, Upload, MessageSquare, Video, Users } from "lucide-react";
 
 export default function DashboardDoll() {
   const { data: profile, isLoading: loadingProfile } = useGetMyDollProfile();
@@ -41,6 +41,9 @@ export default function DashboardDoll() {
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
              <h2 className="text-xl font-serif text-white mb-4">Quick Links</h2>
              <div className="space-y-4">
+                <Link href="/members" className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors">
+                  <Users className="w-5 h-5 text-primary" /> Member Directory
+                </Link>
                 <Link href="/messages" className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors">
                   <MessageSquare className="w-5 h-5 text-primary" /> Messages
                 </Link>
