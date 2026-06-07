@@ -43,6 +43,20 @@ export interface User {
   createdAt?: string;
 }
 
+export interface MemberProfile {
+  id: number;
+  name: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+  memberSince?: string;
+}
+
 export interface CurrentUser {
   authenticated: boolean;
   user?: User | null;

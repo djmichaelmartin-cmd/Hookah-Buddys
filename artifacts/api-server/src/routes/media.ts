@@ -68,7 +68,7 @@ router.get("/media/mine", requireAuth("doll"), async (req, res): Promise<void> =
   res.json(rows.map((m) => toMediaResponse(m)));
 });
 
-router.get("/admin/media/pending", requireAuth("admin"), async (_req, res): Promise<void> => {
+router.get("/media/pending", requireAuth("admin"), async (_req, res): Promise<void> => {
   const rows = await db
     .select({ media: mediaTable, dollName: dollsTable.stageName })
     .from(mediaTable)
@@ -78,7 +78,7 @@ router.get("/admin/media/pending", requireAuth("admin"), async (_req, res): Prom
   res.json(rows.map((r) => toMediaResponse(r.media, r.dollName ?? "")));
 });
 
-router.post("/admin/media/:id/moderate", requireAuth("admin"), async (req, res): Promise<void> => {
+router.patch("/media/:id/moderate", requireAuth("admin"), async (req, res): Promise<void> => {
   const params = ModerateMediaParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

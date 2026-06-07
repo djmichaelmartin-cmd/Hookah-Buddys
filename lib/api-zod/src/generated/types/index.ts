@@ -73,6 +73,7 @@ export * from './mediaInputType';
 export * from './mediaStatus';
 export * from './mediaTier';
 export * from './mediaType';
+export * from './memberProfile';
 export * from './memberRegistration';
 export * from './message';
 export * from './messageInput';

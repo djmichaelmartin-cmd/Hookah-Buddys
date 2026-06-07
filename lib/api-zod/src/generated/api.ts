@@ -1327,3 +1327,21 @@ export const SubmitContactBody = zod.object({
 })
 
 
+/**
+ * @summary Get a member's public profile (Doll/Admin)
+ */
+export const GetMemberProfileParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetMemberProfileResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "memberSince": zod.string().optional()
+})
+
+

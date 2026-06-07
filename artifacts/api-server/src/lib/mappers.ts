@@ -17,6 +17,18 @@ export function toUserResponse(user: User) {
   };
 }
 
+export function toMemberProfileResponse(user: User) {
+  return {
+    id: user.id,
+    name: user.name,
+    username: user.username ?? null,
+    city: user.city ?? null,
+    state: user.state ?? null,
+    profilePhotoUrl: user.profilePhotoUrl ?? null,
+    memberSince: iso(user.createdAt) ?? "",
+  };
+}
+
 export type DollCounts = {
   premiumPhotoCount: number;
   premiumVideoCount: number;

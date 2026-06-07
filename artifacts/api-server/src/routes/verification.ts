@@ -65,7 +65,7 @@ router.get("/verification/mine", requireAuth("doll"), async (req, res): Promise<
   res.json(toVerification(v, user.name));
 });
 
-router.get("/admin/verifications/pending", requireAuth("admin"), async (_req, res): Promise<void> => {
+router.get("/verification/pending", requireAuth("admin"), async (_req, res): Promise<void> => {
   const rows = await db
     .select({ v: verificationsTable, dollName: dollsTable.stageName })
     .from(verificationsTable)
@@ -75,7 +75,7 @@ router.get("/admin/verifications/pending", requireAuth("admin"), async (_req, re
   res.json(rows.map((r) => toVerification(r.v, r.dollName ?? "")));
 });
 
-router.post("/admin/verifications/:id/review", requireAuth("admin"), async (req, res): Promise<void> => {
+router.patch("/verification/:id/review", requireAuth("admin"), async (req, res): Promise<void> => {
   const params = ReviewVerificationParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

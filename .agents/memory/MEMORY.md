@@ -1,1 +1,1 @@
-- [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — multiple routes serialize the same schema by hand; adding a `required` field means updating every serializer, codegen won't catch a missing one.
+- [Contract-route drift](contract-route-drift.md) — server Express route method+path must match openapi.yaml exactly or the generated client 404s silently (no onError = "nothing happens").

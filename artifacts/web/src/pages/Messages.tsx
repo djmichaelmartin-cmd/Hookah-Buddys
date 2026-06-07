@@ -19,6 +19,8 @@ export default function Messages() {
   const { toast } = useToast();
   const { data: session } = useGetCurrentUser();
   const myRole = session?.user?.role;
+  const isDoll = myRole === "doll";
+  const activeThread = threads?.find((t) => t.id === activeThreadId);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +101,18 @@ export default function Messages() {
                   <Button variant="ghost" size="sm" className="md:hidden mr-2 text-muted-foreground" onClick={() => setActiveThreadId(null)}>
                     &larr; Back
                   </Button>
-                  <h3 className="font-medium text-white">Conversation</h3>
+                  {isDoll && activeThread?.memberId ? (
+                    <Link
+                      href={`/members/${activeThread.memberId}`}
+                      className="font-medium text-white hover:text-primary transition-colors underline-offset-4 hover:underline"
+                    >
+                      {activeThread.memberName || "View member profile"}
+                    </Link>
+                  ) : (
+                    <h3 className="font-medium text-white">
+                      {activeThread?.dollName || activeThread?.memberName || "Conversation"}
+                    </h3>
+                  )}
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
