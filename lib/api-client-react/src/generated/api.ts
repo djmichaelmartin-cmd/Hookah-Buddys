@@ -2438,7 +2438,7 @@ export const getCreateThreadUrl = () => {
 }
 
 /**
- * @summary Start a thread with a Doll
+ * @summary Start a thread (member with a Doll, or Doll with a member)
  */
 export const createThread = async (threadInput: ThreadInput, options?: RequestInit): Promise<MessageThread> => {
 
@@ -2487,7 +2487,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateThreadMutationError = ErrorType<unknown>
 
     /**
- * @summary Start a thread with a Doll
+ * @summary Start a thread (member with a Doll, or Doll with a member)
  */
 export const useCreateThread = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createThread>>, TError,{data: BodyType<ThreadInput>}, TContext>, request?: SecondParameter<typeof customFetch>}

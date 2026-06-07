@@ -789,10 +789,11 @@ export const ListThreadsResponse = zod.array(ListThreadsResponseItem)
 
 
 /**
- * @summary Start a thread with a Doll
+ * @summary Start a thread (member with a Doll, or Doll with a member)
  */
 export const CreateThreadBody = zod.object({
-  "dollId": zod.number(),
+  "dollId": zod.number().optional(),
+  "memberId": zod.number().optional(),
   "message": zod.string().optional()
 })
 

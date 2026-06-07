@@ -561,7 +561,7 @@ paths:
     post:
       operationId: createThread
       tags: [messages]
-      summary: Start a thread with a Doll
+      summary: Start a thread (member with a Doll, or Doll with a member)
       requestBody:
         required: true
         content:
@@ -1531,9 +1531,9 @@ components:
 
     ThreadInput:
       type: object
-      required: [dollId]
       properties:
         dollId: { type: integer }
+        memberId: { type: integer }
         message: { type: string }
 
     Message:

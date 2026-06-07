@@ -535,7 +535,8 @@ export interface MessageThread {
 }
 
 export interface ThreadInput {
-  dollId: number;
+  dollId?: number;
+  memberId?: number;
   message?: string;
 }
 

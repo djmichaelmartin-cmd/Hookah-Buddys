@@ -10,7 +10,7 @@ import {
 } from "@workspace/db";
 import { CreateThreadBody, ListMessagesParams, SendMessageParams, SendMessageBody } from "@workspace/api-zod";
 import { messageCreditCost } from "@workspace/pricing";
-import { requireAuth, requirePaidMember } from "../lib/auth";
+import { requireAuth, hasActivePaidMembership } from "../lib/auth";
 import { spendCredits } from "../lib/credits";
 
 const router: IRouter = Router();
@@ -53,11 +53,76 @@ router.get("/threads", requireAuth("member", "doll"), async (req, res): Promise<
   res.json(await Promise.all(rows.map(threadView)));
 });
 
-router.post("/threads", requireAuth("member"), requirePaidMember(), async (req, res): Promise<void> => {
+router.post("/threads", requireAuth("member", "doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const parsed = CreateThreadBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  // Doll initiating a conversation with a member — free, no credits charged.
+  if (user.role === "doll") {
+    if (!user.dollId) {
+      res.status(404).json({ error: "Doll profile not found" });
+      return;
+    }
+    if (!parsed.data.memberId) {
+      res.status(400).json({ error: "memberId is required" });
+      return;
+    }
+    const [member] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, parsed.data.memberId));
+    if (!member || member.role !== "member" || member.accountStatus !== "active") {
+      res.status(404).json({ error: "Member not found" });
+      return;
+    }
+    const existingDollThread = await db
+      .select()
+      .from(messageThreadsTable)
+      .where(
+        and(
+          eq(messageThreadsTable.memberUserId, member.id),
+          eq(messageThreadsTable.dollId, user.dollId),
+        ),
+      );
+    let dollThread = existingDollThread[0];
+    if (!dollThread) {
+      [dollThread] = await db
+        .insert(messageThreadsTable)
+        .values({ memberUserId: member.id, dollId: user.dollId, lastMessage: "" })
+        .returning();
+    }
+
+    if (parsed.data.message && parsed.data.message.trim().length > 0) {
+      const messageBody = parsed.data.message;
+      await db.insert(messagesTable).values({
+        threadId: dollThread.id,
+        senderRole: "doll",
+        senderUserId: user.id,
+        body: messageBody,
+        paid: false,
+      });
+      await db
+        .update(messageThreadsTable)
+        .set({ lastMessage: messageBody, lastMessageAt: new Date() })
+        .where(eq(messageThreadsTable.id, dollThread.id));
+      dollThread.lastMessage = messageBody;
+    }
+
+    res.status(201).json(await threadView(dollThread));
+    return;
+  }
+
+  // Member initiating with a Doll — requires a paid membership and costs credits.
+  if (!(await hasActivePaidMembership(user.id))) {
+    res.status(403).json({ error: "A paid membership is required to use this feature" });
+    return;
+  }
+  if (!parsed.data.dollId) {
+    res.status(400).json({ error: "dollId is required" });
     return;
   }
   const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, parsed.data.dollId));

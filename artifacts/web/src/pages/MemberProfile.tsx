@@ -1,13 +1,54 @@
 import { Layout } from "@/components/Layout";
-import { useGetMemberProfile, getGetMemberProfileQueryKey } from "@workspace/api-client-react";
+import {
+  useGetMemberProfile,
+  getGetMemberProfileQueryKey,
+  useCreateThread,
+  useGetCurrentUser,
+  getListThreadsQueryKey,
+  ApiError,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { User, MapPin, CalendarDays, ArrowLeft } from "lucide-react";
+import { User, MapPin, CalendarDays, ArrowLeft, MessageCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MemberProfile() {
   const { id } = useParams();
   const memberId = parseInt(id || "0", 10);
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { data: session } = useGetCurrentUser();
+  const isDoll = session?.user?.role === "doll";
+  const createThread = useCreateThread();
+
+  const handleMessage = () => {
+    createThread.mutate(
+      { data: { memberId } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListThreadsQueryKey() });
+          navigate("/messages");
+        },
+        onError: (err) => {
+          const serverMessage =
+            err instanceof ApiError &&
+            err.data &&
+            typeof err.data === "object" &&
+            "error" in err.data &&
+            typeof (err.data as { error: unknown }).error === "string"
+              ? (err.data as { error: string }).error
+              : null;
+          toast({
+            title: "Couldn't start conversation",
+            description: serverMessage ?? "Something went wrong. Please try again.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
 
   const { data: member, isLoading, isError } = useGetMemberProfile(memberId, {
     query: { enabled: !!memberId, queryKey: getGetMemberProfileQueryKey(memberId) },
@@ -57,6 +98,17 @@ export default function MemberProfile() {
             <div className="flex-1 text-center sm:text-left">
               <h1 className="text-3xl font-serif text-white font-bold">{member.name}</h1>
               {member.username && <p className="text-primary">@{member.username}</p>}
+
+              {isDoll && (
+                <Button
+                  className="mt-4 bg-primary hover:bg-primary/90"
+                  onClick={handleMessage}
+                  disabled={createThread.isPending}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  {createThread.isPending ? "Opening..." : "Message"}
+                </Button>
+              )}
 
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                 {location && (
