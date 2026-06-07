@@ -132,7 +132,7 @@ export function Navbar() {
             </Link>
           ))}
 
-          <DropdownMenu open={resourcesOpen} onOpenChange={setResourcesOpen}>
+          <DropdownMenu open={resourcesOpen} onOpenChange={setResourcesOpen} modal={false}>
             <DropdownMenuTrigger
               onMouseEnter={openResources}
               onMouseLeave={scheduleCloseResources}
