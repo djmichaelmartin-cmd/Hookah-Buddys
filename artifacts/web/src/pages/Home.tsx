@@ -419,6 +419,15 @@ export default function Home() {
             <div className="group relative overflow-hidden rounded-3xl border border-rose-400/20 bg-card/50 backdrop-blur-md p-8 md:p-10 hover:border-rose-400/50 transition-all duration-500 hover:-translate-y-1">
               <div className="absolute -top-24 -right-24 h-56 w-56 rounded-full bg-rose-400/10 blur-3xl pointer-events-none" />
               <div className="relative">
+                <div className="relative mb-6 -mx-8 -mt-8 md:-mx-10 md:-mt-10 overflow-hidden rounded-t-3xl">
+                  <img
+                    src="/join/im-a-doll.png"
+                    alt="A glamorous woman relaxing with a hookah in an upscale lounge"
+                    loading="lazy"
+                    className="h-52 md:h-60 w-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+                </div>
                 <div className="flex items-center gap-4 mb-5">
                   <div className="w-14 h-14 rounded-xl bg-rose-400/10 border border-rose-400/30 flex items-center justify-center shadow-[0_0_15px_rgba(232,93,117,0.2)] group-hover:scale-110 transition-transform">
                     <Sparkles className="w-7 h-7 text-rose-400" />
@@ -473,6 +482,15 @@ export default function Home() {
             <div className="group relative overflow-hidden rounded-3xl border border-primary/20 bg-card/50 backdrop-blur-md p-8 md:p-10 hover:border-primary/50 transition-all duration-500 hover:-translate-y-1">
               <div className="absolute -top-24 -right-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
               <div className="relative">
+                <div className="relative mb-6 -mx-8 -mt-8 md:-mx-10 md:-mt-10 overflow-hidden rounded-t-3xl">
+                  <img
+                    src="/join/i-love-dolls.png"
+                    alt="A stylish couple enjoying a hookah together in an upscale lounge"
+                    loading="lazy"
+                    className="h-52 md:h-60 w-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+                </div>
                 <div className="flex items-center gap-4 mb-5">
                   <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)] group-hover:scale-110 transition-transform">
                     <Heart className="w-7 h-7 text-primary" />

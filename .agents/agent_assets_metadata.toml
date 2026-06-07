@@ -84,3 +84,15 @@ id = "Kbqe6YbHz-cVf3OXfhAxY"
 uri = "file://artifacts/web/public/lounge/lounge5.png"
 type = "image"
 title = "diverse lounge 5"
+
+[[generated]]
+id = "J2k6KAOSWDQi5_EaMqjj2"
+uri = "file://artifacts/web/public/join/im-a-doll.png"
+type = "image"
+title = "woman hookah lounge"
+
+[[generated]]
+id = "uTuOtFlYQLTcvSrTSjrhY"
+uri = "file://artifacts/web/public/join/i-love-dolls.png"
+type = "image"
+title = "couple hookah lounge"
