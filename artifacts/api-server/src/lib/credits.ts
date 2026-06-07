@@ -85,10 +85,13 @@ export async function adjustCredits(
 ): Promise<{ balance: number; txn: CreditTransaction }> {
   return db.transaction(async (tx) => {
     await ensureBalanceRow(tx, userId);
+    // Lock the balance row so concurrent adjustments serialize and cannot lose
+    // updates (read-then-write last-write-wins). The lock is held until commit.
     const [before] = await tx
       .select()
       .from(creditBalancesTable)
-      .where(eq(creditBalancesTable.userId, userId));
+      .where(eq(creditBalancesTable.userId, userId))
+      .for("update");
     const newBalance = Math.max(0, before.balance + amount);
     const applied = newBalance - before.balance;
     await tx

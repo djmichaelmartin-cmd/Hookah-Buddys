@@ -2,10 +2,13 @@ import { useState } from "react";
 import {
   useListCreditPackages,
   usePurchaseCredits,
+  useGetCurrentUser,
   getGetCreditsQueryKey,
   type CreditPackage,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { CREDIT_COSTS } from "@workspace/pricing";
 import {
   Dialog,
   DialogContent,
@@ -29,8 +32,18 @@ export function CreditPackageGrid({
   className?: string;
 }) {
   const { data: packages, isLoading } = useListCreditPackages();
+  const { data: session } = useGetCurrentUser();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
+
+  const redirectToLogin = () => {
+    toast({
+      title: "Sign in to buy credits",
+      description: "Please sign in to your member account to purchase credits.",
+    });
+    navigate("/login");
+  };
 
   const purchase = usePurchaseCredits({
     mutation: {
@@ -45,14 +58,28 @@ export function CreditPackageGrid({
         queryClient.invalidateQueries({ queryKey: getGetCreditsQueryKey() });
         if (pkg) onPurchased?.(pkg.credits);
       },
-      onError: () =>
+      onError: (error) => {
+        const status = (error as { response?: { status?: number } })?.response?.status;
+        if (status === 401 || status === 403) {
+          redirectToLogin();
+          return;
+        }
         toast({
           title: "Purchase failed",
           description: "We couldn't complete your purchase. Please try again.",
           variant: "destructive",
-        }),
+        });
+      },
     },
   });
+
+  const handleBuy = (packageId: number) => {
+    if (!session?.user) {
+      redirectToLogin();
+      return;
+    }
+    purchase.mutate({ data: { packageId } });
+  };
 
   const sorted = [...(packages ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -96,7 +123,7 @@ export function CreditPackageGrid({
             <Button
               className="mt-auto w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={pending}
-              onClick={() => purchase.mutate({ data: { packageId: pkg.id } })}
+              onClick={() => handleBuy(pkg.id)}
             >
               {pending ? "Processing..." : "Buy Credits"}
             </Button>
@@ -108,11 +135,15 @@ export function CreditPackageGrid({
 }
 
 const CREDIT_USES = [
-  "Start a conversation — 20 credits",
-  "Send a follow-up message — 10 credits",
-  "Unlock a premium photo — 25 credits",
-  "Unlock a premium video — 150 credits",
-  "Video chat — 30 credits/min (5 min minimum)",
+  `Start a conversation — ${CREDIT_COSTS.messageStart} credits`,
+  `Send a follow-up message — ${CREDIT_COSTS.messageFollowup} credits`,
+  `Attach a photo to a message — ${CREDIT_COSTS.messagePhoto} credits`,
+  `Send a priority message — ${CREDIT_COSTS.messagePriority} credits`,
+  `Unlock a premium photo — ${CREDIT_COSTS.unlockPhoto} credits`,
+  `Unlock a content bundle — ${CREDIT_COSTS.unlockBundle} credits`,
+  `Unlock a premium video — ${CREDIT_COSTS.unlockVideo} credits`,
+  `Unlock exclusive content — ${CREDIT_COSTS.unlockExclusive} credits`,
+  `Video chat — ${CREDIT_COSTS.videoPerMinute} credits/min (${CREDIT_COSTS.videoMinMinutes} min minimum)`,
 ];
 
 export function CreditUsesList() {
