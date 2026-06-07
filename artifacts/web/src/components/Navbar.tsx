@@ -28,12 +28,12 @@ import {
 
 const NAV_LINKS = [
   { label: "Dolls", href: "/browse" },
-  { label: "Lounges", href: "/lounges" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
 ];
 
 const RESOURCE_LINKS = [
+  { label: "Search Lounges", href: "/lounges" },
   { label: "Contact", href: "/contact" },
   { label: "Content Rules", href: "/content-rules" },
   { label: "Terms", href: "/terms" },
