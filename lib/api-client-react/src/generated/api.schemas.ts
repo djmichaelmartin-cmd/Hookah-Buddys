@@ -352,6 +352,7 @@ export interface Plan {
   description?: string;
   features?: string[];
   highlighted?: boolean;
+  monthlyCredits: number;
 }
 
 export interface Lounge {
@@ -391,8 +392,11 @@ export interface Subscription {
   /** @nullable */
   dollName?: string | null;
   price?: number;
+  monthlyCredits: number;
   status: SubscriptionStatus;
   startedAt?: string;
+  /** @nullable */
+  currentPeriodEnd?: string | null;
 }
 
 export interface SubscriptionInput {
@@ -407,6 +411,8 @@ export const CreditTransactionType = {
   purchase: 'purchase',
   spend: 'spend',
   adjustment: 'adjustment',
+  membership: 'membership',
+  expiry: 'expiry',
 } as const;
 
 export interface CreditTransaction {
@@ -421,6 +427,13 @@ export interface CreditTransaction {
 
 export interface CreditBalance {
   balance: number;
+  membershipBalance: number;
+  purchasedBalance: number;
+  monthlyMembershipCredits: number;
+  /** @nullable */
+  nextRefreshAt?: string | null;
+  /** @nullable */
+  membershipPlanName?: string | null;
   transactions?: CreditTransaction[];
 }
 
@@ -460,6 +473,8 @@ export const AdminCreditTransactionType = {
   purchase: 'purchase',
   spend: 'spend',
   adjustment: 'adjustment',
+  membership: 'membership',
+  expiry: 'expiry',
 } as const;
 
 export interface AdminCreditTransaction {

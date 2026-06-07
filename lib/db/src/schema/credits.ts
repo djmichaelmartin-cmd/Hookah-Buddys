@@ -3,7 +3,11 @@ import { pgTable, serial, integer, text, timestamp, boolean } from "drizzle-orm/
 export const creditBalancesTable = pgTable("credit_balances", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().unique(),
-  balance: integer("balance").notNull().default(0),
+  // Recurring membership credits for the current billing cycle. Reset on each
+  // renewal and expire at cycle end (no rollover).
+  membershipBalance: integer("membership_balance").notNull().default(0),
+  // Purchased / admin-granted credits. Never expire.
+  purchasedBalance: integer("purchased_balance").notNull().default(0),
 });
 
 export const creditPackagesTable = pgTable("credit_packages", {

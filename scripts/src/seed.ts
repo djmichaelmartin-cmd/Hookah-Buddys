@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
-import { CREDIT_PACKAGE_SEEDS } from "@workspace/pricing";
+import { and, eq } from "drizzle-orm";
+import { CREDIT_PACKAGE_SEEDS, membershipMonthlyCredits, nextBillingDate } from "@workspace/pricing";
 import {
   db,
   pool,
@@ -261,6 +261,7 @@ async function seedPlans() {
       price: 0,
       interval: "month",
       tier: "free",
+      monthlyCredits: membershipMonthlyCredits("free"),
       description: "Browse verified Dolls and save your favorites.",
       features: [
         "Browse profiles",
@@ -275,8 +276,14 @@ async function seedPlans() {
       price: 19.99,
       interval: "month",
       tier: "basic",
-      description: "Everything in Free, plus enhanced messaging.",
-      features: ["Browse profiles", "Save favorites", "Enhanced messaging"],
+      monthlyCredits: membershipMonthlyCredits("basic"),
+      description: "Everything in Free, plus 100 included credits every month.",
+      features: [
+        "Browse profiles",
+        "Save favorites",
+        "100 monthly credits included",
+        "Limited messaging & content access",
+      ],
       highlighted: false,
     },
     {
@@ -285,8 +292,14 @@ async function seedPlans() {
       price: 39.99,
       interval: "month",
       tier: "premium",
-      description: "The full experience with premium browsing and access.",
-      features: ["Enhanced messaging", "Additional profile access", "Premium browsing features"],
+      monthlyCredits: membershipMonthlyCredits("premium"),
+      description: "Enhanced browsing and access, plus 300 included credits every month.",
+      features: [
+        "300 monthly credits included",
+        "Enhanced browsing",
+        "Additional profile access",
+        "Premium content & video chat access",
+      ],
       highlighted: true,
     },
     {
@@ -486,9 +499,14 @@ async function seedAdminAndMembers() {
     rulesAccepted: true,
   });
 
-  const members = [
-    { name: "Marcus Lee", email: "marcus@example.com", balance: 25 },
-    { name: "David Chen", email: "david@example.com", balance: 10 },
+  const members: {
+    name: string;
+    email: string;
+    purchased: number;
+    membershipTier: "basic" | "premium" | null;
+  }[] = [
+    { name: "Marcus Lee", email: "marcus@example.com", purchased: 25, membershipTier: "basic" },
+    { name: "David Chen", email: "david@example.com", purchased: 10, membershipTier: null },
   ];
   for (const m of members) {
     const [u] = await db
@@ -503,13 +521,41 @@ async function seedAdminAndMembers() {
         rulesAccepted: true,
       })
       .returning();
-    await db.insert(creditBalancesTable).values({ userId: u.id, balance: m.balance });
-    await db.insert(creditTransactionsTable).values({
+
+    const monthlyCredits = m.membershipTier ? membershipMonthlyCredits(m.membershipTier) : 0;
+    await db.insert(creditBalancesTable).values({
       userId: u.id,
-      amount: m.balance,
-      type: "purchase",
-      description: "Welcome credit pack",
+      membershipBalance: monthlyCredits,
+      purchasedBalance: m.purchased,
     });
+    if (m.purchased > 0) {
+      await db.insert(creditTransactionsTable).values({
+        userId: u.id,
+        amount: m.purchased,
+        type: "purchase",
+        description: "Welcome credit pack",
+      });
+    }
+    if (m.membershipTier) {
+      const [plan] = await db
+        .select()
+        .from(plansTable)
+        .where(and(eq(plansTable.audience, "member"), eq(plansTable.tier, m.membershipTier)));
+      if (plan) {
+        await db.insert(subscriptionsTable).values({
+          memberUserId: u.id,
+          planId: plan.id,
+          status: "active",
+          currentPeriodEnd: nextBillingDate(),
+        });
+        await db.insert(creditTransactionsTable).values({
+          userId: u.id,
+          amount: monthlyCredits,
+          type: "membership",
+          description: `Monthly membership credits — ${plan.name}`,
+        });
+      }
+    }
   }
 }
 

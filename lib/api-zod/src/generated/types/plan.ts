@@ -17,4 +17,5 @@ export interface Plan {
   description?: string;
   features?: string[];
   highlighted?: boolean;
+  monthlyCredits: number;
 }

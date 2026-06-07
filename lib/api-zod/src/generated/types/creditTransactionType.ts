@@ -13,4 +13,6 @@ export const CreditTransactionType = {
   purchase: 'purchase',
   spend: 'spend',
   adjustment: 'adjustment',
+  membership: 'membership',
+  expiry: 'expiry',
 } as const;

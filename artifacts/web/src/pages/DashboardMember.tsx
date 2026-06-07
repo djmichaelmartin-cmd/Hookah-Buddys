@@ -4,7 +4,7 @@ import { useGetCredits, useListFavorites, type CreditTransaction } from "@worksp
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { BuyCreditsDialog } from "@/components/BuyCreditsDialog";
-import { Coins, ArrowDownCircle, ArrowUpCircle, Settings2 } from "lucide-react";
+import { Coins, ArrowDownCircle, ArrowUpCircle, Settings2, RefreshCw, CalendarClock } from "lucide-react";
 
 function formatWhen(iso?: string): string {
   if (!iso) return "";
@@ -45,18 +45,25 @@ export default function DashboardMember() {
   const purchases = transactions.filter((t) => t.type === "purchase");
   const usage = transactions.filter((t) => t.type !== "purchase");
 
+  const membershipBalance = credits?.membershipBalance ?? 0;
+  const purchasedBalance = credits?.purchasedBalance ?? 0;
+  const monthlyMembershipCredits = credits?.monthlyMembershipCredits ?? 0;
+  const membershipPlanName = credits?.membershipPlanName ?? null;
+  const nextRefreshAt = credits?.nextRefreshAt ?? null;
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-3xl font-serif text-white mb-8">Member Dashboard</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-card/50 border border-white/10 rounded-xl p-6 flex flex-col justify-between">
             <div>
               <h3 className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
-                <Coins className="w-4 h-4 text-primary" /> Available Credits
+                <Coins className="w-4 h-4 text-primary" /> Current Balance
               </h3>
               <p className="text-3xl font-bold text-primary">{credits?.balance ?? 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">membership + purchased credits</p>
             </div>
             <Button
               size="sm"
@@ -68,16 +75,40 @@ export default function DashboardMember() {
           </div>
 
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
-            <h3 className="text-sm text-muted-foreground mb-2">Lifetime Spent</h3>
+            <h3 className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-primary" /> Membership Credits
+            </h3>
             <p className="text-3xl font-bold text-white">
-              {usage.reduce((sum, t) => sum + Math.min(0, t.amount), 0) * -1}
+              {membershipBalance}
+              {monthlyMembershipCredits > 0 && (
+                <span className="text-base text-muted-foreground font-normal"> / {monthlyMembershipCredits}</span>
+              )}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">credits used</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {monthlyMembershipCredits > 0
+                ? `Included with ${membershipPlanName ?? "your membership"} • expires each cycle`
+                : "No active membership credits"}
+            </p>
           </div>
 
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
-            <h3 className="text-sm text-muted-foreground mb-2">Saved Favorites</h3>
-            <p className="text-3xl font-bold text-white">{favorites?.length ?? 0}</p>
+            <h3 className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+              <Coins className="w-4 h-4 text-primary" /> Purchased Credits
+            </h3>
+            <p className="text-3xl font-bold text-white">{purchasedBalance}</p>
+            <p className="text-xs text-muted-foreground mt-1">never expire</p>
+          </div>
+
+          <div className="bg-card/50 border border-white/10 rounded-xl p-6">
+            <h3 className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+              <CalendarClock className="w-4 h-4 text-primary" /> Next Refresh
+            </h3>
+            <p className="text-2xl font-bold text-white">
+              {nextRefreshAt ? formatWhen(nextRefreshAt) : "—"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {nextRefreshAt ? "membership credits reset" : "subscribe for monthly credits"}
+            </p>
           </div>
         </div>
 

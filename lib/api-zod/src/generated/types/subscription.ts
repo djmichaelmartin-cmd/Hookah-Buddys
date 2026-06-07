@@ -17,6 +17,9 @@ export interface Subscription {
   /** @nullable */
   dollName?: string | null;
   price?: number;
+  monthlyCredits: number;
   status: SubscriptionStatus;
   startedAt?: string;
+  /** @nullable */
+  currentPeriodEnd?: string | null;
 }

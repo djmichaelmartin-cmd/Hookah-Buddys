@@ -1308,7 +1308,7 @@ components:
 
     Plan:
       type: object
-      required: [id, name, audience, price, tier]
+      required: [id, name, audience, price, tier, monthlyCredits]
       properties:
         id: { type: integer }
         name: { type: string }
@@ -1321,6 +1321,7 @@ components:
           type: array
           items: { type: string }
         highlighted: { type: boolean }
+        monthlyCredits: { type: integer }
 
     Lounge:
       type: object
@@ -1345,7 +1346,7 @@ components:
 
     Subscription:
       type: object
-      required: [id, status]
+      required: [id, status, monthlyCredits]
       properties:
         id: { type: integer }
         planId: { type: integer }
@@ -1354,8 +1355,10 @@ components:
         dollId: { type: ["integer", "null"] }
         dollName: { type: ["string", "null"] }
         price: { type: number }
+        monthlyCredits: { type: integer }
         status: { type: string, enum: [active, canceled] }
         startedAt: { type: string }
+        currentPeriodEnd: { type: ["string", "null"] }
 
     SubscriptionInput:
       type: object
@@ -1366,9 +1369,14 @@ components:
 
     CreditBalance:
       type: object
-      required: [balance]
+      required: [balance, membershipBalance, purchasedBalance, monthlyMembershipCredits]
       properties:
         balance: { type: integer }
+        membershipBalance: { type: integer }
+        purchasedBalance: { type: integer }
+        monthlyMembershipCredits: { type: integer }
+        nextRefreshAt: { type: ["string", "null"] }
+        membershipPlanName: { type: ["string", "null"] }
         transactions:
           type: array
           items: { $ref: "#/components/schemas/CreditTransaction" }
@@ -1379,7 +1387,7 @@ components:
       properties:
         id: { type: integer }
         amount: { type: integer }
-        type: { type: string, enum: [purchase, spend, adjustment] }
+        type: { type: string, enum: [purchase, spend, adjustment, membership, expiry] }
         description: { type: string }
         amountCents: { type: ["integer", "null"] }
         createdAt: { type: string }
@@ -1422,7 +1430,7 @@ components:
         userName: { type: string }
         userEmail: { type: string }
         amount: { type: integer }
-        type: { type: string, enum: [purchase, spend, adjustment] }
+        type: { type: string, enum: [purchase, spend, adjustment, membership, expiry] }
         description: { type: string }
         amountCents: { type: ["integer", "null"] }
         createdAt: { type: string }

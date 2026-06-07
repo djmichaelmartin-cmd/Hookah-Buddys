@@ -120,7 +120,7 @@ router.post("/auth/register/member", async (req, res): Promise<void> => {
     })
     .returning();
 
-  await db.insert(creditBalancesTable).values({ userId: user.id, balance: 0 });
+  await db.insert(creditBalancesTable).values({ userId: user.id, membershipBalance: 0, purchasedBalance: 0 });
 
   req.session.userId = user.id;
   res.status(201).json({ user: toUserResponse(user) });

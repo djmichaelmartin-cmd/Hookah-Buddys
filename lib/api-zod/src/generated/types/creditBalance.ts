@@ -9,5 +9,12 @@ import type { CreditTransaction } from './creditTransaction';
 
 export interface CreditBalance {
   balance: number;
+  membershipBalance: number;
+  purchasedBalance: number;
+  monthlyMembershipCredits: number;
+  /** @nullable */
+  nextRefreshAt?: string | null;
+  /** @nullable */
+  membershipPlanName?: string | null;
   transactions?: CreditTransaction[];
 }

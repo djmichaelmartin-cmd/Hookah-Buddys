@@ -1,11 +1,13 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, and, desc } from "drizzle-orm";
+import { eq, sql, and, desc, isNull } from "drizzle-orm";
 import {
   db,
   creditBalancesTable,
   creditTransactionsTable,
   creditPackagesTable,
   usersTable,
+  subscriptionsTable,
+  plansTable,
 } from "@workspace/db";
 import {
   PurchaseCreditsBody,
@@ -19,13 +21,42 @@ import { grantCredits, adjustCredits } from "../lib/credits";
 
 const router: IRouter = Router();
 
-type TxnType = "purchase" | "spend" | "adjustment";
+type TxnType = "purchase" | "spend" | "adjustment" | "membership" | "expiry";
 
 async function ensureBalance(userId: number) {
   const [bal] = await db.select().from(creditBalancesTable).where(eq(creditBalancesTable.userId, userId));
   if (bal) return bal;
-  const [created] = await db.insert(creditBalancesTable).values({ userId, balance: 0 }).returning();
+  const [created] = await db
+    .insert(creditBalancesTable)
+    .values({ userId, membershipBalance: 0, purchasedBalance: 0 })
+    .returning();
   return created;
+}
+
+/**
+ * Membership context for the member's active (non-doll) membership: included
+ * monthly credits, the next refresh date, and the plan name. Empty when the
+ * member has no active membership.
+ */
+async function getMembershipInfo(userId: number) {
+  const [row] = await db
+    .select({ sub: subscriptionsTable, plan: plansTable })
+    .from(subscriptionsTable)
+    .leftJoin(plansTable, eq(subscriptionsTable.planId, plansTable.id))
+    .where(
+      and(
+        eq(subscriptionsTable.memberUserId, userId),
+        eq(subscriptionsTable.status, "active"),
+        isNull(subscriptionsTable.dollId),
+      ),
+    )
+    .orderBy(desc(subscriptionsTable.startedAt))
+    .limit(1);
+  return {
+    monthlyMembershipCredits: row?.plan?.monthlyCredits ?? 0,
+    nextRefreshAt: row?.sub.currentPeriodEnd ? row.sub.currentPeriodEnd.toISOString() : null,
+    membershipPlanName: row?.plan?.name ?? null,
+  };
 }
 
 function serializeTxn(t: typeof creditTransactionsTable.$inferSelect) {
@@ -52,13 +83,25 @@ function serializePackage(p: typeof creditPackagesTable.$inferSelect) {
   };
 }
 
-async function balancePayload(userId: number, balance: number) {
-  const txns = await db
-    .select()
-    .from(creditTransactionsTable)
-    .where(eq(creditTransactionsTable.userId, userId))
-    .orderBy(desc(creditTransactionsTable.createdAt));
-  return { balance, transactions: txns.map(serializeTxn) };
+async function balancePayload(userId: number) {
+  const bal = await ensureBalance(userId);
+  const [txns, membership] = await Promise.all([
+    db
+      .select()
+      .from(creditTransactionsTable)
+      .where(eq(creditTransactionsTable.userId, userId))
+      .orderBy(desc(creditTransactionsTable.createdAt)),
+    getMembershipInfo(userId),
+  ]);
+  return {
+    balance: bal.membershipBalance + bal.purchasedBalance,
+    membershipBalance: bal.membershipBalance,
+    purchasedBalance: bal.purchasedBalance,
+    monthlyMembershipCredits: membership.monthlyMembershipCredits,
+    nextRefreshAt: membership.nextRefreshAt,
+    membershipPlanName: membership.membershipPlanName,
+    transactions: txns.map(serializeTxn),
+  };
 }
 
 // Public: packages available to purchase.
@@ -73,8 +116,7 @@ router.get("/credit-packages", async (_req, res): Promise<void> => {
 
 router.get("/credits", requireAuth("member"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
-  const bal = await ensureBalance(user.id);
-  res.json(await balancePayload(user.id, bal.balance));
+  res.json(await balancePayload(user.id));
 });
 
 router.post("/credits/purchase", requireAuth("member"), async (req, res): Promise<void> => {
@@ -94,13 +136,13 @@ router.post("/credits/purchase", requireAuth("member"), async (req, res): Promis
   }
   // Placeholder checkout: no real charge. Credits granted immediately, applied
   // atomically together with the ledger entry.
-  const newBalance = await grantCredits(user.id, pkg.credits, {
+  await grantCredits(user.id, pkg.credits, {
     type: "purchase",
     description: `Purchased ${pkg.name} pack (${pkg.credits} credits)`,
     amountCents: pkg.priceCents,
     packageId: pkg.id,
   });
-  res.status(201).json(await balancePayload(user.id, newBalance));
+  res.status(201).json(await balancePayload(user.id));
 });
 
 // ----- Admin -----

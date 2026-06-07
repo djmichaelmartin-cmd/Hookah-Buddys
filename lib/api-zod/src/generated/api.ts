@@ -659,7 +659,8 @@ export const ListPlansResponseItem = zod.object({
   "tier": zod.string(),
   "description": zod.string().optional(),
   "features": zod.array(zod.string()).optional(),
-  "highlighted": zod.boolean().optional()
+  "highlighted": zod.boolean().optional(),
+  "monthlyCredits": zod.number()
 })
 export const ListPlansResponse = zod.array(ListPlansResponseItem)
 
@@ -708,8 +709,10 @@ export const ListSubscriptionsResponseItem = zod.object({
   "dollId": zod.number().nullish(),
   "dollName": zod.string().nullish(),
   "price": zod.number().optional(),
+  "monthlyCredits": zod.number(),
   "status": zod.enum(['active', 'canceled']),
-  "startedAt": zod.string().optional()
+  "startedAt": zod.string().optional(),
+  "currentPeriodEnd": zod.string().nullish()
 })
 export const ListSubscriptionsResponse = zod.array(ListSubscriptionsResponseItem)
 
@@ -744,10 +747,15 @@ export const ListCreditPackagesResponse = zod.array(ListCreditPackagesResponseIt
  */
 export const GetCreditsResponse = zod.object({
   "balance": zod.number(),
+  "membershipBalance": zod.number(),
+  "purchasedBalance": zod.number(),
+  "monthlyMembershipCredits": zod.number(),
+  "nextRefreshAt": zod.string().nullish(),
+  "membershipPlanName": zod.string().nullish(),
   "transactions": zod.array(zod.object({
   "id": zod.number(),
   "amount": zod.number(),
-  "type": zod.enum(['purchase', 'spend', 'adjustment']),
+  "type": zod.enum(['purchase', 'spend', 'adjustment', 'membership', 'expiry']),
   "description": zod.string().optional(),
   "amountCents": zod.number().nullish(),
   "createdAt": zod.string().optional()
@@ -1144,7 +1152,7 @@ export const ListAdminCreditTransactionsResponse = zod.object({
   "userName": zod.string().optional(),
   "userEmail": zod.string().optional(),
   "amount": zod.number(),
-  "type": zod.enum(['purchase', 'spend', 'adjustment']),
+  "type": zod.enum(['purchase', 'spend', 'adjustment', 'membership', 'expiry']),
   "description": zod.string().optional(),
   "amountCents": zod.number().nullish(),
   "createdAt": zod.string().optional()

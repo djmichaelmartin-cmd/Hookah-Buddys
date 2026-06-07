@@ -18,6 +18,7 @@ import reportsRouter from "./reports";
 import adminRouter from "./admin";
 import checkoutRouter from "./checkout";
 import contactRouter from "./contact";
+import webhooksRouter from "./webhooks";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(reportsRouter);
 router.use(adminRouter);
 router.use(checkoutRouter);
 router.use(contactRouter);
+router.use(webhooksRouter);
 
 export default router;

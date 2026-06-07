@@ -1,7 +1,1 @@
-- [API server has no hot-reload](api-server-no-hot-reload.md) — restart the api-server workflow after route changes; dev is build+start, not watch.
-- [connect-pg-simple session table](connect-pg-simple-table.md) — createTableIfMissing ignores custom tableName; define the session table in Drizzle and push it.
-- [Premium content entitlement](premium-content-gating.md) — gate premium media by subscription PLAN tier (join plans), not by sub-row existence; blank locked URLs server-side.
-- [Messaging/video feature gating](feature-membership-gating.md) — paid-only features need a platform membership (dollId null, paid member plan); enforce server-side via requirePaidMember(), not just the UI.
-- [Lead collector (Google Places)](lead-collector.md) — run collections via background API+poll (script times out); hookah-signal gating for promotion; CSV formula-injection escaping required.
-- [UI mutation error handling](ui-mutation-error-handling.md) — member mutations need onError toasts surfacing server message (esp. 402 credits); align chat bubbles by current user's role.
-- [Credit spend atomicity](credit-spend-atomicity.md) — route all balance changes through credits.ts helpers (conditional-UPDATE debit in a tx); unlocks idempotent via unique constraint; adjustments log applied (post-clamp) delta.
+- [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — multiple routes serialize the same schema by hand; adding a `required` field means updating every serializer, codegen won't catch a missing one.

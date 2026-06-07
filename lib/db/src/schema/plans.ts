@@ -1,4 +1,4 @@
-import { pgTable, serial, text, real, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, real, boolean, integer } from "drizzle-orm/pg-core";
 
 export const plansTable = pgTable("plans", {
   id: serial("id").primaryKey(),
@@ -10,6 +10,8 @@ export const plansTable = pgTable("plans", {
   description: text("description"),
   features: text("features").array(),
   highlighted: boolean("highlighted").notNull().default(false),
+  // Recurring credits included with this plan each billing cycle (member plans).
+  monthlyCredits: integer("monthly_credits").notNull().default(0),
 });
 
 export type Plan = typeof plansTable.$inferSelect;

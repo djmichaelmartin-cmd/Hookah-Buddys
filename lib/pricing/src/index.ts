@@ -82,6 +82,34 @@ export function messageCreditCost(isFirstInThread: boolean): number {
   return isFirstInThread ? CREDIT_COSTS.messageStart : CREDIT_COSTS.messageFollowup;
 }
 
+// ----- Memberships -----
+
+/**
+ * Recurring credits granted each billing cycle by member plan tier. These reset
+ * at the start of every cycle and do not roll over. Source of truth shared by
+ * the seed, the server (refresh logic), and the web app (display).
+ */
+export const MEMBERSHIP_MONTHLY_CREDITS: Record<string, number> = {
+  free: 0,
+  basic: 100,
+  premium: 300,
+};
+
+/** Monthly credits included with a member plan tier (0 if none / unknown). */
+export function membershipMonthlyCredits(tier: string): number {
+  return MEMBERSHIP_MONTHLY_CREDITS[tier] ?? 0;
+}
+
+/**
+ * Next billing date = one calendar month after `from`. Used as the membership
+ * credit refresh date / current period end.
+ */
+export function nextBillingDate(from: Date = new Date()): Date {
+  const d = new Date(from);
+  d.setMonth(d.getMonth() + 1);
+  return d;
+}
+
 export type CreditPackageSeed = {
   slug: string;
   name: string;

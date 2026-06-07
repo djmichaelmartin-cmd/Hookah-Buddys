@@ -7,6 +7,8 @@ export const subscriptionsTable = pgTable("subscriptions", {
   dollId: integer("doll_id"),
   status: text("status").notNull().default("active"),
   startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  // End of the current billing cycle = next membership-credit refresh date.
+  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
 });
 
 export type Subscription = typeof subscriptionsTable.$inferSelect;

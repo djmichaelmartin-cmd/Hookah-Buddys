@@ -116,6 +116,23 @@ export default function Pricing() {
                   </div>
                   <p className="text-muted-foreground mb-6">{plan.description}</p>
 
+                  <div className="mb-6 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3">
+                    <p className="text-xs uppercase tracking-wide text-primary/80 mb-1">
+                      Monthly Credits Included
+                    </p>
+                    <p className="text-lg font-semibold text-white flex items-center gap-2">
+                      <Coins className="w-4 h-4 text-primary" />
+                      {plan.monthlyCredits > 0
+                        ? `${plan.monthlyCredits} credits / month`
+                        : "No included credits"}
+                    </p>
+                    {plan.monthlyCredits > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Refreshes every billing cycle &bull; no rollover
+                      </p>
+                    )}
+                  </div>
+
                   <ul className="space-y-3 mb-8 text-left">
                     {plan.features?.map((f, i) => (
                       <li key={i} className="text-sm text-white flex items-start">

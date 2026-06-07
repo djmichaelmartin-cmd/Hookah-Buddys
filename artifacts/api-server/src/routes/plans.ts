@@ -22,6 +22,7 @@ router.get("/plans", async (req, res): Promise<void> => {
       price: p.price,
       interval: p.interval ?? "",
       tier: p.tier,
+      monthlyCredits: p.monthlyCredits ?? 0,
       description: p.description ?? "",
       features: p.features ?? [],
       highlighted: p.highlighted,
