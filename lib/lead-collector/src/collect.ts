@@ -13,6 +13,7 @@ import {
   normalizePhone,
   normalizeNameAddress,
 } from "./classify";
+import { syncLoungesFromLeads } from "./syncLounges";
 
 export interface CollectProgress {
   market: string;
@@ -224,6 +225,13 @@ export async function collectMarket(
       }
     }
   } finally {
+    // Publish newly-collected hookah lounges to the public directory. Best-effort:
+    // a sync failure must not mark the whole collection as failed.
+    try {
+      await syncLoungesFromLeads();
+    } catch (err) {
+      progress.error = err instanceof Error ? err.message : String(err);
+    }
     progress.running = false;
     progress.finishedAt = new Date().toISOString();
     report();

@@ -18,3 +18,9 @@ description: Decisions and operational gotchas for the Google Places lead-collec
 ## CSV export security
 - The CSV export (`/api/admin/leads/export.csv`) must neutralize formula injection: any cell starting with `= + - @` or a leading tab/CR is prefixed with an apostrophe before quote-escaping. Data comes from external Google Places results, so this is required, not optional.
 - **How to apply:** `csvCell()` in `artifacts/api-server/src/routes/leads.ts`.
+
+## Publishing leads → public `lounges` directory
+- The public Lounges page reads the separate `lounges` table (originally only hand-seeded/fictional rows), NOT the leads table. To make collected leads appear publicly, `syncLoungesFromLeads()` (in `lib/lead-collector/src/syncLounges.ts`) republishes eligible leads (category `Hookah Lounge/Bar`, not closed, lat/lng present) into `lounges`. It runs in the collector's `finally` block (best-effort) and via the `sync-lounges` script.
+- **Design = transactional full rebuild, not upsert:** inside one tx it deletes all rows where `place_id IS NOT NULL` then re-inserts the current eligible set. **Why:** idempotent + race-safe without a DB unique constraint, and self-cleaning (leads that become closed/ineligible drop out automatically). Hand-seeded lounges (`place_id` NULL) are never touched.
+- **Why no unique index on `lounges.place_id`:** drizzle-kit `push`/`push-force` still throws an interactive TTY prompt when adding a unique constraint to a populated table (asks whether to truncate), which fails in the non-TTY shell. The transactional rebuild removes the need for it. `place_id` is kept as a plain nullable column = marker for "collected vs editorial".
+- In-memory dedup key is `normalizeNameAddress(name,address) ?? normalizePhone(phone) ?? placeId` — this correctly keeps genuinely separate locations of the same chain (different address/phone) while collapsing true same-name+same-address dupes.
