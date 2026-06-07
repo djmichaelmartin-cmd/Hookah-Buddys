@@ -29,15 +29,18 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix Leaflet's default marker icon paths (they break under bundlers like Vite).
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
+// Custom brand-gold map pin rendered as an inline SVG, so we avoid Leaflet's
+// default PNG marker (whose asset paths break under bundlers like Vite).
+const loungeIcon = L.divIcon({
+  className: "",
+  html: `
+    <svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 0C6.27 0 0 6.27 0 14c0 9.5 14 26 14 26s14-16.5 14-26C28 6.27 21.73 0 14 0z" fill="#D4AF37"/>
+      <circle cx="14" cy="14" r="5.5" fill="#1a1a1a"/>
+    </svg>`,
+  iconSize: [28, 40],
+  iconAnchor: [14, 40],
+  popupAnchor: [0, -36],
 });
 
 const US_STATES = [
@@ -265,12 +268,12 @@ export default function Lounges() {
                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                   />
                   {origin && (
-                    <Marker position={[origin.lat, origin.lng]}>
+                    <Marker position={[origin.lat, origin.lng]} icon={loungeIcon}>
                       <Popup>You are here</Popup>
                     </Marker>
                   )}
                   {lounges.map((l) => (
-                    <Marker key={l.id} position={[l.lat, l.lng]}>
+                    <Marker key={l.id} position={[l.lat, l.lng]} icon={loungeIcon}>
                       <Popup>
                         <strong>{l.name}</strong>
                         <br />
