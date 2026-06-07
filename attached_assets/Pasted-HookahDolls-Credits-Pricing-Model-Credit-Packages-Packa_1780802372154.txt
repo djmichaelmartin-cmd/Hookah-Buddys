@@ -1,0 +1,173 @@
+HookahDolls Credits Pricing Model
+Credit Packages
+Package	Price	Cost Per Credit	Positioning
+Starter Pack	$9.99	100 credits	Good for light messaging
+Popular Pack	$24.99	300 credits	Best starter value
+Social Pack	$49.99	700 credits	For active members
+VIP Pack	$99.99	1,600 credits	Best value
+Elite Pack	$199.99	3,500 credits	Heavy users / video chat
+
+This keeps the average credit value around $0.06–$0.10 per credit, with better value for larger purchases.
+
+Message Credit Pricing
+Sending Messages to Dolls
+Action	Credits
+Send first message to a Doll	20 credits
+Send follow-up message	10 credits
+Send photo attachment	25 credits
+Priority message	50 credits
+
+Recommended default:
+
+Members need 20 credits to start a new conversation with a Doll, then 10 credits per additional message.
+
+Why this works: It prevents spam, creates real monetization, and makes first contact valuable without being too expensive.
+
+Video Chat Credit Pricing
+Private Video Chat
+Session Type	Credits	Approx. Dollar Value
+5-minute intro chat	150 credits	~$9–$15
+10-minute private chat	275 credits	~$17–$27
+15-minute private chat	400 credits	~$25–$40
+30-minute private chat	750 credits	~$47–$75
+Per-minute extension	30 credits/minute	~$1.80–$3/min
+
+Recommended default:
+
+Private video chat costs 30 credits per minute, with a 5-minute minimum.
+
+So the minimum video chat session is:
+
+5 minutes = 150 credits
+
+This is clean, easy to understand, and scalable. Dolls can eventually set their own rates, but the platform should launch with standard pricing.
+
+Suggested Doll Revenue Split
+
+For monetized interactions, use:
+
+Revenue Type	Doll Share	Platform Share
+Paid messages	70%	30%
+Premium content unlocks	70%	30%
+Video chat	70%	30%
+Doll subscriptions	80%	20%
+Boosts / Featured placement	0%	100% platform
+
+This gives Dolls a strong reason to participate while keeping the platform profitable.
+
+Pricing Page Addition
+
+Tell Replit to add a Buy Credits section directly under Member Pricing and Paid Extras. The original platform requirements already include members purchasing interaction credits and using them for messaging, premium content, and video chat, so this should be treated as a core monetization feature. The sitemap also lists “Buy Credits” as a Member Dashboard button and identifies message credits, content unlocks, and video chat payments as paid checkout types.
+
+Here is the prompt to give Replit Agent:
+
+Update the HookahDolls.com Pricing page and payment logic to include a full “Buy Credits” system.
+
+Credits should be the internal platform currency used by Members to pay for messages, premium content unlocks, and private video chat sessions with Dolls.
+
+Add a new section on the Pricing page titled:
+
+Buy Credits
+
+Subtitle:
+Purchase credits to message Dolls, unlock premium content, and start private video chats.
+
+Create the following credit packages:
+
+Starter Pack
+Price: $9.99
+Credits: 100
+Label: Good for light messaging
+Popular Pack
+Price: $24.99
+Credits: 300
+Label: Most Popular
+Social Pack
+Price: $49.99
+Credits: 700
+Label: Active members
+VIP Pack
+Price: $99.99
+Credits: 1,600
+Label: Best Value
+Elite Pack
+Price: $199.99
+Credits: 3,500
+Label: Heavy users and video chat
+
+Each package should have a “Buy Credits” button that connects to the Stripe-ready checkout flow. For now, create placeholder Stripe price IDs in the backend configuration so they can be replaced with real Stripe product IDs later.
+
+Add a “How Credits Work” section with these rules:
+
+Messaging:
+
+Starting a new conversation with a Doll costs 20 credits.
+Sending follow-up messages costs 10 credits per message.
+Sending a photo attachment costs 25 credits.
+Sending a priority message costs 50 credits.
+
+Video Chat:
+
+Private video chat costs 30 credits per minute.
+Minimum video chat session is 5 minutes.
+5-minute intro chat costs 150 credits.
+10-minute private chat costs 275 credits.
+15-minute private chat costs 400 credits.
+30-minute private chat costs 750 credits.
+Additional time costs 30 credits per minute.
+
+Premium Content:
+
+Premium photo unlock: 25 credits
+Premium photo bundle unlock: 100 credits
+Premium video unlock: 150 credits
+Exclusive content unlock: 250 credits
+
+Add a Member credit balance field to the database.
+
+Add credit transaction tracking with:
+
+userId
+transaction type
+credits purchased
+credits spent
+dollar amount
+related Doll ID if applicable
+related media ID if applicable
+related message ID if applicable
+related video chat session ID if applicable
+created timestamp
+
+Update the Member Dashboard to show:
+
+Current credit balance
+Buy Credits button
+Credit purchase history
+Credit usage history
+
+Update Messaging logic:
+
+Members must have at least 20 credits to start a new conversation.
+Members must have at least 10 credits to send a follow-up message.
+Deduct credits when a message is successfully sent.
+If the Member does not have enough credits, show a “Buy Credits” modal.
+
+Update Video Chat logic:
+
+Members must have enough credits before starting or booking a video chat.
+Video chat requires a 5-minute minimum.
+Deduct credits based on session length.
+Show estimated credit cost before confirming the session.
+If the Member does not have enough credits, show a “Buy Credits” modal.
+
+Add admin controls to manage:
+
+Credit package prices
+Credit package active/inactive status
+Manual credit adjustments
+Credit transaction history
+Refund/reversal notes
+
+Use the existing dark luxury hookah lounge design style with gold/rose-gold accents. Make the credit cards visually premium and mobile responsive.
+
+My recommendation: launch with 30 credits per minute for video chat and 20 credits to start a conversation. That is simple enough for users to understand and gives you room later to let high-performing Dolls set higher custom rates.
