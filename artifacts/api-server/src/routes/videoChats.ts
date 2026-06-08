@@ -7,16 +7,21 @@ import {
   usersTable,
   creditTransactionsTable,
 } from "@workspace/db";
-import { RequestVideoChatBody, EstimateVideoChatQueryParams } from "@workspace/api-zod";
+import { RequestVideoChatBody, EstimateVideoChatQueryParams, VideoChatTokenParams } from "@workspace/api-zod";
 import {
   CREDIT_COSTS,
   effectiveVideoMinutes,
   videoChatCreditCost,
 } from "@workspace/pricing";
+import twilio from "twilio";
 import { requireAuth, requirePaidMember } from "../lib/auth";
 import { spendCredits } from "../lib/credits";
 
 const router: IRouter = Router();
+
+function videoRoomName(sessionId: number): string {
+  return `video-chat-${sessionId}`;
+}
 
 function toSession(
   v: typeof videoChatsTable.$inferSelect,
@@ -114,6 +119,54 @@ router.post("/video-chats", requireAuth("member"), requirePaidMember(), async (r
     return;
   }
   res.status(201).json(toSession(spend.result, doll.stageName, user.name));
+});
+
+router.post("/video-chats/:id/token", requireAuth("member", "doll"), async (req, res): Promise<void> => {
+  const params = VideoChatTokenParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const apiKeySid = process.env.TWILIO_API_KEY_SID;
+  const apiKeySecret = process.env.TWILIO_API_KEY_SECRET;
+  if (!accountSid || !apiKeySid || !apiKeySecret) {
+    req.log.error("Twilio Video credentials are not configured");
+    res.status(503).json({ error: "Video chat is not configured" });
+    return;
+  }
+
+  const user = req.currentUser!;
+  const [session] = await db
+    .select()
+    .from(videoChatsTable)
+    .where(eq(videoChatsTable.id, params.data.id));
+  if (!session) {
+    res.status(404).json({ error: "Session not found" });
+    return;
+  }
+  const isMember = user.role === "member" && session.memberUserId === user.id;
+  const isDoll = user.role === "doll" && session.dollId === user.dollId;
+  if (!isMember && !isDoll) {
+    res.status(403).json({ error: "Not your session" });
+    return;
+  }
+  if (session.status === "completed" || session.status === "canceled") {
+    res.status(409).json({ error: "This session has ended" });
+    return;
+  }
+
+  const identity = `${user.role}-${user.id}`;
+  const roomName = videoRoomName(session.id);
+  const AccessToken = twilio.jwt.AccessToken;
+  const VideoGrant = AccessToken.VideoGrant;
+  const token = new AccessToken(accountSid, apiKeySid, apiKeySecret, {
+    identity,
+    ttl: 14400,
+  });
+  token.addGrant(new VideoGrant({ room: roomName }));
+
+  res.status(201).json({ token: token.toJwt(), roomName, identity });
 });
 
 export default router;

@@ -603,6 +603,12 @@ export interface VideoChatInput {
   durationMinutes?: number;
 }
 
+export interface VideoChatToken {
+  token: string;
+  roomName: string;
+  identity: string;
+}
+
 export type BoostPurchaseType = typeof BoostPurchaseType[keyof typeof BoostPurchaseType];
 
 

@@ -691,6 +691,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/VideoChatEstimate"
 
+  /video-chats/{id}/token:
+    post:
+      operationId: videoChatToken
+      tags: [videochat]
+      summary: Issue a Twilio Video access token for a session room
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoChatToken"
+
   /boosts:
     get:
       operationId: listBoosts
@@ -1591,6 +1606,14 @@ components:
         dollId: { type: integer }
         scheduledAt: { type: string }
         durationMinutes: { type: integer }
+
+    VideoChatToken:
+      type: object
+      required: [token, roomName, identity]
+      properties:
+        token: { type: string }
+        roomName: { type: string }
+        identity: { type: string }
 
     BoostPurchase:
       type: object

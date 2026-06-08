@@ -83,7 +83,8 @@ import type {
   VerificationSubmission,
   VideoChatEstimate,
   VideoChatInput,
-  VideoChatSession
+  VideoChatSession,
+  VideoChatToken
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -3028,6 +3029,76 @@ export function useEstimateVideoChat<TData = Awaited<ReturnType<typeof estimateV
 
 
 
+
+export const getVideoChatTokenUrl = (id: number,) => {
+
+
+
+
+  return `/api/video-chats/${id}/token`
+}
+
+/**
+ * @summary Issue a Twilio Video access token for a session room
+ */
+export const videoChatToken = async (id: number, options?: RequestInit): Promise<VideoChatToken> => {
+
+  return customFetch<VideoChatToken>(getVideoChatTokenUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getVideoChatTokenMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof videoChatToken>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof videoChatToken>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['videoChatToken'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof videoChatToken>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  videoChatToken(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VideoChatTokenMutationResult = NonNullable<Awaited<ReturnType<typeof videoChatToken>>>
+
+    export type VideoChatTokenMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Issue a Twilio Video access token for a session room
+ */
+export const useVideoChatToken = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof videoChatToken>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof videoChatToken>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getVideoChatTokenMutationOptions(options));
+    }
 
 export const getListBoostsUrl = () => {
 

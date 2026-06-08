@@ -134,10 +134,10 @@ export default function DollProfile() {
 
   const requestVideo = useRequestVideoChat({
     mutation: {
-      onSuccess: () => {
-        toast({ title: "Video chat requested", description: "She'll be notified to confirm a time." });
+      onSuccess: (session) => {
+        toast({ title: "Video chat requested", description: "Joining the lounge..." });
         queryClient.invalidateQueries({ queryKey: getGetCreditsQueryKey() });
-        navigate("/video-chat");
+        navigate(`/video-chat/${session.id}`);
       },
       onError: (err) => handleCreditError(err, "Request failed"),
     },

@@ -56,6 +56,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/messages" component={Messages} />
       <Route path="/video-chat" component={VideoChat} />
+      <Route path="/video-chat/:id" component={VideoChat} />
       
       <Route component={NotFound} />
     </Switch>

@@ -913,6 +913,14 @@ export const EstimateVideoChatResponse = zod.object({
 
 
 /**
+ * @summary Issue a Twilio Video access token for a session room
+ */
+export const VideoChatTokenParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary Boost purchases for the signed-in Doll
  */
 export const ListBoostsResponseItem = zod.object({
