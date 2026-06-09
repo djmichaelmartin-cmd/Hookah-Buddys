@@ -33,3 +33,9 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+TWILIO_API_KEY_SID = "SK27b82d19711ea77fcb622949a7013e6d"
+TWILIO_API_KEY_SECRET = "I7Dee1Fa7VHaCX796HQHuu0iiZewNdU9"

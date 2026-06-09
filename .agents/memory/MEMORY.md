@@ -3,4 +3,5 @@
 - [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — multiple routes serialize the same schema by hand; adding a `required` field means updating every serializer, codegen won't catch a missing one.
 - [Post-merge schema push](post-merge-schema-push.md) — post-merge must use `drizzle push-force` (non-interactive); plain `push` gets EOF on confirm prompts and silently fails to apply schema changes.
 - [Twilio Video token mint != validation](twilio-video-token-validation.md) — token endpoint 201s with a valid JWT even when Account SID/API Key are wrong; creds only checked at client connect().
+- [Twilio API key scope](twilio-apikey-scope.md) — Standard keys 401/20003 on /Accounts.json but 200 on video.twilio.com; validate Video keys against the product API, not the Account API.
 - [Shell env staleness](shell-env-staleness.md) — agent bash can read stale secret values after an update (false 401s); validate from the restarted workflow process, not bash.

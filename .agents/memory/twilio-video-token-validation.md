@@ -16,6 +16,8 @@ even though the endpoint looked healthy.
 
 **How to apply:** When video "doesn't connect" but the token endpoint returns 201,
 decode the JWT payload and sanity-check the prefixes (`iss` → `SK`, `sub` → `AC`).
-To actually validate credentials, hit the Twilio REST API with the API Key SID +
-Secret (HTTP basic), or just attempt a real `connect()`. Never treat a successful
-token mint as proof the credentials work.
+To actually validate credentials, HTTP-basic-auth the API Key SID + Secret against a
+PRODUCT endpoint you use (e.g. `GET video.twilio.com/v1/Rooms`) — NOT `/Accounts.json`
+(Standard keys return 20003 there even when valid; see twilio-apikey-scope.md) — or
+just attempt a real `connect()`. Never treat a successful token mint as proof the
+credentials work.
