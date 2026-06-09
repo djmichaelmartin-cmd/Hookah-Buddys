@@ -146,8 +146,10 @@ function VideoRoom({ sessionId }: { sessionId: number }) {
         <div ref={remoteRef} className="absolute inset-0" />
 
         {status === "connected" && remoteCount === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-            Waiting for the other person to join...
+          <div className="absolute inset-0 z-10 flex items-center justify-center">
+            <span className="px-4 py-2 rounded-full bg-black/50 text-white/90 text-sm backdrop-blur-sm">
+              Waiting for the other person to join...
+            </span>
           </div>
         )}
 
@@ -168,10 +170,14 @@ function VideoRoom({ sessionId }: { sessionId: number }) {
           </div>
         )}
 
-        {/* Local preview (picture-in-picture) */}
+        {/* Local preview: full-frame while alone, picture-in-picture once someone joins */}
         <div
           ref={localRef}
-          className="absolute bottom-24 right-4 w-40 aspect-video bg-black/60 rounded-lg border border-white/20 overflow-hidden z-10"
+          className={
+            remoteCount === 0
+              ? "absolute inset-0 z-0"
+              : "absolute bottom-24 right-4 w-40 aspect-video bg-black/60 rounded-lg border border-white/20 overflow-hidden z-10"
+          }
         />
 
         {/* Controls */}
