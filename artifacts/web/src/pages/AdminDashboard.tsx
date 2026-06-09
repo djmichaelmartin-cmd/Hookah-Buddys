@@ -3,7 +3,8 @@ import { useGetAdminStats, useListDollApplications, useListPendingMedia, useList
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText } from "lucide-react";
+import type { RevenueBreakdownItem } from "@workspace/api-client-react";
+import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
@@ -59,7 +60,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
             <h3 className="text-sm text-muted-foreground mb-2">Total Revenue</h3>
-            <p className="text-3xl font-bold text-primary">${stats?.totalRevenue || 0}</p>
+            <p className="text-3xl font-bold text-primary">{currency(stats?.totalRevenue ?? 0)}</p>
           </div>
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
             <h3 className="text-sm text-muted-foreground mb-2">Total Dolls</h3>
@@ -74,6 +75,12 @@ export default function AdminDashboard() {
             <p className="text-3xl font-bold text-white">{stats?.pendingMedia || 0}</p>
           </div>
         </div>
+
+        <RevenueBreakdown
+          breakdown={stats?.revenueBreakdown}
+          total={stats?.totalRevenue ?? 0}
+          monthly={stats?.monthlyRevenue ?? 0}
+        />
 
         <Tabs defaultValue="applications" className="w-full">
           <TabsList className="bg-card border border-white/10 mb-6">
@@ -184,6 +191,75 @@ export default function AdminDashboard() {
         </Tabs>
       </div>
     </Layout>
+  );
+}
+
+function currency(n: number) {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+
+function RevenueBreakdown({
+  breakdown,
+  total,
+  monthly,
+}: {
+  breakdown?: RevenueBreakdownItem[];
+  total: number;
+  monthly: number;
+}) {
+  const items = breakdown ?? [];
+
+  return (
+    <div className="bg-card/50 border border-white/10 rounded-xl p-6 mb-8">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-serif text-white flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" /> Total Revenue Breakdown
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Est. monthly: <span className="text-white font-medium">{currency(monthly)}</span>
+        </p>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="text-muted-foreground">No revenue data available.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted-foreground border-b border-white/10">
+                <th className="py-3 font-medium">Source</th>
+                <th className="py-3 font-medium text-right">Subscribers</th>
+                <th className="py-3 font-medium text-right">Price / mo</th>
+                <th className="py-3 font-medium text-right">Subtotal</th>
+                <th className="py-3 font-medium text-right">% of total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.label} className="border-b border-white/5">
+                  <td className="py-3 text-white">{item.label}</td>
+                  <td className="py-3 text-right text-white/80">{item.count.toLocaleString("en-US")}</td>
+                  <td className="py-3 text-right text-white/80">{currency(item.unitPrice)}</td>
+                  <td className="py-3 text-right text-white font-medium">{currency(item.amount)}</td>
+                  <td className="py-3 text-right text-muted-foreground">
+                    {total > 0 ? `${Math.round((item.amount / total) * 100)}%` : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-white/10">
+                <td className="py-3 text-white font-bold">Total</td>
+                <td className="py-3" />
+                <td className="py-3" />
+                <td className="py-3 text-right text-primary font-bold">{currency(total)}</td>
+                <td className="py-3 text-right text-muted-foreground">100%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 

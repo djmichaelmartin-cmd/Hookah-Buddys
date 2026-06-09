@@ -47,7 +47,28 @@ router.get("/admin/stats", requireAuth("admin"), async (_req, res): Promise<void
     .from(dollsTable)
     .where(eq(dollsTable.featured, true));
 
-  const totalRevenue = (totalMembers?.c ?? 0) * 39.99 + (totalDolls?.c ?? 0) * 24.99;
+  const memberCount = totalMembers?.c ?? 0;
+  const dollCount = totalDolls?.c ?? 0;
+  const MEMBER_PLAN_PRICE = 39.99;
+  const DOLL_PLAN_PRICE = 24.99;
+
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const revenueBreakdown = [
+    {
+      label: "Member subscriptions",
+      count: memberCount,
+      unitPrice: MEMBER_PLAN_PRICE,
+      amount: round2(memberCount * MEMBER_PLAN_PRICE),
+    },
+    {
+      label: "Doll subscriptions",
+      count: dollCount,
+      unitPrice: DOLL_PLAN_PRICE,
+      amount: round2(dollCount * DOLL_PLAN_PRICE),
+    },
+  ];
+
+  const totalRevenue = revenueBreakdown.reduce((sum, item) => sum + item.amount, 0);
   const monthlyRevenue = totalRevenue * 0.18;
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
   const revenueTrend = months.map((label, i) => ({
@@ -64,9 +85,10 @@ router.get("/admin/stats", requireAuth("admin"), async (_req, res): Promise<void
     pendingVerifications: pendingVerifications?.c ?? 0,
     openReports: openReports?.c ?? 0,
     featuredDolls: featuredDolls?.c ?? 0,
-    totalRevenue: Math.round(totalRevenue * 100) / 100,
-    monthlyRevenue: Math.round(monthlyRevenue * 100) / 100,
+    totalRevenue: round2(totalRevenue),
+    monthlyRevenue: round2(monthlyRevenue),
     revenueTrend,
+    revenueBreakdown,
   });
 });
 

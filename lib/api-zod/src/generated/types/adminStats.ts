@@ -5,6 +5,7 @@
  * HookahDolls platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { RevenueBreakdownItem } from './revenueBreakdownItem';
 import type { RevenuePoint } from './revenuePoint';
 
 export interface AdminStats {
@@ -19,4 +20,5 @@ export interface AdminStats {
   totalRevenue?: number;
   monthlyRevenue?: number;
   revenueTrend?: RevenuePoint[];
+  revenueBreakdown?: RevenueBreakdownItem[];
 }

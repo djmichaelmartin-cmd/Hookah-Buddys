@@ -991,6 +991,12 @@ export const GetAdminStatsResponse = zod.object({
   "revenueTrend": zod.array(zod.object({
   "label": zod.string(),
   "value": zod.number()
+})).optional(),
+  "revenueBreakdown": zod.array(zod.object({
+  "label": zod.string(),
+  "count": zod.number(),
+  "unitPrice": zod.number(),
+  "amount": zod.number()
 })).optional()
 })
 

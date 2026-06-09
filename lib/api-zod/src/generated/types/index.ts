@@ -92,6 +92,7 @@ export * from './reportInput';
 export * from './reportInputTargetType';
 export * from './reportStatus';
 export * from './reportTargetType';
+export * from './revenueBreakdownItem';
 export * from './revenuePoint';
 export * from './subscription';
 export * from './subscriptionInput';

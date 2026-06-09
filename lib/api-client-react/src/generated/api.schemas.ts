@@ -690,6 +690,13 @@ export interface ReportInput {
   details?: string;
 }
 
+export interface RevenueBreakdownItem {
+  label: string;
+  count: number;
+  unitPrice: number;
+  amount: number;
+}
+
 export interface AdminStats {
   totalDolls: number;
   totalMembers: number;
@@ -702,6 +709,7 @@ export interface AdminStats {
   totalRevenue?: number;
   monthlyRevenue?: number;
   revenueTrend?: RevenuePoint[];
+  revenueBreakdown?: RevenueBreakdownItem[];
 }
 
 export type DollApplicationStatus = typeof DollApplicationStatus[keyof typeof DollApplicationStatus];
