@@ -7,6 +7,7 @@ import {
   useRef,
   type TransitionEvent,
   type MouseEvent as ReactMouseEvent,
+  type CSSProperties,
 } from "react";
 import { Button } from "@/components/ui/button";
 import { useListFeaturedDolls } from "@workspace/api-client-react";
@@ -42,6 +43,21 @@ const REVEAL_MS = 1500;
 export default function Home() {
   const { data: featuredDolls } = useListFeaturedDolls();
   const dolls = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl);
+
+  // ---- Featured Dolls marquee ----
+  // Repeat the lineup until there are enough tiles to span wide screens, then
+  // render the set twice so a -50% CSS translate loops seamlessly (tiles drift
+  // left and recycle in from the right). Slower for shorter lineups.
+  const MARQUEE_MIN_TILES = 8;
+  const marqueeBase =
+    dolls.length > 0
+      ? Array.from(
+          { length: Math.max(1, Math.ceil(MARQUEE_MIN_TILES / dolls.length)) },
+          () => dolls,
+        ).flat()
+      : [];
+  const marqueeLoop = [...marqueeBase, ...marqueeBase];
+  const marqueeDuration = `${Math.max(40, marqueeBase.length * 6)}s`;
 
   // ---- Hero reveal carousel (atmospheric lounge imagery) ----
   // The next image is "opened up" over the current one with an animated
@@ -602,10 +618,20 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {dolls.length > 0 ? (
-              dolls.slice(0, 4).map((doll) => (
-                <Link key={doll.id} href={`/dolls/${doll.id}`} className="group block">
+          {dolls.length > 0 ? (
+            <div className="marquee">
+              <div
+                className="marquee-track"
+                style={{ "--marquee-duration": marqueeDuration } as CSSProperties}
+              >
+                {marqueeLoop.map((doll, i) => (
+                  <Link
+                    key={`${doll.id}-${i}`}
+                    href={`/dolls/${doll.id}`}
+                    className="group block shrink-0 w-56 sm:w-64 md:w-72 mr-4 md:mr-6"
+                    aria-hidden={i >= marqueeBase.length || undefined}
+                    tabIndex={i >= marqueeBase.length ? -1 : undefined}
+                  >
                   <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] bg-card">
                     <img
                       src={doll.profilePhotoUrl!}
@@ -655,14 +681,15 @@ export default function Home() {
                       </Button>
                     </div>
                   </div>
-                </Link>
-              ))
-            ) : (
-              <div className="col-span-full py-12 text-center text-muted-foreground bg-card/30 rounded-2xl border border-white/5">
-                No featured Dolls at the moment. Check back soon!
+                  </Link>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="py-12 text-center text-muted-foreground bg-card/30 rounded-2xl border border-white/5">
+              No featured Dolls at the moment. Check back soon!
+            </div>
+          )}
         </div>
       </section>
 

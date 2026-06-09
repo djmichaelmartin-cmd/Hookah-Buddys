@@ -1,7 +1,7 @@
 - [Contract-route drift](contract-route-drift.md) — server Express route method+path must match openapi.yaml exactly or the generated client 404s silently (no onError = "nothing happens").
-- [List/detail visibility parity](list-detail-visibility-parity.md) — a list endpoint's status filter (active/approved/published) must also be enforced on the by-id detail route, or hidden rows leak via ID enumeration.
-- [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — multiple routes serialize the same schema by hand; adding a `required` field means updating every serializer, codegen won't catch a missing one.
-- [Post-merge schema push](post-merge-schema-push.md) — post-merge must use `drizzle push-force` (non-interactive); plain `push` gets EOF on confirm prompts and silently fails to apply schema changes.
+- [List/detail visibility parity](list-detail-visibility-parity.md) — enforce a list's status filter on the by-id detail route too, or hidden rows leak via ID enumeration.
+- [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — several routes serialize the same schema by hand; a new `required` field means updating every serializer (codegen won't catch a miss).
+- [Post-merge schema push](post-merge-schema-push.md) — post-merge must use `drizzle push-force`; plain `push` gets EOF on the confirm prompt and silently skips the change.
 - [Twilio Video token mint != validation](twilio-video-token-validation.md) — token endpoint 201s with a valid JWT even when Account SID/API Key are wrong; creds only checked at client connect().
 - [Twilio API key scope](twilio-apikey-scope.md) — Standard keys 401/20003 on /Accounts.json but 200 on video.twilio.com; validate Video keys against the product API, not the Account API.
 - [Shell env staleness](shell-env-staleness.md) — agent bash can read stale secret values after an update (false 401s); validate from the restarted workflow process, not bash.
@@ -12,4 +12,4 @@
 - [Lead collector (Google Places)](lead-collector.md) — run market collections via background POST /admin/leads/collect (bash 120s timeout); status is in-memory/process-local.
 - [Premium content entitlement](premium-content-gating.md) — locked premium media blanks the url server-side; access via doll subscription, unlock, owner, or admin.
 - [UI mutation error handling](ui-mutation-error-handling.md) — member-facing mutations need an onError toast (esp. 402 credits) or the feature looks silently "broken".
-- [Per-Doll revenue model](shared-doll-earnings-model.md) — Doll analytics & admin per-Doll revenue share the same computeDollEarnings helper; it's illustrative GMV, NOT the platform subscription revenue shown in admin totals.
+- [Per-Doll revenue model](shared-doll-earnings-model.md) — Doll analytics & admin per-Doll revenue use one computeDollEarnings helper; illustrative GMV, NOT the platform subscription revenue.
