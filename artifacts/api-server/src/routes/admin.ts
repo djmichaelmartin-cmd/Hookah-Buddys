@@ -5,11 +5,13 @@ import {
   usersTable,
   dollsTable,
   mediaTable,
+  favoritesTable,
   verificationsTable,
   reportsTable,
 } from "@workspace/db";
 import { ReviewDollApplicationParams, ReviewDollApplicationBody, ListUsersQueryParams, UpdateUserStatusParams, UpdateUserStatusBody } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth";
+import { computeDollEarnings } from "../lib/dollHelpers";
 
 const router: IRouter = Router();
 
@@ -90,6 +92,58 @@ router.get("/admin/stats", requireAuth("admin"), async (_req, res): Promise<void
     revenueTrend,
     revenueBreakdown,
   });
+});
+
+router.get("/admin/revenue/dolls", requireAuth("admin"), async (_req, res): Promise<void> => {
+  const dolls = await db
+    .select()
+    .from(dollsTable)
+    .where(eq(dollsTable.applicationStatus, "approved"));
+
+  const mediaCounts = await db
+    .select({ dollId: mediaTable.dollId, type: mediaTable.type, c: sql<number>`count(*)::int` })
+    .from(mediaTable)
+    .where(eq(mediaTable.status, "approved"))
+    .groupBy(mediaTable.dollId, mediaTable.type);
+
+  const favCounts = await db
+    .select({ dollId: favoritesTable.dollId, c: sql<number>`count(*)::int` })
+    .from(favoritesTable)
+    .groupBy(favoritesTable.dollId);
+
+  const premiumPhotoByDoll = new Map<number, number>();
+  const premiumVideoByDoll = new Map<number, number>();
+  for (const row of mediaCounts) {
+    if (row.type === "premium_photo") premiumPhotoByDoll.set(row.dollId, row.c);
+    else if (row.type === "premium_video") premiumVideoByDoll.set(row.dollId, row.c);
+  }
+  const favByDoll = new Map<number, number>();
+  for (const row of favCounts) favByDoll.set(row.dollId, row.c);
+
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const withRevenue = dolls.map((d) => {
+    const { totalEarnings } = computeDollEarnings(d, {
+      favoriteCount: favByDoll.get(d.id) ?? 0,
+      premiumPhotoCount: premiumPhotoByDoll.get(d.id) ?? 0,
+      premiumVideoCount: premiumVideoByDoll.get(d.id) ?? 0,
+    });
+    return { doll: d, revenue: round2(totalEarnings) };
+  });
+
+  const totalRevenue = withRevenue.reduce((sum, r) => sum + r.revenue, 0);
+
+  const result = withRevenue
+    .map((r) => ({
+      dollId: r.doll.id,
+      stageName: r.doll.stageName,
+      profilePhotoUrl: r.doll.profilePhotoUrl ?? "",
+      verified: r.doll.verified,
+      revenue: r.revenue,
+      share: totalRevenue > 0 ? Math.round((r.revenue / totalRevenue) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  res.json(result);
 });
 
 router.get("/admin/applications", requireAuth("admin"), async (_req, res): Promise<void> => {

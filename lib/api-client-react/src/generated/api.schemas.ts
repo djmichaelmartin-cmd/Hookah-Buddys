@@ -712,6 +712,15 @@ export interface AdminStats {
   revenueBreakdown?: RevenueBreakdownItem[];
 }
 
+export interface DollRevenueShare {
+  dollId: number;
+  stageName: string;
+  profilePhotoUrl?: string;
+  verified?: boolean;
+  revenue: number;
+  share: number;
+}
+
 export type DollApplicationStatus = typeof DollApplicationStatus[keyof typeof DollApplicationStatus];
 
 

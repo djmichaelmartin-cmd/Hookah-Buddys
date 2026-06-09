@@ -783,6 +783,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdminStats"
 
+  /admin/revenue/dolls:
+    get:
+      operationId: getDollRevenueShares
+      tags: [admin]
+      summary: Revenue attributed to each Doll (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DollRevenueShare"
+
   /admin/applications:
     get:
       operationId: listDollApplications
@@ -1692,6 +1707,17 @@ components:
         count: { type: integer }
         unitPrice: { type: number }
         amount: { type: number }
+
+    DollRevenueShare:
+      type: object
+      required: [dollId, stageName, revenue, share]
+      properties:
+        dollId: { type: integer }
+        stageName: { type: string }
+        profilePhotoUrl: { type: string }
+        verified: { type: boolean }
+        revenue: { type: number }
+        share: { type: number }
 
     DollApplication:
       type: object

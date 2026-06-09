@@ -5,3 +5,11 @@
 - [Twilio Video token mint != validation](twilio-video-token-validation.md) — token endpoint 201s with a valid JWT even when Account SID/API Key are wrong; creds only checked at client connect().
 - [Twilio API key scope](twilio-apikey-scope.md) — Standard keys 401/20003 on /Accounts.json but 200 on video.twilio.com; validate Video keys against the product API, not the Account API.
 - [Shell env staleness](shell-env-staleness.md) — agent bash can read stale secret values after an update (false 401s); validate from the restarted workflow process, not bash.
+- [API server no hot-reload](api-server-no-hot-reload.md) — dev is build&start (no watcher); restart the api-server workflow after any route change or new endpoints 404 until restart.
+- [connect-pg-simple session table](connect-pg-simple-table.md) — createTableIfMissing ignores a custom tableName; define user_sessions in Drizzle and set createTableIfMissing:false.
+- [Credit spend atomicity](credit-spend-atomicity.md) — credit balance changes must be atomic and ledger-consistent; never read-then-write a balance from app code.
+- [Messaging/video feature gating](feature-membership-gating.md) — messaging & video chat require an active platform membership, distinct from per-Doll subscriptions.
+- [Lead collector (Google Places)](lead-collector.md) — run market collections via background POST /admin/leads/collect (bash 120s timeout); status is in-memory/process-local.
+- [Premium content entitlement](premium-content-gating.md) — locked premium media blanks the url server-side; access via doll subscription, unlock, owner, or admin.
+- [UI mutation error handling](ui-mutation-error-handling.md) — member-facing mutations need an onError toast (esp. 402 credits) or the feature looks silently "broken".
+- [Per-Doll revenue model](shared-doll-earnings-model.md) — Doll analytics & admin per-Doll revenue share the same computeDollEarnings helper; it's illustrative GMV, NOT the platform subscription revenue shown in admin totals.

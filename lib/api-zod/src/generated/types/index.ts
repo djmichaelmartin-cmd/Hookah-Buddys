@@ -46,6 +46,7 @@ export * from './dollDetail';
 export * from './dollDetailVerificationStatus';
 export * from './dollProfileUpdate';
 export * from './dollRegistration';
+export * from './dollRevenueShare';
 export * from './dollTier';
 export * from './estimateVideoChatParams';
 export * from './favorite';

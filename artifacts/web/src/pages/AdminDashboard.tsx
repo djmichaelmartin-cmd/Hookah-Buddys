@@ -1,9 +1,9 @@
 import { Layout } from "@/components/Layout";
-import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey } from "@workspace/api-client-react";
+import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { RevenueBreakdownItem } from "@workspace/api-client-react";
+import type { RevenueBreakdownItem, DollRevenueShare } from "@workspace/api-client-react";
 import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLeads from "@/pages/AdminLeads";
@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   
   const { data: stats } = useGetAdminStats();
+  const { data: dollRevenue } = useGetDollRevenueShares();
   const { data: applications } = useListDollApplications();
   const { data: pendingMedia } = useListPendingMedia();
   const { data: verifications } = useListPendingVerifications();
@@ -81,6 +82,8 @@ export default function AdminDashboard() {
           total={stats?.totalRevenue ?? 0}
           monthly={stats?.monthlyRevenue ?? 0}
         />
+
+        <DollRevenueShares dolls={dollRevenue} />
 
         <Tabs defaultValue="applications" className="w-full">
           <TabsList className="bg-card border border-white/10 mb-6">
@@ -257,6 +260,68 @@ function RevenueBreakdown({
               </tr>
             </tfoot>
           </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DollRevenueShares({ dolls }: { dolls?: DollRevenueShare[] }) {
+  const items = dolls ?? [];
+  const total = items.reduce((sum, d) => sum + d.revenue, 0);
+  const topShare = items.length > 0 ? Math.max(...items.map((d) => d.share)) : 0;
+
+  return (
+    <div className="bg-card/50 border border-white/10 rounded-xl p-6 mb-8">
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-xl font-serif text-white flex items-center gap-2">
+          <Users className="w-5 h-5 text-primary" /> Revenue Share by Doll
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Across {items.length} {items.length === 1 ? "Doll" : "Dolls"} ·{" "}
+          <span className="text-white font-medium">{currency(total)}</span>
+        </p>
+      </div>
+      <p className="text-xs text-muted-foreground mb-6">
+        Estimated gross earnings attributed to each Doll (creator revenue) — measured separately
+        from the platform subscription revenue above.
+      </p>
+
+      {items.length === 0 ? (
+        <p className="text-muted-foreground">No Doll revenue to show yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {items.map((d, i) => (
+            <div key={d.dollId} className="flex items-center gap-4">
+              <span className="w-6 text-sm text-muted-foreground tabular-nums shrink-0">{i + 1}</span>
+              {d.profilePhotoUrl ? (
+                <img
+                  src={d.profilePhotoUrl}
+                  alt={d.stageName}
+                  className="w-10 h-10 rounded-full object-cover bg-black/40 shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-white/10 shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <p className="text-white font-medium truncate flex items-center gap-1.5">
+                    {d.stageName}
+                    {d.verified && <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />}
+                  </p>
+                  <p className="text-sm text-white/80 shrink-0 tabular-nums">
+                    {currency(d.revenue)} <span className="text-muted-foreground">· {d.share}%</span>
+                  </p>
+                </div>
+                <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${topShare > 0 ? (d.share / topShare) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

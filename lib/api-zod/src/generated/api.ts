@@ -1002,6 +1002,20 @@ export const GetAdminStatsResponse = zod.object({
 
 
 /**
+ * @summary Revenue attributed to each Doll (Admin)
+ */
+export const GetDollRevenueSharesResponseItem = zod.object({
+  "dollId": zod.number(),
+  "stageName": zod.string(),
+  "profilePhotoUrl": zod.string().optional(),
+  "verified": zod.boolean().optional(),
+  "revenue": zod.number(),
+  "share": zod.number()
+})
+export const GetDollRevenueSharesResponse = zod.array(GetDollRevenueSharesResponseItem)
+
+
+/**
  * @summary Pending Doll applications (Admin)
  */
 export const ListDollApplicationsResponseItem = zod.object({

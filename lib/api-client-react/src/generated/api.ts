@@ -46,6 +46,7 @@ import type {
   DollDetail,
   DollProfileUpdate,
   DollRegistration,
+  DollRevenueShare,
   EstimateVideoChatParams,
   Favorite,
   FavoriteInput,
@@ -3461,6 +3462,83 @@ export function useGetAdminStats<TData = Awaited<ReturnType<typeof getAdminStats
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAdminStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDollRevenueSharesUrl = () => {
+
+
+
+
+  return `/api/admin/revenue/dolls`
+}
+
+/**
+ * @summary Revenue attributed to each Doll (Admin)
+ */
+export const getDollRevenueShares = async ( options?: RequestInit): Promise<DollRevenueShare[]> => {
+
+  return customFetch<DollRevenueShare[]>(getGetDollRevenueSharesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDollRevenueSharesQueryKey = () => {
+    return [
+    `/api/admin/revenue/dolls`
+    ] as const;
+    }
+
+
+export const getGetDollRevenueSharesQueryOptions = <TData = Awaited<ReturnType<typeof getDollRevenueShares>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDollRevenueShares>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDollRevenueSharesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDollRevenueShares>>> = ({ signal }) => getDollRevenueShares({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDollRevenueShares>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDollRevenueSharesQueryResult = NonNullable<Awaited<ReturnType<typeof getDollRevenueShares>>>
+export type GetDollRevenueSharesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Revenue attributed to each Doll (Admin)
+ */
+
+export function useGetDollRevenueShares<TData = Awaited<ReturnType<typeof getDollRevenueShares>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDollRevenueShares>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDollRevenueSharesQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

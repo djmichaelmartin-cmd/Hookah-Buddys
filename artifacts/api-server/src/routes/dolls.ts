@@ -13,7 +13,7 @@ import {
 import { ListDollsQueryParams, GetDollParams, UpdateMyDollProfileBody } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
 import { toDollResponse, toMediaResponse } from "../lib/mappers";
-import { getDollCounts, dollWithCounts } from "../lib/dollHelpers";
+import { getDollCounts, dollWithCounts, computeDollEarnings } from "../lib/dollHelpers";
 
 const router: IRouter = Router();
 
@@ -106,11 +106,8 @@ router.get("/dolls/me/analytics", requireAuth("doll"), async (req, res): Promise
   const counts = await getDollCounts(dollId);
   const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, dollId));
 
-  const messageRevenue = (doll?.messagePrice ?? 0) * counts.favoriteCount * 3;
-  const videoChatRevenue = (doll?.videoChatRate ?? 0) * 42;
-  const subscriptionRevenue = (doll?.subscriptionPrice ?? 0) * Math.max(1, Math.round(counts.favoriteCount / 2));
-  const contentUnlocksRevenue = counts.premiumPhotoCount * 4.99 + counts.premiumVideoCount * 9.99;
-  const totalEarnings = messageRevenue + videoChatRevenue + subscriptionRevenue + contentUnlocksRevenue;
+  const { messageRevenue, videoChatRevenue, subscriptionRevenue, totalEarnings } =
+    computeDollEarnings(doll ?? {}, counts);
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
   const viewsTrend = months.map((label, i) => ({

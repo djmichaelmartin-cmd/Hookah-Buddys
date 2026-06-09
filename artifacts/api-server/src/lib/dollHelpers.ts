@@ -31,3 +31,40 @@ export async function dollWithCounts(doll: Doll) {
   const counts = await getDollCounts(doll.id);
   return toDollResponse(doll, counts);
 }
+
+export interface DollEarnings {
+  messageRevenue: number;
+  videoChatRevenue: number;
+  subscriptionRevenue: number;
+  contentUnlocksRevenue: number;
+  totalEarnings: number;
+}
+
+/**
+ * Illustrative per-Doll earnings model, shared by the Doll's own analytics
+ * (`/dolls/me/analytics`) and the admin per-Doll revenue share so both views
+ * always report the same figure for a given Doll.
+ */
+export function computeDollEarnings(
+  doll: {
+    messagePrice?: number | null;
+    videoChatRate?: number | null;
+    subscriptionPrice?: number | null;
+  },
+  counts: { favoriteCount: number; premiumPhotoCount: number; premiumVideoCount: number },
+): DollEarnings {
+  const messageRevenue = (doll.messagePrice ?? 0) * counts.favoriteCount * 3;
+  const videoChatRevenue = (doll.videoChatRate ?? 0) * 42;
+  const subscriptionRevenue =
+    (doll.subscriptionPrice ?? 0) * Math.max(1, Math.round(counts.favoriteCount / 2));
+  const contentUnlocksRevenue = counts.premiumPhotoCount * 4.99 + counts.premiumVideoCount * 9.99;
+  const totalEarnings =
+    messageRevenue + videoChatRevenue + subscriptionRevenue + contentUnlocksRevenue;
+  return {
+    messageRevenue,
+    videoChatRevenue,
+    subscriptionRevenue,
+    contentUnlocksRevenue,
+    totalEarnings,
+  };
+}
