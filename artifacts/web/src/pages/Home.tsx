@@ -59,6 +59,39 @@ export default function Home() {
   const marqueeLoop = [...marqueeBase, ...marqueeBase];
   const marqueeDuration = `${Math.max(40, marqueeBase.length * 6)}s`;
 
+  // ---- Featured Dolls parallax backdrop ----
+  // Drift the smoky lounge image slower than the page scroll. The image layer
+  // is oversized (±25%) so the transform never reveals an edge. Disabled for
+  // reduced-motion users, who simply get the static darkened backdrop.
+  const featuredRef = useRef<HTMLElement>(null);
+  const featuredBgRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const section = featuredRef.current;
+      const bg = featuredBgRef.current;
+      if (!section || !bg) return;
+      const rect = section.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.bottom < 0 || rect.top > vh) return;
+      const offset = rect.top + rect.height / 2 - vh / 2;
+      bg.style.transform = `translate3d(0, ${(offset * -0.12).toFixed(2)}px, 0)`;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   // ---- Hero reveal carousel (atmospheric lounge imagery) ----
   // The next image is "opened up" over the current one with an animated
   // clip-path wipe, mirroring Patreon's hero transition.
@@ -604,8 +637,28 @@ export default function Home() {
       </section>
 
       {/* ============ FEATURED DOLLS ============ */}
-      <section className="py-24 relative z-10 border-t border-white/5">
-        <div className="container mx-auto px-4">
+      <section
+        ref={featuredRef}
+        className="py-24 relative z-10 border-t border-white/5 overflow-hidden"
+      >
+        {/* Parallax smoky hookah-lounge backdrop */}
+        <div
+          ref={featuredBgRef}
+          aria-hidden
+          className="absolute inset-x-0 -top-[25%] h-[150%] z-0 will-change-transform pointer-events-none"
+        >
+          <img
+            src={`${BASE}lounge/lounge2.png`}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          {/* Darken + smoky haze so the lineup stays legible */}
+          <div className="absolute inset-0 bg-background/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_35%,_rgba(0,0,0,0.55)_100%)]" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
               <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">Tonight's lineup</p>

@@ -1,6 +1,6 @@
 - [Contract-route drift](contract-route-drift.md) — server Express route method+path must match openapi.yaml exactly or the generated client 404s silently (no onError = "nothing happens").
 - [List/detail visibility parity](list-detail-visibility-parity.md) — enforce a list's status filter on the by-id detail route too, or hidden rows leak via ID enumeration.
-- [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — several routes serialize the same schema by hand; a new `required` field means updating every serializer (codegen won't catch a miss).
+- [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — several routes serialize a schema by hand; a new `required` field means editing every one (codegen won't catch a miss).
 - [Post-merge schema push](post-merge-schema-push.md) — post-merge must use `drizzle push-force`; plain `push` gets EOF on the confirm prompt and silently skips the change.
 - [Twilio Video token mint != validation](twilio-video-token-validation.md) — token endpoint 201s with a valid JWT even when Account SID/API Key are wrong; creds only checked at client connect().
 - [Twilio API key scope](twilio-apikey-scope.md) — Standard keys 401/20003 on /Accounts.json but 200 on video.twilio.com; validate Video keys against the product API, not the Account API.
