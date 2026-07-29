@@ -5,6 +5,7 @@
  * HookahDolls platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { FeedPostAudience } from './feedPostAudience';
 import type { FeedPostCategory } from './feedPostCategory';
 import type { FeedPostMediaType } from './feedPostMediaType';
 import type { FeedPostStatus } from './feedPostStatus';
@@ -39,6 +40,7 @@ export interface FeedPost {
   viewerLiked?: boolean;
   viewerSaved?: boolean;
   viewerFollowsAuthor?: boolean;
+  audience?: FeedPostAudience;
   createdAt: string;
   updatedAt?: string;
 }

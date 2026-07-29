@@ -989,6 +989,16 @@ export const FeedPostStatus = {
   pending_review: 'pending_review',
 } as const;
 
+export type FeedPostAudience = typeof FeedPostAudience[keyof typeof FeedPostAudience];
+
+
+export const FeedPostAudience = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
 export interface FeedPost {
   id: number;
   userId: number;
@@ -1018,6 +1028,7 @@ export interface FeedPost {
   viewerLiked?: boolean;
   viewerSaved?: boolean;
   viewerFollowsAuthor?: boolean;
+  audience?: FeedPostAudience;
   createdAt: string;
   updatedAt?: string;
 }
@@ -1045,6 +1056,16 @@ export const FeedPostInputCategory = {
   discussion: 'discussion',
 } as const;
 
+export type FeedPostInputAudience = typeof FeedPostInputAudience[keyof typeof FeedPostInputAudience];
+
+
+export const FeedPostInputAudience = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
 export interface FeedPostInput {
   /** @minLength 1 */
   text: string;
@@ -1052,6 +1073,7 @@ export interface FeedPostInput {
   mediaType?: FeedPostInputMediaType;
   category: FeedPostInputCategory;
   isHookahRelatedConfirmed: boolean;
+  audience?: FeedPostInputAudience;
 }
 
 export type FeedCommentUserRole = typeof FeedCommentUserRole[keyof typeof FeedCommentUserRole];
@@ -1308,6 +1330,706 @@ export interface FeedAnalytics {
   trendingCategories?: CategoryCount[];
 }
 
+/**
+ * @nullable
+ */
+export type ProfileDetailsSocialLinks = {[key: string]: string} | null;
+
+export interface ProfileDetails {
+  /** @nullable */
+  coverPhotoUrl?: string | null;
+  /** @nullable */
+  livesInCity?: string | null;
+  /** @nullable */
+  livesInState?: string | null;
+  /** @nullable */
+  fromCity?: string | null;
+  /** @nullable */
+  fromState?: string | null;
+  /** @nullable */
+  birthMonth?: number | null;
+  /** @nullable */
+  birthDay?: number | null;
+  /** @nullable */
+  birthYear?: number | null;
+  /** @nullable */
+  gender?: string | null;
+  /** @nullable */
+  languagesSpoken?: string | null;
+  /** @nullable */
+  hairColor?: string | null;
+  /** @nullable */
+  eyeColor?: string | null;
+  /** @nullable */
+  ethnicity?: string | null;
+  /** @nullable */
+  bodyType?: string | null;
+  /** @nullable */
+  height?: string | null;
+  /** @nullable */
+  relationshipStatus?: string | null;
+  /** @nullable */
+  occupation?: string | null;
+  /** @nullable */
+  education?: string | null;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  websiteUrl?: string | null;
+  /** @nullable */
+  socialLinks?: ProfileDetailsSocialLinks;
+  /** @nullable */
+  favoriteHookahFlavor?: string | null;
+  /** @nullable */
+  favoriteHookahLounge?: string | null;
+  /** @nullable */
+  favoriteHookahBrand?: string | null;
+  /** @nullable */
+  favoriteHookahSetup?: string | null;
+  /** @nullable */
+  hookahExperienceLevel?: string | null;
+  /** @nullable */
+  preferredHookahStyle?: string | null;
+  /** @nullable */
+  favoriteSmokeSessionVibe?: string | null;
+  /** @nullable */
+  favoriteHookahAccessories?: string | null;
+  /** @nullable */
+  openToLoungeMeetups?: string | null;
+  /** @nullable */
+  favoriteLoungeCity?: string | null;
+  interests?: string[];
+}
+
+export type FieldPrivacyEntryVisibility = typeof FieldPrivacyEntryVisibility[keyof typeof FieldPrivacyEntryVisibility];
+
+
+export const FieldPrivacyEntryVisibility = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export interface FieldPrivacyEntry {
+  fieldName: string;
+  visibility: FieldPrivacyEntryVisibility;
+}
+
+export type MyProfileDataProfileCompletion = {
+  percent: number;
+  missing: string[];
+};
+
+export interface MyProfileData {
+  userId: number;
+  name?: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+  details: ProfileDetails;
+  fieldPrivacy: FieldPrivacyEntry[];
+  profileCompletion?: MyProfileDataProfileCompletion;
+}
+
+export interface ProfileUpdateInput {
+  name?: string;
+  username?: string;
+  profilePhotoUrl?: string;
+  details?: ProfileDetails;
+  fieldPrivacy?: FieldPrivacyEntry[];
+}
+
+export type EnhancedProfileRole = typeof EnhancedProfileRole[keyof typeof EnhancedProfileRole];
+
+
+export const EnhancedProfileRole = {
+  doll: 'doll',
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+export type EnhancedProfileFriendStatus = typeof EnhancedProfileFriendStatus[keyof typeof EnhancedProfileFriendStatus];
+
+
+export const EnhancedProfileFriendStatus = {
+  none: 'none',
+  pending_sent: 'pending_sent',
+  pending_received: 'pending_received',
+  friends: 'friends',
+  blocked: 'blocked',
+  self: 'self',
+} as const;
+
+export interface EnhancedProfile {
+  userId: number;
+  name: string;
+  /** @nullable */
+  username?: string | null;
+  role: EnhancedProfileRole;
+  verified?: boolean;
+  /** @nullable */
+  dollId?: number | null;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+  /** @nullable */
+  coverPhotoUrl?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  memberSince?: string;
+  badges?: string[];
+  followerCount: number;
+  followingCount: number;
+  friendCount: number;
+  postCount: number;
+  photoCount?: number;
+  reelCount?: number;
+  friendStatus: EnhancedProfileFriendStatus;
+  /** @nullable */
+  pendingRequestId?: number | null;
+  viewerFollows?: boolean;
+  viewerBlocked?: boolean;
+  mutualFriendCount?: number;
+  canViewFriends?: boolean;
+  details?: ProfileDetails;
+}
+
+export type PrivacySettingsDefaultPostAudience = typeof PrivacySettingsDefaultPostAudience[keyof typeof PrivacySettingsDefaultPostAudience];
+
+
+export const PrivacySettingsDefaultPostAudience = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export type PrivacySettingsShowFriendsList = typeof PrivacySettingsShowFriendsList[keyof typeof PrivacySettingsShowFriendsList];
+
+
+export const PrivacySettingsShowFriendsList = {
+  public: 'public',
+  friends: 'friends',
+  only_me: 'only_me',
+} as const;
+
+export type PrivacySettingsShowFollowersList = typeof PrivacySettingsShowFollowersList[keyof typeof PrivacySettingsShowFollowersList];
+
+
+export const PrivacySettingsShowFollowersList = {
+  public: 'public',
+  friends: 'friends',
+  only_me: 'only_me',
+} as const;
+
+export type PrivacySettingsAllowFriendRequestsFrom = typeof PrivacySettingsAllowFriendRequestsFrom[keyof typeof PrivacySettingsAllowFriendRequestsFrom];
+
+
+export const PrivacySettingsAllowFriendRequestsFrom = {
+  everyone: 'everyone',
+  friends_of_friends: 'friends_of_friends',
+  no_one: 'no_one',
+} as const;
+
+export type PrivacySettingsAllowMessagesFrom = typeof PrivacySettingsAllowMessagesFrom[keyof typeof PrivacySettingsAllowMessagesFrom];
+
+
+export const PrivacySettingsAllowMessagesFrom = {
+  everyone: 'everyone',
+  friends: 'friends',
+  no_one: 'no_one',
+} as const;
+
+export type PrivacySettingsAllowTagging = typeof PrivacySettingsAllowTagging[keyof typeof PrivacySettingsAllowTagging];
+
+
+export const PrivacySettingsAllowTagging = {
+  everyone: 'everyone',
+  friends: 'friends',
+  no_one: 'no_one',
+} as const;
+
+export type PrivacySettingsAllowSearchByEmail = typeof PrivacySettingsAllowSearchByEmail[keyof typeof PrivacySettingsAllowSearchByEmail];
+
+
+export const PrivacySettingsAllowSearchByEmail = {
+  everyone: 'everyone',
+  friends: 'friends',
+  no_one: 'no_one',
+} as const;
+
+export type PrivacySettingsAllowSearchByPhone = typeof PrivacySettingsAllowSearchByPhone[keyof typeof PrivacySettingsAllowSearchByPhone];
+
+
+export const PrivacySettingsAllowSearchByPhone = {
+  everyone: 'everyone',
+  friends: 'friends',
+  no_one: 'no_one',
+} as const;
+
+export interface PrivacySettings {
+  defaultPostAudience: PrivacySettingsDefaultPostAudience;
+  showFriendsList: PrivacySettingsShowFriendsList;
+  showFollowersList: PrivacySettingsShowFollowersList;
+  allowFriendRequestsFrom: PrivacySettingsAllowFriendRequestsFrom;
+  allowMessagesFrom: PrivacySettingsAllowMessagesFrom;
+  allowTagging: PrivacySettingsAllowTagging;
+  requireTagReview: boolean;
+  allowSearchByEmail: PrivacySettingsAllowSearchByEmail;
+  allowSearchByPhone: PrivacySettingsAllowSearchByPhone;
+  allowExternalSearchIndexing: boolean;
+}
+
+export type PrivacySettingsInputDefaultPostAudience = typeof PrivacySettingsInputDefaultPostAudience[keyof typeof PrivacySettingsInputDefaultPostAudience];
+
+
+export const PrivacySettingsInputDefaultPostAudience = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export type PrivacySettingsInputShowFriendsList = typeof PrivacySettingsInputShowFriendsList[keyof typeof PrivacySettingsInputShowFriendsList];
+
+
+export const PrivacySettingsInputShowFriendsList = {
+  public: 'public',
+  friends: 'friends',
+  only_me: 'only_me',
+} as const;
+
+export type PrivacySettingsInputShowFollowersList = typeof PrivacySettingsInputShowFollowersList[keyof typeof PrivacySettingsInputShowFollowersList];
+
+
+export const PrivacySettingsInputShowFollowersList = {
+  public: 'public',
+  friends: 'friends',
+  only_me: 'only_me',
+} as const;
+
+export type PrivacySettingsInputAllowFriendRequestsFrom = typeof PrivacySettingsInputAllowFriendRequestsFrom[keyof typeof PrivacySettingsInputAllowFriendRequestsFrom];
+
+
+export const PrivacySettingsInputAllowFriendRequestsFrom = {
+  everyone: 'everyone',
+  friends_of_friends: 'friends_of_friends',
+  no_one: 'no_one',
+} as const;
+
+export type PrivacySettingsInputAllowMessagesFrom = typeof PrivacySettingsInputAllowMessagesFrom[keyof typeof PrivacySettingsInputAllowMessagesFrom];
+
+
+export const PrivacySettingsInputAllowMessagesFrom = {
+  everyone: 'everyone',
+  friends: 'friends',
+  no_one: 'no_one',
+} as const;
+
+export type PrivacySettingsInputAllowTagging = typeof PrivacySettingsInputAllowTagging[keyof typeof PrivacySettingsInputAllowTagging];
+
+
+export const PrivacySettingsInputAllowTagging = {
+  everyone: 'everyone',
+  friends: 'friends',
+  no_one: 'no_one',
+} as const;
+
+export type PrivacySettingsInputAllowSearchByEmail = typeof PrivacySettingsInputAllowSearchByEmail[keyof typeof PrivacySettingsInputAllowSearchByEmail];
+
+
+export const PrivacySettingsInputAllowSearchByEmail = {
+  everyone: 'everyone',
+  friends: 'friends',
+  no_one: 'no_one',
+} as const;
+
+export type PrivacySettingsInputAllowSearchByPhone = typeof PrivacySettingsInputAllowSearchByPhone[keyof typeof PrivacySettingsInputAllowSearchByPhone];
+
+
+export const PrivacySettingsInputAllowSearchByPhone = {
+  everyone: 'everyone',
+  friends: 'friends',
+  no_one: 'no_one',
+} as const;
+
+export interface PrivacySettingsInput {
+  defaultPostAudience?: PrivacySettingsInputDefaultPostAudience;
+  showFriendsList?: PrivacySettingsInputShowFriendsList;
+  showFollowersList?: PrivacySettingsInputShowFollowersList;
+  allowFriendRequestsFrom?: PrivacySettingsInputAllowFriendRequestsFrom;
+  allowMessagesFrom?: PrivacySettingsInputAllowMessagesFrom;
+  allowTagging?: PrivacySettingsInputAllowTagging;
+  requireTagReview?: boolean;
+  allowSearchByEmail?: PrivacySettingsInputAllowSearchByEmail;
+  allowSearchByPhone?: PrivacySettingsInputAllowSearchByPhone;
+  allowExternalSearchIndexing?: boolean;
+}
+
+export interface FriendRequestInput {
+  receiverId: number;
+}
+
+export type FriendRequestStatus = typeof FriendRequestStatus[keyof typeof FriendRequestStatus];
+
+
+export const FriendRequestStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  declined: 'declined',
+  cancelled: 'cancelled',
+} as const;
+
+export interface FriendRequest {
+  id: number;
+  senderId: number;
+  receiverId: number;
+  status: FriendRequestStatus;
+  senderName?: string;
+  /** @nullable */
+  senderPhotoUrl?: string | null;
+  senderRole?: string;
+  receiverName?: string;
+  /** @nullable */
+  receiverPhotoUrl?: string | null;
+  receiverRole?: string;
+  mutualFriendCount?: number;
+  createdAt: string;
+}
+
+export interface FriendRequestsList {
+  incoming: FriendRequest[];
+  outgoing: FriendRequest[];
+}
+
+export type FriendRequestActionAction = typeof FriendRequestActionAction[keyof typeof FriendRequestActionAction];
+
+
+export const FriendRequestActionAction = {
+  accept: 'accept',
+  decline: 'decline',
+  cancel: 'cancel',
+} as const;
+
+export interface FriendRequestAction {
+  action: FriendRequestActionAction;
+}
+
+export interface BlockStatus {
+  blocked: boolean;
+}
+
+export interface AdminBlock {
+  id: number;
+  blockerId: number;
+  blockerName?: string;
+  blockedUserId: number;
+  blockedUserName?: string;
+  createdAt: string;
+}
+
+export type PhotoAlbumInputVisibility = typeof PhotoAlbumInputVisibility[keyof typeof PhotoAlbumInputVisibility];
+
+
+export const PhotoAlbumInputVisibility = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export type PhotoAlbumInputAlbumType = typeof PhotoAlbumInputAlbumType[keyof typeof PhotoAlbumInputAlbumType];
+
+
+export const PhotoAlbumInputAlbumType = {
+  profile_pictures: 'profile_pictures',
+  cover_photos: 'cover_photos',
+  feed_photos: 'feed_photos',
+  hookah_setups: 'hookah_setups',
+  lounge_nights: 'lounge_nights',
+  events: 'events',
+  custom: 'custom',
+} as const;
+
+export interface PhotoAlbumInput {
+  /** @minLength 1 */
+  title: string;
+  description?: string;
+  visibility?: PhotoAlbumInputVisibility;
+  albumType?: PhotoAlbumInputAlbumType;
+}
+
+export type PhotoAlbumVisibility = typeof PhotoAlbumVisibility[keyof typeof PhotoAlbumVisibility];
+
+
+export const PhotoAlbumVisibility = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export type PhotoAlbumAlbumType = typeof PhotoAlbumAlbumType[keyof typeof PhotoAlbumAlbumType];
+
+
+export const PhotoAlbumAlbumType = {
+  profile_pictures: 'profile_pictures',
+  cover_photos: 'cover_photos',
+  feed_photos: 'feed_photos',
+  hookah_setups: 'hookah_setups',
+  lounge_nights: 'lounge_nights',
+  events: 'events',
+  custom: 'custom',
+} as const;
+
+export interface PhotoAlbum {
+  id: number;
+  userId: number;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  visibility: PhotoAlbumVisibility;
+  albumType: PhotoAlbumAlbumType;
+  photoCount: number;
+  /** @nullable */
+  coverImageUrl?: string | null;
+  createdAt: string;
+}
+
+export type PhotoInputVisibility = typeof PhotoInputVisibility[keyof typeof PhotoInputVisibility];
+
+
+export const PhotoInputVisibility = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export interface PhotoInput {
+  /** @minLength 1 */
+  imageUrl: string;
+  caption?: string;
+  visibility?: PhotoInputVisibility;
+}
+
+export type PhotoVisibility = typeof PhotoVisibility[keyof typeof PhotoVisibility];
+
+
+export const PhotoVisibility = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export type PhotoStatus = typeof PhotoStatus[keyof typeof PhotoStatus];
+
+
+export const PhotoStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+  pending_review: 'pending_review',
+} as const;
+
+export interface Photo {
+  id: number;
+  userId: number;
+  userName?: string;
+  /** @nullable */
+  userPhotoUrl?: string | null;
+  albumId: number;
+  albumTitle?: string;
+  imageUrl: string;
+  /** @nullable */
+  caption?: string | null;
+  visibility: PhotoVisibility;
+  status: PhotoStatus;
+  likeCount: number;
+  commentCount: number;
+  viewerLiked?: boolean;
+  createdAt: string;
+}
+
+export type ReelInputCategory = typeof ReelInputCategory[keyof typeof ReelInputCategory];
+
+
+export const ReelInputCategory = {
+  hookah_setup: 'hookah_setup',
+  lounge_night: 'lounge_night',
+  flavor_review: 'flavor_review',
+  smoke_tricks: 'smoke_tricks',
+  event: 'event',
+  meme: 'meme',
+  doll_spotlight: 'doll_spotlight',
+  bro_post: 'bro_post',
+  tutorial: 'tutorial',
+  other: 'other',
+} as const;
+
+export type ReelInputVisibility = typeof ReelInputVisibility[keyof typeof ReelInputVisibility];
+
+
+export const ReelInputVisibility = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export interface ReelInput {
+  /** @minLength 1 */
+  videoUrl: string;
+  thumbnailUrl?: string;
+  caption?: string;
+  category: ReelInputCategory;
+  hashtags?: string[];
+  visibility?: ReelInputVisibility;
+  isHookahRelatedConfirmed: boolean;
+}
+
+export type ReelUserRole = typeof ReelUserRole[keyof typeof ReelUserRole];
+
+
+export const ReelUserRole = {
+  doll: 'doll',
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+export type ReelCategory = typeof ReelCategory[keyof typeof ReelCategory];
+
+
+export const ReelCategory = {
+  hookah_setup: 'hookah_setup',
+  lounge_night: 'lounge_night',
+  flavor_review: 'flavor_review',
+  smoke_tricks: 'smoke_tricks',
+  event: 'event',
+  meme: 'meme',
+  doll_spotlight: 'doll_spotlight',
+  bro_post: 'bro_post',
+  tutorial: 'tutorial',
+  other: 'other',
+} as const;
+
+export type ReelVisibility = typeof ReelVisibility[keyof typeof ReelVisibility];
+
+
+export const ReelVisibility = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+export type ReelStatus = typeof ReelStatus[keyof typeof ReelStatus];
+
+
+export const ReelStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+  pending_review: 'pending_review',
+} as const;
+
+export interface Reel {
+  id: number;
+  userId: number;
+  userRole: ReelUserRole;
+  userName: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  userPhotoUrl?: string | null;
+  userVerified?: boolean;
+  /** @nullable */
+  dollId?: number | null;
+  videoUrl: string;
+  /** @nullable */
+  thumbnailUrl?: string | null;
+  /** @nullable */
+  caption?: string | null;
+  category: ReelCategory;
+  hashtags?: string[];
+  visibility?: ReelVisibility;
+  status: ReelStatus;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  saveCount: number;
+  reportCount?: number;
+  viewerLiked?: boolean;
+  viewerSaved?: boolean;
+  viewerFollowsAuthor?: boolean;
+  createdAt: string;
+}
+
+export type UserTagInputRelatedType = typeof UserTagInputRelatedType[keyof typeof UserTagInputRelatedType];
+
+
+export const UserTagInputRelatedType = {
+  post: 'post',
+  photo: 'photo',
+  reel: 'reel',
+} as const;
+
+export interface UserTagInput {
+  taggedUserId: number;
+  relatedType: UserTagInputRelatedType;
+  relatedId: number;
+}
+
+export type UserTagRelatedType = typeof UserTagRelatedType[keyof typeof UserTagRelatedType];
+
+
+export const UserTagRelatedType = {
+  post: 'post',
+  photo: 'photo',
+  reel: 'reel',
+} as const;
+
+export type UserTagStatus = typeof UserTagStatus[keyof typeof UserTagStatus];
+
+
+export const UserTagStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  removed: 'removed',
+} as const;
+
+export interface UserTag {
+  id: number;
+  taggedUserId: number;
+  taggedUserName?: string;
+  taggedByUserId: number;
+  taggedByUserName?: string;
+  relatedType: UserTagRelatedType;
+  relatedId: number;
+  status: UserTagStatus;
+  createdAt: string;
+}
+
+export interface ClearFieldsInput {
+  clearFields: string[];
+}
+
+export type UserTagActionAction = typeof UserTagActionAction[keyof typeof UserTagActionAction];
+
+
+export const UserTagActionAction = {
+  approve: 'approve',
+  remove: 'remove',
+} as const;
+
+export interface UserTagAction {
+  action: UserTagActionAction;
+}
+
 export type ListDollsParams = {
 search?: string;
 city?: string;
@@ -1471,4 +2193,42 @@ export const ListFeedReportsStatus = {
   dismissed: 'dismissed',
   action_taken: 'action_taken',
 } as const;
+
+export type ListFriendsParams = {
+userId: number;
+};
+
+export type ListAlbumsParams = {
+userId: number;
+};
+
+export type ListUserPhotosParams = {
+userId: number;
+};
+
+export type ReportPhoto201 = {
+  message: string;
+};
+
+export type ListReelsParams = {
+userId?: number;
+category?: string;
+limit?: number;
+};
+
+export type ReportReel201 = {
+  message: string;
+};
+
+export type ListUserTagsParams = {
+userId: number;
+};
+
+export type ListAdminPhotosParams = {
+status?: string;
+};
+
+export type ListAdminReelsParams = {
+status?: string;
+};
 

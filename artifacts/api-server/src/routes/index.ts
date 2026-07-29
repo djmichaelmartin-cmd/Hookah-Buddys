@@ -24,6 +24,11 @@ import feedRouter from "./feed";
 import followsRouter from "./follows";
 import notificationsRouter from "./notifications";
 import adminFeedRouter from "./adminFeed";
+import profilesRouter from "./profiles";
+import friendsSocialRouter from "./friendsSocial";
+import photosRouter from "./photos";
+import reelsRouter from "./reels";
+import adminSocialRouter from "./adminSocial";
 
 const router: IRouter = Router();
 
@@ -52,5 +57,10 @@ router.use(feedRouter);
 router.use(followsRouter);
 router.use(notificationsRouter);
 router.use(adminFeedRouter);
+router.use(profilesRouter);
+router.use(friendsSocialRouter);
+router.use(photosRouter);
+router.use(reelsRouter);
+router.use(adminSocialRouter);
 
 export default router;

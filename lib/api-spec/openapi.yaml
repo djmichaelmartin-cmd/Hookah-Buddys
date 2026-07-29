@@ -38,6 +38,16 @@ tags:
     description: Doll profile boosts
   - name: reports
     description: Reports
+  - name: profiles
+    description: Enhanced social profiles and privacy
+  - name: friends
+    description: Friend requests, friendships, and blocks
+  - name: photos
+    description: Photo albums and social photos
+  - name: reels
+    description: Short-form reels
+  - name: usertags
+    description: Tagging users in content
   - name: admin
     description: Admin moderation and management
   - name: checkout
@@ -1589,6 +1599,851 @@ paths:
         "403":
           description: Forbidden
 
+  /profiles/{userId}:
+    get:
+      operationId: getEnhancedProfile
+      tags: [profiles]
+      summary: Get a user's enhanced social profile (public preview allowed)
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancedProfile"
+        "404":
+          description: Not found
+
+  /profiles/{userId}/public:
+    get:
+      operationId: getEnhancedProfileAsPublic
+      tags: [profiles]
+      summary: Get a user's profile exactly as an anonymous visitor sees it (View As Public)
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancedProfile"
+        "404":
+          description: Not found
+
+  /profiles/{userId}/view:
+    post:
+      operationId: recordProfileView
+      tags: [profiles]
+      summary: Record a profile view
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Recorded
+
+  /profiles/me:
+    get:
+      operationId: getMyProfile
+      tags: [profiles]
+      summary: Get own profile details, field privacy, and interests for editing
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyProfileData"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updateMyProfile
+      tags: [profiles]
+      summary: Update own profile details, field privacy, and interests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdateInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyProfileData"
+        "401":
+          description: Unauthorized
+
+  /settings/privacy:
+    get:
+      operationId: getPrivacySettings
+      tags: [profiles]
+      summary: Get own privacy settings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivacySettings"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updatePrivacySettings
+      tags: [profiles]
+      summary: Update own privacy settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrivacySettingsInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivacySettings"
+        "401":
+          description: Unauthorized
+
+  /friends/requests:
+    get:
+      operationId: listFriendRequests
+      tags: [friends]
+      summary: List incoming and outgoing pending friend requests
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendRequestsList"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: sendFriendRequest
+      tags: [friends]
+      summary: Send a friend request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FriendRequestInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendRequest"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+
+  /friends/requests/{id}:
+    patch:
+      operationId: respondFriendRequest
+      tags: [friends]
+      summary: Accept, decline, or cancel a friend request
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FriendRequestAction"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendRequest"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /friends:
+    get:
+      operationId: listFriends
+      tags: [friends]
+      summary: List a user's friends (privacy-controlled)
+      parameters:
+        - { name: userId, in: query, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FollowUser"
+
+  /friends/mutual/{userId}:
+    get:
+      operationId: listMutualFriends
+      tags: [friends]
+      summary: List mutual friends with another user
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FollowUser"
+        "401":
+          description: Unauthorized
+
+  /friends/{userId}:
+    delete:
+      operationId: unfriendUser
+      tags: [friends]
+      summary: Remove a friend
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Removed
+        "404":
+          description: Not found
+
+  /blocks/{userId}:
+    post:
+      operationId: toggleBlockUser
+      tags: [friends]
+      summary: Block or unblock a user (toggle)
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockStatus"
+        "401":
+          description: Unauthorized
+
+  /blocks:
+    get:
+      operationId: listBlockedUsers
+      tags: [friends]
+      summary: List users I have blocked
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FollowUser"
+        "401":
+          description: Unauthorized
+
+  /albums:
+    get:
+      operationId: listAlbums
+      tags: [photos]
+      summary: List a user's photo albums (privacy-controlled)
+      parameters:
+        - { name: userId, in: query, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PhotoAlbum"
+    post:
+      operationId: createAlbum
+      tags: [photos]
+      summary: Create a photo album
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PhotoAlbumInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PhotoAlbum"
+        "401":
+          description: Unauthorized
+
+  /albums/{id}/photos:
+    get:
+      operationId: listAlbumPhotos
+      tags: [photos]
+      summary: List photos in an album (privacy-controlled)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Photo"
+        "404":
+          description: Not found
+    post:
+      operationId: uploadPhoto
+      tags: [photos]
+      summary: Add a photo to an album
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PhotoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Photo"
+        "403":
+          description: Forbidden
+
+  /photos:
+    get:
+      operationId: listUserPhotos
+      tags: [photos]
+      summary: List all visible photos for a user across albums
+      parameters:
+        - { name: userId, in: query, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Photo"
+
+  /photos/{id}:
+    delete:
+      operationId: deletePhoto
+      tags: [photos]
+      summary: Delete own photo (or any as Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
+  /photos/{id}/like:
+    post:
+      operationId: togglePhotoLike
+      tags: [photos]
+      summary: Like or unlike a photo (toggle)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LikeStatus"
+        "404":
+          description: Not found
+
+  /photos/{id}/comments:
+    get:
+      operationId: listPhotoComments
+      tags: [photos]
+      summary: List comments on a photo
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedComment"
+    post:
+      operationId: createPhotoComment
+      tags: [photos]
+      summary: Comment on a photo
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedCommentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedComment"
+        "404":
+          description: Not found
+
+  /photos/{id}/report:
+    post:
+      operationId: reportPhoto
+      tags: [photos]
+      summary: Report a photo
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedReportInput"
+      responses:
+        "201":
+          description: Reported
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message: { type: string }
+
+  /reels:
+    get:
+      operationId: listReels
+      tags: [reels]
+      summary: Browse reels (public preview allowed)
+      parameters:
+        - { name: userId, in: query, required: false, schema: { type: integer } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reel"
+    post:
+      operationId: createReel
+      tags: [reels]
+      summary: Upload a reel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReelInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reel"
+        "401":
+          description: Unauthorized
+
+  /reels/{id}:
+    get:
+      operationId: getReel
+      tags: [reels]
+      summary: Get a single reel
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reel"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteReel
+      tags: [reels]
+      summary: Delete own reel (or any as Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
+  /reels/{id}/like:
+    post:
+      operationId: toggleReelLike
+      tags: [reels]
+      summary: Like or unlike a reel (toggle)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LikeStatus"
+        "404":
+          description: Not found
+
+  /reels/{id}/save:
+    post:
+      operationId: toggleReelSave
+      tags: [reels]
+      summary: Save or unsave a reel (toggle)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaveStatus"
+        "404":
+          description: Not found
+
+  /reels/{id}/view:
+    post:
+      operationId: recordReelView
+      tags: [reels]
+      summary: Record a reel view
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Recorded
+
+  /reels/{id}/report:
+    post:
+      operationId: reportReel
+      tags: [reels]
+      summary: Report a reel
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedReportInput"
+      responses:
+        "201":
+          description: Reported
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message: { type: string }
+
+  /reels/{id}/comments:
+    get:
+      operationId: listReelComments
+      tags: [reels]
+      summary: List comments on a reel
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedComment"
+    post:
+      operationId: createReelComment
+      tags: [reels]
+      summary: Comment on a reel
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedCommentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedComment"
+        "404":
+          description: Not found
+
+  /reels/comments/{id}:
+    delete:
+      operationId: deleteReelComment
+      tags: [reels]
+      summary: Delete own reel comment (or any as Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
+  /usertags:
+    get:
+      operationId: listUserTags
+      tags: [usertags]
+      summary: List approved tags for a user
+      parameters:
+        - { name: userId, in: query, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserTag"
+    post:
+      operationId: createUserTag
+      tags: [usertags]
+      summary: Tag a user in a post, photo, or reel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserTagInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTag"
+        "401":
+          description: Unauthorized
+
+  /usertags/pending:
+    get:
+      operationId: listPendingUserTags
+      tags: [usertags]
+      summary: List tags awaiting my review
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserTag"
+        "401":
+          description: Unauthorized
+
+  /usertags/{id}:
+    patch:
+      operationId: reviewUserTag
+      tags: [usertags]
+      summary: Approve or remove a tag on me
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserTagAction"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTag"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /admin/photos:
+    get:
+      operationId: listAdminPhotos
+      tags: [admin]
+      summary: List all photos for moderation (Admin)
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Photo"
+        "403":
+          description: Forbidden
+
+  /admin/photos/{id}:
+    patch:
+      operationId: moderatePhoto
+      tags: [admin]
+      summary: Moderate a photo (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedModerationInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Photo"
+        "404":
+          description: Not found
+
+  /admin/reels:
+    get:
+      operationId: listAdminReels
+      tags: [admin]
+      summary: List all reels for moderation (Admin)
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reel"
+        "403":
+          description: Forbidden
+
+  /admin/reels/{id}:
+    patch:
+      operationId: moderateReel
+      tags: [admin]
+      summary: Moderate a reel (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedModerationInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reel"
+        "404":
+          description: Not found
+
+  /admin/profiles/{userId}:
+    get:
+      operationId: getAdminProfile
+      tags: [admin]
+      summary: View a user's full profile details for moderation (Admin)
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyProfileData"
+        "404":
+          description: Not found
+    patch:
+      operationId: clearProfileFields
+      tags: [admin]
+      summary: Clear inappropriate profile fields (Admin)
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClearFieldsInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyProfileData"
+        "404":
+          description: Not found
+
+  /admin/blocks:
+    get:
+      operationId: listAdminBlocks
+      tags: [admin]
+      summary: List all user blocks (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminBlock"
+        "403":
+          description: Forbidden
+
 components:
   schemas:
     HealthStatus:
@@ -2415,6 +3270,7 @@ components:
         viewerLiked: { type: boolean }
         viewerSaved: { type: boolean }
         viewerFollowsAuthor: { type: boolean }
+        audience: { type: string, enum: [public, friends, followers, only_me] }
         createdAt: { type: string }
         updatedAt: { type: string }
 
@@ -2427,6 +3283,7 @@ components:
         mediaType: { type: string, enum: [none, image, video] }
         category: { type: string, enum: [setup, lounge, flavor, event, meme, review, question, discussion] }
         isHookahRelatedConfirmed: { type: boolean }
+        audience: { type: string, enum: [public, friends, followers, only_me] }
 
     FeedComment:
       type: object
@@ -2621,3 +3478,334 @@ components:
         trendingCategories:
           type: array
           items: { $ref: "#/components/schemas/CategoryCount" }
+
+    ProfileDetails:
+      type: object
+      properties:
+        coverPhotoUrl: { type: ["string", "null"] }
+        livesInCity: { type: ["string", "null"] }
+        livesInState: { type: ["string", "null"] }
+        fromCity: { type: ["string", "null"] }
+        fromState: { type: ["string", "null"] }
+        birthMonth: { type: ["integer", "null"] }
+        birthDay: { type: ["integer", "null"] }
+        birthYear: { type: ["integer", "null"] }
+        gender: { type: ["string", "null"] }
+        languagesSpoken: { type: ["string", "null"] }
+        hairColor: { type: ["string", "null"] }
+        eyeColor: { type: ["string", "null"] }
+        ethnicity: { type: ["string", "null"] }
+        bodyType: { type: ["string", "null"] }
+        height: { type: ["string", "null"] }
+        relationshipStatus: { type: ["string", "null"] }
+        occupation: { type: ["string", "null"] }
+        education: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        websiteUrl: { type: ["string", "null"] }
+        socialLinks:
+          type: ["object", "null"]
+          additionalProperties: { type: string }
+        favoriteHookahFlavor: { type: ["string", "null"] }
+        favoriteHookahLounge: { type: ["string", "null"] }
+        favoriteHookahBrand: { type: ["string", "null"] }
+        favoriteHookahSetup: { type: ["string", "null"] }
+        hookahExperienceLevel: { type: ["string", "null"] }
+        preferredHookahStyle: { type: ["string", "null"] }
+        favoriteSmokeSessionVibe: { type: ["string", "null"] }
+        favoriteHookahAccessories: { type: ["string", "null"] }
+        openToLoungeMeetups: { type: ["string", "null"] }
+        favoriteLoungeCity: { type: ["string", "null"] }
+        interests:
+          type: array
+          items: { type: string }
+
+    FieldPrivacyEntry:
+      type: object
+      required: [fieldName, visibility]
+      properties:
+        fieldName: { type: string }
+        visibility: { type: string, enum: [public, friends, followers, only_me] }
+
+    MyProfileData:
+      type: object
+      required: [userId, details, fieldPrivacy]
+      properties:
+        userId: { type: integer }
+        name: { type: string }
+        username: { type: ["string", "null"] }
+        profilePhotoUrl: { type: ["string", "null"] }
+        details:
+          $ref: "#/components/schemas/ProfileDetails"
+        fieldPrivacy:
+          type: array
+          items: { $ref: "#/components/schemas/FieldPrivacyEntry" }
+        profileCompletion:
+          type: object
+          required: [percent, missing]
+          properties:
+            percent: { type: integer }
+            missing:
+              type: array
+              items: { type: string }
+
+    ProfileUpdateInput:
+      type: object
+      properties:
+        name: { type: string }
+        username: { type: string }
+        profilePhotoUrl: { type: string }
+        details:
+          $ref: "#/components/schemas/ProfileDetails"
+        fieldPrivacy:
+          type: array
+          items: { $ref: "#/components/schemas/FieldPrivacyEntry" }
+
+    EnhancedProfile:
+      type: object
+      required: [userId, name, role, followerCount, followingCount, friendCount, postCount, friendStatus]
+      properties:
+        userId: { type: integer }
+        name: { type: string }
+        username: { type: ["string", "null"] }
+        role: { type: string, enum: [doll, member, admin] }
+        verified: { type: boolean }
+        dollId: { type: ["integer", "null"] }
+        profilePhotoUrl: { type: ["string", "null"] }
+        coverPhotoUrl: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        memberSince: { type: string }
+        badges:
+          type: array
+          items: { type: string }
+        followerCount: { type: integer }
+        followingCount: { type: integer }
+        friendCount: { type: integer }
+        postCount: { type: integer }
+        photoCount: { type: integer }
+        reelCount: { type: integer }
+        friendStatus: { type: string, enum: [none, pending_sent, pending_received, friends, blocked, self] }
+        pendingRequestId: { type: ["integer", "null"] }
+        viewerFollows: { type: boolean }
+        viewerBlocked: { type: boolean }
+        mutualFriendCount: { type: integer }
+        canViewFriends: { type: boolean }
+        details:
+          $ref: "#/components/schemas/ProfileDetails"
+
+    PrivacySettings:
+      type: object
+      required: [defaultPostAudience, showFriendsList, showFollowersList, allowFriendRequestsFrom, allowMessagesFrom, allowTagging, requireTagReview, allowSearchByEmail, allowSearchByPhone, allowExternalSearchIndexing]
+      properties:
+        defaultPostAudience: { type: string, enum: [public, friends, followers, only_me] }
+        showFriendsList: { type: string, enum: [public, friends, only_me] }
+        showFollowersList: { type: string, enum: [public, friends, only_me] }
+        allowFriendRequestsFrom: { type: string, enum: [everyone, friends_of_friends, no_one] }
+        allowMessagesFrom: { type: string, enum: [everyone, friends, no_one] }
+        allowTagging: { type: string, enum: [everyone, friends, no_one] }
+        requireTagReview: { type: boolean }
+        allowSearchByEmail: { type: string, enum: [everyone, friends, no_one] }
+        allowSearchByPhone: { type: string, enum: [everyone, friends, no_one] }
+        allowExternalSearchIndexing: { type: boolean }
+
+    PrivacySettingsInput:
+      type: object
+      properties:
+        defaultPostAudience: { type: string, enum: [public, friends, followers, only_me] }
+        showFriendsList: { type: string, enum: [public, friends, only_me] }
+        showFollowersList: { type: string, enum: [public, friends, only_me] }
+        allowFriendRequestsFrom: { type: string, enum: [everyone, friends_of_friends, no_one] }
+        allowMessagesFrom: { type: string, enum: [everyone, friends, no_one] }
+        allowTagging: { type: string, enum: [everyone, friends, no_one] }
+        requireTagReview: { type: boolean }
+        allowSearchByEmail: { type: string, enum: [everyone, friends, no_one] }
+        allowSearchByPhone: { type: string, enum: [everyone, friends, no_one] }
+        allowExternalSearchIndexing: { type: boolean }
+
+    FriendRequestInput:
+      type: object
+      required: [receiverId]
+      properties:
+        receiverId: { type: integer }
+
+    FriendRequest:
+      type: object
+      required: [id, senderId, receiverId, status, createdAt]
+      properties:
+        id: { type: integer }
+        senderId: { type: integer }
+        receiverId: { type: integer }
+        status: { type: string, enum: [pending, accepted, declined, cancelled] }
+        senderName: { type: string }
+        senderPhotoUrl: { type: ["string", "null"] }
+        senderRole: { type: string }
+        receiverName: { type: string }
+        receiverPhotoUrl: { type: ["string", "null"] }
+        receiverRole: { type: string }
+        mutualFriendCount: { type: integer }
+        createdAt: { type: string }
+
+    FriendRequestsList:
+      type: object
+      required: [incoming, outgoing]
+      properties:
+        incoming:
+          type: array
+          items: { $ref: "#/components/schemas/FriendRequest" }
+        outgoing:
+          type: array
+          items: { $ref: "#/components/schemas/FriendRequest" }
+
+    FriendRequestAction:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [accept, decline, cancel] }
+
+    BlockStatus:
+      type: object
+      required: [blocked]
+      properties:
+        blocked: { type: boolean }
+
+    AdminBlock:
+      type: object
+      required: [id, blockerId, blockedUserId, createdAt]
+      properties:
+        id: { type: integer }
+        blockerId: { type: integer }
+        blockerName: { type: string }
+        blockedUserId: { type: integer }
+        blockedUserName: { type: string }
+        createdAt: { type: string }
+
+    PhotoAlbumInput:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        albumType: { type: string, enum: [profile_pictures, cover_photos, feed_photos, hookah_setups, lounge_nights, events, custom] }
+
+    PhotoAlbum:
+      type: object
+      required: [id, userId, title, visibility, albumType, photoCount, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        albumType: { type: string, enum: [profile_pictures, cover_photos, feed_photos, hookah_setups, lounge_nights, events, custom] }
+        photoCount: { type: integer }
+        coverImageUrl: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    PhotoInput:
+      type: object
+      required: [imageUrl]
+      properties:
+        imageUrl: { type: string, minLength: 1 }
+        caption: { type: string }
+        visibility: { type: string, enum: [public, friends, followers, only_me] }
+
+    Photo:
+      type: object
+      required: [id, userId, albumId, imageUrl, visibility, status, likeCount, commentCount, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        albumId: { type: integer }
+        albumTitle: { type: string }
+        imageUrl: { type: string }
+        caption: { type: ["string", "null"] }
+        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        status: { type: string, enum: [active, hidden, removed, pending_review] }
+        likeCount: { type: integer }
+        commentCount: { type: integer }
+        viewerLiked: { type: boolean }
+        createdAt: { type: string }
+
+    ReelInput:
+      type: object
+      required: [videoUrl, category, isHookahRelatedConfirmed]
+      properties:
+        videoUrl: { type: string, minLength: 1 }
+        thumbnailUrl: { type: string }
+        caption: { type: string }
+        category: { type: string, enum: [hookah_setup, lounge_night, flavor_review, smoke_tricks, event, meme, doll_spotlight, bro_post, tutorial, other] }
+        hashtags:
+          type: array
+          items: { type: string }
+        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        isHookahRelatedConfirmed: { type: boolean }
+
+    Reel:
+      type: object
+      required: [id, userId, userRole, userName, videoUrl, category, status, likeCount, commentCount, saveCount, viewCount, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        userRole: { type: string, enum: [doll, member, admin] }
+        userName: { type: string }
+        username: { type: ["string", "null"] }
+        userPhotoUrl: { type: ["string", "null"] }
+        userVerified: { type: boolean }
+        dollId: { type: ["integer", "null"] }
+        videoUrl: { type: string }
+        thumbnailUrl: { type: ["string", "null"] }
+        caption: { type: ["string", "null"] }
+        category: { type: string, enum: [hookah_setup, lounge_night, flavor_review, smoke_tricks, event, meme, doll_spotlight, bro_post, tutorial, other] }
+        hashtags:
+          type: array
+          items: { type: string }
+        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        status: { type: string, enum: [active, hidden, removed, pending_review] }
+        viewCount: { type: integer }
+        likeCount: { type: integer }
+        commentCount: { type: integer }
+        saveCount: { type: integer }
+        reportCount: { type: integer }
+        viewerLiked: { type: boolean }
+        viewerSaved: { type: boolean }
+        viewerFollowsAuthor: { type: boolean }
+        createdAt: { type: string }
+
+    UserTagInput:
+      type: object
+      required: [taggedUserId, relatedType, relatedId]
+      properties:
+        taggedUserId: { type: integer }
+        relatedType: { type: string, enum: [post, photo, reel] }
+        relatedId: { type: integer }
+
+    UserTag:
+      type: object
+      required: [id, taggedUserId, taggedByUserId, relatedType, relatedId, status, createdAt]
+      properties:
+        id: { type: integer }
+        taggedUserId: { type: integer }
+        taggedUserName: { type: string }
+        taggedByUserId: { type: integer }
+        taggedByUserName: { type: string }
+        relatedType: { type: string, enum: [post, photo, reel] }
+        relatedId: { type: integer }
+        status: { type: string, enum: [pending, approved, removed] }
+        createdAt: { type: string }
+
+    ClearFieldsInput:
+      type: object
+      required: [clearFields]
+      properties:
+        clearFields:
+          type: array
+          items: { type: string }
+
+    UserTagAction:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [approve, remove] }

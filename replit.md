@@ -49,6 +49,7 @@ A premium, 21+ hookah-themed creator/social platform connecting verified women c
 - Doll & Member dashboards, Doll verification flow, admin moderation dashboard.
 - Pricing/plans for both audiences; legal pages (Terms, Privacy, Content Rules, Refund Policy) and a working Contact form.
 - Public hookah social feed (`/feed`): posts (photo/video, categories, required hookah-related confirmation), likes/comments/saves/reports, follows, notifications (`/notifications` + navbar bell), public Bro profiles (`/bros/:id` with badges), Doll profile posts tab, dashboard feed stats, admin feed moderation + analytics. Logged-out users can preview but not interact. Feed seed: `pnpm --filter @workspace/scripts run seed-feed` (idempotent, run after main seed).
+- Facebook-style social profiles (Phase 2): cover photo + tabbed profiles (`/bros/:id`, enhanced `/dolls/:id` keeping all monetization), `/profile/edit` with per-field privacy (public/friends/followers/only_me) + completion meter + View As Public, `/settings/privacy`, friend system + blocks (`/friends`), photo albums, reels (`/reels`), tagging with review, post audience control, profile views, admin "Profiles & Media" moderation. Privacy is enforced server-side on every route incl. like/comment/report; blocks hide content bidirectionally. Social seed: `pnpm --filter @workspace/scripts run seed-social` (idempotent).
 
 ## Test accounts (seeded)
 

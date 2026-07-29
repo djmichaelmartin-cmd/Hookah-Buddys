@@ -21,6 +21,11 @@ import {
 import { requireAuth, getSessionUser } from "../lib/auth";
 import { hydratePosts, loadAuthors } from "../lib/feedHelpers";
 import { createNotification } from "../lib/notify";
+import {
+  loadAudienceSets,
+  canViewAudience,
+  getOrCreatePrivacySettings,
+} from "../lib/socialHelpers";
 
 const router: IRouter = Router();
 
@@ -58,9 +63,15 @@ router.get("/feed/posts", async (req, res): Promise<void> => {
     .from(feedPostsTable)
     .where(and(...conditions))
     .orderBy(...orderBy)
-    .limit(limit);
+    .limit(limit * 2);
 
   let posts = await query;
+
+  // Audience enforcement: non-public posts only for the right relationships
+  const audienceSets = await loadAudienceSets(viewer?.id ?? null);
+  posts = posts
+    .filter((p) => canViewAudience(p.audience, p.userId, viewer ?? null, audienceSets))
+    .slice(0, limit);
 
   // "nearby": prioritize posts from the viewer's city/state when known
   if (filter === "nearby" && viewer && (viewer.city || viewer.state)) {
@@ -95,6 +106,11 @@ router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
     res.status(400).json({ error: "You must confirm the post is hookah-related" });
     return;
   }
+  let audience: string | undefined = parsed.data.audience;
+  if (!audience) {
+    const settings = await getOrCreatePrivacySettings(user.id);
+    audience = settings.defaultPostAudience;
+  }
   const [post] = await db
     .insert(feedPostsTable)
     .values({
@@ -106,6 +122,7 @@ router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
       category: parsed.data.category,
       isHookahRelatedConfirmed: true,
       status: "active",
+      audience: audience ?? "public",
     })
     .returning();
   const [result] = await hydratePosts([post], user.id);
@@ -203,6 +220,14 @@ router.get("/feed/my-stats", requireAuth(), async (req, res): Promise<void> => {
 });
 
 // ---------- Single post ----------
+async function viewerCanSeePost(
+  post: { audience: string; userId: number },
+  viewer: { id: number; role: string } | null,
+): Promise<boolean> {
+  const sets = await loadAudienceSets(viewer?.id ?? null);
+  return canViewAudience(post.audience, post.userId, viewer, sets);
+}
+
 router.get("/feed/posts/:id", async (req, res): Promise<void> => {
   const viewer = await getSessionUser(req);
   const id = parseId(req.params.id);
@@ -212,6 +237,11 @@ router.get("/feed/posts/:id", async (req, res): Promise<void> => {
     return;
   }
   if (post.status !== "active" && viewer?.id !== post.userId && viewer?.role !== "admin") {
+    res.status(404).json({ error: "Post not found" });
+    return;
+  }
+  const audienceSets = await loadAudienceSets(viewer?.id ?? null);
+  if (!canViewAudience(post.audience, post.userId, viewer ?? null, audienceSets)) {
     res.status(404).json({ error: "Post not found" });
     return;
   }
@@ -243,7 +273,7 @@ router.post("/feed/posts/:id/like", requireAuth(), async (req, res): Promise<voi
   const user = req.currentUser!;
   const id = parseId(req.params.id);
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post || post.status !== "active") {
+  if (!post || post.status !== "active" || !(await viewerCanSeePost(post, user))) {
     res.status(404).json({ error: "Post not found" });
     return;
   }
@@ -293,7 +323,7 @@ router.post("/feed/posts/:id/save", requireAuth(), async (req, res): Promise<voi
   const user = req.currentUser!;
   const id = parseId(req.params.id);
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post || post.status !== "active") {
+  if (!post || post.status !== "active" || !(await viewerCanSeePost(post, user))) {
     res.status(404).json({ error: "Post not found" });
     return;
   }
@@ -339,7 +369,7 @@ router.post("/feed/posts/:id/report", requireAuth(), async (req, res): Promise<v
     return;
   }
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post) {
+  if (!post || !(await viewerCanSeePost(post, user))) {
     res.status(404).json({ error: "Post not found" });
     return;
   }
@@ -391,6 +421,12 @@ router.post("/feed/comments/:id/report", requireAuth(), async (req, res): Promis
 // ---------- Comments ----------
 router.get("/feed/posts/:id/comments", async (req, res): Promise<void> => {
   const id = parseId(req.params.id);
+  const viewer = await getSessionUser(req);
+  const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
+  if (!post || post.status !== "active" || !(await viewerCanSeePost(post, viewer ?? null))) {
+    res.status(404).json({ error: "Post not found" });
+    return;
+  }
   const comments = await db
     .select()
     .from(postCommentsTable)
@@ -426,7 +462,7 @@ router.post("/feed/posts/:id/comments", requireAuth(), async (req, res): Promise
     return;
   }
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post || post.status !== "active") {
+  if (!post || post.status !== "active" || !(await viewerCanSeePost(post, user))) {
     res.status(404).json({ error: "Post not found" });
     return;
   }

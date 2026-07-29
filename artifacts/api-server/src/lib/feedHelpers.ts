@@ -86,6 +86,7 @@ export function toFeedPostResponse(post: FeedPost, author: AuthorInfo | undefine
     mediaType: post.mediaType,
     category: post.category,
     status: post.status,
+    audience: post.audience,
     likeCount: post.likeCount,
     commentCount: post.commentCount,
     saveCount: post.saveCount,

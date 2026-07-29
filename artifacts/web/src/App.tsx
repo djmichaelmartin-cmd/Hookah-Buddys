@@ -30,6 +30,10 @@ import VideoChat from "@/pages/VideoChat";
 import Feed from "@/pages/Feed";
 import Notifications from "@/pages/Notifications";
 import BroProfile from "@/pages/BroProfile";
+import ProfileEdit from "@/pages/ProfileEdit";
+import PrivacySettings from "@/pages/PrivacySettings";
+import Friends from "@/pages/Friends";
+import Reels from "@/pages/Reels";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +67,10 @@ function Router() {
       <Route path="/video-chat/:id" component={VideoChat} />
       <Route path="/feed" component={Feed} />
       <Route path="/notifications" component={Notifications} />
+      <Route path="/profile/edit" component={ProfileEdit} />
+      <Route path="/settings/privacy" component={PrivacySettings} />
+      <Route path="/friends" component={Friends} />
+      <Route path="/reels" component={Reels} />
       
       <Route component={NotFound} />
     </Switch>

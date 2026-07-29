@@ -30,6 +30,7 @@ import {
 
 const NAV_LINKS = [
   { label: "Feed", href: "/feed" },
+  { label: "Reels", href: "/reels" },
   { label: "Dolls", href: "/browse" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
@@ -239,18 +240,39 @@ export function Navbar() {
                 </div>
                 <DropdownMenuSeparator className="bg-white/10" />
 
+                <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                  <Link href={session.user.role === "doll" ? `/dolls/${session.user.dollId || session.user.id}` : `/bros/${session.user.id}`} className="flex items-center w-full">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>My Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                  <Link href="/profile/edit" className="flex items-center w-full">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Edit Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                  <Link href="/friends" className="flex items-center w-full">
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Friends</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                  <Link href="/settings/privacy" className="flex items-center w-full">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    <span>Privacy Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="bg-white/10" />
+
                 {session.user.role === "doll" && (
                   <>
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                       <Link href="/dashboard/doll" className="flex items-center w-full">
-                        <UserIcon className="mr-2 h-4 w-4" />
+                        <DollarSign className="mr-2 h-4 w-4" />
                         <span>Doll Dashboard</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
-                      <Link href="/members" className="flex items-center w-full">
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>Member Directory</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
@@ -261,7 +283,7 @@ export function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                       <Link href="/verification" className="flex items-center w-full">
-                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        <Heart className="mr-2 h-4 w-4" />
                         <span>Verification</span>
                       </Link>
                     </DropdownMenuItem>
@@ -270,18 +292,6 @@ export function Navbar() {
 
                 {session.user.role === "member" && (
                   <>
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
-                      <Link href="/dashboard/member" className="flex items-center w-full">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Member Dashboard</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
-                      <Link href="/dashboard/member" className="flex items-center w-full">
-                        <Heart className="mr-2 h-4 w-4" />
-                        <span>Favorites</span>
-                      </Link>
-                    </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                       <Link href="/dashboard/member" className="flex items-center w-full">
                         <DollarSign className="mr-2 h-4 w-4" />

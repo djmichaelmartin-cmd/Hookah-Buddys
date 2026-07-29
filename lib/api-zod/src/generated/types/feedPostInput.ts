@@ -5,6 +5,7 @@
  * HookahDolls platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { FeedPostInputAudience } from './feedPostInputAudience';
 import type { FeedPostInputCategory } from './feedPostInputCategory';
 import type { FeedPostInputMediaType } from './feedPostInputMediaType';
 
@@ -15,4 +16,5 @@ export interface FeedPostInput {
   mediaType?: FeedPostInputMediaType;
   category: FeedPostInputCategory;
   isHookahRelatedConfirmed: boolean;
+  audience?: FeedPostInputAudience;
 }

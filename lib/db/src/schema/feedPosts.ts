@@ -10,6 +10,7 @@ export const feedPostsTable = pgTable("feed_posts", {
   category: text("category").notNull(),
   isHookahRelatedConfirmed: boolean("is_hookah_related_confirmed").notNull().default(false),
   status: text("status").notNull().default("active"),
+  audience: text("audience").notNull().default("public"), // public | friends | followers | only_me
   likeCount: integer("like_count").notNull().default(0),
   commentCount: integer("comment_count").notNull().default(0),
   saveCount: integer("save_count").notNull().default(0),

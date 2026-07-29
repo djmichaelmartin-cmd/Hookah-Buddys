@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey } from "@workspace/api-client-react";
+import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { RevenueBreakdownItem, DollRevenueShare } from "@workspace/api-client-react";
-import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag } from "lucide-react";
+import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
@@ -114,6 +117,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="media"><ImageIcon className="w-4 h-4 mr-2"/> Media Moderation</TabsTrigger>
             <TabsTrigger value="verifications"><ShieldCheck className="w-4 h-4 mr-2"/> Verifications</TabsTrigger>
             <TabsTrigger value="feed"><MessageSquare className="w-4 h-4 mr-2"/> Feed</TabsTrigger>
+            <TabsTrigger value="photos"><ImageIcon className="w-4 h-4 mr-2"/> Photos</TabsTrigger>
+            <TabsTrigger value="reels"><Video className="w-4 h-4 mr-2"/> Reels</TabsTrigger>
+            <TabsTrigger value="blocks"><AlertTriangle className="w-4 h-4 mr-2"/> Blocks</TabsTrigger>
+            <TabsTrigger value="profiles"><Search className="w-4 h-4 mr-2"/> Profiles</TabsTrigger>
             <TabsTrigger value="credits"><Coins className="w-4 h-4 mr-2"/> Credits</TabsTrigger>
             <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
           </TabsList>
@@ -298,6 +305,22 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
+          <TabsContent value="photos">
+            <PhotoModeration />
+          </TabsContent>
+
+          <TabsContent value="reels">
+            <ReelModeration />
+          </TabsContent>
+
+          <TabsContent value="blocks">
+            <BlocksList />
+          </TabsContent>
+
+          <TabsContent value="profiles">
+            <ProfileInspector />
+          </TabsContent>
+
           <TabsContent value="credits">
             <AdminCredits />
           </TabsContent>
@@ -308,6 +331,397 @@ export default function AdminDashboard() {
         </Tabs>
       </div>
     </Layout>
+  );
+}
+
+function PhotoModeration() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected" | undefined>();
+
+  const { data: photos } = useListAdminPhotos({ status: statusFilter }, {
+    query: { queryKey: getListAdminPhotosQueryKey({ status: statusFilter }) },
+  });
+
+  const moderatePhoto = useModeratePhoto({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Photo moderated" });
+        queryClient.invalidateQueries({ queryKey: getListAdminPhotosQueryKey({}) });
+      },
+      onError: () => toast({ title: "Failed to moderate", variant: "destructive" }),
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        <Button
+          variant={!statusFilter ? "default" : "outline"}
+          onClick={() => setStatusFilter(undefined)}
+          size="sm"
+        >
+          All
+        </Button>
+        <Button
+          variant={statusFilter === "pending" ? "default" : "outline"}
+          onClick={() => setStatusFilter("pending")}
+          size="sm"
+        >
+          Pending
+        </Button>
+        <Button
+          variant={statusFilter === "approved" ? "default" : "outline"}
+          onClick={() => setStatusFilter("approved")}
+          size="sm"
+        >
+          Approved
+        </Button>
+        <Button
+          variant={statusFilter === "rejected" ? "default" : "outline"}
+          onClick={() => setStatusFilter("rejected")}
+          size="sm"
+        >
+          Rejected
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {!photos || photos.length === 0 ? (
+          <p className="col-span-full text-muted-foreground">No photos.</p>
+        ) : (
+          photos.map((photo) => (
+            <div key={photo.id} className="bg-card/50 border border-white/10 rounded-xl overflow-hidden">
+              <div className="aspect-square bg-black/50 relative">
+                <img src={photo.imageUrl} alt="Photo" className="object-cover w-full h-full" />
+              </div>
+              <div className="p-4">
+                <p className="text-sm text-white mb-2">By: {photo.userName}</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Status: <span className="capitalize">{photo.status}</span>
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => moderatePhoto.mutate({ id: photo.id, data: { status: "active" } })}
+                    disabled={moderatePhoto.isPending}
+                    size="sm"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    onClick={() => moderatePhoto.mutate({ id: photo.id, data: { status: "removed" } })}
+                    disabled={moderatePhoto.isPending}
+                    size="sm"
+                    variant="destructive"
+                    className="flex-1"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ReelModeration() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected" | undefined>();
+
+  const { data: reels } = useListAdminReels({ status: statusFilter }, {
+    query: { queryKey: getListAdminReelsQueryKey({ status: statusFilter }) },
+  });
+
+  const moderateReel = useModerateReel({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Reel moderated" });
+        queryClient.invalidateQueries({ queryKey: getListAdminReelsQueryKey({}) });
+      },
+      onError: () => toast({ title: "Failed to moderate", variant: "destructive" }),
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        <Button
+          variant={!statusFilter ? "default" : "outline"}
+          onClick={() => setStatusFilter(undefined)}
+          size="sm"
+        >
+          All
+        </Button>
+        <Button
+          variant={statusFilter === "pending" ? "default" : "outline"}
+          onClick={() => setStatusFilter("pending")}
+          size="sm"
+        >
+          Pending
+        </Button>
+        <Button
+          variant={statusFilter === "approved" ? "default" : "outline"}
+          onClick={() => setStatusFilter("approved")}
+          size="sm"
+        >
+          Approved
+        </Button>
+        <Button
+          variant={statusFilter === "rejected" ? "default" : "outline"}
+          onClick={() => setStatusFilter("rejected")}
+          size="sm"
+        >
+          Rejected
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {!reels || reels.length === 0 ? (
+          <p className="col-span-full text-muted-foreground">No reels.</p>
+        ) : (
+          reels.map((reel) => (
+            <div key={reel.id} className="bg-card/50 border border-white/10 rounded-xl overflow-hidden">
+              <div className="aspect-[9/16] bg-black/50 relative">
+                {reel.thumbnailUrl ? (
+                  <img src={reel.thumbnailUrl} alt="Reel" className="object-cover w-full h-full" />
+                ) : (
+                  <div className="flex items-center justify-center w-full h-full">
+                    <Video className="w-12 h-12 text-muted-foreground/30" />
+                  </div>
+                )}
+              </div>
+              <div className="p-4">
+                <p className="text-sm text-white mb-2">By: {reel.userName}</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Status: <span className="capitalize">{reel.status}</span>
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => moderateReel.mutate({ id: reel.id, data: { status: "active" } })}
+                    disabled={moderateReel.isPending}
+                    size="sm"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    onClick={() => moderateReel.mutate({ id: reel.id, data: { status: "removed" } })}
+                    disabled={moderateReel.isPending}
+                    size="sm"
+                    variant="destructive"
+                    className="flex-1"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BlocksList() {
+  const { data: blocks } = useListAdminBlocks({
+    query: { queryKey: getListAdminBlocksQueryKey() },
+  });
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-serif text-white mb-4">User Blocks</h2>
+      {!blocks || blocks.length === 0 ? (
+        <p className="text-muted-foreground">No blocks recorded.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted-foreground border-b border-white/10">
+                <th className="py-3 px-2 font-medium">Blocker ID</th>
+                <th className="py-3 px-2 font-medium">Blocked ID</th>
+                <th className="py-3 px-2 font-medium">Blocker Name</th>
+                <th className="py-3 px-2 font-medium">Blocked Name</th>
+                <th className="py-3 px-2 font-medium">Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {blocks.map((block) => (
+                <tr key={`${block.blockerId}-${block.blockedUserId}`} className="border-b border-white/5">
+                  <td className="py-3 px-2 text-white/60">{block.blockerId}</td>
+                  <td className="py-3 px-2 text-white/60">{block.blockedUserId}</td>
+                  <td className="py-3 px-2 text-white">{block.blockerName || "N/A"}</td>
+                  <td className="py-3 px-2 text-white">{block.blockedUserName || "N/A"}</td>
+                  <td className="py-3 px-2 text-white/60">
+                    {block.createdAt ? new Date(block.createdAt).toLocaleDateString() : "N/A"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProfileInspector() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [userId, setUserId] = useState("");
+  const [searchedUserId, setSearchedUserId] = useState<number | null>(null);
+
+  const { data: profile } = useGetAdminProfile(searchedUserId || 0, {
+    query: {
+      enabled: !!searchedUserId,
+      queryKey: getGetAdminProfileQueryKey(searchedUserId || 0),
+    },
+  });
+
+  const clearFields = useClearProfileFields({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Profile fields cleared" });
+        if (searchedUserId) {
+          queryClient.invalidateQueries({ queryKey: getGetAdminProfileQueryKey(searchedUserId) });
+        }
+      },
+      onError: () => toast({ title: "Failed to clear fields", variant: "destructive" }),
+    },
+  });
+
+  const [selectedFields, setSelectedFields] = useState<string[]>([]);
+
+  const handleSearch = () => {
+    const id = parseInt(userId, 10);
+    if (!isNaN(id)) {
+      setSearchedUserId(id);
+    }
+  };
+
+  const handleClearFields = () => {
+    if (!searchedUserId) return;
+    clearFields.mutate({ userId: searchedUserId, data: { clearFields: selectedFields } });
+    setSelectedFields([]);
+  };
+
+  const allFields = [
+    "description",
+    "coverPhotoUrl",
+    "livesInCity",
+    "livesInState",
+    "fromCity",
+    "fromState",
+    "birthMonth",
+    "birthDay",
+    "gender",
+    "languagesSpoken",
+    "hairColor",
+    "eyeColor",
+    "bodyType",
+    "height",
+    "favoriteHookahFlavor",
+    "favoriteHookahLounge",
+    "favoriteHookahBrand",
+    "hookahExperienceLevel",
+    "preferredHookahStyle",
+    "favoriteSmokeSessionVibe",
+    "favoriteHookahAccessories",
+    "openToLoungeMeetups",
+    "favoriteLoungeCity",
+    "interests",
+    "socialLinks",
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-card/50 border border-white/10 rounded-xl p-6">
+        <h2 className="text-xl font-serif text-white mb-4">Profile Inspector</h2>
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <Label htmlFor="userId">User ID</Label>
+            <Input
+              id="userId"
+              type="number"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="Enter user ID"
+              className="bg-background/50 border-white/10 mt-2"
+            />
+          </div>
+          <Button
+            onClick={handleSearch}
+            className="self-end bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Search className="w-4 h-4 mr-2" /> Search
+          </Button>
+        </div>
+      </div>
+
+      {profile && (
+        <div className="bg-card/50 border border-white/10 rounded-xl p-6 space-y-6">
+          <div>
+            <h3 className="text-lg font-serif text-white mb-3">Profile Data</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Name</p>
+                <p className="text-white">{profile.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Username</p>
+                <p className="text-white">{profile.username || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">User ID</p>
+                <p className="text-white">{profile.userId}</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-serif text-white mb-3">Clear Profile Fields</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Select fields to clear from this profile:
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+              {allFields.map((field) => (
+                <label
+                  key={field}
+                  className="flex items-center gap-2 text-sm text-white cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedFields.includes(field)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedFields([...selectedFields, field]);
+                      } else {
+                        setSelectedFields(selectedFields.filter((f) => f !== field));
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-white/20 bg-background/50 text-primary"
+                  />
+                  <span className="capitalize">{field.replace(/([A-Z])/g, " $1").trim()}</span>
+                </label>
+              ))}
+            </div>
+            <Button
+              onClick={handleClearFields}
+              disabled={clearFields.isPending || selectedFields.length === 0}
+              variant="destructive"
+              className="w-full"
+            >
+              {clearFields.isPending ? "Clearing..." : `Clear ${selectedFields.length} field(s)`}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

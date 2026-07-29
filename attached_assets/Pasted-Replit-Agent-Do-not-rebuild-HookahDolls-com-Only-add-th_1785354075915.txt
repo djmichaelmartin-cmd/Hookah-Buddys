@@ -1,0 +1,751 @@
+Replit Agent: Do not rebuild HookahDolls.com. Only add the following Facebook-style public/private profile features to the existing platform.
+
+Add a full social profile system for both Dolls and Bros, similar to Facebook profiles, where users can choose what information is publicly visible, friends-only, followers-only, or private.
+
+This should support the existing HookahDolls direction as a hookah-centered social network with a public feed, likes, comments, follows, profiles, photos, reels, and premium Doll monetization. Do not remove or replace the current Doll/Bro system, pricing, credits, messaging, verification, premium content, or video chat features.
+
+New Feature: Enhanced User Profiles
+
+Create enhanced public profile pages for both Dolls and Bros.
+
+Routes:
+
+* Doll profile: `/dolls/:id`
+* Bro profile: `/bros/:id`
+* Current user profile edit page: `/profile/edit`
+* Privacy settings page: `/settings/privacy`
+
+Each profile should have a Facebook-style layout with:
+
+* Cover photo
+* Profile photo
+* Display name
+* Username
+* User type badge: Doll or Bro
+* Verified badge when applicable
+* City/state
+* Follow button
+* Add Friend button
+* Message button
+* More options menu
+* Tabs for Posts, About, Friends, Photos, Reels, Videos, Likes, and Check-ins if applicable
+
+For Doll profiles, keep the existing premium monetization buttons:
+
+* Message Doll
+* Unlock Photos
+* Unlock Videos
+* Subscribe
+* Request Video Chat
+* Favorite
+* Follow
+
+Do not make premium Doll content free. Public profile content and public posts are separate from premium content.
+
+Profile Tabs
+
+Add these profile tabs:
+
+1. Posts
+
+* Show the user’s public feed posts
+* Support text, photo, video, and hookah-related posts
+* Show likes, comments, shares, saves, and reports
+
+2. About
+   Break this into sections:
+
+* Overview
+* Personal Details
+* Hookah Details
+* Interests
+* Contact & Basic Info
+* Places Lived
+* Relationship / Social
+* Privacy-controlled profile fields
+
+3. Friends
+
+* Show friends list
+* Show mutual friends if applicable
+* Allow user to hide friends list
+* Allow privacy settings: Public, Friends, Only Me
+
+4. Photos
+
+* Show photo albums
+* Profile photos
+* Cover photos
+* Feed photos
+* Doll premium photos should remain separate and locked behind premium access
+
+5. Reels
+
+* Short vertical videos
+* Hookah-related reels
+* Like, comment, share, save, report
+
+6. Videos
+
+* Longer videos
+* Hookah setups
+* Lounge videos
+* Events
+* Doll public videos
+* Doll premium videos remain locked
+
+7. Likes / Interests
+
+* Favorite lounges
+* Favorite hookah flavors
+* Favorite hookah brands
+* Favorite content categories
+* Pages/interests if added later
+
+8. Check-ins
+   Optional for now, but add the data structure for:
+
+* Hookah lounge check-ins
+* Event check-ins
+* City check-ins
+
+Profile Fields to Add
+
+Add editable profile fields with per-field privacy controls.
+
+Each field should support visibility settings:
+
+* Public
+* Friends
+* Followers
+* Only Me
+
+Personal Details:
+
+* Lives in city/state
+* From city/state
+* Birth month and day
+* Birth year, optional and private by default
+* Gender
+* Languages spoken
+* Hair color
+* Eye color
+* Ethnicity
+* Body type
+
+  * Athletic
+  * Average
+  * Curvy
+  * Plus size
+  * Slim
+  * Muscular
+  * Prefer not to say
+  * Custom
+* Height, optional
+* Relationship status, optional
+* Occupation, optional
+* Education, optional
+* Description / About Me
+* Website/social links, optional
+
+Hookah Details:
+
+* Favorite hookah flavor
+* Favorite hookah lounge
+* Favorite hookah brand
+* Favorite hookah setup
+* Hookah experience level
+
+  * New to hookah
+  * Casual
+  * Enthusiast
+  * Experienced
+  * Lounge regular
+* Preferred hookah style
+* Favorite smoke session vibe
+* Favorite hookah accessories
+* Open to lounge meetups, yes/no/private
+* Favorite lounge city
+
+Interests:
+
+Allow users to add interests as tags.
+
+Suggested interest categories:
+
+* Hookah
+* Lounges
+* Music
+* Nightlife
+* Food
+* Travel
+* Fitness
+* Cars
+* Fashion
+* Beauty
+* Sports
+* Gaming
+* Business
+* Events
+* Photography
+* Dancing
+* Art
+* Culture
+* Movies
+* Custom interest tags
+
+Profile Privacy
+
+Add a privacy selector next to each profile field.
+
+Default privacy settings:
+
+* Birth year: Only Me
+* Phone number: Only Me
+* Email: Only Me
+* Exact location/address: do not allow public display
+* City/state: Public by default
+* Friends list: Friends by default
+* Photos: Public by default unless changed
+* Reels: Public by default unless changed
+* Posts: Public by default unless changed
+* Ethnicity: Only Me by default
+* Body type: Only Me by default
+* Gender: Public by default, but user can change
+* Relationship status: Only Me by default
+
+Add a “View As Public” button so users can preview what their profile looks like to the public.
+
+Add a “Profile Completion” meter that encourages users to complete:
+
+* Profile photo
+* Cover photo
+* City/state
+* Bio
+* Favorite hookah flavor
+* Interests
+* First post
+* First reel
+
+Friend System
+
+Add a Facebook-style friend system in addition to the existing follow system.
+
+Features:
+
+* Send friend request
+* Accept friend request
+* Decline friend request
+* Cancel friend request
+* Unfriend
+* Block user
+* View friends
+* View mutual friends
+* Hide friend list
+* Friend request notifications
+
+Friend statuses:
+
+* none
+* pending_sent
+* pending_received
+* friends
+* blocked
+
+Important distinction:
+
+* Following is one-way and useful for public content.
+* Friends are two-way and can unlock friends-only profile details and posts.
+
+Followers / Following
+
+Keep or add the existing follow system.
+
+Users should be able to:
+
+* Follow Dolls
+* Follow Bros
+* Unfollow users
+* View followers
+* View following
+* Hide followers/following if desired
+* Receive notification when followed
+
+Photos and Albums
+
+Add Facebook-style photo features:
+
+* Upload profile photo
+* Upload cover photo
+* Create photo albums
+* Upload photos to albums
+* Add captions
+* Tag users
+* Set album privacy
+* Set individual photo privacy
+* Like/comment on public photos
+* Report photos
+
+Default albums:
+
+* Profile Pictures
+* Cover Photos
+* Feed Photos
+* Hookah Setups
+* Lounge Nights
+* Events
+
+For Dolls:
+
+* Keep premium photos separate from public albums
+* Premium photos must still require unlock/payment
+* Premium photos must still include visible hookah and moderation approval
+
+Reels
+
+Add short-form Reels-style video section.
+
+Features:
+
+* Upload short vertical videos
+* Caption
+* Hashtags
+* Category
+* Hookah-related confirmation
+* Like
+* Comment
+* Share
+* Save
+* Report
+* View count
+* Profile Reels tab
+* Feed integration
+
+Reel categories:
+
+* Hookah setup
+* Lounge night
+* Flavor review
+* Smoke tricks
+* Event
+* Meme
+* Doll spotlight
+* Bro post
+* Tutorial
+* Other
+
+Public Feed Integration
+
+Update the public feed so posts can be attached to the user’s profile.
+
+Every feed post should also appear on the user’s Posts tab based on privacy settings.
+
+Post audience options:
+
+* Public
+* Friends
+* Followers
+* Only Me
+
+Add post privacy controls when creating a post.
+
+Add a default post audience setting in Privacy Settings.
+
+Tagging
+
+Add basic tagging features:
+
+* Tag users in posts
+* Tag users in photos
+* Tag users in reels
+* Notify tagged users
+* Allow users to review tags before they appear on their profile
+* Allow users to remove tags
+
+Privacy setting:
+
+“Review posts you are tagged in before they appear on your profile.”
+
+Set this to ON by default.
+
+Profile Details Admin Safety
+
+Because profile details may include sensitive or personal attributes, do not require every field. All personal fields should be optional.
+
+Add “Prefer not to say” where appropriate.
+
+Do not allow public display of:
+
+* Full street address
+* Government ID
+* Verification documents
+* Payment information
+* Private phone number unless user explicitly chooses to show it
+* Private email unless user explicitly chooses to show it
+
+Government ID and verification documents must only be visible to Admins in the verification workflow.
+
+Database Additions
+
+Add or update database models/tables.
+
+ProfileDetails:
+
+* id
+* userId
+* livesInCity
+* livesInState
+* fromCity
+* fromState
+* birthMonth
+* birthDay
+* birthYear
+* gender
+* languagesSpoken
+* hairColor
+* eyeColor
+* ethnicity
+* bodyType
+* height
+* relationshipStatus
+* occupation
+* education
+* description
+* websiteUrl
+* socialLinks
+* favoriteHookahFlavor
+* favoriteHookahLounge
+* favoriteHookahBrand
+* favoriteHookahSetup
+* hookahExperienceLevel
+* preferredHookahStyle
+* favoriteSmokeSessionVibe
+* favoriteHookahAccessories
+* openToLoungeMeetups
+* favoriteLoungeCity
+* createdAt
+* updatedAt
+
+ProfileFieldPrivacy:
+
+* id
+* userId
+* fieldName
+* visibility
+
+  * public
+  * friends
+  * followers
+  * only_me
+* createdAt
+* updatedAt
+
+FriendRequest:
+
+* id
+* senderId
+* receiverId
+* status
+
+  * pending
+  * accepted
+  * declined
+  * cancelled
+* createdAt
+* updatedAt
+
+Friendship:
+
+* id
+* userAId
+* userBId
+* createdAt
+
+Block:
+
+* id
+* blockerId
+* blockedUserId
+* createdAt
+
+PhotoAlbum:
+
+* id
+* userId
+* title
+* description
+* visibility
+* albumType
+
+  * profile_pictures
+  * cover_photos
+  * feed_photos
+  * hookah_setups
+  * lounge_nights
+  * events
+  * custom
+* createdAt
+* updatedAt
+
+Photo:
+
+* id
+* userId
+* albumId
+* imageUrl
+* caption
+* visibility
+* status
+* createdAt
+* updatedAt
+
+Reel:
+
+* id
+* userId
+* videoUrl
+* thumbnailUrl
+* caption
+* category
+* hashtags
+* visibility
+* isHookahRelatedConfirmed
+* viewCount
+* likeCount
+* commentCount
+* saveCount
+* reportCount
+* status
+* createdAt
+* updatedAt
+
+Tag:
+
+* id
+* taggedUserId
+* taggedByUserId
+* relatedType
+
+  * post
+  * photo
+  * reel
+* relatedId
+* status
+
+  * pending
+  * approved
+  * removed
+* createdAt
+* updatedAt
+
+ProfileView:
+
+* id
+* viewerId
+* viewedUserId
+* createdAt
+
+PrivacySettings:
+
+* id
+* userId
+* defaultPostAudience
+* showFriendsList
+* showFollowersList
+* allowFriendRequestsFrom
+* allowMessagesFrom
+* allowTagging
+* requireTagReview
+* allowSearchByEmail
+* allowSearchByPhone
+* allowExternalSearchIndexing
+* createdAt
+* updatedAt
+
+Notifications to Add
+
+Add notifications for:
+
+* New friend request
+* Friend request accepted
+* New follower
+* New profile comment if profile comments are added
+* New photo comment
+* New reel comment
+* New post tag
+* New photo tag
+* New reel tag
+* Tag approved
+* Tag removed
+* Someone liked your photo
+* Someone liked your reel
+* Someone commented on your post
+* Someone commented on your reel
+
+Privacy Settings Page
+
+Create `/settings/privacy`.
+
+Include controls for:
+
+Profile visibility:
+
+* Who can see my profile details?
+* Who can see my friends list?
+* Who can see my followers/following?
+* Who can see my photos?
+* Who can see my reels?
+* Who can send me friend requests?
+* Who can follow me?
+* Who can message me?
+* Who can tag me?
+* Review tags before they appear?
+* Who can look me up by email?
+* Who can look me up by phone?
+* Allow search engines to index my profile? Default: off
+
+Audience options:
+
+* Public
+* Friends
+* Followers
+* Friends of Friends
+* Only Me
+
+Edit Profile Page
+
+Create or update `/profile/edit`.
+
+Sections:
+
+1. Profile Images
+
+* Profile photo
+* Cover photo
+
+2. Basic Info
+
+* Display name
+* Username
+* Bio/description
+* Lives in
+* From
+* Birth month/day
+* Gender
+* Languages
+
+3. Appearance
+
+* Hair color
+* Eye color
+* Body type
+* Height
+
+4. Hookah Preferences
+
+* Favorite hookah flavor
+* Favorite lounge
+* Experience level
+* Preferred style
+* Favorite setup
+
+5. Interests
+
+* Add/remove interest tags
+
+6. Privacy
+
+* Per-field visibility selector
+
+7. Social Links
+
+* Website
+* Instagram
+* TikTok
+* YouTube
+* X/Twitter
+* Facebook
+* Snapchat
+
+Admin Updates
+
+Update Admin Dashboard to include:
+
+* View user profiles
+* Edit/remove inappropriate profile fields
+* Moderate profile photos
+* Moderate cover photos
+* Moderate public photos
+* Moderate reels
+* Review reported profiles
+* Review reported photos
+* Review reported reels
+* View blocked users
+* View friend/follower abuse reports
+* Suspend/ban users
+
+Admin should not be able to publicly expose private fields. Admin may view private profile fields only for moderation and support purposes.
+
+Content Rules Updates
+
+Update Content Rules page with:
+
+* Public profile information must be truthful and not misleading
+* No impersonation
+* No stolen photos
+* No harassment
+* No illegal content
+* No underage users
+* No posting someone else’s private information
+* No public street addresses
+* No hate speech
+* No spam
+* HookahDolls may remove profile content that violates rules
+* Public feed posts must be hookah-related
+* Doll premium and verification content must include a visible hookah
+
+Design Direction
+
+Use a Facebook-style social layout but keep the HookahDolls brand:
+
+* Dark luxury hookah lounge aesthetic
+* Smoke gradients
+* Gold and rose-gold accents
+* Glassmorphism cards
+* Rounded profile cards
+* Cover photo header
+* Profile tabs
+* Responsive mobile-first design
+* Clean public profile sections
+* Edit icons next to editable fields
+* Privacy icons next to fields
+
+Suggested UI elements:
+
+* Globe icon for Public
+* Friends icon for Friends
+* Lock icon for Only Me
+* Eye icon for View As
+* Badge icons for Verified Doll, VIP Bro, Featured Doll, Top Supporter
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove existing monetization features.
+
+Do not remove Doll verification.
+
+Do not remove the hookah content rules.
+
+Do not expose verification documents publicly.
+
+Do not expose payment data publicly.
+
+Do not require users to display sensitive fields.
+
+All profile detail fields must be optional.
+
+Every personal detail should have privacy control.
+
+The finished result should make HookahDolls.com feel like a real social network where users have rich profiles, public posts, friends, followers, photos, reels, and privacy controls while still keeping the premium Doll monetization layer intact.

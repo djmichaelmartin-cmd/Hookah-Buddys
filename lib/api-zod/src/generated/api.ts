@@ -1428,6 +1428,7 @@ export const ListFeedPostsResponseItem = zod.object({
   "viewerLiked": zod.boolean().optional(),
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -1445,7 +1446,8 @@ export const CreateFeedPostBody = zod.object({
   "mediaUrl": zod.string().optional(),
   "mediaType": zod.enum(['none', 'image', 'video']).optional(),
   "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
-  "isHookahRelatedConfirmed": zod.boolean()
+  "isHookahRelatedConfirmed": zod.boolean(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional()
 })
 
 
@@ -1479,6 +1481,7 @@ export const GetFeedPostResponse = zod.object({
   "viewerLiked": zod.boolean().optional(),
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -1622,6 +1625,7 @@ export const ListSavedFeedPostsResponseItem = zod.object({
   "viewerLiked": zod.boolean().optional(),
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -1654,6 +1658,7 @@ export const ListLikedFeedPostsResponseItem = zod.object({
   "viewerLiked": zod.boolean().optional(),
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -1686,6 +1691,7 @@ export const ListMyFeedPostsResponseItem = zod.object({
   "viewerLiked": zod.boolean().optional(),
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -1798,6 +1804,7 @@ export const GetBroProfileResponse = zod.object({
   "viewerLiked": zod.boolean().optional(),
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })).optional()
@@ -1889,6 +1896,7 @@ export const ListAdminFeedPostsResponseItem = zod.object({
   "viewerLiked": zod.boolean().optional(),
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -1929,6 +1937,7 @@ export const ModerateFeedPostResponse = zod.object({
   "viewerLiked": zod.boolean().optional(),
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
+  "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -2021,5 +2030,1207 @@ export const GetFeedAnalyticsResponse = zod.object({
   "count": zod.number()
 })).optional()
 })
+
+
+/**
+ * @summary Get a user's enhanced social profile (public preview allowed)
+ */
+export const GetEnhancedProfileParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const GetEnhancedProfileResponse = zod.object({
+  "userId": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "verified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "coverPhotoUrl": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "memberSince": zod.string().optional(),
+  "badges": zod.array(zod.string()).optional(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "friendCount": zod.number(),
+  "postCount": zod.number(),
+  "photoCount": zod.number().optional(),
+  "reelCount": zod.number().optional(),
+  "friendStatus": zod.enum(['none', 'pending_sent', 'pending_received', 'friends', 'blocked', 'self']),
+  "pendingRequestId": zod.number().nullish(),
+  "viewerFollows": zod.boolean().optional(),
+  "viewerBlocked": zod.boolean().optional(),
+  "mutualFriendCount": zod.number().optional(),
+  "canViewFriends": zod.boolean().optional(),
+  "details": zod.object({
+  "coverPhotoUrl": zod.string().nullish(),
+  "livesInCity": zod.string().nullish(),
+  "livesInState": zod.string().nullish(),
+  "fromCity": zod.string().nullish(),
+  "fromState": zod.string().nullish(),
+  "birthMonth": zod.number().nullish(),
+  "birthDay": zod.number().nullish(),
+  "birthYear": zod.number().nullish(),
+  "gender": zod.string().nullish(),
+  "languagesSpoken": zod.string().nullish(),
+  "hairColor": zod.string().nullish(),
+  "eyeColor": zod.string().nullish(),
+  "ethnicity": zod.string().nullish(),
+  "bodyType": zod.string().nullish(),
+  "height": zod.string().nullish(),
+  "relationshipStatus": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "education": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "websiteUrl": zod.string().nullish(),
+  "socialLinks": zod.record(zod.string(), zod.string()).nullish(),
+  "favoriteHookahFlavor": zod.string().nullish(),
+  "favoriteHookahLounge": zod.string().nullish(),
+  "favoriteHookahBrand": zod.string().nullish(),
+  "favoriteHookahSetup": zod.string().nullish(),
+  "hookahExperienceLevel": zod.string().nullish(),
+  "preferredHookahStyle": zod.string().nullish(),
+  "favoriteSmokeSessionVibe": zod.string().nullish(),
+  "favoriteHookahAccessories": zod.string().nullish(),
+  "openToLoungeMeetups": zod.string().nullish(),
+  "favoriteLoungeCity": zod.string().nullish(),
+  "interests": zod.array(zod.string()).optional()
+}).optional()
+})
+
+
+/**
+ * @summary Get a user's profile exactly as an anonymous visitor sees it (View As Public)
+ */
+export const GetEnhancedProfileAsPublicParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const GetEnhancedProfileAsPublicResponse = zod.object({
+  "userId": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "verified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "coverPhotoUrl": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "memberSince": zod.string().optional(),
+  "badges": zod.array(zod.string()).optional(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "friendCount": zod.number(),
+  "postCount": zod.number(),
+  "photoCount": zod.number().optional(),
+  "reelCount": zod.number().optional(),
+  "friendStatus": zod.enum(['none', 'pending_sent', 'pending_received', 'friends', 'blocked', 'self']),
+  "pendingRequestId": zod.number().nullish(),
+  "viewerFollows": zod.boolean().optional(),
+  "viewerBlocked": zod.boolean().optional(),
+  "mutualFriendCount": zod.number().optional(),
+  "canViewFriends": zod.boolean().optional(),
+  "details": zod.object({
+  "coverPhotoUrl": zod.string().nullish(),
+  "livesInCity": zod.string().nullish(),
+  "livesInState": zod.string().nullish(),
+  "fromCity": zod.string().nullish(),
+  "fromState": zod.string().nullish(),
+  "birthMonth": zod.number().nullish(),
+  "birthDay": zod.number().nullish(),
+  "birthYear": zod.number().nullish(),
+  "gender": zod.string().nullish(),
+  "languagesSpoken": zod.string().nullish(),
+  "hairColor": zod.string().nullish(),
+  "eyeColor": zod.string().nullish(),
+  "ethnicity": zod.string().nullish(),
+  "bodyType": zod.string().nullish(),
+  "height": zod.string().nullish(),
+  "relationshipStatus": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "education": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "websiteUrl": zod.string().nullish(),
+  "socialLinks": zod.record(zod.string(), zod.string()).nullish(),
+  "favoriteHookahFlavor": zod.string().nullish(),
+  "favoriteHookahLounge": zod.string().nullish(),
+  "favoriteHookahBrand": zod.string().nullish(),
+  "favoriteHookahSetup": zod.string().nullish(),
+  "hookahExperienceLevel": zod.string().nullish(),
+  "preferredHookahStyle": zod.string().nullish(),
+  "favoriteSmokeSessionVibe": zod.string().nullish(),
+  "favoriteHookahAccessories": zod.string().nullish(),
+  "openToLoungeMeetups": zod.string().nullish(),
+  "favoriteLoungeCity": zod.string().nullish(),
+  "interests": zod.array(zod.string()).optional()
+}).optional()
+})
+
+
+/**
+ * @summary Record a profile view
+ */
+export const RecordProfileViewParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get own profile details, field privacy, and interests for editing
+ */
+export const GetMyProfileResponse = zod.object({
+  "userId": zod.number(),
+  "name": zod.string().optional(),
+  "username": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "details": zod.object({
+  "coverPhotoUrl": zod.string().nullish(),
+  "livesInCity": zod.string().nullish(),
+  "livesInState": zod.string().nullish(),
+  "fromCity": zod.string().nullish(),
+  "fromState": zod.string().nullish(),
+  "birthMonth": zod.number().nullish(),
+  "birthDay": zod.number().nullish(),
+  "birthYear": zod.number().nullish(),
+  "gender": zod.string().nullish(),
+  "languagesSpoken": zod.string().nullish(),
+  "hairColor": zod.string().nullish(),
+  "eyeColor": zod.string().nullish(),
+  "ethnicity": zod.string().nullish(),
+  "bodyType": zod.string().nullish(),
+  "height": zod.string().nullish(),
+  "relationshipStatus": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "education": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "websiteUrl": zod.string().nullish(),
+  "socialLinks": zod.record(zod.string(), zod.string()).nullish(),
+  "favoriteHookahFlavor": zod.string().nullish(),
+  "favoriteHookahLounge": zod.string().nullish(),
+  "favoriteHookahBrand": zod.string().nullish(),
+  "favoriteHookahSetup": zod.string().nullish(),
+  "hookahExperienceLevel": zod.string().nullish(),
+  "preferredHookahStyle": zod.string().nullish(),
+  "favoriteSmokeSessionVibe": zod.string().nullish(),
+  "favoriteHookahAccessories": zod.string().nullish(),
+  "openToLoungeMeetups": zod.string().nullish(),
+  "favoriteLoungeCity": zod.string().nullish(),
+  "interests": zod.array(zod.string()).optional()
+}),
+  "fieldPrivacy": zod.array(zod.object({
+  "fieldName": zod.string(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me'])
+})),
+  "profileCompletion": zod.object({
+  "percent": zod.number(),
+  "missing": zod.array(zod.string())
+}).optional()
+})
+
+
+/**
+ * @summary Update own profile details, field privacy, and interests
+ */
+export const UpdateMyProfileBody = zod.object({
+  "name": zod.string().optional(),
+  "username": zod.string().optional(),
+  "profilePhotoUrl": zod.string().optional(),
+  "details": zod.object({
+  "coverPhotoUrl": zod.string().nullish(),
+  "livesInCity": zod.string().nullish(),
+  "livesInState": zod.string().nullish(),
+  "fromCity": zod.string().nullish(),
+  "fromState": zod.string().nullish(),
+  "birthMonth": zod.number().nullish(),
+  "birthDay": zod.number().nullish(),
+  "birthYear": zod.number().nullish(),
+  "gender": zod.string().nullish(),
+  "languagesSpoken": zod.string().nullish(),
+  "hairColor": zod.string().nullish(),
+  "eyeColor": zod.string().nullish(),
+  "ethnicity": zod.string().nullish(),
+  "bodyType": zod.string().nullish(),
+  "height": zod.string().nullish(),
+  "relationshipStatus": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "education": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "websiteUrl": zod.string().nullish(),
+  "socialLinks": zod.record(zod.string(), zod.string()).nullish(),
+  "favoriteHookahFlavor": zod.string().nullish(),
+  "favoriteHookahLounge": zod.string().nullish(),
+  "favoriteHookahBrand": zod.string().nullish(),
+  "favoriteHookahSetup": zod.string().nullish(),
+  "hookahExperienceLevel": zod.string().nullish(),
+  "preferredHookahStyle": zod.string().nullish(),
+  "favoriteSmokeSessionVibe": zod.string().nullish(),
+  "favoriteHookahAccessories": zod.string().nullish(),
+  "openToLoungeMeetups": zod.string().nullish(),
+  "favoriteLoungeCity": zod.string().nullish(),
+  "interests": zod.array(zod.string()).optional()
+}).optional(),
+  "fieldPrivacy": zod.array(zod.object({
+  "fieldName": zod.string(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me'])
+})).optional()
+})
+
+export const UpdateMyProfileResponse = zod.object({
+  "userId": zod.number(),
+  "name": zod.string().optional(),
+  "username": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "details": zod.object({
+  "coverPhotoUrl": zod.string().nullish(),
+  "livesInCity": zod.string().nullish(),
+  "livesInState": zod.string().nullish(),
+  "fromCity": zod.string().nullish(),
+  "fromState": zod.string().nullish(),
+  "birthMonth": zod.number().nullish(),
+  "birthDay": zod.number().nullish(),
+  "birthYear": zod.number().nullish(),
+  "gender": zod.string().nullish(),
+  "languagesSpoken": zod.string().nullish(),
+  "hairColor": zod.string().nullish(),
+  "eyeColor": zod.string().nullish(),
+  "ethnicity": zod.string().nullish(),
+  "bodyType": zod.string().nullish(),
+  "height": zod.string().nullish(),
+  "relationshipStatus": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "education": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "websiteUrl": zod.string().nullish(),
+  "socialLinks": zod.record(zod.string(), zod.string()).nullish(),
+  "favoriteHookahFlavor": zod.string().nullish(),
+  "favoriteHookahLounge": zod.string().nullish(),
+  "favoriteHookahBrand": zod.string().nullish(),
+  "favoriteHookahSetup": zod.string().nullish(),
+  "hookahExperienceLevel": zod.string().nullish(),
+  "preferredHookahStyle": zod.string().nullish(),
+  "favoriteSmokeSessionVibe": zod.string().nullish(),
+  "favoriteHookahAccessories": zod.string().nullish(),
+  "openToLoungeMeetups": zod.string().nullish(),
+  "favoriteLoungeCity": zod.string().nullish(),
+  "interests": zod.array(zod.string()).optional()
+}),
+  "fieldPrivacy": zod.array(zod.object({
+  "fieldName": zod.string(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me'])
+})),
+  "profileCompletion": zod.object({
+  "percent": zod.number(),
+  "missing": zod.array(zod.string())
+}).optional()
+})
+
+
+/**
+ * @summary Get own privacy settings
+ */
+export const GetPrivacySettingsResponse = zod.object({
+  "defaultPostAudience": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "showFriendsList": zod.enum(['public', 'friends', 'only_me']),
+  "showFollowersList": zod.enum(['public', 'friends', 'only_me']),
+  "allowFriendRequestsFrom": zod.enum(['everyone', 'friends_of_friends', 'no_one']),
+  "allowMessagesFrom": zod.enum(['everyone', 'friends', 'no_one']),
+  "allowTagging": zod.enum(['everyone', 'friends', 'no_one']),
+  "requireTagReview": zod.boolean(),
+  "allowSearchByEmail": zod.enum(['everyone', 'friends', 'no_one']),
+  "allowSearchByPhone": zod.enum(['everyone', 'friends', 'no_one']),
+  "allowExternalSearchIndexing": zod.boolean()
+})
+
+
+/**
+ * @summary Update own privacy settings
+ */
+export const UpdatePrivacySettingsBody = zod.object({
+  "defaultPostAudience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "showFriendsList": zod.enum(['public', 'friends', 'only_me']).optional(),
+  "showFollowersList": zod.enum(['public', 'friends', 'only_me']).optional(),
+  "allowFriendRequestsFrom": zod.enum(['everyone', 'friends_of_friends', 'no_one']).optional(),
+  "allowMessagesFrom": zod.enum(['everyone', 'friends', 'no_one']).optional(),
+  "allowTagging": zod.enum(['everyone', 'friends', 'no_one']).optional(),
+  "requireTagReview": zod.boolean().optional(),
+  "allowSearchByEmail": zod.enum(['everyone', 'friends', 'no_one']).optional(),
+  "allowSearchByPhone": zod.enum(['everyone', 'friends', 'no_one']).optional(),
+  "allowExternalSearchIndexing": zod.boolean().optional()
+})
+
+export const UpdatePrivacySettingsResponse = zod.object({
+  "defaultPostAudience": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "showFriendsList": zod.enum(['public', 'friends', 'only_me']),
+  "showFollowersList": zod.enum(['public', 'friends', 'only_me']),
+  "allowFriendRequestsFrom": zod.enum(['everyone', 'friends_of_friends', 'no_one']),
+  "allowMessagesFrom": zod.enum(['everyone', 'friends', 'no_one']),
+  "allowTagging": zod.enum(['everyone', 'friends', 'no_one']),
+  "requireTagReview": zod.boolean(),
+  "allowSearchByEmail": zod.enum(['everyone', 'friends', 'no_one']),
+  "allowSearchByPhone": zod.enum(['everyone', 'friends', 'no_one']),
+  "allowExternalSearchIndexing": zod.boolean()
+})
+
+
+/**
+ * @summary List incoming and outgoing pending friend requests
+ */
+export const ListFriendRequestsResponse = zod.object({
+  "incoming": zod.array(zod.object({
+  "id": zod.number(),
+  "senderId": zod.number(),
+  "receiverId": zod.number(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'cancelled']),
+  "senderName": zod.string().optional(),
+  "senderPhotoUrl": zod.string().nullish(),
+  "senderRole": zod.string().optional(),
+  "receiverName": zod.string().optional(),
+  "receiverPhotoUrl": zod.string().nullish(),
+  "receiverRole": zod.string().optional(),
+  "mutualFriendCount": zod.number().optional(),
+  "createdAt": zod.string()
+})),
+  "outgoing": zod.array(zod.object({
+  "id": zod.number(),
+  "senderId": zod.number(),
+  "receiverId": zod.number(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'cancelled']),
+  "senderName": zod.string().optional(),
+  "senderPhotoUrl": zod.string().nullish(),
+  "senderRole": zod.string().optional(),
+  "receiverName": zod.string().optional(),
+  "receiverPhotoUrl": zod.string().nullish(),
+  "receiverRole": zod.string().optional(),
+  "mutualFriendCount": zod.number().optional(),
+  "createdAt": zod.string()
+}))
+})
+
+
+/**
+ * @summary Send a friend request
+ */
+export const SendFriendRequestBody = zod.object({
+  "receiverId": zod.number()
+})
+
+
+/**
+ * @summary Accept, decline, or cancel a friend request
+ */
+export const RespondFriendRequestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RespondFriendRequestBody = zod.object({
+  "action": zod.enum(['accept', 'decline', 'cancel'])
+})
+
+export const RespondFriendRequestResponse = zod.object({
+  "id": zod.number(),
+  "senderId": zod.number(),
+  "receiverId": zod.number(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'cancelled']),
+  "senderName": zod.string().optional(),
+  "senderPhotoUrl": zod.string().nullish(),
+  "senderRole": zod.string().optional(),
+  "receiverName": zod.string().optional(),
+  "receiverPhotoUrl": zod.string().nullish(),
+  "receiverRole": zod.string().optional(),
+  "mutualFriendCount": zod.number().optional(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List a user's friends (privacy-controlled)
+ */
+export const ListFriendsQueryParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ListFriendsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "profilePhotoUrl": zod.string().nullish(),
+  "verified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "viewerFollows": zod.boolean().optional()
+})
+export const ListFriendsResponse = zod.array(ListFriendsResponseItem)
+
+
+/**
+ * @summary List mutual friends with another user
+ */
+export const ListMutualFriendsParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ListMutualFriendsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "profilePhotoUrl": zod.string().nullish(),
+  "verified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "viewerFollows": zod.boolean().optional()
+})
+export const ListMutualFriendsResponse = zod.array(ListMutualFriendsResponseItem)
+
+
+/**
+ * @summary Remove a friend
+ */
+export const UnfriendUserParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Block or unblock a user (toggle)
+ */
+export const ToggleBlockUserParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ToggleBlockUserResponse = zod.object({
+  "blocked": zod.boolean()
+})
+
+
+/**
+ * @summary List users I have blocked
+ */
+export const ListBlockedUsersResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "profilePhotoUrl": zod.string().nullish(),
+  "verified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "viewerFollows": zod.boolean().optional()
+})
+export const ListBlockedUsersResponse = zod.array(ListBlockedUsersResponseItem)
+
+
+/**
+ * @summary List a user's photo albums (privacy-controlled)
+ */
+export const ListAlbumsQueryParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ListAlbumsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "albumType": zod.enum(['profile_pictures', 'cover_photos', 'feed_photos', 'hookah_setups', 'lounge_nights', 'events', 'custom']),
+  "photoCount": zod.number(),
+  "coverImageUrl": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListAlbumsResponse = zod.array(ListAlbumsResponseItem)
+
+
+/**
+ * @summary Create a photo album
+ */
+
+
+
+export const CreateAlbumBody = zod.object({
+  "title": zod.string().min(1),
+  "description": zod.string().optional(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "albumType": zod.enum(['profile_pictures', 'cover_photos', 'feed_photos', 'hookah_setups', 'lounge_nights', 'events', 'custom']).optional()
+})
+
+
+/**
+ * @summary List photos in an album (privacy-controlled)
+ */
+export const ListAlbumPhotosParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListAlbumPhotosResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "albumId": zod.number(),
+  "albumTitle": zod.string().optional(),
+  "imageUrl": zod.string(),
+  "caption": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "viewerLiked": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+export const ListAlbumPhotosResponse = zod.array(ListAlbumPhotosResponseItem)
+
+
+/**
+ * @summary Add a photo to an album
+ */
+export const UploadPhotoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const UploadPhotoBody = zod.object({
+  "imageUrl": zod.string().min(1),
+  "caption": zod.string().optional(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional()
+})
+
+
+/**
+ * @summary List all visible photos for a user across albums
+ */
+export const ListUserPhotosQueryParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ListUserPhotosResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "albumId": zod.number(),
+  "albumTitle": zod.string().optional(),
+  "imageUrl": zod.string(),
+  "caption": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "viewerLiked": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+export const ListUserPhotosResponse = zod.array(ListUserPhotosResponseItem)
+
+
+/**
+ * @summary Delete own photo (or any as Admin)
+ */
+export const DeletePhotoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Like or unlike a photo (toggle)
+ */
+export const TogglePhotoLikeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const TogglePhotoLikeResponse = zod.object({
+  "liked": zod.boolean(),
+  "likeCount": zod.number()
+})
+
+
+/**
+ * @summary List comments on a photo
+ */
+export const ListPhotoCommentsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListPhotoCommentsResponseItem = zod.object({
+  "id": zod.number(),
+  "postId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userVerified": zod.boolean().optional(),
+  "commentText": zod.string(),
+  "status": zod.enum(['active', 'removed']).optional(),
+  "createdAt": zod.string()
+})
+export const ListPhotoCommentsResponse = zod.array(ListPhotoCommentsResponseItem)
+
+
+/**
+ * @summary Comment on a photo
+ */
+export const CreatePhotoCommentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const CreatePhotoCommentBody = zod.object({
+  "commentText": zod.string().min(1)
+})
+
+
+/**
+ * @summary Report a photo
+ */
+export const ReportPhotoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const ReportPhotoBody = zod.object({
+  "reason": zod.string().min(1),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Browse reels (public preview allowed)
+ */
+export const ListReelsQueryParams = zod.object({
+  "userId": zod.coerce.number().optional(),
+  "category": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListReelsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "videoUrl": zod.string(),
+  "thumbnailUrl": zod.string().nullish(),
+  "caption": zod.string().nullish(),
+  "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
+  "hashtags": zod.array(zod.string()).optional(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "viewCount": zod.number(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+export const ListReelsResponse = zod.array(ListReelsResponseItem)
+
+
+/**
+ * @summary Upload a reel
+ */
+
+
+
+export const CreateReelBody = zod.object({
+  "videoUrl": zod.string().min(1),
+  "thumbnailUrl": zod.string().optional(),
+  "caption": zod.string().optional(),
+  "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
+  "hashtags": zod.array(zod.string()).optional(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "isHookahRelatedConfirmed": zod.boolean()
+})
+
+
+/**
+ * @summary Get a single reel
+ */
+export const GetReelParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetReelResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "videoUrl": zod.string(),
+  "thumbnailUrl": zod.string().nullish(),
+  "caption": zod.string().nullish(),
+  "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
+  "hashtags": zod.array(zod.string()).optional(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "viewCount": zod.number(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete own reel (or any as Admin)
+ */
+export const DeleteReelParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Like or unlike a reel (toggle)
+ */
+export const ToggleReelLikeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ToggleReelLikeResponse = zod.object({
+  "liked": zod.boolean(),
+  "likeCount": zod.number()
+})
+
+
+/**
+ * @summary Save or unsave a reel (toggle)
+ */
+export const ToggleReelSaveParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ToggleReelSaveResponse = zod.object({
+  "saved": zod.boolean(),
+  "saveCount": zod.number()
+})
+
+
+/**
+ * @summary Record a reel view
+ */
+export const RecordReelViewParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Report a reel
+ */
+export const ReportReelParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const ReportReelBody = zod.object({
+  "reason": zod.string().min(1),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary List comments on a reel
+ */
+export const ListReelCommentsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListReelCommentsResponseItem = zod.object({
+  "id": zod.number(),
+  "postId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userVerified": zod.boolean().optional(),
+  "commentText": zod.string(),
+  "status": zod.enum(['active', 'removed']).optional(),
+  "createdAt": zod.string()
+})
+export const ListReelCommentsResponse = zod.array(ListReelCommentsResponseItem)
+
+
+/**
+ * @summary Comment on a reel
+ */
+export const CreateReelCommentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const CreateReelCommentBody = zod.object({
+  "commentText": zod.string().min(1)
+})
+
+
+/**
+ * @summary Delete own reel comment (or any as Admin)
+ */
+export const DeleteReelCommentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List approved tags for a user
+ */
+export const ListUserTagsQueryParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ListUserTagsResponseItem = zod.object({
+  "id": zod.number(),
+  "taggedUserId": zod.number(),
+  "taggedUserName": zod.string().optional(),
+  "taggedByUserId": zod.number(),
+  "taggedByUserName": zod.string().optional(),
+  "relatedType": zod.enum(['post', 'photo', 'reel']),
+  "relatedId": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'removed']),
+  "createdAt": zod.string()
+})
+export const ListUserTagsResponse = zod.array(ListUserTagsResponseItem)
+
+
+/**
+ * @summary Tag a user in a post, photo, or reel
+ */
+export const CreateUserTagBody = zod.object({
+  "taggedUserId": zod.number(),
+  "relatedType": zod.enum(['post', 'photo', 'reel']),
+  "relatedId": zod.number()
+})
+
+
+/**
+ * @summary List tags awaiting my review
+ */
+export const ListPendingUserTagsResponseItem = zod.object({
+  "id": zod.number(),
+  "taggedUserId": zod.number(),
+  "taggedUserName": zod.string().optional(),
+  "taggedByUserId": zod.number(),
+  "taggedByUserName": zod.string().optional(),
+  "relatedType": zod.enum(['post', 'photo', 'reel']),
+  "relatedId": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'removed']),
+  "createdAt": zod.string()
+})
+export const ListPendingUserTagsResponse = zod.array(ListPendingUserTagsResponseItem)
+
+
+/**
+ * @summary Approve or remove a tag on me
+ */
+export const ReviewUserTagParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReviewUserTagBody = zod.object({
+  "action": zod.enum(['approve', 'remove'])
+})
+
+export const ReviewUserTagResponse = zod.object({
+  "id": zod.number(),
+  "taggedUserId": zod.number(),
+  "taggedUserName": zod.string().optional(),
+  "taggedByUserId": zod.number(),
+  "taggedByUserName": zod.string().optional(),
+  "relatedType": zod.enum(['post', 'photo', 'reel']),
+  "relatedId": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'removed']),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List all photos for moderation (Admin)
+ */
+export const ListAdminPhotosQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
+})
+
+export const ListAdminPhotosResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "albumId": zod.number(),
+  "albumTitle": zod.string().optional(),
+  "imageUrl": zod.string(),
+  "caption": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "viewerLiked": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+export const ListAdminPhotosResponse = zod.array(ListAdminPhotosResponseItem)
+
+
+/**
+ * @summary Moderate a photo (Admin)
+ */
+export const ModeratePhotoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ModeratePhotoBody = zod.object({
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review'])
+})
+
+export const ModeratePhotoResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "albumId": zod.number(),
+  "albumTitle": zod.string().optional(),
+  "imageUrl": zod.string(),
+  "caption": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "viewerLiked": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List all reels for moderation (Admin)
+ */
+export const ListAdminReelsQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
+})
+
+export const ListAdminReelsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "videoUrl": zod.string(),
+  "thumbnailUrl": zod.string().nullish(),
+  "caption": zod.string().nullish(),
+  "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
+  "hashtags": zod.array(zod.string()).optional(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "viewCount": zod.number(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+export const ListAdminReelsResponse = zod.array(ListAdminReelsResponseItem)
+
+
+/**
+ * @summary Moderate a reel (Admin)
+ */
+export const ModerateReelParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ModerateReelBody = zod.object({
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review'])
+})
+
+export const ModerateReelResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "videoUrl": zod.string(),
+  "thumbnailUrl": zod.string().nullish(),
+  "caption": zod.string().nullish(),
+  "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
+  "hashtags": zod.array(zod.string()).optional(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "viewCount": zod.number(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary View a user's full profile details for moderation (Admin)
+ */
+export const GetAdminProfileParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const GetAdminProfileResponse = zod.object({
+  "userId": zod.number(),
+  "name": zod.string().optional(),
+  "username": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "details": zod.object({
+  "coverPhotoUrl": zod.string().nullish(),
+  "livesInCity": zod.string().nullish(),
+  "livesInState": zod.string().nullish(),
+  "fromCity": zod.string().nullish(),
+  "fromState": zod.string().nullish(),
+  "birthMonth": zod.number().nullish(),
+  "birthDay": zod.number().nullish(),
+  "birthYear": zod.number().nullish(),
+  "gender": zod.string().nullish(),
+  "languagesSpoken": zod.string().nullish(),
+  "hairColor": zod.string().nullish(),
+  "eyeColor": zod.string().nullish(),
+  "ethnicity": zod.string().nullish(),
+  "bodyType": zod.string().nullish(),
+  "height": zod.string().nullish(),
+  "relationshipStatus": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "education": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "websiteUrl": zod.string().nullish(),
+  "socialLinks": zod.record(zod.string(), zod.string()).nullish(),
+  "favoriteHookahFlavor": zod.string().nullish(),
+  "favoriteHookahLounge": zod.string().nullish(),
+  "favoriteHookahBrand": zod.string().nullish(),
+  "favoriteHookahSetup": zod.string().nullish(),
+  "hookahExperienceLevel": zod.string().nullish(),
+  "preferredHookahStyle": zod.string().nullish(),
+  "favoriteSmokeSessionVibe": zod.string().nullish(),
+  "favoriteHookahAccessories": zod.string().nullish(),
+  "openToLoungeMeetups": zod.string().nullish(),
+  "favoriteLoungeCity": zod.string().nullish(),
+  "interests": zod.array(zod.string()).optional()
+}),
+  "fieldPrivacy": zod.array(zod.object({
+  "fieldName": zod.string(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me'])
+})),
+  "profileCompletion": zod.object({
+  "percent": zod.number(),
+  "missing": zod.array(zod.string())
+}).optional()
+})
+
+
+/**
+ * @summary Clear inappropriate profile fields (Admin)
+ */
+export const ClearProfileFieldsParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ClearProfileFieldsBody = zod.object({
+  "clearFields": zod.array(zod.string())
+})
+
+export const ClearProfileFieldsResponse = zod.object({
+  "userId": zod.number(),
+  "name": zod.string().optional(),
+  "username": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "details": zod.object({
+  "coverPhotoUrl": zod.string().nullish(),
+  "livesInCity": zod.string().nullish(),
+  "livesInState": zod.string().nullish(),
+  "fromCity": zod.string().nullish(),
+  "fromState": zod.string().nullish(),
+  "birthMonth": zod.number().nullish(),
+  "birthDay": zod.number().nullish(),
+  "birthYear": zod.number().nullish(),
+  "gender": zod.string().nullish(),
+  "languagesSpoken": zod.string().nullish(),
+  "hairColor": zod.string().nullish(),
+  "eyeColor": zod.string().nullish(),
+  "ethnicity": zod.string().nullish(),
+  "bodyType": zod.string().nullish(),
+  "height": zod.string().nullish(),
+  "relationshipStatus": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "education": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "websiteUrl": zod.string().nullish(),
+  "socialLinks": zod.record(zod.string(), zod.string()).nullish(),
+  "favoriteHookahFlavor": zod.string().nullish(),
+  "favoriteHookahLounge": zod.string().nullish(),
+  "favoriteHookahBrand": zod.string().nullish(),
+  "favoriteHookahSetup": zod.string().nullish(),
+  "hookahExperienceLevel": zod.string().nullish(),
+  "preferredHookahStyle": zod.string().nullish(),
+  "favoriteSmokeSessionVibe": zod.string().nullish(),
+  "favoriteHookahAccessories": zod.string().nullish(),
+  "openToLoungeMeetups": zod.string().nullish(),
+  "favoriteLoungeCity": zod.string().nullish(),
+  "interests": zod.array(zod.string()).optional()
+}),
+  "fieldPrivacy": zod.array(zod.object({
+  "fieldName": zod.string(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me'])
+})),
+  "profileCompletion": zod.object({
+  "percent": zod.number(),
+  "missing": zod.array(zod.string())
+}).optional()
+})
+
+
+/**
+ * @summary List all user blocks (Admin)
+ */
+export const ListAdminBlocksResponseItem = zod.object({
+  "id": zod.number(),
+  "blockerId": zod.number(),
+  "blockerName": zod.string().optional(),
+  "blockedUserId": zod.number(),
+  "blockedUserName": zod.string().optional(),
+  "createdAt": zod.string()
+})
+export const ListAdminBlocksResponse = zod.array(ListAdminBlocksResponseItem)
 
 
