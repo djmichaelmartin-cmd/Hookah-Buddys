@@ -1395,3 +1395,631 @@ export const GetMemberProfileResponse = zod.object({
 })
 
 
+/**
+ * @summary Browse the public hookah feed (public preview allowed)
+ */
+export const ListFeedPostsQueryParams = zod.object({
+  "filter": zod.enum(['trending', 'new', 'nearby', 'dolls', 'bros', 'lounges', 'events']).optional(),
+  "category": zod.coerce.string().optional(),
+  "userId": zod.coerce.number().optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListFeedPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListFeedPostsResponse = zod.array(ListFeedPostsResponseItem)
+
+
+/**
+ * @summary Create a feed post (logged-in users)
+ */
+
+
+
+export const CreateFeedPostBody = zod.object({
+  "text": zod.string().min(1),
+  "mediaUrl": zod.string().optional(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "isHookahRelatedConfirmed": zod.boolean()
+})
+
+
+/**
+ * @summary Get a single feed post
+ */
+export const GetFeedPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetFeedPostResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete own post (or any post as Admin)
+ */
+export const DeleteFeedPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Like or unlike a post
+ */
+export const ToggleFeedPostLikeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ToggleFeedPostLikeResponse = zod.object({
+  "liked": zod.boolean(),
+  "likeCount": zod.number()
+})
+
+
+/**
+ * @summary Save or unsave a post
+ */
+export const ToggleFeedPostSaveParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ToggleFeedPostSaveResponse = zod.object({
+  "saved": zod.boolean(),
+  "saveCount": zod.number()
+})
+
+
+/**
+ * @summary Report a post
+ */
+export const ReportFeedPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const ReportFeedPostBody = zod.object({
+  "reason": zod.string().min(1),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary List comments on a post
+ */
+export const ListFeedCommentsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListFeedCommentsResponseItem = zod.object({
+  "id": zod.number(),
+  "postId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userVerified": zod.boolean().optional(),
+  "commentText": zod.string(),
+  "status": zod.enum(['active', 'removed']).optional(),
+  "createdAt": zod.string()
+})
+export const ListFeedCommentsResponse = zod.array(ListFeedCommentsResponseItem)
+
+
+/**
+ * @summary Comment on a post
+ */
+export const CreateFeedCommentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const CreateFeedCommentBody = zod.object({
+  "commentText": zod.string().min(1)
+})
+
+
+/**
+ * @summary Delete own comment (or any comment as Admin)
+ */
+export const DeleteFeedCommentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Report a comment
+ */
+export const ReportFeedCommentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const ReportFeedCommentBody = zod.object({
+  "reason": zod.string().min(1),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary List posts saved by the current user
+ */
+export const ListSavedFeedPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListSavedFeedPostsResponse = zod.array(ListSavedFeedPostsResponseItem)
+
+
+/**
+ * @summary List posts liked by the current user
+ */
+export const ListLikedFeedPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListLikedFeedPostsResponse = zod.array(ListLikedFeedPostsResponseItem)
+
+
+/**
+ * @summary List the current user's posts (any status)
+ */
+export const ListMyFeedPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListMyFeedPostsResponse = zod.array(ListMyFeedPostsResponseItem)
+
+
+/**
+ * @summary Feed engagement stats for the current user
+ */
+export const GetMyFeedStatsResponse = zod.object({
+  "postCount": zod.number(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "likesReceived": zod.number(),
+  "commentsReceived": zod.number(),
+  "savedCount": zod.number(),
+  "likesGiven": zod.number().optional()
+})
+
+
+/**
+ * @summary Follow or unfollow a user
+ */
+export const ToggleFollowParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ToggleFollowResponse = zod.object({
+  "following": zod.boolean(),
+  "followerCount": zod.number()
+})
+
+
+/**
+ * @summary List followers or following for a user
+ */
+export const ListFollowsQueryParams = zod.object({
+  "userId": zod.coerce.number(),
+  "direction": zod.enum(['followers', 'following'])
+})
+
+export const ListFollowsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "profilePhotoUrl": zod.string().nullish(),
+  "verified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "viewerFollows": zod.boolean().optional()
+})
+export const ListFollowsResponse = zod.array(ListFollowsResponseItem)
+
+
+/**
+ * @summary Public Bro community profile
+ */
+export const GetBroProfileParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetBroProfileResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "memberSince": zod.string().optional(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "postCount": zod.number(),
+  "badges": zod.array(zod.enum(['verified_bro', 'vip_bro', 'top_supporter'])).optional(),
+  "viewerFollows": zod.boolean().optional(),
+  "followedDolls": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "profilePhotoUrl": zod.string().nullish(),
+  "verified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "viewerFollows": zod.boolean().optional()
+})).optional(),
+  "posts": zod.array(zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})).optional()
+})
+
+
+/**
+ * @summary List the current user's notifications
+ */
+export const ListNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "relatedUserId": zod.number().nullish(),
+  "relatedPostId": zod.number().nullish(),
+  "relatedCommentId": zod.number().nullish(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
+
+
+/**
+ * @summary Count of unread notifications
+ */
+export const GetUnreadNotificationCountResponse = zod.object({
+  "count": zod.number()
+})
+
+
+/**
+ * @summary Mark a notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "relatedUserId": zod.number().nullish(),
+  "relatedPostId": zod.number().nullish(),
+  "relatedCommentId": zod.number().nullish(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary List all feed posts for moderation (Admin)
+ */
+export const ListAdminFeedPostsQueryParams = zod.object({
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']).optional()
+})
+
+export const ListAdminFeedPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListAdminFeedPostsResponse = zod.array(ListAdminFeedPostsResponseItem)
+
+
+/**
+ * @summary Approve, hide, or remove a post (Admin)
+ */
+export const ModerateFeedPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ModerateFeedPostBody = zod.object({
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review'])
+})
+
+export const ModerateFeedPostResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userRole": zod.enum(['doll', 'member', 'admin']),
+  "userName": zod.string(),
+  "username": zod.string().nullish(),
+  "userPhotoUrl": zod.string().nullish(),
+  "userVerified": zod.boolean().optional(),
+  "dollId": zod.number().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "category": zod.enum(['setup', 'lounge', 'flavor', 'event', 'meme', 'review', 'question', 'discussion']),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "reportCount": zod.number().optional(),
+  "viewerLiked": zod.boolean().optional(),
+  "viewerSaved": zod.boolean().optional(),
+  "viewerFollowsAuthor": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary List feed post/comment reports (Admin)
+ */
+export const ListFeedReportsQueryParams = zod.object({
+  "status": zod.enum(['pending', 'reviewed', 'dismissed', 'action_taken']).optional()
+})
+
+export const ListFeedReportsResponseItem = zod.object({
+  "id": zod.number(),
+  "targetType": zod.enum(['post', 'comment']),
+  "targetId": zod.number(),
+  "postId": zod.number().nullish(),
+  "reporterId": zod.number(),
+  "reporterName": zod.string().optional(),
+  "reason": zod.string(),
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['pending', 'reviewed', 'dismissed', 'action_taken']),
+  "postText": zod.string().nullish(),
+  "commentText": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "reviewedAt": zod.string().nullish()
+})
+export const ListFeedReportsResponse = zod.array(ListFeedReportsResponseItem)
+
+
+/**
+ * @summary Review a feed report (Admin)
+ */
+export const ReviewFeedReportParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReviewFeedReportBody = zod.object({
+  "status": zod.enum(['reviewed', 'dismissed', 'action_taken'])
+})
+
+export const ReviewFeedReportResponse = zod.object({
+  "id": zod.number(),
+  "targetType": zod.enum(['post', 'comment']),
+  "targetId": zod.number(),
+  "postId": zod.number().nullish(),
+  "reporterId": zod.number(),
+  "reporterName": zod.string().optional(),
+  "reason": zod.string(),
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['pending', 'reviewed', 'dismissed', 'action_taken']),
+  "postText": zod.string().nullish(),
+  "commentText": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "reviewedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Feed analytics overview (Admin)
+ */
+export const GetFeedAnalyticsResponse = zod.object({
+  "totalPosts": zod.number(),
+  "newPostsToday": zod.number(),
+  "activeUsers": zod.number(),
+  "totalLikes": zod.number(),
+  "totalComments": zod.number(),
+  "totalReports": zod.number(),
+  "pendingReports": zod.number().optional(),
+  "mostActiveDolls": zod.array(zod.object({
+  "userId": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "profilePhotoUrl": zod.string().nullish(),
+  "postCount": zod.number(),
+  "dollId": zod.number().nullish()
+})).optional(),
+  "mostActiveBros": zod.array(zod.object({
+  "userId": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "profilePhotoUrl": zod.string().nullish(),
+  "postCount": zod.number(),
+  "dollId": zod.number().nullish()
+})).optional(),
+  "trendingCategories": zod.array(zod.object({
+  "category": zod.string(),
+  "count": zod.number()
+})).optional()
+})
+
+

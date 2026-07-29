@@ -27,6 +27,9 @@ import RefundPolicy from "@/pages/RefundPolicy";
 import Contact from "@/pages/Contact";
 import Messages from "@/pages/Messages";
 import VideoChat from "@/pages/VideoChat";
+import Feed from "@/pages/Feed";
+import Notifications from "@/pages/Notifications";
+import BroProfile from "@/pages/BroProfile";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +43,7 @@ function Router() {
       <Route path="/browse" component={Browse} />
       <Route path="/lounges" component={Lounges} />
       <Route path="/dolls/:id" component={DollProfile} />
+      <Route path="/bros/:id" component={BroProfile} />
       <Route path="/members" component={MembersDirectory} />
       <Route path="/members/:id" component={MemberProfile} />
       <Route path="/pricing" component={Pricing} />
@@ -57,6 +61,8 @@ function Router() {
       <Route path="/messages" component={Messages} />
       <Route path="/video-chat" component={VideoChat} />
       <Route path="/video-chat/:id" component={VideoChat} />
+      <Route path="/feed" component={Feed} />
+      <Route path="/notifications" component={Notifications} />
       
       <Route component={NotFound} />
     </Switch>

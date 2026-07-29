@@ -10,7 +10,7 @@ import {
   type CSSProperties,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { useListFeaturedDolls } from "@workspace/api-client-react";
+import { useListFeaturedDolls, useListFeedPosts } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Star,
@@ -29,6 +29,8 @@ import {
   Upload,
 } from "lucide-react";
 
+import { FeedPostCard } from "@/components/FeedPostCard";
+
 const BASE = import.meta.env.BASE_URL;
 const HERO_IMAGES = [1, 2, 3, 4, 5].map((i) => `${BASE}lounge/lounge${i}.png`);
 const N = HERO_IMAGES.length;
@@ -43,6 +45,8 @@ const REVEAL_MS = 1500;
 export default function Home() {
   const { data: featuredDolls } = useListFeaturedDolls();
   const dolls = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl);
+
+  const { data: feedPosts } = useListFeedPosts({ limit: 4, filter: "trending" });
 
   // ---- Featured Dolls marquee ----
   // Repeat the lineup until there are enough tiles to span wide screens, then
@@ -396,19 +400,28 @@ export default function Home() {
               intimate video sessions — tasteful, glamorous, always after dark.
             </p>
             <div className="mt-9 flex flex-col sm:flex-row gap-4">
-              <Link href="/signup/member">
+              <Link href="/feed">
                 <Button
                   size="lg"
                   className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-widest uppercase h-14 px-9 shadow-[0_0_30px_rgba(212,175,55,0.4)] border-none"
                 >
-                  Join as a Member
+                  Explore the Feed
                 </Button>
               </Link>
-              <Link href="/browse">
+              <Link href="/signup/member">
                 <Button
                   size="lg"
                   variant="outline"
                   className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-primary font-semibold tracking-widest uppercase h-14 px-9 backdrop-blur-md bg-white/5"
+                >
+                  Join as a Member
+                </Button>
+              </Link>
+              <Link href="/browse" className="hidden lg:block">
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="w-full sm:w-auto text-white hover:bg-white/10 hover:text-white font-semibold tracking-widest uppercase h-14 px-9"
                 >
                   Browse Dolls
                 </Button>
@@ -589,6 +602,51 @@ export default function Home() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ THE FEED PREVIEW ============ */}
+      <section className="py-24 relative z-10 bg-background/50 border-t border-white/5">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-12">
+            <div className="max-w-2xl">
+              <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">The Community</p>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
+                Explore the Hookah Feed
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                See the latest hookah setups, lounge posts, flavor talk, events, Dolls, Bros, and community conversations.
+              </p>
+            </div>
+            <Link href="/feed">
+              <Button className="rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-8">
+                Explore the Feed <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+
+          {feedPosts && feedPosts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {feedPosts.slice(0, 4).map(post => (
+                <div key={post.id} className="pointer-events-none opacity-80 scale-95 origin-top relative">
+                  <div className="absolute inset-0 z-10 pointer-events-auto cursor-pointer" onClick={() => window.location.href='/feed'} />
+                  <FeedPostCard post={post} onLoginPrompt={() => {}} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-card/30 border border-white/5 rounded-2xl p-12 text-center backdrop-blur-sm">
+              <p className="text-muted-foreground">The lounge is opening up. Posts will appear here soon.</p>
+            </div>
+          )}
+          
+          <div className="mt-12 text-center flex justify-center">
+            <Link href="/feed">
+              <Button size="lg" className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(212,175,55,0.3)] font-semibold px-10 h-14">
+                Join the Conversation
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

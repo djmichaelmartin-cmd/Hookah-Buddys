@@ -23,6 +23,12 @@ export default function ContentRules() {
         <h3>5. Originality</h3>
         <p>Only upload content you own and have the right to share. Stolen or watermarked third-party content is prohibited.</p>
 
+        <h3 className="text-secondary mt-12 pt-8 border-t border-white/10">6. Public Feed Rules</h3>
+        <p>The public feed is the heart of the community. Posts must be hookah-related.</p>
+        <p><strong>Allowed:</strong> Lounges, setups, flavors, events, memes, reviews, photos, videos, discussion.</p>
+        <p><strong>Not Allowed:</strong> Spam, harassment, fake profiles, stolen content, illegal content, underage content, misleading posts.</p>
+        <p className="text-sm text-muted-foreground"><em>Note: While Doll premium and verification content must show a visible hookah, general feed discussion only needs to be hookah-related. All reports are reviewed by administration.</em></p>
+
         <div className="mt-12 flex flex-wrap gap-4 not-prose">
           <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
           <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>

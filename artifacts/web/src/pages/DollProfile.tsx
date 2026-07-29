@@ -14,12 +14,16 @@ import {
   useEstimateVideoChat,
   getEstimateVideoChatQueryKey,
   getGetCreditsQueryKey,
+  useListFeedPosts,
+  getListFeedPostsQueryKey,
   ApiError,
   type Media,
 } from "@workspace/api-client-react";
 import { useParams, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FeedPostCard } from "@/components/FeedPostCard";
 import {
   Dialog,
   DialogContent,
@@ -146,6 +150,13 @@ export default function DollProfile() {
   const { data: videoEstimate } = useEstimateVideoChat(undefined, {
     query: { enabled: isMember, queryKey: getEstimateVideoChatQueryKey() },
   });
+
+  const { data: rawFeedPosts, isLoading: postsLoading } = useListFeedPosts({ filter: "dolls" }, {
+    query: { enabled: true, queryKey: getListFeedPostsQueryKey({ filter: "dolls" }) }
+  });
+  const dollFeedPosts = rawFeedPosts?.filter(p => p.dollId === dollId) ?? [];
+
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
   if (isLoading)
     return (
@@ -292,43 +303,73 @@ export default function DollProfile() {
 
           {/* Main Content */}
           <div className="w-full md:w-2/3 space-y-8">
-            <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6">
-              <h2 className="text-xl font-serif text-white mb-4">About Me</h2>
-              <p className="text-muted-foreground whitespace-pre-wrap">{doll.bio || "No bio provided."}</p>
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Favorite Flavor</p>
-                  <p className="text-white font-medium">{doll.favoriteFlavor || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Experience</p>
-                  <p className="text-white font-medium">{doll.experienceLevel || "N/A"}</p>
-                </div>
-              </div>
-            </div>
+            <Tabs defaultValue="about" className="w-full">
+              <TabsList className="bg-card/50 backdrop-blur-md border border-white/10 w-full justify-start rounded-xl p-1 h-auto mb-6">
+                <TabsTrigger value="about" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white py-2.5 px-6">About & Content</TabsTrigger>
+                <TabsTrigger value="posts" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white py-2.5 px-6">Public Posts <span className="ml-2 bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full">{dollFeedPosts.length}</span></TabsTrigger>
+              </TabsList>
 
-            <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-serif text-white">Content</h2>
-                <span className="text-xs text-muted-foreground">{media.length} items</span>
-              </div>
-
-              {media.length === 0 ? (
-                <p className="text-muted-foreground">No content posted yet.</p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {media.map((m) => (
-                    <MediaTile
-                      key={m.id}
-                      media={m}
-                      stageName={doll.stageName}
-                      onUnlock={() => handleUnlock(m)}
-                      unlocking={unlock.isPending && unlock.variables?.data.mediaId === m.id}
-                    />
-                  ))}
+              <TabsContent value="about" className="space-y-8 mt-0 outline-none">
+                <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6">
+                  <h2 className="text-xl font-serif text-white mb-4">About Me</h2>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{doll.bio || "No bio provided."}</p>
+                  <div className="mt-6 grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Favorite Flavor</p>
+                      <p className="text-white font-medium">{doll.favoriteFlavor || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Experience</p>
+                      <p className="text-white font-medium">{doll.experienceLevel || "N/A"}</p>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
+
+                <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-serif text-white">Content</h2>
+                    <span className="text-xs text-muted-foreground">{media.length} items</span>
+                  </div>
+
+                  {media.length === 0 ? (
+                    <p className="text-muted-foreground">No content posted yet.</p>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {media.map((m) => (
+                        <MediaTile
+                          key={m.id}
+                          media={m}
+                          stageName={doll.stageName}
+                          onUnlock={() => handleUnlock(m)}
+                          unlocking={unlock.isPending && unlock.variables?.data.mediaId === m.id}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="posts" className="space-y-6 mt-0 outline-none">
+                <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-6">
+                  <h2 className="text-xl font-serif text-white mb-2">Community Feed</h2>
+                  <p className="text-sm text-muted-foreground">Public posts by {doll.stageName} on the HookahDolls feed.</p>
+                </div>
+
+                {postsLoading ? (
+                  <div className="text-center text-muted-foreground py-10">Loading posts...</div>
+                ) : dollFeedPosts.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-10 bg-card/30 rounded-xl border border-white/5">
+                    No public posts yet.
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {dollFeedPosts.map(post => (
+                      <FeedPostCard key={post.id} post={post} onLoginPrompt={() => setLoginPromptOpen(true)} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>

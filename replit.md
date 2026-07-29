@@ -48,6 +48,7 @@ A premium, 21+ hookah-themed creator/social platform connecting verified women c
 - Messaging costs credits; premium content unlocks; video chat; profile boosts.
 - Doll & Member dashboards, Doll verification flow, admin moderation dashboard.
 - Pricing/plans for both audiences; legal pages (Terms, Privacy, Content Rules, Refund Policy) and a working Contact form.
+- Public hookah social feed (`/feed`): posts (photo/video, categories, required hookah-related confirmation), likes/comments/saves/reports, follows, notifications (`/notifications` + navbar bell), public Bro profiles (`/bros/:id` with badges), Doll profile posts tab, dashboard feed stats, admin feed moderation + analytics. Logged-out users can preview but not interact. Feed seed: `pnpm --filter @workspace/scripts run seed-feed` (idempotent, run after main seed).
 
 ## Test accounts (seeded)
 

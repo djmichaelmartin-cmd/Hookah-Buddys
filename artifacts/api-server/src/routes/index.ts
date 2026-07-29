@@ -20,6 +20,10 @@ import adminRouter from "./admin";
 import checkoutRouter from "./checkout";
 import contactRouter from "./contact";
 import webhooksRouter from "./webhooks";
+import feedRouter from "./feed";
+import followsRouter from "./follows";
+import notificationsRouter from "./notifications";
+import adminFeedRouter from "./adminFeed";
 
 const router: IRouter = Router();
 
@@ -44,5 +48,9 @@ router.use(adminRouter);
 router.use(checkoutRouter);
 router.use(contactRouter);
 router.use(webhooksRouter);
+router.use(feedRouter);
+router.use(followsRouter);
+router.use(notificationsRouter);
+router.use(adminFeedRouter);
 
 export default router;

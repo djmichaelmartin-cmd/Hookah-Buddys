@@ -947,6 +947,367 @@ export interface CollectStatus {
   error?: string;
 }
 
+export type FeedPostUserRole = typeof FeedPostUserRole[keyof typeof FeedPostUserRole];
+
+
+export const FeedPostUserRole = {
+  doll: 'doll',
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+export type FeedPostMediaType = typeof FeedPostMediaType[keyof typeof FeedPostMediaType];
+
+
+export const FeedPostMediaType = {
+  none: 'none',
+  image: 'image',
+  video: 'video',
+} as const;
+
+export type FeedPostCategory = typeof FeedPostCategory[keyof typeof FeedPostCategory];
+
+
+export const FeedPostCategory = {
+  setup: 'setup',
+  lounge: 'lounge',
+  flavor: 'flavor',
+  event: 'event',
+  meme: 'meme',
+  review: 'review',
+  question: 'question',
+  discussion: 'discussion',
+} as const;
+
+export type FeedPostStatus = typeof FeedPostStatus[keyof typeof FeedPostStatus];
+
+
+export const FeedPostStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+  pending_review: 'pending_review',
+} as const;
+
+export interface FeedPost {
+  id: number;
+  userId: number;
+  userRole: FeedPostUserRole;
+  userName: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  userPhotoUrl?: string | null;
+  userVerified?: boolean;
+  /** @nullable */
+  dollId?: number | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  text: string;
+  /** @nullable */
+  mediaUrl?: string | null;
+  mediaType?: FeedPostMediaType;
+  category: FeedPostCategory;
+  status: FeedPostStatus;
+  likeCount: number;
+  commentCount: number;
+  saveCount: number;
+  reportCount?: number;
+  viewerLiked?: boolean;
+  viewerSaved?: boolean;
+  viewerFollowsAuthor?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type FeedPostInputMediaType = typeof FeedPostInputMediaType[keyof typeof FeedPostInputMediaType];
+
+
+export const FeedPostInputMediaType = {
+  none: 'none',
+  image: 'image',
+  video: 'video',
+} as const;
+
+export type FeedPostInputCategory = typeof FeedPostInputCategory[keyof typeof FeedPostInputCategory];
+
+
+export const FeedPostInputCategory = {
+  setup: 'setup',
+  lounge: 'lounge',
+  flavor: 'flavor',
+  event: 'event',
+  meme: 'meme',
+  review: 'review',
+  question: 'question',
+  discussion: 'discussion',
+} as const;
+
+export interface FeedPostInput {
+  /** @minLength 1 */
+  text: string;
+  mediaUrl?: string;
+  mediaType?: FeedPostInputMediaType;
+  category: FeedPostInputCategory;
+  isHookahRelatedConfirmed: boolean;
+}
+
+export type FeedCommentUserRole = typeof FeedCommentUserRole[keyof typeof FeedCommentUserRole];
+
+
+export const FeedCommentUserRole = {
+  doll: 'doll',
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+export type FeedCommentStatus = typeof FeedCommentStatus[keyof typeof FeedCommentStatus];
+
+
+export const FeedCommentStatus = {
+  active: 'active',
+  removed: 'removed',
+} as const;
+
+export interface FeedComment {
+  id: number;
+  postId: number;
+  userId: number;
+  userName: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  userPhotoUrl?: string | null;
+  userRole: FeedCommentUserRole;
+  userVerified?: boolean;
+  commentText: string;
+  status?: FeedCommentStatus;
+  createdAt: string;
+}
+
+export interface FeedCommentInput {
+  /** @minLength 1 */
+  commentText: string;
+}
+
+export interface FeedReportInput {
+  /** @minLength 1 */
+  reason: string;
+  notes?: string;
+}
+
+export type FeedReportTargetType = typeof FeedReportTargetType[keyof typeof FeedReportTargetType];
+
+
+export const FeedReportTargetType = {
+  post: 'post',
+  comment: 'comment',
+} as const;
+
+export type FeedReportStatus = typeof FeedReportStatus[keyof typeof FeedReportStatus];
+
+
+export const FeedReportStatus = {
+  pending: 'pending',
+  reviewed: 'reviewed',
+  dismissed: 'dismissed',
+  action_taken: 'action_taken',
+} as const;
+
+export interface FeedReport {
+  id: number;
+  targetType: FeedReportTargetType;
+  targetId: number;
+  /** @nullable */
+  postId?: number | null;
+  reporterId: number;
+  reporterName?: string;
+  reason: string;
+  /** @nullable */
+  notes?: string | null;
+  status: FeedReportStatus;
+  /** @nullable */
+  postText?: string | null;
+  /** @nullable */
+  commentText?: string | null;
+  createdAt: string;
+  /** @nullable */
+  reviewedAt?: string | null;
+}
+
+export type FeedReportReviewStatus = typeof FeedReportReviewStatus[keyof typeof FeedReportReviewStatus];
+
+
+export const FeedReportReviewStatus = {
+  reviewed: 'reviewed',
+  dismissed: 'dismissed',
+  action_taken: 'action_taken',
+} as const;
+
+export interface FeedReportReview {
+  status: FeedReportReviewStatus;
+}
+
+export type FeedModerationInputStatus = typeof FeedModerationInputStatus[keyof typeof FeedModerationInputStatus];
+
+
+export const FeedModerationInputStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+  pending_review: 'pending_review',
+} as const;
+
+export interface FeedModerationInput {
+  status: FeedModerationInputStatus;
+}
+
+export interface LikeStatus {
+  liked: boolean;
+  likeCount: number;
+}
+
+export interface SaveStatus {
+  saved: boolean;
+  saveCount: number;
+}
+
+export interface FollowStatus {
+  following: boolean;
+  followerCount: number;
+}
+
+export type FollowUserRole = typeof FollowUserRole[keyof typeof FollowUserRole];
+
+
+export const FollowUserRole = {
+  doll: 'doll',
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+export interface FollowUser {
+  id: number;
+  name: string;
+  /** @nullable */
+  username?: string | null;
+  role: FollowUserRole;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+  verified?: boolean;
+  /** @nullable */
+  dollId?: number | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  viewerFollows?: boolean;
+}
+
+export type BroProfileBadgesItem = typeof BroProfileBadgesItem[keyof typeof BroProfileBadgesItem];
+
+
+export const BroProfileBadgesItem = {
+  verified_bro: 'verified_bro',
+  vip_bro: 'vip_bro',
+  top_supporter: 'top_supporter',
+} as const;
+
+export interface BroProfile {
+  id: number;
+  name: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  /** @nullable */
+  bio?: string | null;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+  memberSince?: string;
+  followerCount: number;
+  followingCount: number;
+  postCount: number;
+  badges?: BroProfileBadgesItem[];
+  viewerFollows?: boolean;
+  followedDolls?: FollowUser[];
+  posts?: FeedPost[];
+}
+
+export interface Notification {
+  id: number;
+  userId: number;
+  type: string;
+  title: string;
+  message: string;
+  /** @nullable */
+  relatedUserId?: number | null;
+  /** @nullable */
+  relatedPostId?: number | null;
+  /** @nullable */
+  relatedCommentId?: number | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface UnreadCount {
+  count: number;
+}
+
+export interface FeedStats {
+  postCount: number;
+  followerCount: number;
+  followingCount: number;
+  likesReceived: number;
+  commentsReceived: number;
+  savedCount: number;
+  likesGiven?: number;
+}
+
+export interface CategoryCount {
+  category: string;
+  count: number;
+}
+
+export type ActivePosterRole = typeof ActivePosterRole[keyof typeof ActivePosterRole];
+
+
+export const ActivePosterRole = {
+  doll: 'doll',
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+export interface ActivePoster {
+  userId: number;
+  name: string;
+  /** @nullable */
+  username?: string | null;
+  role: ActivePosterRole;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+  postCount: number;
+  /** @nullable */
+  dollId?: number | null;
+}
+
+export interface FeedAnalytics {
+  totalPosts: number;
+  newPostsToday: number;
+  activeUsers: number;
+  totalLikes: number;
+  totalComments: number;
+  totalReports: number;
+  pendingReports?: number;
+  mostActiveDolls?: ActivePoster[];
+  mostActiveBros?: ActivePoster[];
+  trendingCategories?: CategoryCount[];
+}
+
 export type ListDollsParams = {
 search?: string;
 city?: string;
@@ -1049,4 +1410,65 @@ search?: string;
 city?: string;
 state?: string;
 };
+
+export type ListFeedPostsParams = {
+filter?: ListFeedPostsFilter;
+category?: string;
+userId?: number;
+limit?: number;
+};
+
+export type ListFeedPostsFilter = typeof ListFeedPostsFilter[keyof typeof ListFeedPostsFilter];
+
+
+export const ListFeedPostsFilter = {
+  trending: 'trending',
+  new: 'new',
+  nearby: 'nearby',
+  dolls: 'dolls',
+  bros: 'bros',
+  lounges: 'lounges',
+  events: 'events',
+} as const;
+
+export type ListFollowsParams = {
+userId: number;
+direction: ListFollowsDirection;
+};
+
+export type ListFollowsDirection = typeof ListFollowsDirection[keyof typeof ListFollowsDirection];
+
+
+export const ListFollowsDirection = {
+  followers: 'followers',
+  following: 'following',
+} as const;
+
+export type ListAdminFeedPostsParams = {
+status?: ListAdminFeedPostsStatus;
+};
+
+export type ListAdminFeedPostsStatus = typeof ListAdminFeedPostsStatus[keyof typeof ListAdminFeedPostsStatus];
+
+
+export const ListAdminFeedPostsStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+  pending_review: 'pending_review',
+} as const;
+
+export type ListFeedReportsParams = {
+status?: ListFeedReportsStatus;
+};
+
+export type ListFeedReportsStatus = typeof ListFeedReportsStatus[keyof typeof ListFeedReportsStatus];
+
+
+export const ListFeedReportsStatus = {
+  pending: 'pending',
+  reviewed: 'reviewed',
+  dismissed: 'dismissed',
+  action_taken: 'action_taken',
+} as const;
 

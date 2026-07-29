@@ -1,10 +1,10 @@
 import { Layout } from "@/components/Layout";
-import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey } from "@workspace/api-client-react";
+import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { RevenueBreakdownItem, DollRevenueShare } from "@workspace/api-client-react";
-import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp } from "lucide-react";
+import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
@@ -53,6 +53,29 @@ export default function AdminDashboard() {
     });
   };
 
+  const { data: feedReports } = useListFeedReports({ status: "pending" });
+  const { data: feedAnalytics } = useGetFeedAnalytics();
+  const { data: allPosts } = useListAdminFeedPosts({});
+  
+  const moderateFeed = useModerateFeedPost({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Post moderated" });
+        queryClient.invalidateQueries({ queryKey: getListAdminFeedPostsQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetFeedAnalyticsQueryKey() });
+      }
+    }
+  });
+
+  const reviewReport = useReviewFeedReport({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Report reviewed" });
+        queryClient.invalidateQueries({ queryKey: getListFeedReportsQueryKey({ status: "pending" }) });
+      }
+    }
+  });
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
@@ -86,10 +109,11 @@ export default function AdminDashboard() {
         <DollRevenueShares dolls={dollRevenue} />
 
         <Tabs defaultValue="applications" className="w-full">
-          <TabsList className="bg-card border border-white/10 mb-6">
+          <TabsList className="bg-card border border-white/10 mb-6 flex flex-wrap h-auto p-1">
             <TabsTrigger value="applications"><Users className="w-4 h-4 mr-2"/> Applications</TabsTrigger>
             <TabsTrigger value="media"><ImageIcon className="w-4 h-4 mr-2"/> Media Moderation</TabsTrigger>
             <TabsTrigger value="verifications"><ShieldCheck className="w-4 h-4 mr-2"/> Verifications</TabsTrigger>
+            <TabsTrigger value="feed"><MessageSquare className="w-4 h-4 mr-2"/> Feed</TabsTrigger>
             <TabsTrigger value="credits"><Coins className="w-4 h-4 mr-2"/> Credits</TabsTrigger>
             <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
           </TabsList>
@@ -182,6 +206,96 @@ export default function AdminDashboard() {
               </div>
             ))}
             {(!verifications || verifications.length === 0) && <p className="text-muted-foreground">No pending verifications.</p>}
+          </TabsContent>
+
+          <TabsContent value="feed" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-card/50 border border-white/10 rounded-xl p-5">
+                <h3 className="text-sm text-muted-foreground mb-1">Total Posts</h3>
+                <p className="text-2xl font-bold text-white">{feedAnalytics?.totalPosts || 0}</p>
+              </div>
+              <div className="bg-card/50 border border-white/10 rounded-xl p-5">
+                <h3 className="text-sm text-muted-foreground mb-1">Total Comments</h3>
+                <p className="text-2xl font-bold text-white">{feedAnalytics?.totalComments || 0}</p>
+              </div>
+              <div className="bg-card/50 border border-white/10 rounded-xl p-5">
+                <h3 className="text-sm text-muted-foreground mb-1">Active Members</h3>
+                <p className="text-2xl font-bold text-white">{feedAnalytics?.activeUsers || 0}</p>
+              </div>
+              <div className="bg-card/50 border border-white/10 rounded-xl p-5">
+                <h3 className="text-sm text-muted-foreground mb-1">Pending Reports</h3>
+                <p className="text-2xl font-bold text-destructive">{feedReports?.length || 0}</p>
+              </div>
+            </div>
+
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-5">
+              <h2 className="text-xl font-serif text-white mb-4 flex items-center gap-2">
+                <Flag className="w-5 h-5 text-destructive" /> Reported Content
+              </h2>
+              {feedReports?.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No pending reports.</p>
+              ) : (
+                <div className="space-y-4">
+                  {feedReports?.map(report => (
+                    <div key={report.id} className="bg-card/80 border border-white/10 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <p className="text-sm font-bold text-destructive uppercase tracking-wider">{report.targetType}</p>
+                          <p className="text-white mt-1">Reason: <span className="font-semibold text-rose-400">{report.reason}</span></p>
+                          <p className="text-xs text-muted-foreground mt-1">Reported by User ID: {report.reporterId}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => reviewReport.mutate({ id: report.id, data: { status: "dismissed" } })} variant="outline" className="border-white/20 text-white">Dismiss Report</Button>
+                          <Button size="sm" onClick={() => reviewReport.mutate({ id: report.id, data: { status: "action_taken" } })} variant="destructive">Mark Action Taken</Button>
+                        </div>
+                      </div>
+                      <div className="bg-background/50 rounded p-3 text-sm text-white/80 whitespace-pre-wrap border border-white/5">
+                        <span className="text-xs text-muted-foreground block mb-1">Content Snippet:</span>
+                        {report.targetType === "post" ? report.postText : report.commentText}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-card/50 border border-white/10 rounded-xl p-6">
+              <h2 className="text-xl font-serif text-white mb-4">All Feed Posts</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-muted-foreground border-b border-white/10">
+                      <th className="py-3 px-2 font-medium">ID</th>
+                      <th className="py-3 px-2 font-medium">Author</th>
+                      <th className="py-3 px-2 font-medium">Content</th>
+                      <th className="py-3 px-2 font-medium">Status</th>
+                      <th className="py-3 px-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allPosts?.map(post => (
+                      <tr key={post.id} className="border-b border-white/5">
+                        <td className="py-3 px-2 text-white/60">{post.id}</td>
+                        <td className="py-3 px-2 text-white">{post.userName}</td>
+                        <td className="py-3 px-2 text-white/80 max-w-[300px] truncate">{post.text}</td>
+                        <td className="py-3 px-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${post.status === 'active' ? 'bg-green-500/20 text-green-400' : post.status === 'removed' ? 'bg-destructive/20 text-destructive' : 'bg-secondary/20 text-secondary'}`}>
+                            {post.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className="flex gap-1">
+                            {post.status !== "active" && <Button size="sm" variant="ghost" onClick={() => moderateFeed.mutate({ id: post.id, data: { status: "active" } })} className="h-7 text-xs text-green-400 hover:bg-green-400/10">Approve</Button>}
+                            {post.status !== "hidden" && <Button size="sm" variant="ghost" onClick={() => moderateFeed.mutate({ id: post.id, data: { status: "hidden" } })} className="h-7 text-xs text-secondary hover:bg-secondary/10">Hide</Button>}
+                            {post.status !== "removed" && <Button size="sm" variant="ghost" onClick={() => moderateFeed.mutate({ id: post.id, data: { status: "removed" } })} className="h-7 text-xs text-destructive hover:bg-destructive/10">Remove</Button>}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="credits">

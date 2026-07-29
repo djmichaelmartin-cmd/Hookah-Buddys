@@ -44,6 +44,12 @@ tags:
     description: Payments
   - name: contact
     description: Support
+  - name: feed
+    description: Public hookah social feed
+  - name: follows
+    description: Follow relationships
+  - name: notifications
+    description: User notifications
 paths:
   /healthz:
     get:
@@ -1104,6 +1110,485 @@ paths:
         "404":
           description: Not found
 
+  /feed/posts:
+    get:
+      operationId: listFeedPosts
+      tags: [feed]
+      summary: Browse the public hookah feed (public preview allowed)
+      parameters:
+        - { name: filter, in: query, required: false, schema: { type: string, enum: [trending, new, nearby, dolls, bros, lounges, events] } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: userId, in: query, required: false, schema: { type: integer } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedPost"
+    post:
+      operationId: createFeedPost
+      tags: [feed]
+      summary: Create a feed post (logged-in users)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedPostInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedPost"
+        "401":
+          description: Unauthorized
+
+  /feed/posts/{id}:
+    get:
+      operationId: getFeedPost
+      tags: [feed]
+      summary: Get a single feed post
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedPost"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteFeedPost
+      tags: [feed]
+      summary: Delete own post (or any post as Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
+  /feed/posts/{id}/like:
+    post:
+      operationId: toggleFeedPostLike
+      tags: [feed]
+      summary: Like or unlike a post
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LikeStatus"
+        "401":
+          description: Unauthorized
+
+  /feed/posts/{id}/save:
+    post:
+      operationId: toggleFeedPostSave
+      tags: [feed]
+      summary: Save or unsave a post
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaveStatus"
+        "401":
+          description: Unauthorized
+
+  /feed/posts/{id}/report:
+    post:
+      operationId: reportFeedPost
+      tags: [feed]
+      summary: Report a post
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedReportInput"
+      responses:
+        "201":
+          description: Reported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: Unauthorized
+
+  /feed/posts/{id}/comments:
+    get:
+      operationId: listFeedComments
+      tags: [feed]
+      summary: List comments on a post
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedComment"
+    post:
+      operationId: createFeedComment
+      tags: [feed]
+      summary: Comment on a post
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedCommentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedComment"
+        "401":
+          description: Unauthorized
+
+  /feed/comments/{id}:
+    delete:
+      operationId: deleteFeedComment
+      tags: [feed]
+      summary: Delete own comment (or any comment as Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
+  /feed/comments/{id}/report:
+    post:
+      operationId: reportFeedComment
+      tags: [feed]
+      summary: Report a comment
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedReportInput"
+      responses:
+        "201":
+          description: Reported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: Unauthorized
+
+  /feed/saved:
+    get:
+      operationId: listSavedFeedPosts
+      tags: [feed]
+      summary: List posts saved by the current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedPost"
+        "401":
+          description: Unauthorized
+
+  /feed/liked:
+    get:
+      operationId: listLikedFeedPosts
+      tags: [feed]
+      summary: List posts liked by the current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedPost"
+        "401":
+          description: Unauthorized
+
+  /feed/mine:
+    get:
+      operationId: listMyFeedPosts
+      tags: [feed]
+      summary: List the current user's posts (any status)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedPost"
+        "401":
+          description: Unauthorized
+
+  /feed/my-stats:
+    get:
+      operationId: getMyFeedStats
+      tags: [feed]
+      summary: Feed engagement stats for the current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedStats"
+        "401":
+          description: Unauthorized
+
+  /follows/{userId}:
+    post:
+      operationId: toggleFollow
+      tags: [follows]
+      summary: Follow or unfollow a user
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowStatus"
+        "401":
+          description: Unauthorized
+
+  /follows:
+    get:
+      operationId: listFollows
+      tags: [follows]
+      summary: List followers or following for a user
+      parameters:
+        - { name: userId, in: query, required: true, schema: { type: integer } }
+        - { name: direction, in: query, required: true, schema: { type: string, enum: [followers, following] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FollowUser"
+
+  /bros/{id}:
+    get:
+      operationId: getBroProfile
+      tags: [members]
+      summary: Public Bro community profile
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BroProfile"
+        "404":
+          description: Not found
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List the current user's notifications
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+        "401":
+          description: Unauthorized
+
+  /notifications/unread-count:
+    get:
+      operationId: getUnreadNotificationCount
+      tags: [notifications]
+      summary: Count of unread notifications
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadCount"
+        "401":
+          description: Unauthorized
+
+  /notifications/{id}/read:
+    post:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        "401":
+          description: Unauthorized
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: Unauthorized
+
+  /admin/feed/posts:
+    get:
+      operationId: listAdminFeedPosts
+      tags: [admin]
+      summary: List all feed posts for moderation (Admin)
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string, enum: [active, hidden, removed, pending_review] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedPost"
+        "403":
+          description: Forbidden
+
+  /admin/feed/posts/{id}:
+    patch:
+      operationId: moderateFeedPost
+      tags: [admin]
+      summary: Approve, hide, or remove a post (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedModerationInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedPost"
+        "403":
+          description: Forbidden
+
+  /admin/feed/reports:
+    get:
+      operationId: listFeedReports
+      tags: [admin]
+      summary: List feed post/comment reports (Admin)
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string, enum: [pending, reviewed, dismissed, action_taken] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedReport"
+        "403":
+          description: Forbidden
+
+  /admin/feed/reports/{id}:
+    patch:
+      operationId: reviewFeedReport
+      tags: [admin]
+      summary: Review a feed report (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedReportReview"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedReport"
+        "403":
+          description: Forbidden
+
+  /admin/feed/analytics:
+    get:
+      operationId: getFeedAnalytics
+      tags: [admin]
+      summary: Feed analytics overview (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedAnalytics"
+        "403":
+          description: Forbidden
+
 components:
   schemas:
     HealthStatus:
@@ -1903,3 +2388,236 @@ components:
         startedAt: { type: string }
         finishedAt: { type: string }
         error: { type: string }
+
+    FeedPost:
+      type: object
+      required: [id, userId, userRole, userName, text, category, status, likeCount, commentCount, saveCount, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        userRole: { type: string, enum: [doll, member, admin] }
+        userName: { type: string }
+        username: { type: ["string", "null"] }
+        userPhotoUrl: { type: ["string", "null"] }
+        userVerified: { type: boolean }
+        dollId: { type: ["integer", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        text: { type: string }
+        mediaUrl: { type: ["string", "null"] }
+        mediaType: { type: string, enum: [none, image, video] }
+        category: { type: string, enum: [setup, lounge, flavor, event, meme, review, question, discussion] }
+        status: { type: string, enum: [active, hidden, removed, pending_review] }
+        likeCount: { type: integer }
+        commentCount: { type: integer }
+        saveCount: { type: integer }
+        reportCount: { type: integer }
+        viewerLiked: { type: boolean }
+        viewerSaved: { type: boolean }
+        viewerFollowsAuthor: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    FeedPostInput:
+      type: object
+      required: [text, category, isHookahRelatedConfirmed]
+      properties:
+        text: { type: string, minLength: 1 }
+        mediaUrl: { type: string }
+        mediaType: { type: string, enum: [none, image, video] }
+        category: { type: string, enum: [setup, lounge, flavor, event, meme, review, question, discussion] }
+        isHookahRelatedConfirmed: { type: boolean }
+
+    FeedComment:
+      type: object
+      required: [id, postId, userId, userName, userRole, commentText, createdAt]
+      properties:
+        id: { type: integer }
+        postId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        username: { type: ["string", "null"] }
+        userPhotoUrl: { type: ["string", "null"] }
+        userRole: { type: string, enum: [doll, member, admin] }
+        userVerified: { type: boolean }
+        commentText: { type: string }
+        status: { type: string, enum: [active, removed] }
+        createdAt: { type: string }
+
+    FeedCommentInput:
+      type: object
+      required: [commentText]
+      properties:
+        commentText: { type: string, minLength: 1 }
+
+    FeedReportInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1 }
+        notes: { type: string }
+
+    FeedReport:
+      type: object
+      required: [id, targetType, targetId, reporterId, reason, status, createdAt]
+      properties:
+        id: { type: integer }
+        targetType: { type: string, enum: [post, comment] }
+        targetId: { type: integer }
+        postId: { type: ["integer", "null"] }
+        reporterId: { type: integer }
+        reporterName: { type: string }
+        reason: { type: string }
+        notes: { type: ["string", "null"] }
+        status: { type: string, enum: [pending, reviewed, dismissed, action_taken] }
+        postText: { type: ["string", "null"] }
+        commentText: { type: ["string", "null"] }
+        createdAt: { type: string }
+        reviewedAt: { type: ["string", "null"] }
+
+    FeedReportReview:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [reviewed, dismissed, action_taken] }
+
+    FeedModerationInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [active, hidden, removed, pending_review] }
+
+    LikeStatus:
+      type: object
+      required: [liked, likeCount]
+      properties:
+        liked: { type: boolean }
+        likeCount: { type: integer }
+
+    SaveStatus:
+      type: object
+      required: [saved, saveCount]
+      properties:
+        saved: { type: boolean }
+        saveCount: { type: integer }
+
+    FollowStatus:
+      type: object
+      required: [following, followerCount]
+      properties:
+        following: { type: boolean }
+        followerCount: { type: integer }
+
+    FollowUser:
+      type: object
+      required: [id, name, role]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        username: { type: ["string", "null"] }
+        role: { type: string, enum: [doll, member, admin] }
+        profilePhotoUrl: { type: ["string", "null"] }
+        verified: { type: boolean }
+        dollId: { type: ["integer", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        viewerFollows: { type: boolean }
+
+    BroProfile:
+      type: object
+      required: [id, name, followerCount, followingCount, postCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        username: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        bio: { type: ["string", "null"] }
+        profilePhotoUrl: { type: ["string", "null"] }
+        memberSince: { type: string }
+        followerCount: { type: integer }
+        followingCount: { type: integer }
+        postCount: { type: integer }
+        badges:
+          type: array
+          items: { type: string, enum: [verified_bro, vip_bro, top_supporter] }
+        viewerFollows: { type: boolean }
+        followedDolls:
+          type: array
+          items: { $ref: "#/components/schemas/FollowUser" }
+        posts:
+          type: array
+          items: { $ref: "#/components/schemas/FeedPost" }
+
+    Notification:
+      type: object
+      required: [id, userId, type, title, message, isRead, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        type: { type: string }
+        title: { type: string }
+        message: { type: string }
+        relatedUserId: { type: ["integer", "null"] }
+        relatedPostId: { type: ["integer", "null"] }
+        relatedCommentId: { type: ["integer", "null"] }
+        isRead: { type: boolean }
+        createdAt: { type: string }
+
+    UnreadCount:
+      type: object
+      required: [count]
+      properties:
+        count: { type: integer }
+
+    FeedStats:
+      type: object
+      required: [postCount, followerCount, followingCount, likesReceived, commentsReceived, savedCount]
+      properties:
+        postCount: { type: integer }
+        followerCount: { type: integer }
+        followingCount: { type: integer }
+        likesReceived: { type: integer }
+        commentsReceived: { type: integer }
+        savedCount: { type: integer }
+        likesGiven: { type: integer }
+
+    CategoryCount:
+      type: object
+      required: [category, count]
+      properties:
+        category: { type: string }
+        count: { type: integer }
+
+    ActivePoster:
+      type: object
+      required: [userId, name, role, postCount]
+      properties:
+        userId: { type: integer }
+        name: { type: string }
+        username: { type: ["string", "null"] }
+        role: { type: string, enum: [doll, member, admin] }
+        profilePhotoUrl: { type: ["string", "null"] }
+        postCount: { type: integer }
+        dollId: { type: ["integer", "null"] }
+
+    FeedAnalytics:
+      type: object
+      required: [totalPosts, newPostsToday, activeUsers, totalLikes, totalComments, totalReports]
+      properties:
+        totalPosts: { type: integer }
+        newPostsToday: { type: integer }
+        activeUsers: { type: integer }
+        totalLikes: { type: integer }
+        totalComments: { type: integer }
+        totalReports: { type: integer }
+        pendingReports: { type: integer }
+        mostActiveDolls:
+          type: array
+          items: { $ref: "#/components/schemas/ActivePoster" }
+        mostActiveBros:
+          type: array
+          items: { $ref: "#/components/schemas/ActivePoster" }
+        trendingCategories:
+          type: array
+          items: { $ref: "#/components/schemas/CategoryCount" }

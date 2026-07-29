@@ -1,0 +1,415 @@
+Replit Agent: Do not rebuild the HookahDolls.com platform from scratch. Only add the following new features to the existing build.
+
+Add a public hookah social feed/community layer to HookahDolls.com.
+
+The platform should now operate with two engines:
+
+Engine One: Community
+A public hookah social feed where users can post, like, comment, follow, browse, and engage with hookah-related content.
+
+Engine Two: Monetization
+The existing premium Doll interaction system where Bros pay for messaging, premium content, subscriptions, video chat, boosts, and featured placement.
+
+Do not remove or replace the existing Doll/Bro profile system, pricing system, credits system, admin dashboard, verification system, messaging, premium content, or payment structure. Add this as a new social/community feature set.
+
+Core Social Feed Requirements
+
+Create a new Public Feed page.
+
+Route:
+`/feed`
+
+The Public Feed page should allow logged-in users to:
+
+* Create hookah-related posts
+* Upload photos
+* Upload videos
+* Like posts
+* Comment on posts
+* Follow users
+* Save posts
+* Report posts
+* Browse posts by category/filter
+
+Public feed content should be hookah-related and may include:
+
+* Hookah photos
+* Hookah videos
+* Hookah lounges
+* Hookah setups
+* Favorite flavors
+* Events
+* Memes
+* Reviews
+* Questions
+* General hookah discussion
+
+Add feed filters/tabs:
+
+* Trending
+* New
+* Nearby
+* Dolls
+* Bros
+* Lounges
+* Events
+
+Add a create-post box at the top of the feed with:
+
+* Text input
+* Photo upload
+* Video upload
+* Category selector
+* Hookah-related confirmation checkbox
+* Submit button
+
+Required confirmation checkbox:
+
+“I confirm this post is hookah-related.”
+
+Post cards should display:
+
+* User profile photo
+* Username/profile name
+* User type badge: Doll or Bro
+* Optional verified badge
+* Post text
+* Uploaded image/video
+* Category
+* Timestamp
+* Like count
+* Comment count
+* Save button
+* Follow button
+* Report button
+
+Comments should support:
+
+* Add comment
+* View comment thread
+* Delete own comment
+* Admin can remove any comment
+
+Likes should support:
+
+* Like/unlike post
+* Like count
+* Prevent duplicate likes by the same user
+
+Follows should support:
+
+* Follow/unfollow Dolls
+* Follow/unfollow Bros
+* Show follower count on profiles
+* Show following count on profiles
+
+Saved posts should support:
+
+* Save/unsave post
+* Add saved posts section to the user dashboard
+
+Homepage Updates
+
+Update the homepage without rebuilding it.
+
+Add a new section titled:
+
+“Explore the Hookah Feed”
+
+Subtitle:
+“See the latest hookah setups, lounge posts, flavor talk, events, Dolls, Bros, and community conversations.”
+
+Add a preview grid or carousel of recent public feed posts.
+
+Add a button:
+
+“Explore the Feed”
+
+Button route:
+`/feed`
+
+Update homepage hero buttons so they include:
+
+* Join as a Doll
+* Join as a Bro
+* Explore the Feed
+
+Profile Page Updates
+
+Update Doll Profile pages to include a new tab:
+
+“Posts”
+
+This tab should display that Doll’s public feed posts.
+
+Update Bro Profile pages or create Bro Profile pages if not already available.
+
+Route:
+`/bros/:id`
+
+Bro Profile page should include:
+
+* Profile photo
+* Username
+* City/state
+* Bio
+* Public posts
+* Follow button
+* Followed Dolls
+* Badges/status
+
+Optional Bro badges:
+
+* Verified Bro
+* VIP Bro
+* Top Supporter
+
+User Dashboard Updates
+
+Update Doll Dashboard with:
+
+* Manage public posts
+* Feed engagement stats
+* Followers count
+* Likes received
+* Comments received
+* Saved posts
+
+Update Bro Dashboard with:
+
+* Feed activity
+* My posts
+* Saved posts
+* Following
+* Followers
+* Liked posts
+* Comments
+
+Admin Dashboard Updates
+
+Add public feed moderation tools to the existing Admin Dashboard.
+
+Admin should be able to:
+
+* View all public feed posts
+* Approve, hide, or remove posts
+* Review reported posts
+* Review reported comments
+* Remove non-hookah-related content
+* Suspend users
+* Ban users
+* View feed analytics
+
+Admin feed analytics should include:
+
+* Total posts
+* New posts today
+* Active users
+* Likes
+* Comments
+* Reports
+* Most active Dolls
+* Most active Bros
+* Trending categories
+
+Content Rules Update
+
+Update the Content Rules page to include public feed rules.
+
+Public feed rules:
+
+* Public posts must be hookah-related.
+* Allowed content includes hookah lounges, hookah setups, flavors, events, memes, reviews, photos, videos, and discussion.
+* No spam.
+* No harassment.
+* No fake profiles.
+* No stolen content.
+* No illegal content.
+* No underage content.
+* No misleading posts.
+* Reported content should be reviewed by admin.
+
+Important distinction:
+
+For Dolls:
+All Doll profile content, premium content, verification content, and video chat content must include a visible hookah.
+
+For public feed content:
+Posts must be hookah-related, but not every general community discussion post needs to include a visible hookah image if it is clearly about hookah culture.
+
+Database Additions
+
+Add database models or tables for:
+
+Post:
+
+* id
+* userId
+* userRole
+* text
+* mediaUrl
+* mediaType
+* category
+* isHookahRelatedConfirmed
+* status: active, hidden, removed, pending_review
+* likeCount
+* commentCount
+* saveCount
+* reportCount
+* createdAt
+* updatedAt
+
+PostLike:
+
+* id
+* postId
+* userId
+* createdAt
+
+PostComment:
+
+* id
+* postId
+* userId
+* commentText
+* status
+* createdAt
+* updatedAt
+
+PostSave:
+
+* id
+* postId
+* userId
+* createdAt
+
+Follow:
+
+* id
+* followerId
+* followingId
+* createdAt
+
+PostReport:
+
+* id
+* postId
+* reporterId
+* reason
+* notes
+* status: pending, reviewed, dismissed, action_taken
+* createdAt
+* reviewedAt
+
+Notification:
+
+* id
+* userId
+* type
+* title
+* message
+* relatedUserId
+* relatedPostId
+* relatedCommentId
+* isRead
+* createdAt
+
+Notifications
+
+Add notifications for:
+
+* New follower
+* New like
+* New comment
+* Post reported
+* Comment reported
+* Admin removed post
+* Admin approved post
+* Doll verification status
+* New message
+* Content unlocked
+* Video chat request
+* Payment confirmation
+
+Create a Notifications page.
+
+Route:
+`/notifications`
+
+Notifications page should show:
+
+* Notification list
+* Read/unread status
+* Mark as read
+* Link to related post/profile/message when applicable
+
+Navigation Updates
+
+Update main navigation to include:
+
+* Home
+* Feed
+* Browse Dolls
+* Pricing
+* Messages
+* Dashboard
+* Notifications
+* Login/Profile
+
+For logged-out users:
+
+* Home
+* Feed preview
+* Browse Dolls preview
+* Pricing
+* Login
+* Join as a Doll
+* Join as a Bro
+
+Access Rules
+
+Public Feed:
+
+* Logged-out visitors can preview public posts but cannot like, comment, follow, save, or post.
+* Logged-in Dolls and Bros can post, like, comment, follow, save, and report.
+* Admin can moderate everything.
+
+Doll Profiles:
+
+* Keep paid monetization features in place.
+* Add public posts as a free community tab.
+* Do not make premium content free.
+
+Bro Profiles:
+
+* Public community identity only.
+* Do not add Doll monetization features to Bro profiles.
+
+Design Direction
+
+Match the existing HookahDolls dark luxury hookah lounge design.
+
+Use:
+
+* Dark backgrounds
+* Smoke-inspired gradients
+* Gold or rose-gold accents
+* Glassmorphism cards
+* Rounded social cards
+* Mobile-first responsive layout
+* Instagram/TikTok-style social feed feel
+* Premium nightlife look
+
+Important Implementation Notes
+
+Do not rebuild the entire project.
+
+Do not remove existing pages.
+
+Do not remove the existing Doll monetization model.
+
+Do not remove credits, pricing, messaging, verification, premium content, boosts, or video chat placeholders.
+
+Only add the public hookah social feed, follow system, likes, comments, saved posts, notifications, Bro profile/community enhancements, homepage feed preview, and admin feed moderation features.
+
+Final result should make HookahDolls.com feel like a hookah-centered social network first, with premium Doll access built into the platform as the monetization layer.

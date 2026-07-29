@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "seed": "tsx ./src/seed.ts",
+    "seed-feed": "tsx ./src/seedFeed.ts",
     "collect-leads": "tsx ./src/collectLeads.ts",
     "sync-lounges": "tsx ./src/syncLounges.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"

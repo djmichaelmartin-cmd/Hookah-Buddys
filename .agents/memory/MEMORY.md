@@ -12,4 +12,5 @@
 - [Lead collector (Google Places)](lead-collector.md) — run market collections via background POST /admin/leads/collect (bash 120s timeout); status is in-memory/process-local.
 - [Premium content entitlement](premium-content-gating.md) — locked premium media blanks the url server-side; access via doll subscription, unlock, owner, or admin.
 - [UI mutation error handling](ui-mutation-error-handling.md) — member-facing mutations need an onError toast (esp. 402 credits) or the feature looks silently "broken".
+- [Orval query options](orval-query-options.md) — passing `query.enabled` to generated hooks requires an explicit `queryKey: get*QueryKey(params)` or typecheck fails.
 - [Per-Doll revenue model](shared-doll-earnings-model.md) — Doll analytics & admin per-Doll revenue use one computeDollEarnings helper; illustrative GMV, NOT the platform subscription revenue.

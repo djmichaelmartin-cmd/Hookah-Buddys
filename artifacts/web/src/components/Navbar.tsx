@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type MouseEvent } from "react";
 import { Link, useLocation } from "wouter";
-import { useGetCurrentUser, useLogout } from "@workspace/api-client-react";
+import { useGetCurrentUser, useLogout, useGetUnreadNotificationCount, getGetUnreadNotificationCountQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,9 +25,11 @@ import {
   ChevronDown,
   Menu,
   X,
+  Bell,
 } from "lucide-react";
 
 const NAV_LINKS = [
+  { label: "Feed", href: "/feed" },
   { label: "Dolls", href: "/browse" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
@@ -51,6 +53,15 @@ export function Navbar() {
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const resourcesCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isHome = location === "/";
+
+  const { data: unreadCountObj } = useGetUnreadNotificationCount({
+    query: {
+      enabled: !!session?.authenticated,
+      queryKey: getGetUnreadNotificationCountQueryKey(),
+      refetchInterval: 30000 // Poll every 30s
+    }
+  });
+  const unreadCount = unreadCountObj?.count || 0;
 
   // Open the Resources dropdown on hover; a short grace period on close lets the
   // cursor cross the gap from the trigger into the menu without it snapping shut.
@@ -192,7 +203,14 @@ export function Navbar() {
           </Link>
 
           {session?.authenticated && session.user ? (
-            <DropdownMenu>
+            <>
+              <Link href="/notifications" className="relative h-10 w-10 flex items-center justify-center rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:text-white transition-all mr-1">
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 h-2.5 w-2.5 bg-primary rounded-full border-2 border-card" />
+                )}
+              </Link>
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -304,7 +322,8 @@ export function Navbar() {
                   <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+              </DropdownMenu>
+            </>
           ) : (
             <>
               <Link
