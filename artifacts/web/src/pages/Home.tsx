@@ -401,7 +401,7 @@ export default function Home() {
             <h1 className="font-serif font-bold text-white leading-[0.95] tracking-tight text-5xl sm:text-7xl lg:text-[7rem] drop-shadow-[0_4px_30px_rgba(0,0,0,0.7)]">
               Your after-dark
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#F3E5AB] to-rose-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#ff6b6b] to-rose-500">
                 lounge fantasy
               </span>
             </h1>
@@ -413,7 +413,7 @@ export default function Home() {
               <Link href="/choose-membership">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-widest uppercase h-14 px-9 shadow-[0_0_30px_rgba(212,175,55,0.4)] border-none"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-widest uppercase h-14 px-9 shadow-[0_0_30px_rgba(254,0,1,0.4)] border-none"
                 >
                   Create Free Profile
                 </Button>
@@ -564,7 +564,7 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
                 </div>
                 <div className="flex items-center gap-4 mb-5">
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)] group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_15px_rgba(254,0,1,0.2)] group-hover:scale-110 transition-transform">
                     <Heart className="w-7 h-7 text-primary" />
                   </div>
                   <div>
@@ -653,7 +653,7 @@ export default function Home() {
           
           <div className="mt-12 text-center flex justify-center">
             <Link href="/feed">
-              <Button size="lg" className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(212,175,55,0.3)] font-semibold px-10 h-14">
+              <Button size="lg" className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(254,0,1,0.3)] font-semibold px-10 h-14">
                 Join the Conversation
               </Button>
             </Link>
@@ -693,7 +693,7 @@ export default function Home() {
                 key={f.title}
                 className="group bg-card/50 backdrop-blur-md border border-white/5 rounded-2xl p-8 hover:bg-card/80 hover:border-primary/30 transition-all duration-500 hover:-translate-y-1"
               >
-                <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(212,175,55,0.15)] group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(254,0,1,0.15)] group-hover:scale-110 transition-transform">
                   <f.icon className="w-7 h-7 text-primary" />
                 </div>
                 <h3 className="text-xl font-serif font-bold text-white mb-3">{f.title}</h3>
@@ -753,7 +753,7 @@ export default function Home() {
                     aria-hidden={i >= marqueeBase.length || undefined}
                     tabIndex={i >= marqueeBase.length ? -1 : undefined}
                   >
-                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] bg-card">
+                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(254,0,1,0.2)] bg-card">
                     <img
                       src={doll.profilePhotoUrl!}
                       alt={doll.stageName}
@@ -854,7 +854,7 @@ export default function Home() {
           <Link href="/signup/bro?plan=bronze">
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-widest uppercase h-14 px-12 shadow-[0_0_40px_rgba(212,175,55,0.4)] border-none"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-widest uppercase h-14 px-12 shadow-[0_0_40px_rgba(254,0,1,0.4)] border-none"
             >
               Create Free Profile
             </Button>

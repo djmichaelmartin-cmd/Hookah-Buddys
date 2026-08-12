@@ -188,9 +188,11 @@ export function Navbar() {
           href="/"
           className="flex items-center xl:absolute xl:left-1/2 xl:-translate-x-1/2"
         >
-          <span className="font-serif text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#F3E5AB] to-rose-400 drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">
-            HookahDolls
-          </span>
+          <img
+            src="/brand/logo.png"
+            alt="HookahBuddys.com"
+            className="h-16 w-auto drop-shadow-[0_0_12px_rgba(254,0,1,0.4)]"
+          />
         </Link>
 
         {/* Right action group */}

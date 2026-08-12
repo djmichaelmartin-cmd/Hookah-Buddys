@@ -23,7 +23,7 @@ export function AgeGate() {
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border-primary/20 shadow-[0_0_50px_rgba(212,175,55,0.15)] text-center sm:text-left">
+      <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border-primary/20 shadow-[0_0_50px_rgba(254,0,1,0.15)] text-center sm:text-left">
         <DialogHeader>
           <DialogTitle className="text-2xl text-primary font-serif tracking-wider uppercase text-center mb-2">Age Verification</DialogTitle>
           <DialogDescription className="text-muted-foreground text-center text-base">
@@ -31,7 +31,7 @@ export function AgeGate() {
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 mt-6">
-          <Button onClick={handleConfirm} size="lg" className="w-full bg-gradient-to-r from-primary to-rose-400 hover:from-primary/90 hover:to-rose-400/90 text-primary-foreground font-semibold tracking-wide shadow-[0_0_20px_rgba(212,175,55,0.3)] border-none">
+          <Button onClick={handleConfirm} size="lg" className="w-full bg-gradient-to-r from-primary to-rose-400 hover:from-primary/90 hover:to-rose-400/90 text-primary-foreground font-semibold tracking-wide shadow-[0_0_20px_rgba(254,0,1,0.3)] border-none">
             I AM 21 OR OLDER
           </Button>
           <Button onClick={handleDeny} variant="outline" size="lg" className="w-full border-border/50 text-muted-foreground hover:bg-white/5 hover:text-white">

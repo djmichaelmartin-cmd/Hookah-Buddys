@@ -164,7 +164,7 @@ export function CreatePostForm({ onCreated }: { onCreated?: () => void } = {}) {
   const user = session.user;
 
   return (
-    <div className="bg-card/60 backdrop-blur-xl border border-primary/20 rounded-2xl p-4 md:p-6 shadow-[0_0_30px_rgba(212,175,55,0.05)]">
+    <div className="bg-card/60 backdrop-blur-xl border border-primary/20 rounded-2xl p-4 md:p-6 shadow-[0_0_30px_rgba(254,0,1,0.05)]">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex gap-4">
           <Avatar className="h-10 w-10 border border-white/10 shrink-0">
@@ -273,7 +273,7 @@ export function CreatePostForm({ onCreated }: { onCreated?: () => void } = {}) {
             <Button
               type="submit"
               disabled={(!text.trim() && mediaType === "none") || !isConfirmed || createPost.isPending || isUploading}
-              className="rounded-full bg-primary text-primary-foreground font-semibold px-8 hover:bg-primary/90 transition-colors shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+              className="rounded-full bg-primary text-primary-foreground font-semibold px-8 hover:bg-primary/90 transition-colors shadow-[0_0_15px_rgba(254,0,1,0.2)]"
             >
               {createPost.isPending ? "Posting..." : "Post"}
             </Button>

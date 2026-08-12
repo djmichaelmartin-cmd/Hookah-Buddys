@@ -65,7 +65,7 @@ export default function SignupDoll() {
   return (
     <Layout>
       <div className="flex-1 container mx-auto px-4 py-12 max-w-2xl">
-        <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(212,175,55,0.1)]">
+        <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(254,0,1,0.1)]">
           <h1 className="text-3xl font-serif text-white mb-2 text-center">Become a Doll</h1>
           <p className="text-muted-foreground text-center mb-8">Join the exclusive hookah lounge creator platform.</p>
           

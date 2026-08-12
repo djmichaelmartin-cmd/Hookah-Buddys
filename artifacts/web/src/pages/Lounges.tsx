@@ -35,7 +35,7 @@ const loungeIcon = L.divIcon({
   className: "",
   html: `
     <svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14 0C6.27 0 0 6.27 0 14c0 9.5 14 26 14 26s14-16.5 14-26C28 6.27 21.73 0 14 0z" fill="#D4AF37"/>
+      <path d="M14 0C6.27 0 0 6.27 0 14c0 9.5 14 26 14 26s14-16.5 14-26C28 6.27 21.73 0 14 0z" fill="#fe0001"/>
       <circle cx="14" cy="14" r="5.5" fill="#1a1a1a"/>
     </svg>`,
   iconSize: [28, 40],
@@ -158,7 +158,7 @@ export default function Lounges() {
             <p className="mb-3 text-sm font-medium uppercase tracking-[0.3em] text-primary/80">
               Lounge Finder
             </p>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#F3E5AB] to-rose-400">
+            <h1 className="font-serif text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#ff6b6b] to-rose-500">
               Find Hookah Lounges Near You
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
