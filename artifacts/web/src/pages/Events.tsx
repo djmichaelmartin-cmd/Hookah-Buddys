@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/Layout";
 import {
+  listEvents,
   useGetCurrentUser,
   useListEvents,
   useToggleEventRsvp,
@@ -23,6 +24,7 @@ import {
 
 type TabId = "upcoming" | "past" | "going" | "saved";
 
+const PAST_PAGE_SIZE = 20;
 const TABS: { id: TabId; label: string }[] = [
   { id: "upcoming", label: "Upcoming" },
   { id: "past", label: "Past" },
@@ -164,17 +166,54 @@ export default function Events() {
   const { data: session } = useGetCurrentUser();
   const loggedIn = !!session?.user;
   const [tab, setTab] = useState<TabId>("upcoming");
+  const [extraPast, setExtraPast] = useState<Event[]>([]);
+  const [pastExhausted, setPastExhausted] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const { toast } = useToast();
 
   const params: ListEventsParams =
     tab === "upcoming"
       ? { limit: 50 }
       : tab === "past"
-        ? { limit: 50, scope: "past" }
+        ? { limit: PAST_PAGE_SIZE, scope: "past" }
         : { limit: 50, filter: tab === "going" ? "going" : "saved" };
   const isPublicTab = tab === "upcoming" || tab === "past";
-  const { data: events, isLoading } = useListEvents(params, {
+  const { data: firstPage, isLoading } = useListEvents(params, {
     query: { queryKey: getListEventsQueryKey(params), enabled: isPublicTab || loggedIn },
   });
+
+  const events =
+    tab === "past" && firstPage ? [...firstPage, ...extraPast] : firstPage;
+  const showLoadMore =
+    tab === "past" &&
+    !pastExhausted &&
+    (firstPage?.length ?? 0) === PAST_PAGE_SIZE;
+
+  const selectTab = (t: TabId) => {
+    setTab(t);
+    setExtraPast([]);
+    setPastExhausted(false);
+  };
+
+  const loadMorePast = async () => {
+    if (loadingMore || !firstPage) return;
+    setLoadingMore(true);
+    try {
+      const offset = firstPage.length + extraPast.length;
+      const more = await listEvents({ limit: PAST_PAGE_SIZE, scope: "past", offset });
+      const seen = new Set([...firstPage, ...extraPast].map((e) => e.id));
+      setExtraPast((prev) => [...prev, ...more.filter((e) => !seen.has(e.id))]);
+      if (more.length < PAST_PAGE_SIZE) setPastExhausted(true);
+    } catch {
+      toast({
+        title: "Couldn't load more events",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const emptyCopy: Record<TabId, { title: string; body: string }> = {
     upcoming: {
@@ -211,7 +250,7 @@ export default function Events() {
           {TABS.map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => selectTab(t.id)}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
                 tab === t.id
                   ? "bg-white text-background shadow-[0_0_15px_rgba(255,255,255,0.3)]"
@@ -246,6 +285,16 @@ export default function Events() {
             {events!.map((event) => (
               <EventCard key={event.id} event={event} loggedIn={loggedIn} />
             ))}
+            {showLoadMore && (
+              <button
+                onClick={loadMorePast}
+                disabled={loadingMore}
+                className="mt-2 self-center px-6 py-2 rounded-full text-sm font-medium bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white border border-white/5 transition-all disabled:opacity-60 flex items-center gap-2"
+              >
+                {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
+                {loadingMore ? "Loading..." : "Load more"}
+              </button>
+            )}
           </div>
         )}
       </div>

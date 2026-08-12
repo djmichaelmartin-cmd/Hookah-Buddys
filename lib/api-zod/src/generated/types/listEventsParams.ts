@@ -10,6 +10,7 @@ import type { ListEventsScope } from './listEventsScope';
 
 export type ListEventsParams = {
 limit?: number;
+offset?: number;
 filter?: ListEventsFilter;
 scope?: ListEventsScope;
 };

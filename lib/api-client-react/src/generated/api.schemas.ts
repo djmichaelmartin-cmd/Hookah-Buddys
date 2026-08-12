@@ -2238,6 +2238,7 @@ limit?: number;
 
 export type ListEventsParams = {
 limit?: number;
+offset?: number;
 filter?: ListEventsFilter;
 scope?: ListEventsScope;
 };

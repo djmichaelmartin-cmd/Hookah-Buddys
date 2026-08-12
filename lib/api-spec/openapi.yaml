@@ -637,6 +637,7 @@ paths:
       summary: Upcoming hookah events
       parameters:
         - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
         - { name: filter, in: query, required: false, schema: { type: string, enum: [going, saved] } }
         - { name: scope, in: query, required: false, schema: { type: string, enum: [upcoming, past] } }
       responses:

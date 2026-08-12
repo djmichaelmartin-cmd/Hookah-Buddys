@@ -81,16 +81,18 @@ async function annotateEvents(events: Event[], viewerUserId: number | null) {
 // With scope=past: past active events, newest first.
 // With filter=going|saved (auth required): the viewer's RSVP'd/saved active
 // events (including past ones), soonest first.
+// Supports limit (max 50) and offset for paging.
 router.get("/events", async (req, res): Promise<void> => {
   const rawLimit = req.query.limit !== undefined ? Number(req.query.limit) : 10;
   const limit = Number.isFinite(rawLimit)
     ? Math.min(Math.max(Math.trunc(rawLimit), 1), 50)
     : 10;
 
+  const rawOffset = req.query.offset !== undefined ? Number(req.query.offset) : 0;
+  const offset = Number.isFinite(rawOffset) ? Math.max(Math.trunc(rawOffset), 0) : 0;
+
   const filter = req.query.filter;
   const viewer = await getSessionUser(req);
-
-  const [annotated] = await annotateEvents([event], viewer?.id ?? null);
 
   if (filter === "going" || filter === "saved") {
     if (!viewer) {
@@ -98,17 +100,14 @@ router.get("/events", async (req, res): Promise<void> => {
       return;
     }
     const table = filter === "going" ? eventRsvpsTable : eventSavesTable;
-  const rows = await db
-    .select()
-    .from(eventsTable)
-    .where(
-      and(
-        eq(eventsTable.status, "active"),
-        past ? lte(eventsTable.startsAt, now) : gt(eventsTable.startsAt, now),
-      ),
-    )
-    .orderBy(past ? desc(eventsTable.startsAt) : asc(eventsTable.startsAt))
-    .limit(limit);
+    const rows = await db
+      .select({ event: eventsTable })
+      .from(table)
+      .innerJoin(eventsTable, eq(table.eventId, eventsTable.id))
+      .where(and(eq(table.userId, viewer.id), eq(eventsTable.status, "active")))
+      .orderBy(asc(eventsTable.startsAt))
+      .limit(limit)
+      .offset(offset);
     res.json(await annotateEvents(rows.map((r) => r.event), viewer.id));
     return;
   }
@@ -125,9 +124,27 @@ router.get("/events", async (req, res): Promise<void> => {
       ),
     )
     .orderBy(past ? desc(eventsTable.startsAt) : asc(eventsTable.startsAt))
-    .limit(limit);
+    .limit(limit)
+    .offset(offset);
 
   res.json(await annotateEvents(rows, viewer?.id ?? null));
+});
+
+// Public: a single active event with full details (404 for missing/cancelled).
+router.get("/events/:id", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id as string, 10);
+  if (!Number.isInteger(id)) {
+    res.status(404).json({ error: "Event not found" });
+    return;
+  }
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, id));
+  if (!event || event.status !== "active") {
+    res.status(404).json({ error: "Event not found" });
+    return;
+  }
+  const viewer = await getSessionUser(req);
+  const [annotated] = await annotateEvents([event], viewer?.id ?? null);
+  res.json(annotated);
 });
 
 async function loadActiveUpcomingEvent(id: number): Promise<Event | null> {

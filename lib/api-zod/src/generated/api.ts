@@ -727,6 +727,7 @@ export const ListLoungesResponse = zod.array(ListLoungesResponseItem)
  */
 export const ListEventsQueryParams = zod.object({
   "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional(),
   "filter": zod.enum(['going', 'saved']).optional(),
   "scope": zod.enum(['upcoming', 'past']).optional()
 })
