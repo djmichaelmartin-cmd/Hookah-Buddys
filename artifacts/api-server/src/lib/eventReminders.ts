@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, lte } from "drizzle-orm";
+import { and, eq, gt, inArray, lt, lte, sql } from "drizzle-orm";
 import {
   db,
   eventsTable,
@@ -118,14 +118,39 @@ export async function notifyEventCancelled(event: Event): Promise<void> {
   }
 }
 
+const PRUNE_AFTER_MS = 7 * 24 * HOUR_MS;
+
+/**
+ * Delete dedupe-ledger rows for events that ended more than ~7 days ago.
+ * Uses endsAt when set, otherwise startsAt. Upcoming/active events are untouched.
+ */
+export async function pruneEventReminderSends(now: Date = new Date()): Promise<void> {
+  const cutoff = new Date(now.getTime() - PRUNE_AFTER_MS);
+  const endedEventIds = db
+    .select({ id: eventsTable.id })
+    .from(eventsTable)
+    .where(lt(sql`coalesce(${eventsTable.endsAt}, ${eventsTable.startsAt})`, cutoff));
+  const deleted = await db
+    .delete(eventReminderSendsTable)
+    .where(inArray(eventReminderSendsTable.eventId, endedEventIds))
+    .returning({ id: eventReminderSendsTable.id });
+  if (deleted.length > 0) {
+    logger.info({ deleted: deleted.length }, "pruned old event reminder ledger rows");
+  }
+}
+
 const REMINDER_INTERVAL_MS = 5 * 60 * 1000;
 
 /** Start the recurring reminder sweep. Runs once at boot, then every 5 minutes. */
 export function startEventReminderScheduler(): void {
-  const run = () =>
-    sendEventReminders().catch((err) =>
+  const run = async () => {
+    await sendEventReminders().catch((err) =>
       logger.error({ err }, "event reminder sweep failed"),
     );
+    await pruneEventReminderSends().catch((err) =>
+      logger.error({ err }, "event reminder ledger prune failed"),
+    );
+  };
   void run();
   const timer = setInterval(run, REMINDER_INTERVAL_MS);
   timer.unref();
