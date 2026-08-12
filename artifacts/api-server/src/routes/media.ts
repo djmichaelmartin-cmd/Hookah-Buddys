@@ -4,6 +4,7 @@ import { db, mediaTable, dollsTable } from "@workspace/db";
 import { UploadMediaBody, ModerateMediaParams, ModerateMediaBody } from "@workspace/api-zod";
 import { isPremiumMediaType } from "@workspace/pricing";
 import { requireAuth } from "../lib/auth";
+import { finalizeMediaUrl, InvalidUploadError } from "../lib/imageUploads";
 import { toMediaResponse } from "../lib/mappers";
 
 const router: IRouter = Router();
@@ -24,6 +25,20 @@ router.post("/media", requireAuth("doll"), async (req, res): Promise<void> => {
     res.status(400).json({ error: "All Doll content must include a visible hookah. No hookah, no approval." });
     return;
   }
+  let url = data.url;
+  let thumbnailUrl = data.thumbnailUrl;
+  try {
+    url = await finalizeMediaUrl(url, user.id);
+    if (thumbnailUrl) {
+      thumbnailUrl = await finalizeMediaUrl(thumbnailUrl, user.id);
+    }
+  } catch (err) {
+    if (err instanceof InvalidUploadError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    throw err;
+  }
   // `premium` is derived authoritatively from the media type — never trusted
   // from the client — so a forged `premium: false` can't sneak a premium media
   // item past the paywall.
@@ -41,8 +56,8 @@ router.post("/media", requireAuth("doll"), async (req, res): Promise<void> => {
     .values({
       dollId: user.dollId,
       type: data.type,
-      url: data.url,
-      thumbnailUrl: data.thumbnailUrl,
+      url,
+      thumbnailUrl,
       caption: data.caption,
       premium,
       price: data.price ?? 0,

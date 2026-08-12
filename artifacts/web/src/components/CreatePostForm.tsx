@@ -13,8 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Image as ImageIcon, Video, X, Sparkles } from "lucide-react";
+import { Image as ImageIcon, X, Sparkles, Loader2 } from "lucide-react";
 import { useGetCurrentUser } from "@workspace/api-client-react";
+import { uploadImage, MAX_IMAGE_SIZE_BYTES } from "@/lib/uploadImage";
 
 const CATEGORIES: { value: FeedPostInputCategory; label: string }[] = [
   { value: "discussion", label: "Discussion" },
@@ -36,8 +37,9 @@ export function CreatePostForm() {
   const [text, setText] = useState("");
   const [category, setCategory] = useState<FeedPostInputCategory>("discussion");
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [mediaDataUrl, setMediaDataUrl] = useState<string>("");
+  const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaType, setMediaType] = useState<"none" | "image" | "video">("none");
+  const [isUploading, setIsUploading] = useState(false);
 
   const createPost = useCreateFeedPost({
     mutation: {
@@ -45,7 +47,7 @@ export function CreatePostForm() {
         setText("");
         setCategory("discussion");
         setIsConfirmed(false);
-        setMediaDataUrl("");
+        setMediaUrl("");
         setMediaType("none");
         queryClient.invalidateQueries({ queryKey: getListFeedPostsQueryKey() });
         toast({ title: "Posted successfully", description: "Your post is now live in the feed." });
@@ -54,26 +56,40 @@ export function CreatePostForm() {
     }
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 50 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Maximum file size is 50MB.", variant: "destructive" });
+    if (file.type.startsWith("video/")) {
+      toast({ title: "Videos not supported yet", description: "Please choose an image (JPEG, PNG, WebP, GIF, or AVIF).", variant: "destructive" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast({ title: "File too large", description: "Maximum image size is 10MB.", variant: "destructive" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
-    const type = file.type.startsWith("video/") ? "video" : "image";
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setMediaDataUrl(event.target?.result as string);
-      setMediaType(type);
-    };
-    reader.readAsDataURL(file);
+    setIsUploading(true);
+    try {
+      const url = await uploadImage(file);
+      setMediaUrl(url);
+      setMediaType("image");
+    } catch (err) {
+      toast({
+        title: "Upload failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const removeMedia = () => {
-    setMediaDataUrl("");
+    setMediaUrl("");
     setMediaType("none");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -88,7 +104,7 @@ export function CreatePostForm() {
         text,
         category,
         mediaType,
-        mediaUrl: mediaDataUrl || undefined,
+        mediaUrl: mediaUrl || undefined,
         isHookahRelatedConfirmed: isConfirmed
       }
     });
@@ -125,7 +141,13 @@ export function CreatePostForm() {
           </div>
         </div>
 
-        {mediaDataUrl && (
+        {isUploading && (
+          <div className="pl-14 flex items-center gap-2 text-muted-foreground text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" /> Uploading image...
+          </div>
+        )}
+
+        {mediaUrl && (
           <div className="pl-14">
             <div className="relative inline-block rounded-xl overflow-hidden border border-white/10 bg-black/50">
               <button
@@ -135,11 +157,7 @@ export function CreatePostForm() {
               >
                 <X className="h-4 w-4" />
               </button>
-              {mediaType === "video" ? (
-                <video src={mediaDataUrl} className="max-h-64 object-contain" controls />
-              ) : (
-                <img src={mediaDataUrl} alt="Upload preview" className="max-h-64 object-contain" />
-              )}
+              <img src={mediaUrl} alt="Upload preview" className="max-h-64 object-contain" />
             </div>
           </div>
         )}
@@ -148,7 +166,7 @@ export function CreatePostForm() {
           <div className="flex items-center flex-wrap gap-3">
             <input
               type="file"
-              accept="image/*,video/*"
+              accept="image/*"
               className="hidden"
               ref={fileInputRef}
               onChange={handleFileChange}
@@ -161,15 +179,6 @@ export function CreatePostForm() {
               onClick={() => fileInputRef.current?.click()}
             >
               <ImageIcon className="h-4 w-4 mr-2" /> Photo
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full border-white/10 bg-background/50 hover:bg-white/10 hover:text-white text-muted-foreground h-9"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Video className="h-4 w-4 mr-2" /> Video
             </Button>
 
             <Select value={category} onValueChange={(val: FeedPostInputCategory) => setCategory(val)}>
@@ -201,7 +210,7 @@ export function CreatePostForm() {
             </div>
             <Button
               type="submit"
-              disabled={(!text.trim() && mediaType === "none") || !isConfirmed || createPost.isPending}
+              disabled={(!text.trim() && mediaType === "none") || !isConfirmed || createPost.isPending || isUploading}
               className="rounded-full bg-primary text-primary-foreground font-semibold px-8 hover:bg-primary/90 transition-colors shadow-[0_0_15px_rgba(212,175,55,0.2)]"
             >
               {createPost.isPending ? "Posting..." : "Post"}

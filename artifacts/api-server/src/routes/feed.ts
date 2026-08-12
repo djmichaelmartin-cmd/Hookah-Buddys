@@ -19,6 +19,7 @@ import {
   ReviewFeedReportBody,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import { finalizeMediaUrl, InvalidUploadError } from "../lib/imageUploads";
 import { hydratePosts, loadAuthors } from "../lib/feedHelpers";
 import { createNotification } from "../lib/notify";
 import {
@@ -106,6 +107,18 @@ router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
     res.status(400).json({ error: "You must confirm the post is hookah-related" });
     return;
   }
+  let mediaUrl = parsed.data.mediaUrl ?? null;
+  if (mediaUrl) {
+    try {
+      mediaUrl = await finalizeMediaUrl(mediaUrl, user.id);
+    } catch (err) {
+      if (err instanceof InvalidUploadError) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      throw err;
+    }
+  }
   let audience: string | undefined = parsed.data.audience;
   if (!audience) {
     const settings = await getOrCreatePrivacySettings(user.id);
@@ -117,8 +130,8 @@ router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
       userId: user.id,
       userRole: user.role,
       text: parsed.data.text,
-      mediaUrl: parsed.data.mediaUrl ?? null,
-      mediaType: parsed.data.mediaType ?? (parsed.data.mediaUrl ? "image" : "none"),
+      mediaUrl,
+      mediaType: parsed.data.mediaType ?? (mediaUrl ? "image" : "none"),
       category: parsed.data.category,
       isHookahRelatedConfirmed: true,
       status: "active",

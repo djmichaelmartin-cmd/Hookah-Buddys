@@ -107,6 +107,27 @@ export async function uploadImageBuffer(
 }
 
 /**
+ * Guard + finalizer for user-supplied media URLs (feed posts, album photos,
+ * Doll media). Rejects embedded `data:` URLs outright (they bloat the
+ * database), finalizes storage object URLs (ACL + image validation), and
+ * passes other URLs (e.g. external links) through unchanged.
+ */
+export async function finalizeMediaUrl(
+  url: string,
+  ownerId: number,
+): Promise<string> {
+  if (/^data:/i.test(url.trim())) {
+    throw new InvalidUploadError(
+      "Embedded data: URLs are not allowed. Upload the file to /api/storage/uploads/image and reference the returned URL.",
+    );
+  }
+  if (toObjectEntityPath(url)) {
+    return finalizeUploadedImage(url, ownerId);
+  }
+  return url;
+}
+
+/**
  * Server-side finalize step for an uploaded image before it may be referenced.
  *
  * Verifies against the ACTUAL stored object (not client-declared metadata):

@@ -26,23 +26,7 @@ import { InterestTags } from "@/components/profile/InterestTags";
 import { ProfileCompletionMeter } from "@/components/profile/ProfileCompletionMeter";
 import { Camera, Loader2, Eye, Save, Upload as UploadIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
-const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-
-async function uploadImage(file: File): Promise<string> {
-  const res = await fetch("/api/storage/uploads/image", {
-    method: "POST",
-    headers: { "Content-Type": file.type || "application/octet-stream" },
-    body: file,
-    credentials: "include",
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || "Upload failed");
-  }
-  const { objectPath } = await res.json();
-  return `/api/storage${objectPath}`;
-}
+import { uploadImage, ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from "@/lib/uploadImage";
 
 const SUGGESTED_INTERESTS = [
   "Hookah",

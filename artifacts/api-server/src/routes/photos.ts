@@ -16,6 +16,7 @@ import {
   ReportPhotoBody,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import { finalizeMediaUrl, InvalidUploadError } from "../lib/imageUploads";
 import { loadAuthors } from "../lib/feedHelpers";
 import { getRelationship, canView, type Relationship } from "../lib/socialHelpers";
 import { createNotification } from "../lib/notify";
@@ -169,12 +170,22 @@ router.post("/albums/:id/photos", requireAuth(), async (req, res): Promise<void>
     res.status(403).json({ error: "You can only add photos to your own albums" });
     return;
   }
+  let imageUrl: string;
+  try {
+    imageUrl = await finalizeMediaUrl(parsed.data.imageUrl, user.id);
+  } catch (err) {
+    if (err instanceof InvalidUploadError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    throw err;
+  }
   const [photo] = await db
     .insert(photosTable)
     .values({
       userId: user.id,
       albumId: id,
-      imageUrl: parsed.data.imageUrl,
+      imageUrl,
       caption: parsed.data.caption ?? null,
       visibility: parsed.data.visibility ?? album.visibility,
     })
