@@ -13,4 +13,6 @@ export interface CheckoutSession {
   amount: number;
   purpose?: string;
   message?: string;
+  /** Stripe-hosted checkout URL. Redirect the user here to complete payment. */
+  url?: string;
 }

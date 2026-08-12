@@ -1,60 +1,187 @@
-import { Router, type IRouter } from "express";
-import { renewMembership } from "../lib/membership";
+import { type Request, type Response } from "express";
+import Stripe from "stripe";
+import { eq } from "drizzle-orm";
+import { db, subscriptionsTable, plansTable, creditPackagesTable } from "@workspace/db";
+import { getStripeClient } from "../lib/stripe";
+import { activateMembership, renewMembership } from "../lib/membership";
+import { grantCredits } from "../lib/credits";
 
-const router: IRouter = Router();
+// ---------------------------------------------------------------------------
+// Internal handlers
+// ---------------------------------------------------------------------------
 
-const RENEWAL_EVENTS = new Set(["invoice.payment_succeeded", "invoice.paid"]);
+async function handleCheckoutSessionCompleted(
+  session: Stripe.Checkout.Session,
+  log: Request["log"],
+): Promise<void> {
+  const userId = Number(session.client_reference_id);
+  const purpose = session.metadata?.purpose;
 
-/**
- * Placeholder Stripe webhook. In a real integration Stripe POSTs billing events
- * here and the handler verifies the `Stripe-Signature` header against
- * STRIPE_WEBHOOK_SECRET before acting. We have no live Stripe, so:
- *   - If STRIPE_WEBHOOK_SECRET is set, require it via the `x-webhook-secret`
- *     header (a stand-in for real signature verification).
- *   - If it is not set, only process in non-production (dev/testing). Production
- *     fails closed so an unauthenticated endpoint can never grant credits.
- *
- * On a successful subscription renewal event we refresh (reset) the member's
- * monthly membership credits for the new billing cycle and advance the period.
- * Payload shape (placeholder): { type, data: { memberUserId } }.
- */
-router.post("/webhooks/stripe", async (req, res): Promise<void> => {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (secret) {
-    if (req.header("x-webhook-secret") !== secret) {
-      res.status(401).json({ error: "Invalid webhook signature" });
+  if (!userId || !purpose) {
+    log.warn({ sessionId: session.id }, "checkout.session.completed: missing userId or purpose in metadata");
+    return;
+  }
+
+  // Idempotency: skip if we already processed this checkout session.
+  const existing = await db
+    .select({ id: subscriptionsTable.id })
+    .from(subscriptionsTable)
+    .where(eq(subscriptionsTable.stripeCheckoutSessionId, session.id))
+    .limit(1);
+  if (existing.length > 0) {
+    log.info({ sessionId: session.id }, "checkout.session.completed: already processed, skipping");
+    return;
+  }
+
+  if (purpose === "membership") {
+    const planId = Number(session.metadata?.planId);
+    if (!planId) {
+      log.warn({ sessionId: session.id }, "checkout.session.completed: missing planId");
       return;
     }
-  } else if (process.env.NODE_ENV === "production") {
-    res.status(503).json({ error: "Stripe webhook not configured" });
+    const [plan] = await db.select().from(plansTable).where(eq(plansTable.id, planId));
+    if (!plan) {
+      log.warn({ sessionId: session.id, planId }, "checkout.session.completed: plan not found");
+      return;
+    }
+    const sub = await activateMembership(userId, plan);
+    // Persist Stripe identifiers so renewal webhooks can locate this record.
+    await db
+      .update(subscriptionsTable)
+      .set({
+        stripeSubscriptionId: typeof session.subscription === "string" ? session.subscription : null,
+        stripeCustomerId: typeof session.customer === "string" ? session.customer : null,
+        stripeCheckoutSessionId: session.id,
+      })
+      .where(eq(subscriptionsTable.id, sub.id));
+    log.info({ userId, planId, subId: sub.id }, "Membership activated via Stripe checkout");
     return;
   }
 
-  const body = (req.body ?? {}) as { type?: string; data?: { memberUserId?: number } };
-  const type = body.type ?? "";
-  if (!RENEWAL_EVENTS.has(type)) {
-    // Acknowledge unrelated events so Stripe does not retry them.
-    res.json({ received: true, handled: false });
+  if (purpose === "credits") {
+    const packageId = Number(session.metadata?.packageId);
+    if (!packageId) {
+      log.warn({ sessionId: session.id }, "checkout.session.completed: missing packageId");
+      return;
+    }
+    const [pkg] = await db
+      .select()
+      .from(creditPackagesTable)
+      .where(eq(creditPackagesTable.id, packageId));
+    if (!pkg) {
+      log.warn({ sessionId: session.id, packageId }, "checkout.session.completed: package not found");
+      return;
+    }
+    await grantCredits(userId, pkg.credits, {
+      type: "purchase",
+      description: `Purchased ${pkg.name} pack (${pkg.credits} credits) via Stripe`,
+      amountCents: pkg.priceCents,
+      packageId: pkg.id,
+    });
+    log.info({ userId, packageId, credits: pkg.credits }, "Credits granted via Stripe checkout");
     return;
   }
 
-  const memberUserId = Number(body.data?.memberUserId);
-  if (!Number.isInteger(memberUserId) || memberUserId <= 0) {
-    res.status(400).json({ error: "Missing memberUserId" });
+  log.warn({ sessionId: session.id, purpose }, "checkout.session.completed: unrecognised purpose");
+}
+
+async function handleInvoicePaymentSucceeded(
+  invoice: Stripe.Invoice,
+  log: Request["log"],
+): Promise<void> {
+  const stripeSubscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : null;
+  if (!stripeSubscriptionId) return;
+
+  // Locate our subscription record to get the memberUserId.
+  const [row] = await db
+    .select({ memberUserId: subscriptionsTable.memberUserId })
+    .from(subscriptionsTable)
+    .where(eq(subscriptionsTable.stripeSubscriptionId, stripeSubscriptionId))
+    .limit(1);
+
+  if (!row) {
+    // Expected on the very first invoice (covered by checkout.session.completed).
+    log.info({ stripeSubscriptionId }, "invoice.payment_succeeded: no matching sub yet, skipping renewal");
     return;
   }
 
-  const result = await renewMembership(memberUserId);
-  if (!result) {
-    req.log.warn({ memberUserId }, "stripe renewal: no active membership");
-    res.json({ received: true, handled: false });
+  const result = await renewMembership(row.memberUserId);
+  if (result) {
+    log.info(
+      { userId: row.memberUserId, plan: result.plan.name, credits: result.plan.monthlyCredits },
+      "Membership renewed via Stripe invoice",
+    );
+  } else {
+    log.warn({ userId: row.memberUserId }, "invoice.payment_succeeded: no active membership to renew");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Express route handler (mounted in app.ts BEFORE express.json() so the raw
+// Buffer is preserved for Stripe signature verification).
+// ---------------------------------------------------------------------------
+
+export async function stripeWebhookHandler(req: Request, res: Response): Promise<void> {
+  const stripe = getStripeClient();
+
+  if (!stripe) {
+    if (process.env.NODE_ENV === "production") {
+      res.status(503).json({ error: "Stripe is not configured on this server" });
+    } else {
+      // Dev: no Stripe key — acknowledge silently so local curl tests don't break.
+      res.json({ received: true, handled: false, note: "Stripe not configured" });
+    }
     return;
   }
-  req.log.info(
-    { memberUserId, plan: result.plan.name, credits: result.plan.monthlyCredits },
-    "stripe renewal: membership credits refreshed",
-  );
-  res.json({ received: true, handled: true });
-});
 
-export default router;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    res.status(503).json({ error: "STRIPE_WEBHOOK_SECRET is not configured" });
+    return;
+  }
+
+  const sig = req.headers["stripe-signature"];
+  if (!sig) {
+    res.status(400).json({ error: "Missing Stripe-Signature header" });
+    return;
+  }
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body as Buffer,
+      Array.isArray(sig) ? sig[0] : sig,
+      webhookSecret,
+    );
+  } catch (err) {
+    req.log.error({ err }, "Stripe webhook signature verification failed");
+    res.status(400).json({ error: "Invalid webhook signature" });
+    return;
+  }
+
+  try {
+    switch (event.type) {
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(
+          event.data.object as Stripe.Checkout.Session,
+          req.log,
+        );
+        break;
+
+      case "invoice.payment_succeeded":
+      case "invoice.paid":
+        await handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice, req.log);
+        break;
+
+      default:
+        // Acknowledge unrecognised events so Stripe does not retry them.
+        break;
+    }
+  } catch (err) {
+    req.log.error({ err, eventType: event.type }, "Error processing Stripe webhook event");
+    res.status(500).json({ error: "Internal error processing webhook" });
+    return;
+  }
+
+  res.json({ received: true });
+}

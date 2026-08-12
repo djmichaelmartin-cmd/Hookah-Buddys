@@ -3264,10 +3264,11 @@ components:
       required: [id, status, amount]
       properties:
         id: { type: string }
-        status: { type: string, enum: [requires_payment, paid, placeholder] }
+        status: { type: string, enum: [open, requires_payment, paid, placeholder] }
         amount: { type: number }
         purpose: { type: string }
         message: { type: string }
+        url: { type: string, description: "Stripe-hosted checkout URL. Redirect the user here to complete payment." }
 
     ContactInput:
       type: object

@@ -61,6 +61,10 @@ router.post("/subscriptions", requireAuth("member"), async (req, res): Promise<v
   // active membership tier (not the client-submitted plan) so a Bronze member
   // cannot self-select a Gold plan id to bypass the gate. These are not the
   // recurring membership plan and do not grant monthly credits.
+  //
+  // Doll subscriptions are already transitively payment-gated because the
+  // required Gold/Platinum membership itself must have been activated via a
+  // verified Stripe webhook.
   if (parsed.data.dollId) {
     const active = await getActiveMembership(user.id);
     if (
@@ -79,8 +83,26 @@ router.post("/subscriptions", requireAuth("member"), async (req, res): Promise<v
     return;
   }
 
-  // Recurring membership plan: switch the active membership and grant the
-  // plan's monthly membership credits for the new billing cycle.
+  // Recurring membership plan subscription.
+  //
+  // Free plans (price = 0, e.g. Bronze) can be activated directly — no
+  // payment is needed. Paid plans must go through Stripe: the client should
+  // call POST /checkout with purpose="membership", redirect the user to the
+  // returned Stripe URL, and let the checkout.session.completed webhook
+  // activate the membership server-side. Allowing direct paid-plan activation
+  // here would let any authenticated user gain Silver/Gold/Platinum credits
+  // without paying.
+  if (plan.price > 0) {
+    res.status(402).json({
+      error:
+        "Paid memberships require payment. Use POST /checkout with purpose='membership' " +
+        "to create a Stripe checkout session and redirect the user to the returned URL.",
+      checkoutRequired: true,
+    });
+    return;
+  }
+
+  // Free plan (price === 0): activate directly.
   const sub = await activateMembership(user.id, plan);
   res.status(201).json(serializeSubscription(sub, plan, null));
 });

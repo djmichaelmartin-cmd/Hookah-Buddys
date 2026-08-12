@@ -119,30 +119,18 @@ router.get("/credits", requireAuth("member"), async (req, res): Promise<void> =>
   res.json(await balancePayload(user.id));
 });
 
-router.post("/credits/purchase", requireAuth("member"), async (req, res): Promise<void> => {
-  const user = req.currentUser!;
-  const parsed = PurchaseCreditsBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-  const [pkg] = await db
-    .select()
-    .from(creditPackagesTable)
-    .where(and(eq(creditPackagesTable.id, parsed.data.packageId), eq(creditPackagesTable.active, true)));
-  if (!pkg) {
-    res.status(404).json({ error: "Credit package not found" });
-    return;
-  }
-  // Placeholder checkout: no real charge. Credits granted immediately, applied
-  // atomically together with the ledger entry.
-  await grantCredits(user.id, pkg.credits, {
-    type: "purchase",
-    description: `Purchased ${pkg.name} pack (${pkg.credits} credits)`,
-    amountCents: pkg.priceCents,
-    packageId: pkg.id,
+router.post("/credits/purchase", requireAuth("member"), async (_req, res): Promise<void> => {
+  // Credit purchases require a verified Stripe payment. The client should call
+  // POST /checkout with purpose="credits" and referenceId=packageId, redirect
+  // the user to the returned Stripe URL, and let the checkout.session.completed
+  // webhook grant the credits server-side. Granting credits here directly would
+  // bypass payment entirely.
+  res.status(402).json({
+    error:
+      "Credit purchases require payment. Use POST /checkout with purpose='credits' " +
+      "to create a Stripe checkout session and redirect the user to the returned URL.",
+    checkoutRequired: true,
   });
-  res.status(201).json(await balancePayload(user.id));
 });
 
 // ----- Admin -----

@@ -4,6 +4,7 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { buildSessionMiddleware } from "./lib/auth";
+import { stripeWebhookHandler } from "./routes/webhooks";
 
 const app: Express = express();
 
@@ -27,6 +28,11 @@ app.use(
   }),
 );
 app.use(cors());
+
+// Stripe webhook MUST receive the raw request body (a Buffer) for signature
+// verification. Register it before express.json() so the body is not parsed.
+app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), stripeWebhookHandler);
+
 app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.set("trust proxy", 1);

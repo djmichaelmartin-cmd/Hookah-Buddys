@@ -819,6 +819,7 @@ export type CheckoutSessionStatus = typeof CheckoutSessionStatus[keyof typeof Ch
 
 
 export const CheckoutSessionStatus = {
+  open: 'open',
   requires_payment: 'requires_payment',
   paid: 'paid',
   placeholder: 'placeholder',
@@ -830,6 +831,8 @@ export interface CheckoutSession {
   amount: number;
   purpose?: string;
   message?: string;
+  /** Stripe-hosted checkout URL. Redirect the user here to complete payment. */
+  url?: string;
 }
 
 export interface ContactInput {

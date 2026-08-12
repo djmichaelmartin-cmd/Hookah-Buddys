@@ -1,6 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { useListPlans, getListPlansQueryKey, useCreateCheckout, useCreateSubscription } from "@workspace/api-client-react";
+import { useListPlans, getListPlansQueryKey, useCreateCheckout } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Coins } from "lucide-react";
@@ -17,44 +17,41 @@ export default function Checkout() {
   const selectedPlan = plans?.find(p => p.slug === planSlug);
 
   const createCheckout = useCreateCheckout();
-  const createSubscription = useCreateSubscription();
 
   const handleConfirm = () => {
     if (type === "membership" && selectedPlan) {
       createCheckout.mutate({
         data: { purpose: "membership", amount: selectedPlan.price, referenceId: selectedPlan.id }
       }, {
-        onSuccess: () => {
-          createSubscription.mutate({
-            data: { planId: selectedPlan.id }
-          }, {
-            onSuccess: () => {
-              toast({ title: "Success", description: "Your membership is now active!" });
-              setLocation("/dashboard/member");
-            },
-            onError: () => {
-              toast({ title: "Error", description: "Could not activate membership.", variant: "destructive" });
-            }
-          });
+        onSuccess: (data) => {
+          if (data.url) {
+            // Redirect to Stripe-hosted checkout page.
+            window.location.href = data.url;
+          } else {
+            toast({
+              title: "Payment not configured",
+              description: "The payment system is not yet set up on this server. Please contact support.",
+              variant: "destructive",
+            });
+          }
         },
         onError: () => {
-          toast({ title: "Payment Error", description: "There was an issue processing your payment.", variant: "destructive" });
+          toast({ title: "Payment Error", description: "There was an issue starting checkout. Please try again.", variant: "destructive" });
         }
       });
     } else {
-      // Package placeholder behavior
-      toast({ title: "Success", description: "Demo checkout complete!" });
+      toast({ title: "Invalid checkout", description: "Unrecognised checkout type.", variant: "destructive" });
     }
   };
 
-  const isProcessing = createCheckout.isPending || createSubscription.isPending;
+  const isProcessing = createCheckout.isPending;
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12 flex justify-center">
         <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(212,175,55,0.1)] w-full max-w-md text-center">
           <h1 className="text-3xl font-serif text-white mb-2">Secure Checkout</h1>
-          <p className="text-muted-foreground mb-8">Stripe integration placeholder — no real charge will be made.</p>
+          <p className="text-muted-foreground mb-8">You'll be redirected to Stripe's secure payment page to complete your purchase.</p>
           
           <div className="bg-background/50 border border-white/5 rounded-lg p-6 mb-8 text-left">
             <h3 className="text-lg font-medium text-white mb-4 border-b border-white/10 pb-2">Order Summary</h3>
@@ -67,7 +64,7 @@ export default function Checkout() {
                   <>
                     <div className="flex justify-between mb-2">
                       <span className="text-muted-foreground">{selectedPlan.name} Membership</span>
-                      <span className="text-white font-medium">${selectedPlan.price}</span>
+                      <span className="text-white font-medium">${selectedPlan.price}/mo</span>
                     </div>
                     
                     {selectedPlan.monthlyCredits > 0 && (
@@ -82,7 +79,7 @@ export default function Checkout() {
                     </div>
                     
                     <p className="text-xs text-muted-foreground mt-4 text-center">
-                      Recurring billing of ${selectedPlan.price} per month. Cancel anytime.
+                      Recurring billing of ${selectedPlan.price} per month. Cancel anytime via Stripe.
                     </p>
                   </>
                 ) : (
@@ -90,16 +87,7 @@ export default function Checkout() {
                 )}
               </>
             ) : (
-              <>
-                <div className="flex justify-between mb-2">
-                  <span className="text-muted-foreground">Item</span>
-                  <span className="text-white font-medium">Checkout Demo</span>
-                </div>
-                <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
-                  <span className="text-white font-bold">Total</span>
-                  <span className="text-primary font-bold">$0.00</span>
-                </div>
-              </>
+              <p className="text-destructive text-sm">Unrecognised checkout type.</p>
             )}
           </div>
           
@@ -108,8 +96,12 @@ export default function Checkout() {
             onClick={handleConfirm}
             disabled={isProcessing || (type === "membership" && !selectedPlan)}
           >
-            {isProcessing ? "Processing..." : "Confirm Placeholder Payment"}
+            {isProcessing ? "Redirecting to Stripe..." : "Proceed to Secure Payment"}
           </Button>
+
+          <p className="text-xs text-muted-foreground mt-4">
+            Powered by Stripe — your payment details are never stored on our servers.
+          </p>
         </div>
       </div>
     </Layout>

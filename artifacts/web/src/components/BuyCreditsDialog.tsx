@@ -1,12 +1,10 @@
 import { useState } from "react";
 import {
   useListCreditPackages,
-  usePurchaseCredits,
+  useCreateCheckout,
   useGetCurrentUser,
-  getGetCreditsQueryKey,
   type CreditPackage,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { CREDIT_COST_ITEMS } from "@workspace/pricing";
 import {
@@ -33,9 +31,9 @@ export function CreditPackageGrid({
 }) {
   const { data: packages, isLoading } = useListCreditPackages();
   const { data: session } = useGetCurrentUser();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const [pendingPackageId, setPendingPackageId] = useState<number | null>(null);
 
   const redirectToLogin = () => {
     toast({
@@ -45,40 +43,46 @@ export function CreditPackageGrid({
     navigate("/login");
   };
 
-  const purchase = usePurchaseCredits({
-    mutation: {
-      onSuccess: (_data, variables) => {
-        const pkg = (packages ?? []).find((p) => p.id === variables.data.packageId);
-        toast({
-          title: "Credits added",
-          description: pkg
-            ? `${pkg.credits} credits have been added to your balance.`
-            : "Your credits have been added.",
-        });
-        queryClient.invalidateQueries({ queryKey: getGetCreditsQueryKey() });
-        if (pkg) onPurchased?.(pkg.credits);
-      },
-      onError: (error) => {
-        const status = (error as { response?: { status?: number } })?.response?.status;
-        if (status === 401 || status === 403) {
-          redirectToLogin();
-          return;
-        }
-        toast({
-          title: "Purchase failed",
-          description: "We couldn't complete your purchase. Please try again.",
-          variant: "destructive",
-        });
-      },
-    },
-  });
+  const createCheckout = useCreateCheckout();
 
-  const handleBuy = (packageId: number) => {
+  const handleBuy = (pkg: CreditPackage) => {
     if (!session?.user) {
       redirectToLogin();
       return;
     }
-    purchase.mutate({ data: { packageId } });
+    setPendingPackageId(pkg.id);
+    createCheckout.mutate(
+      { data: { purpose: "credits", amount: pkg.priceCents / 100, referenceId: pkg.id } },
+      {
+        onSuccess: (data) => {
+          if (data.url) {
+            // Redirect to Stripe-hosted checkout page.
+            window.location.href = data.url;
+          } else {
+            toast({
+              title: "Payment not configured",
+              description:
+                "The payment system is not yet set up on this server. Please contact support.",
+              variant: "destructive",
+            });
+            setPendingPackageId(null);
+          }
+        },
+        onError: (error) => {
+          const status = (error as { response?: { status?: number } })?.response?.status;
+          if (status === 401 || status === 403) {
+            redirectToLogin();
+          } else {
+            toast({
+              title: "Purchase failed",
+              description: "We couldn't start checkout. Please try again.",
+              variant: "destructive",
+            });
+          }
+          setPendingPackageId(null);
+        },
+      },
+    );
   };
 
   const sorted = [...(packages ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -94,7 +98,7 @@ export function CreditPackageGrid({
   return (
     <div className={className ?? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"}>
       {sorted.map((pkg: CreditPackage) => {
-        const pending = purchase.isPending && purchase.variables?.data.packageId === pkg.id;
+        const pending = pendingPackageId === pkg.id;
         const perCredit = pkg.priceCents / pkg.credits;
         return (
           <div
@@ -118,14 +122,14 @@ export function CreditPackageGrid({
             </div>
             <p className="text-2xl font-bold text-white mb-1">{formatPrice(pkg.priceCents)}</p>
             <p className="text-xs text-muted-foreground mb-6">
-              {(perCredit).toFixed(2)}¢ per credit
+              {perCredit.toFixed(2)}¢ per credit
             </p>
             <Button
               className="mt-auto w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              disabled={pending}
-              onClick={() => handleBuy(pkg.id)}
+              disabled={pending || createCheckout.isPending}
+              onClick={() => handleBuy(pkg)}
             >
-              {pending ? "Processing..." : "Buy Credits"}
+              {pending ? "Redirecting…" : "Buy Credits"}
             </Button>
           </div>
         );

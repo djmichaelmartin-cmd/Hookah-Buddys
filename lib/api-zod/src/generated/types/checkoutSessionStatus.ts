@@ -10,6 +10,7 @@ export type CheckoutSessionStatus = typeof CheckoutSessionStatus[keyof typeof Ch
 
 
 export const CheckoutSessionStatus = {
+  open: 'open',
   requires_payment: 'requires_payment',
   paid: 'paid',
   placeholder: 'placeholder',
