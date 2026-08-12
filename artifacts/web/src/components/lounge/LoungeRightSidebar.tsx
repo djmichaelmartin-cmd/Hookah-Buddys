@@ -155,8 +155,20 @@ function EventRow({ event, loggedIn }: { event: Event; loggedIn: boolean }) {
       </p>
       <p className="text-xs text-muted-foreground flex items-center gap-1">
         <MapPin className="h-3 w-3 shrink-0" />
-        {event.venueName ? `${event.venueName} · ` : ""}
-        {event.city}, {event.state}
+        {event.loungeId != null && event.venueName ? (
+          <Link
+            href={`/lounges?q=${encodeURIComponent(event.venueName)}`}
+            className="text-primary hover:underline truncate"
+          >
+            {event.venueName}
+          </Link>
+        ) : event.venueName ? (
+          <span className="truncate">{event.venueName}</span>
+        ) : null}
+        {event.venueName ? <span>·</span> : null}
+        <span className="shrink-0">
+          {event.city}, {event.state}
+        </span>
       </p>
       <div className="flex items-center gap-2 mt-2">
         <button

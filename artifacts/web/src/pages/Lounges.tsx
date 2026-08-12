@@ -87,8 +87,12 @@ function priceLabel(level: number): string {
 }
 
 export default function Lounges() {
-  const [query, setQuery] = useState("");
-  const [submittedQuery, setSubmittedQuery] = useState("");
+  const initialQuery = (() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    return q ? q : "";
+  })();
+  const [query, setQuery] = useState(initialQuery);
+  const [submittedQuery, setSubmittedQuery] = useState(initialQuery);
   const [stateFilter, setStateFilter] = useState<string>("all");
   const [origin, setOrigin] = useState<Coords | null>(null);
   const [radius, setRadius] = useState<string>("50");

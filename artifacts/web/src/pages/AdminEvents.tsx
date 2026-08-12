@@ -5,7 +5,10 @@ import {
   useUpdateAdminEvent,
   useDeleteAdminEvent,
   getListAdminEventsQueryKey,
+  useListLounges,
+  getListLoungesQueryKey,
   type Event,
+  type Lounge,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, MapPin, X, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function toLocalInputValue(iso: string | null | undefined): string {
@@ -33,6 +36,8 @@ function toIso(local: string): string | null {
 type EventFormState = {
   title: string;
   description: string;
+  loungeId: number | null;
+  loungeName: string; // display-only label for a linked lounge
   venueName: string;
   city: string;
   state: string;
@@ -45,6 +50,8 @@ function emptyForm(): EventFormState {
   return {
     title: "",
     description: "",
+    loungeId: null,
+    loungeName: "",
     venueName: "",
     city: "",
     state: "",
@@ -52,6 +59,105 @@ function emptyForm(): EventFormState {
     endsAt: "",
     imageUrl: "",
   };
+}
+
+function LoungePicker({
+  form,
+  setForm,
+}: {
+  form: EventFormState;
+  setForm: (updater: (prev: EventFormState) => EventFormState) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const trimmed = search.trim();
+  const params = { q: trimmed, limit: 8 };
+  const { data: results, isFetching } = useListLounges(params, {
+    query: {
+      queryKey: getListLoungesQueryKey(params),
+      enabled: trimmed.length >= 2,
+    },
+  });
+
+  const pick = (lounge: Lounge) => {
+    setForm((prev) => ({
+      ...prev,
+      loungeId: lounge.id,
+      loungeName: lounge.name,
+      venueName: lounge.name,
+      city: lounge.city,
+      state: lounge.state,
+    }));
+    setSearch("");
+  };
+
+  const clear = () =>
+    setForm((prev) => ({ ...prev, loungeId: null, loungeName: "" }));
+
+  if (form.loungeId != null) {
+    return (
+      <div>
+        <Label className="text-xs text-muted-foreground">Linked lounge</Label>
+        <div className="flex items-center gap-2 mt-1 px-3 py-2 rounded-md bg-background border border-white/10">
+          <MapPin className="w-4 h-4 text-primary shrink-0" />
+          <span className="text-sm text-white truncate">
+            {form.loungeName || form.venueName || `Lounge #${form.loungeId}`}
+          </span>
+          <button
+            type="button"
+            onClick={clear}
+            aria-label="Unlink lounge"
+            className="ml-auto text-muted-foreground hover:text-white transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-1">
+          Venue, city, and state were filled from the directory. Unlink to enter them manually.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Label className="text-xs text-muted-foreground">Lounge (optional — search the directory)</Label>
+      <div className="relative mt-1">
+        <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search lounges by name or city…"
+          className="bg-background border-white/10 pl-9"
+        />
+      </div>
+      {trimmed.length >= 2 && (
+        <div className="mt-1 rounded-md border border-white/10 bg-background overflow-hidden">
+          {isFetching && !results && (
+            <p className="text-xs text-muted-foreground px-3 py-2">Searching…</p>
+          )}
+          {results && results.length === 0 && (
+            <p className="text-xs text-muted-foreground px-3 py-2">
+              No lounges match. You can enter the venue manually below.
+            </p>
+          )}
+          {(results ?? []).map((lounge) => (
+            <button
+              key={lounge.id}
+              type="button"
+              onClick={() => pick(lounge)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-b-0"
+            >
+              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="text-sm text-white truncate">{lounge.name}</span>
+              <span className="text-xs text-muted-foreground ml-auto shrink-0">
+                {lounge.city}, {lounge.state}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function EventFields({
@@ -73,6 +179,7 @@ function EventFields({
         <Label className="text-xs text-muted-foreground">Description</Label>
         <Textarea value={form.description} onChange={set("description")} rows={2} className="bg-background border-white/10" />
       </div>
+      <LoungePicker form={form} setForm={setForm} />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <Label className="text-xs text-muted-foreground">Venue</Label>
@@ -120,6 +227,8 @@ function EventRow({ event }: { event: Event }) {
   const [form, setForm] = useState<EventFormState>(() => ({
     title: event.title,
     description: event.description ?? "",
+    loungeId: event.loungeId ?? null,
+    loungeName: "",
     venueName: event.venueName ?? "",
     city: event.city,
     state: event.state,
@@ -164,6 +273,7 @@ function EventRow({ event }: { event: Event }) {
       data: {
         title: form.title.trim(),
         description: form.description.trim() === "" ? null : form.description,
+        loungeId: form.loungeId,
         venueName: form.venueName.trim() === "" ? null : form.venueName.trim(),
         city: form.city.trim(),
         state: form.state.trim().toUpperCase(),
@@ -276,6 +386,7 @@ export default function AdminEvents() {
       data: {
         title: form.title.trim(),
         description: form.description.trim() === "" ? undefined : form.description,
+        loungeId: form.loungeId ?? undefined,
         venueName: form.venueName.trim() === "" ? undefined : form.venueName.trim(),
         city: form.city.trim(),
         state: form.state.trim().toUpperCase(),
