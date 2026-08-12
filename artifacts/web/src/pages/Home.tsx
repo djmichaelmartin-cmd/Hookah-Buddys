@@ -230,6 +230,16 @@ export default function Home() {
   // Track the cursor over the hero so the preview bubble can follow it. The
   // left half previews the previous slide; the right half previews the next.
   const onHeroMove = (e: ReactMouseEvent<HTMLElement>) => {
+    // Over interactive elements (buttons/links), hide the preview bubble and
+    // let the standard cursor show instead.
+    if ((e.target as HTMLElement).closest("a,button")) {
+      if (pointerRaf.current !== null) {
+        cancelAnimationFrame(pointerRaf.current);
+        pointerRaf.current = null;
+      }
+      setPointer(null);
+      return;
+    }
     const rect = heroRef.current?.getBoundingClientRect();
     if (!rect) return;
     const x = e.clientX - rect.left;
