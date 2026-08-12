@@ -138,7 +138,8 @@ import type {
   VideoChatEstimate,
   VideoChatInput,
   VideoChatSession,
-  VideoChatToken
+  VideoChatToken,
+  VideoUploadResponse
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -240,14 +241,15 @@ export const getUploadVideoUrl = () => {
 /**
  * Bounded server-side video upload. Send the raw video bytes as the
 request body. The server enforces the size limit before storage,
-validates the bytes are a real video (MP4, WebM), and returns the
-stored object path.
+validates the bytes are a real video (MP4, WebM), transcodes the
+video to a web-friendly H.264 MP4 with a JPEG poster frame, and
+returns both stored object paths.
 
  * @summary Upload a video (raw bytes, max 50 MB)
  */
-export const uploadVideo = async (uploadVideoBody: Blob, options?: RequestInit): Promise<ImageUploadResponse> => {
+export const uploadVideo = async (uploadVideoBody: Blob, options?: RequestInit): Promise<VideoUploadResponse> => {
 
-  return customFetch<ImageUploadResponse>(getUploadVideoUrl(),
+  return customFetch<VideoUploadResponse>(getUploadVideoUrl(),
   {
     ...options,
     method: 'POST',

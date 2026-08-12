@@ -73,9 +73,12 @@ async function collectReferencedIds(): Promise<Set<string>> {
   details.forEach((r) => add(r.a));
 
   const posts = await db
-    .select({ a: feedPostsTable.mediaUrl })
+    .select({ a: feedPostsTable.mediaUrl, b: feedPostsTable.posterUrl })
     .from(feedPostsTable);
-  posts.forEach((r) => add(r.a));
+  posts.forEach((r) => {
+    add(r.a);
+    add(r.b);
+  });
 
   const photos = await db.select({ a: photosTable.imageUrl }).from(photosTable);
   photos.forEach((r) => add(r.a));

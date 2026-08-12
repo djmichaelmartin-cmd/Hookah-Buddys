@@ -5,6 +5,7 @@ import {
   objectStorageClient,
 } from "./objectStorage";
 import { getObjectAclPolicy, setObjectAclPolicy } from "./objectAcl";
+import { transcodeVideoForFeed, TranscodeError } from "./videoTranscode";
 
 export const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -135,15 +136,18 @@ export async function uploadImageBuffer(
 }
 
 /**
- * Store validated video bytes in the private object dir, stamped with a
- * finalized owner ACL policy. Mirrors uploadImageBuffer: the route bounds the
- * body size first; the size and bytes are re-checked here as defense in depth.
- * Returns the object path ("/objects/...").
+ * Validate, transcode, and store uploaded video bytes.
+ *
+ * The raw upload (MP4/WebM, bounded by the route) is transcoded to a
+ * web-friendly bounded-bitrate H.264 MP4 (max 720p, faststart) and a JPEG
+ * poster frame is extracted. Both objects are stored in the private object
+ * dir with a finalized owner ACL policy. Returns the object paths for the
+ * compressed video and its poster.
  */
 export async function uploadVideoBuffer(
   buffer: Buffer,
   ownerId: number,
-): Promise<string> {
+): Promise<{ objectPath: string; posterPath: string }> {
   if (buffer.length === 0) {
     throw new InvalidUploadError("Uploaded file is empty.");
   }
@@ -156,7 +160,24 @@ export async function uploadVideoBuffer(
       "Uploaded file is not an allowed video type (MP4, WebM).",
     );
   }
-  return storeValidatedBuffer(buffer, sniffedType, ownerId);
+
+  let transcoded;
+  try {
+    transcoded = await transcodeVideoForFeed(buffer);
+  } catch (err) {
+    if (err instanceof TranscodeError) {
+      throw new InvalidUploadError(
+        "Uploaded video could not be processed. Please upload a valid MP4 or WebM video.",
+      );
+    }
+    throw err;
+  }
+
+  const [objectPath, posterPath] = await Promise.all([
+    storeValidatedBuffer(transcoded.video, "video/mp4", ownerId),
+    storeValidatedBuffer(transcoded.poster, "image/jpeg", ownerId),
+  ]);
+  return { objectPath, posterPath };
 }
 
 async function storeValidatedBuffer(

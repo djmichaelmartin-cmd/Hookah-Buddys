@@ -6,6 +6,7 @@ export const feedPostsTable = pgTable("feed_posts", {
   userRole: text("user_role").notNull(),
   text: text("text").notNull(),
   mediaUrl: text("media_url"),
+  posterUrl: text("poster_url"),
   mediaType: text("media_type").notNull().default("none"),
   category: text("category").notNull(),
   isHookahRelatedConfirmed: boolean("is_hookah_related_confirmed").notNull().default(false),

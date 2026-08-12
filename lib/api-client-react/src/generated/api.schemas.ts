@@ -1020,6 +1020,11 @@ export interface FeedPost {
   text: string;
   /** @nullable */
   mediaUrl?: string | null;
+  /**
+     * Poster/thumbnail image for video posts.
+     * @nullable
+     */
+  posterUrl?: string | null;
   mediaType?: FeedPostMediaType;
   category: FeedPostCategory;
   status: FeedPostStatus;
@@ -1072,6 +1077,8 @@ export interface FeedPostInput {
   /** @minLength 1 */
   text: string;
   mediaUrl?: string;
+  /** Poster image object URL returned by the video upload endpoint. */
+  posterUrl?: string;
   mediaType?: FeedPostInputMediaType;
   category: FeedPostInputCategory;
   isHookahRelatedConfirmed: boolean;
@@ -2035,6 +2042,13 @@ export interface UserTagAction {
 export interface ImageUploadResponse {
   /** Stored object path (e.g. `/objects/uploads/uuid`). Serve via `/api/storage` + objectPath. */
   objectPath: string;
+}
+
+export interface VideoUploadResponse {
+  /** Stored path of the transcoded H.264 MP4. Serve via `/api/storage` + objectPath. */
+  objectPath: string;
+  /** Stored path of the JPEG poster frame. Serve via `/api/storage` + posterPath. */
+  posterPath: string;
 }
 
 export interface ErrorEnvelope {

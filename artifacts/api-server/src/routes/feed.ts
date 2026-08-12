@@ -108,16 +108,22 @@ router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
     return;
   }
   let mediaUrl = parsed.data.mediaUrl ?? null;
-  if (mediaUrl) {
-    try {
+  let posterUrl = parsed.data.posterUrl ?? null;
+  try {
+    if (mediaUrl) {
       mediaUrl = await finalizeMediaUrl(mediaUrl, user.id);
-    } catch (err) {
-      if (err instanceof InvalidUploadError) {
-        res.status(400).json({ error: err.message });
-        return;
-      }
-      throw err;
     }
+    if (posterUrl && mediaUrl) {
+      posterUrl = await finalizeMediaUrl(posterUrl, user.id);
+    } else {
+      posterUrl = null;
+    }
+  } catch (err) {
+    if (err instanceof InvalidUploadError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    throw err;
   }
   let audience: string | undefined = parsed.data.audience;
   if (!audience) {
@@ -131,6 +137,7 @@ router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
       userRole: user.role,
       text: parsed.data.text,
       mediaUrl,
+      posterUrl,
       mediaType: parsed.data.mediaType ?? (mediaUrl ? "image" : "none"),
       category: parsed.data.category,
       isHookahRelatedConfirmed: true,

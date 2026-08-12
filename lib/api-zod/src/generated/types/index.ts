@@ -231,3 +231,4 @@ export * from './videoChatInput';
 export * from './videoChatSession';
 export * from './videoChatSessionStatus';
 export * from './videoChatToken';
+export * from './videoUploadResponse';

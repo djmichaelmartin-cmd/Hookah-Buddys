@@ -39,6 +39,7 @@ export function CreatePostForm() {
   const [category, setCategory] = useState<FeedPostInputCategory>("discussion");
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string>("");
+  const [posterUrl, setPosterUrl] = useState<string>("");
   const [mediaType, setMediaType] = useState<"none" | "image" | "video">("none");
   const [isUploading, setIsUploading] = useState(false);
 
@@ -49,6 +50,7 @@ export function CreatePostForm() {
         setCategory("discussion");
         setIsConfirmed(false);
         setMediaUrl("");
+        setPosterUrl("");
         setMediaType("none");
         queryClient.invalidateQueries({ queryKey: getListFeedPostsQueryKey() });
         toast({ title: "Posted successfully", description: "Your post is now live in the feed." });
@@ -76,6 +78,7 @@ export function CreatePostForm() {
     try {
       const url = await uploadImage(file);
       setMediaUrl(url);
+      setPosterUrl("");
       setMediaType("image");
     } catch (err) {
       toast({
@@ -106,8 +109,9 @@ export function CreatePostForm() {
 
     setIsUploading(true);
     try {
-      const url = await uploadVideo(file);
+      const { url, posterUrl: uploadedPosterUrl } = await uploadVideo(file);
       setMediaUrl(url);
+      setPosterUrl(uploadedPosterUrl);
       setMediaType("video");
     } catch (err) {
       toast({
@@ -123,6 +127,7 @@ export function CreatePostForm() {
 
   const removeMedia = () => {
     setMediaUrl("");
+    setPosterUrl("");
     setMediaType("none");
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (videoInputRef.current) videoInputRef.current.value = "";
@@ -139,6 +144,7 @@ export function CreatePostForm() {
         category,
         mediaType,
         mediaUrl: mediaUrl || undefined,
+        posterUrl: posterUrl || undefined,
         isHookahRelatedConfirmed: isConfirmed
       }
     });
@@ -192,7 +198,7 @@ export function CreatePostForm() {
                 <X className="h-4 w-4" />
               </button>
               {mediaType === "video" ? (
-                <video src={mediaUrl} controls className="max-h-64 object-contain" />
+                <video src={mediaUrl} poster={posterUrl || undefined} preload="metadata" controls className="max-h-64 object-contain" />
               ) : (
                 <img src={mediaUrl} alt="Upload preview" className="max-h-64 object-contain" />
               )}

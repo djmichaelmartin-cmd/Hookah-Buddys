@@ -64,10 +64,11 @@ router.post(
 /**
  * POST /storage/uploads/video
  *
- * Bounded server-side video upload, mirroring the image endpoint. The raw
- * body is capped at MAX_VIDEO_UPLOAD_SIZE_BYTES by the body parser, the
- * bytes are sniffed for a real MP4/WebM signature before the object is
- * written, and the stored object is stamped with an owner ACL policy.
+ * Bounded server-side video upload. The raw body is capped at
+ * MAX_VIDEO_UPLOAD_SIZE_BYTES by the body parser and the bytes are sniffed
+ * for a real MP4/WebM signature. The video is then transcoded to a
+ * web-friendly H.264 MP4 with a JPEG poster frame; both stored objects are
+ * stamped with an owner ACL policy. Responds with both object paths.
  */
 router.post(
   '/storage/uploads/video',
@@ -84,8 +85,11 @@ router.post(
         return;
       }
 
-      const objectPath = await uploadVideoBuffer(body, req.currentUser!.id);
-      res.status(201).json({ objectPath });
+      const { objectPath, posterPath } = await uploadVideoBuffer(
+        body,
+        req.currentUser!.id,
+      );
+      res.status(201).json({ objectPath, posterPath });
     } catch (error) {
       if (error instanceof InvalidUploadError) {
         res.status(400).json({ error: error.message });
@@ -102,6 +106,7 @@ router.post(
  *
  * Serve public assets from PUBLIC_OBJECT_SEARCH_PATHS.
  * These are unconditionally public — no authentication or ACL checks.
+ * Range requests are forwarded so media can seek without full downloads.
  */
 router.get(
   '/storage/public-objects/*filePath',
@@ -144,7 +149,8 @@ router.get(
  * GET /storage/objects/*
  *
  * Serve uploaded object entities from PRIVATE_OBJECT_DIR. Only objects with
- * a finalized ACL policy and a validated image content type are served.
+ * a finalized ACL policy and a validated image/video content type are served.
+ * Range requests are forwarded so videos can seek without full downloads.
  */
 router.get('/storage/objects/*path', async (req: Request, res: Response) => {
   try {

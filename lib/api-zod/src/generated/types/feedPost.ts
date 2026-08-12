@@ -30,6 +30,11 @@ export interface FeedPost {
   text: string;
   /** @nullable */
   mediaUrl?: string | null;
+  /**
+     * Poster/thumbnail image for video posts.
+     * @nullable
+     */
+  posterUrl?: string | null;
   mediaType?: FeedPostMediaType;
   category: FeedPostCategory;
   status: FeedPostStatus;

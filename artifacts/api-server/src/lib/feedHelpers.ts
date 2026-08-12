@@ -83,6 +83,7 @@ export function toFeedPostResponse(post: FeedPost, author: AuthorInfo | undefine
     state: u?.state ?? null,
     text: post.text,
     mediaUrl: post.mediaUrl ?? null,
+    posterUrl: post.posterUrl ?? null,
     mediaType: post.mediaType,
     category: post.category,
     status: post.status,

@@ -31,11 +31,14 @@ export async function uploadImage(file: File): Promise<string> {
 }
 
 /**
- * Upload a video file (MP4/WebM, max 50 MB) to object storage via the bounded
- * server endpoint and return the serving URL ("/api/storage/objects/...").
- * Throws Error with a user-facing message on failure.
+ * Upload a video file (MP4/WebM, max 50 MB) via the bounded server endpoint.
+ * The server transcodes it to a compressed H.264 MP4 and extracts a JPEG
+ * poster frame. Returns the serving URLs for both. Throws Error with a
+ * user-facing message on failure.
  */
-export async function uploadVideo(file: File): Promise<string> {
+export async function uploadVideo(
+  file: File,
+): Promise<{ url: string; posterUrl: string }> {
   const res = await fetch("/api/storage/uploads/video", {
     method: "POST",
     headers: { "Content-Type": file.type || "application/octet-stream" },
@@ -49,6 +52,9 @@ export async function uploadVideo(file: File): Promise<string> {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || "Upload failed");
   }
-  const { objectPath } = await res.json();
-  return `/api/storage${objectPath}`;
+  const { objectPath, posterPath } = await res.json();
+  return {
+    url: `/api/storage${objectPath}`,
+    posterUrl: `/api/storage${posterPath}`,
+  };
 }

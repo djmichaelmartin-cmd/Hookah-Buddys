@@ -109,8 +109,9 @@ paths:
       description: |
         Bounded server-side video upload. Send the raw video bytes as the
         request body. The server enforces the size limit before storage,
-        validates the bytes are a real video (MP4, WebM), and returns the
-        stored object path.
+        validates the bytes are a real video (MP4, WebM), transcodes the
+        video to a web-friendly H.264 MP4 with a JPEG poster frame, and
+        returns both stored object paths.
       requestBody:
         required: true
         content:
@@ -120,11 +121,11 @@ paths:
               format: binary
       responses:
         '201':
-          description: Video stored.
+          description: Video transcoded and stored.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImageUploadResponse'
+                $ref: '#/components/schemas/VideoUploadResponse'
         '400':
           description: Body is not a valid video of an allowed type.
           content:
@@ -3410,6 +3411,7 @@ components:
         state: { type: ["string", "null"] }
         text: { type: string }
         mediaUrl: { type: ["string", "null"] }
+        posterUrl: { type: ["string", "null"], description: Poster/thumbnail image for video posts. }
         mediaType: { type: string, enum: [none, image, video] }
         category: { type: string, enum: [setup, lounge, flavor, event, meme, review, question, discussion] }
         status: { type: string, enum: [active, hidden, removed, pending_review] }
@@ -3430,6 +3432,7 @@ components:
       properties:
         text: { type: string, minLength: 1 }
         mediaUrl: { type: string }
+        posterUrl: { type: string, description: Poster image object URL returned by the video upload endpoint. }
         mediaType: { type: string, enum: [none, image, video] }
         category: { type: string, enum: [setup, lounge, flavor, event, meme, review, question, discussion] }
         isHookahRelatedConfirmed: { type: boolean }
@@ -3967,6 +3970,17 @@ components:
         objectPath:
           type: string
           description: Stored object path (e.g. `/objects/uploads/uuid`). Serve via `/api/storage` + objectPath.
+
+    VideoUploadResponse:
+      type: object
+      required: [objectPath, posterPath]
+      properties:
+        objectPath:
+          type: string
+          description: Stored path of the transcoded H.264 MP4. Serve via `/api/storage` + objectPath.
+        posterPath:
+          type: string
+          description: Stored path of the JPEG poster frame. Serve via `/api/storage` + posterPath.
 
     ErrorEnvelope:
       type: object

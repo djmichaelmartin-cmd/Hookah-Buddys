@@ -13,6 +13,8 @@ export interface FeedPostInput {
   /** @minLength 1 */
   text: string;
   mediaUrl?: string;
+  /** Poster image object URL returned by the video upload endpoint. */
+  posterUrl?: string;
   mediaType?: FeedPostInputMediaType;
   category: FeedPostInputCategory;
   isHookahRelatedConfirmed: boolean;

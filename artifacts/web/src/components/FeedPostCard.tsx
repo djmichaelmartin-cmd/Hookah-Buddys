@@ -199,7 +199,14 @@ export function FeedPostCard({
           {post.mediaType !== "none" && post.mediaUrl && (
             <div className="mt-4 rounded-xl overflow-hidden border border-white/10 bg-background/50 max-h-[500px]">
               {post.mediaType === "video" ? (
-                <video src={post.mediaUrl} controls playsInline className="w-full max-h-[500px] object-contain" />
+                <video
+                  src={post.mediaUrl}
+                  poster={post.posterUrl || undefined}
+                  preload={post.posterUrl ? "none" : "metadata"}
+                  controls
+                  playsInline
+                  className="w-full max-h-[500px] object-contain"
+                />
               ) : (
                 <img src={post.mediaUrl} alt="Post media" loading="lazy" className="w-full max-h-[500px] object-cover" />
               )}
