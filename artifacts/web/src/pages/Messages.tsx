@@ -1,8 +1,9 @@
 import { Layout } from "@/components/Layout";
 import { useState } from "react";
 import { useListThreads, useListMessages, useSendMessage, useGetCurrentUser, getListMessagesQueryKey, getListThreadsQueryKey, ApiError } from "@workspace/api-client-react";
+import { isCheckoutRequired } from "@/lib/checkoutRequired";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +18,7 @@ export default function Messages() {
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState("");
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const { data: session } = useGetCurrentUser();
   const myRole = session?.user?.role;
   const isDoll = myRole === "doll";
@@ -44,6 +46,17 @@ export default function Messages() {
           typeof (err.data as { error: unknown }).error === "string"
             ? (err.data as { error: string }).error
             : null;
+        const checkoutRequired = isCheckoutRequired(err);
+        if (checkoutRequired) {
+          // No plan/package is known in this context, so send the user to the
+          // pricing page where every purchase leads into a valid checkout flow.
+          toast({
+            title: "Payment required",
+            description: serverMessage ?? "Complete a purchase through secure checkout to continue.",
+          });
+          navigate("/pricing");
+          return;
+        }
         const outOfCredits = err instanceof ApiError && err.status === 402;
         toast({
           title: outOfCredits ? "Out of credits" : "Message not sent",

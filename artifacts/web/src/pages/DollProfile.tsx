@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { BuyCreditsDialog } from "@/components/BuyCreditsDialog";
+import { isCheckoutRequired } from "@/lib/checkoutRequired";
 import { ShieldCheck, MessageSquare, Video, Star, Lock, Play, ImageIcon, Check, Sparkles, Coins } from "lucide-react";
 
 function serverError(err: unknown): string | undefined {
@@ -77,6 +78,16 @@ export default function DollProfile() {
   };
 
   const handleCreditError = (err: unknown, fallbackTitle: string) => {
+    if (isCheckoutRequired(err)) {
+      toast({
+        title: "Payment required",
+        description: "This purchase must be completed through secure checkout.",
+      });
+      // No specific plan is known in this context; the pricing page routes
+      // every purchase into a valid checkout flow.
+      navigate("/pricing");
+      return;
+    }
     if (isOutOfCredits(err)) {
       toast({
         title: "Not enough credits",
@@ -105,7 +116,18 @@ export default function DollProfile() {
         toast({ title: "Subscribed", description: "You now have full access to this Doll's content." });
         refetchDoll();
       },
-      onError: () => toast({ title: "Subscription failed", description: "Please try again.", variant: "destructive" }),
+      onError: (err) => {
+        if (isCheckoutRequired(err)) {
+          const slug = plans?.find((p) => p.id === subscribe.variables?.data.planId)?.slug;
+          toast({
+            title: "Payment required",
+            description: "Complete secure checkout to activate this membership.",
+          });
+          navigate(slug ? `/checkout?type=membership&plan=${slug}` : "/pricing");
+          return;
+        }
+        toast({ title: "Subscription failed", description: "Please try again.", variant: "destructive" });
+      },
     },
   });
 
@@ -125,7 +147,19 @@ export default function DollProfile() {
         setUpgradeOpen(false);
         queryClient.invalidateQueries({ queryKey: getListSubscriptionsQueryKey() });
       },
-      onError: () => toast({ title: "Upgrade failed", description: "Please try again.", variant: "destructive" }),
+      onError: (err) => {
+        if (isCheckoutRequired(err)) {
+          const slug = plans?.find((p) => p.id === upgrade.variables?.data.planId)?.slug;
+          setUpgradeOpen(false);
+          toast({
+            title: "Payment required",
+            description: "Complete secure checkout to activate this membership.",
+          });
+          navigate(slug ? `/checkout?type=membership&plan=${slug}` : "/pricing");
+          return;
+        }
+        toast({ title: "Upgrade failed", description: "Please try again.", variant: "destructive" });
+      },
     },
   });
 

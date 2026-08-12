@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Check, MessageSquare, ImageIcon, Video, Lock, Star, Crown, Coins } from "lucide-react";
 import { CreditPackageGrid, CreditUsesList } from "@/components/BuyCreditsDialog";
+import { isCheckoutRequired } from "@/lib/checkoutRequired";
 
 const ADDITIONAL_FEATURES = [
   { icon: MessageSquare, label: "Direct messaging" },
@@ -47,7 +48,18 @@ export default function Pricing() {
         queryClient.invalidateQueries({ queryKey: getListSubscriptionsQueryKey() });
         navigate("/dashboard/member");
       },
-      onError: () => toast({ title: "Could not update membership", description: "Please try again.", variant: "destructive" }),
+      onError: (err) => {
+        if (isCheckoutRequired(err)) {
+          const slug = (plans ?? []).find((p) => p.id === subscribe.variables?.data.planId)?.slug;
+          toast({
+            title: "Payment required",
+            description: "Complete secure checkout to activate this membership.",
+          });
+          navigate(slug ? `/checkout?type=membership&plan=${slug}` : "/pricing");
+          return;
+        }
+        toast({ title: "Could not update membership", description: "Please try again.", variant: "destructive" });
+      },
     },
   });
 
