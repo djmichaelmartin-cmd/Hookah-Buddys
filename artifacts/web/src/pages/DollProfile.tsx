@@ -184,7 +184,8 @@ export default function DollProfile() {
       return;
     }
     const memberPlan =
-      plans?.find((p) => p.audience === "member" && p.tier === "premium") ??
+      plans?.find((p) => p.audience === "member" && p.tier === "gold") ??
+      plans?.find((p) => p.audience === "member" && p.tier === "platinum") ??
       plans?.find((p) => p.audience === "member");
     if (!memberPlan) {
       toast({ title: "No plan available", description: "Please try again later.", variant: "destructive" });
@@ -231,7 +232,9 @@ export default function DollProfile() {
       requestVideo.mutate({ data: { dollId, scheduledAt: new Date().toISOString() } }),
     );
 
-  const memberPlans = (plans ?? []).filter((p) => p.audience === "member" && p.tier !== "free");
+  const memberPlans = (plans ?? []).filter(
+    (p) => p.audience === "member" && (p.tier === "gold" || p.tier === "platinum"),
+  );
 
   return (
     <Layout>

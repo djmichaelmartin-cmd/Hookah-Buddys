@@ -56,7 +56,7 @@ export default function Pricing() {
 
   const handleSelect = (plan: Plan) => {
     if (!session?.user) {
-      navigate("/signup/member");
+      navigate(`/signup/member?plan=${plan.slug}`);
       return;
     }
     if (plan.audience === "member" && role !== "member") {
@@ -76,7 +76,9 @@ export default function Pricing() {
       navigate("/dashboard/member");
       return;
     }
-    subscribe.mutate({ data: { planId: plan.id } });
+    // Paid plans go through the membership checkout flow rather than
+    // activating directly.
+    navigate(`/checkout?type=membership&plan=${plan.slug}`);
   };
 
   return (
@@ -155,10 +157,10 @@ export default function Pricing() {
                       : pending
                         ? "Updating..."
                         : !session?.user
-                          ? "Get Started"
+                          ? `Choose ${plan.name}`
                           : plan.price === 0
                             ? "Continue Free"
-                            : "Select Plan"}
+                            : "Upgrade Plan"}
                   </Button>
                 </div>
               );

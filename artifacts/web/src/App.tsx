@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import SignupDoll from "@/pages/SignupDoll";
 import SignupMember from "@/pages/SignupMember";
+import ChooseMembership from "@/pages/ChooseMembership";
 import Browse from "@/pages/Browse";
 import Lounges from "@/pages/Lounges";
 import DollProfile from "@/pages/DollProfile";
@@ -44,6 +45,8 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup/doll" component={SignupDoll} />
       <Route path="/signup/member" component={SignupMember} />
+      <Route path="/signup/bro" component={SignupMember} />
+      <Route path="/choose-membership" component={ChooseMembership} />
       <Route path="/browse" component={Browse} />
       <Route path="/lounges" component={Lounges} />
       <Route path="/dolls/:id" component={DollProfile} />

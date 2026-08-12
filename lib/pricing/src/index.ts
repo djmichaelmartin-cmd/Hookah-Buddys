@@ -125,10 +125,18 @@ export function messageCreditCost(isFirstInThread: boolean): number {
  * the seed, the server (refresh logic), and the web app (display).
  */
 export const MEMBERSHIP_MONTHLY_CREDITS: Record<string, number> = {
-  free: 0,
-  basic: 100,
-  premium: 300,
+  bronze: 0,
+  silver: 100,
+  gold: 300,
+  platinum: 750,
 };
+
+/** Member tiers (paid) that can subscribe to a Doll's premium content. */
+export const DOLL_SUBSCRIPTION_TIERS = ["gold", "platinum"] as const;
+
+/** Ordered member membership tiers, lowest to highest. */
+export const MEMBERSHIP_TIERS = ["bronze", "silver", "gold", "platinum"] as const;
+export type MembershipTier = (typeof MEMBERSHIP_TIERS)[number];
 
 /** Monthly credits included with a member plan tier (0 if none / unknown). */
 export function membershipMonthlyCredits(tier: string): number {

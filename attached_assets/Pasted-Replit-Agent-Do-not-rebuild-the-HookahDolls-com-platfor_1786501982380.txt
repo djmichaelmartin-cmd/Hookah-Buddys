@@ -1,0 +1,426 @@
+Replit Agent: Do not rebuild the HookahDolls.com platform. Only add the following membership selection and signup flow features to the existing build.
+
+When a user clicks any “Get Started” button, route them to a new membership selection page.
+
+Create this page:
+
+Route:
+`/choose-membership`
+
+Page title:
+“Choose Your Membership”
+
+Subtitle:
+“Select the membership level that gives you the access, credits, and features you want.”
+
+Display 4 membership options:
+
+1. Bronze Membership
+2. Silver Membership
+3. Gold Membership
+4. Platinum Membership
+
+The membership cards should be displayed in a clean, premium, mobile-responsive layout using the existing HookahDolls dark luxury design.
+
+Membership Options
+
+Bronze Membership
+
+Type:
+Free Membership
+
+Price:
+$0/month
+
+Included:
+
+* Create a basic Bro profile
+* Browse limited public feed content
+* View limited Doll profile previews
+* Follow public users
+* Like public posts
+* Comment on public posts
+* Save public posts
+* Upload public hookah-related posts
+* View public photos and reels
+* Access basic profile privacy settings
+* Receive notifications
+* No monthly credits included
+* Cannot message Dolls without buying credits
+* Cannot unlock premium Doll content without buying credits
+* Cannot start video chat without buying credits
+* Can upgrade anytime
+
+Monthly Credits:
+0 credits/month
+
+Button:
+“Join Free”
+
+Silver Membership
+
+Type:
+Paid Monthly Membership
+
+Price:
+$19.99/month
+
+Included:
+
+* Everything in Bronze
+* Full public feed access
+* Full Doll browse/search access
+* Save favorite Dolls
+* Access more profile details based on privacy settings
+* Send paid messages using credits
+* Unlock premium content using credits
+* Request video chats using credits
+* Basic member badge
+* Monthly included credits
+* Access to member dashboard
+* Purchase additional credits anytime
+
+Monthly Credits:
+100 credits/month
+
+Suggested use:
+Good for light browsing and occasional messaging.
+
+Button:
+“Choose Silver”
+
+Gold Membership
+
+Type:
+Paid Monthly Membership
+
+Price:
+$39.99/month
+
+Included:
+
+* Everything in Silver
+* Higher monthly credit allowance
+* Enhanced Doll browsing
+* Priority access to featured Dolls
+* View more premium previews
+* Better search/filter tools
+* Gold member badge
+* More saved favorites
+* More profile visibility
+* Access to exclusive Gold-only promotions
+* Monthly included credits
+* Purchase additional credits anytime
+
+Monthly Credits:
+300 credits/month
+
+Suggested use:
+Best for active members who want regular messaging, premium unlocks, and occasional video chat.
+
+Button:
+“Choose Gold”
+
+Platinum Membership
+
+Type:
+Paid Monthly Membership
+
+Price:
+$79.99/month
+
+Included:
+
+* Everything in Gold
+* Highest monthly credit allowance
+* Platinum member badge
+* VIP Bro status
+* Priority placement in Doll notifications where applicable
+* Early access to featured Dolls
+* Best profile visibility
+* Advanced search filters
+* Exclusive Platinum promotions
+* Discounted credit packages if supported later
+* Priority support
+* Monthly included credits
+* Purchase additional credits anytime
+
+Monthly Credits:
+750 credits/month
+
+Suggested use:
+Best for power users who want frequent messaging, premium content unlocks, and video chat access.
+
+Button:
+“Choose Platinum”
+
+Credit Rules Reminder
+
+Add a small “How Credits Work” section below the membership cards:
+
+* Starting a new conversation with a Doll costs 20 credits.
+* Sending a follow-up message costs 10 credits.
+* Premium photo unlocks start at 25 credits.
+* Premium video unlocks start at 150 credits.
+* Private video chat costs 30 credits per minute.
+* Video chat has a 5-minute minimum, equal to 150 credits.
+* Members can buy more credits anytime.
+
+Membership Selection Flow
+
+When the user selects a membership:
+
+Bronze:
+
+* Route to `/signup/bro?plan=bronze`
+* Show the basic Bro signup form
+* Do not require payment
+* After account creation, assign Bronze membership automatically
+* Credit balance starts at 0
+* Show “Buy Credits” option after signup
+
+Silver:
+
+* Route to `/signup/bro?plan=silver`
+* Show Bro signup form
+* After basic information is entered, send user to checkout for $19.99/month recurring subscription
+* After successful payment, assign Silver membership
+* Add 100 monthly membership credits
+
+Gold:
+
+* Route to `/signup/bro?plan=gold`
+* Show Bro signup form
+* After basic information is entered, send user to checkout for $39.99/month recurring subscription
+* After successful payment, assign Gold membership
+* Add 300 monthly membership credits
+
+Platinum:
+
+* Route to `/signup/bro?plan=platinum`
+* Show Bro signup form
+* After basic information is entered, send user to checkout for $79.99/month recurring subscription
+* After successful payment, assign Platinum membership
+* Add 750 monthly membership credits
+
+Signup Form Fields
+
+For all memberships, the signup form should collect:
+
+* First name
+* Last name
+* Username
+* Email
+* Phone number
+* City
+* State
+* Password
+* Confirm password
+* Profile photo upload, optional
+* 21+ age confirmation
+* Agreement to Terms
+* Agreement to Privacy Policy
+* Agreement to Community Rules
+
+For paid plans, also include:
+
+* Selected membership plan summary
+* Monthly price
+* Monthly credits included
+* Recurring billing notice
+* Stripe checkout/payment step
+
+Payment / Subscription Logic
+
+Use Stripe-ready subscription logic.
+
+Create placeholder Stripe price IDs for:
+
+* Silver Monthly: `$19.99/month`
+* Gold Monthly: `$39.99/month`
+* Platinum Monthly: `$79.99/month`
+
+Bronze should not require Stripe checkout.
+
+After successful Stripe subscription:
+
+* Create user account if not already created
+* Assign selected membership
+* Store Stripe customer ID
+* Store Stripe subscription ID
+* Set subscription status to active
+* Add monthly included credits to the user’s membership credit balance
+* Set next credit refresh date based on billing cycle
+
+Monthly Credit Rules
+
+Membership credits should refresh each billing cycle.
+
+Rules:
+
+* Bronze: 0 monthly credits
+* Silver: 100 monthly credits
+* Gold: 300 monthly credits
+* Platinum: 750 monthly credits
+* Membership credits expire at the end of each billing cycle
+* Purchased credits do not expire
+* When spending credits, use membership credits first, then purchased credits
+* If subscription fails, pause future monthly credit refreshes
+* If user downgrades, update monthly credit allowance on the next billing cycle
+* If user upgrades, apply the new plan after successful payment
+
+Database Updates
+
+Add or update membership-related models.
+
+MembershipPlan:
+
+* id
+* name
+* slug
+* type
+* monthlyPrice
+* monthlyCredits
+* stripePriceId
+* features
+* isActive
+* createdAt
+* updatedAt
+
+UserMembership:
+
+* id
+* userId
+* membershipPlanId
+* status
+* stripeCustomerId
+* stripeSubscriptionId
+* currentPeriodStart
+* currentPeriodEnd
+* nextCreditRefreshDate
+* createdAt
+* updatedAt
+
+CreditBalance:
+
+* id
+* userId
+* membershipCredits
+* purchasedCredits
+* totalAvailableCredits
+* updatedAt
+
+CreditTransaction:
+
+* id
+* userId
+* transactionType
+* source
+
+  * membership_refresh
+  * credit_purchase
+  * message_spend
+  * content_unlock
+  * video_chat
+  * admin_adjustment
+* creditsAdded
+* creditsSpent
+* dollarAmount
+* membershipPlanId
+* stripePaymentId
+* relatedDollId
+* relatedMediaId
+* relatedMessageId
+* relatedVideoChatSessionId
+* note
+* createdAt
+
+Member Dashboard Updates
+
+Update the Bro/Member Dashboard to show:
+
+* Current membership level
+* Membership badge: Bronze, Silver, Gold, or Platinum
+* Monthly membership credits
+* Purchased credits
+* Total available credits
+* Next credit refresh date
+* Upgrade membership button
+* Buy Credits button
+* Billing status
+* Credit usage history
+* Credit purchase history
+
+Pricing Page Updates
+
+Update the existing Pricing page to include the 4 membership tiers:
+
+* Bronze
+* Silver
+* Gold
+* Platinum
+
+Add a “Get Started” button on each pricing card.
+
+Each Get Started button should route to:
+
+`/choose-membership`
+
+or directly to the plan-specific signup route:
+
+* `/signup/bro?plan=bronze`
+* `/signup/bro?plan=silver`
+* `/signup/bro?plan=gold`
+* `/signup/bro?plan=platinum`
+
+Preferred flow:
+
+Main Get Started button:
+`/choose-membership`
+
+Plan-specific buttons:
+Use direct plan routes.
+
+UI Requirements
+
+Use the existing HookahDolls brand style:
+
+* Dark luxury background
+* Smoke gradients
+* Gold and rose-gold accents
+* Glassmorphism cards
+* Rounded membership cards
+* Strong call-to-action buttons
+* Mobile-first responsive layout
+
+Highlight Gold as:
+
+“Most Popular”
+
+Highlight Platinum as:
+
+“Best Access”
+
+Show Bronze as:
+
+“Free”
+
+Show Silver as:
+
+“Starter”
+
+Important Notes
+
+Do not rebuild the existing site.
+
+Do not remove existing Doll signup flow.
+
+Do not remove existing Bro profile features.
+
+Do not remove credits, messaging, video chat, premium content, pricing, admin dashboard, or verification.
+
+Only add the membership selection page, membership cards, plan-based signup routing, recurring subscription setup, monthly credit assignment, and dashboard/pricing updates.
+
+The finished flow should be:
+
+User clicks Get Started → User sees “Choose Your Membership” → User selects Bronze, Silver, Gold, or Platinum → User fills out signup form → Free users create account immediately → Paid users complete recurring subscription checkout → User lands in their Bro Dashboard with correct membership and credits.

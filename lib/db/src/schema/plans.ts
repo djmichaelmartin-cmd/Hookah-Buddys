@@ -3,6 +3,10 @@ import { pgTable, serial, text, real, boolean, integer } from "drizzle-orm/pg-co
 export const plansTable = pgTable("plans", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  // Stable machine identifier (e.g. "bronze", "silver", "gold", "platinum").
+  slug: text("slug"),
+  // Placeholder Stripe recurring price id for paid plans.
+  stripePriceId: text("stripe_price_id"),
   audience: text("audience").notNull(),
   price: real("price").notNull().default(0),
   interval: text("interval"),

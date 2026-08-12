@@ -343,7 +343,7 @@ export function Navbar() {
                 Log in
               </Link>
               <Link
-                href="/signup/member"
+                href="/choose-membership"
                 className={`inline-flex items-center h-10 px-6 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
               >
                 Get Started

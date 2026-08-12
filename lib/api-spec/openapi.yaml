@@ -2736,6 +2736,8 @@ components:
       properties:
         id: { type: integer }
         name: { type: string }
+        slug: { type: string }
+        stripePriceId: { type: string }
         audience: { type: string, enum: [member, doll] }
         price: { type: number }
         interval: { type: string }

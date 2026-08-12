@@ -18,6 +18,8 @@ router.get("/plans", async (req, res): Promise<void> => {
     rows.map((p) => ({
       id: p.id,
       name: p.name,
+      slug: p.slug ?? "",
+      stripePriceId: p.stripePriceId ?? "",
       audience: p.audience as "member" | "doll",
       price: p.price,
       interval: p.interval ?? "",

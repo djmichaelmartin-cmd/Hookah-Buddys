@@ -12,6 +12,7 @@ import {
 } from "@workspace/db";
 import { ListDollsQueryParams, GetDollParams, UpdateMyDollProfileBody } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import { DOLL_SUBSCRIPTION_TIERS } from "@workspace/pricing";
 import { toDollResponse, toMediaResponse } from "../lib/mappers";
 import { getDollCounts, dollWithCounts, computeDollEarnings } from "../lib/dollHelpers";
 
@@ -170,7 +171,11 @@ router.get("/dolls/:id", async (req, res): Promise<void> => {
           eq(subscriptionsTable.status, "active"),
         ),
       );
-    viewerSubscribed = subs.some((s) => s.audience === "member" && s.tier === "premium");
+    viewerSubscribed = subs.some(
+      (s) =>
+        s.audience === "member" &&
+        DOLL_SUBSCRIPTION_TIERS.includes(s.tier as (typeof DOLL_SUBSCRIPTION_TIERS)[number]),
+    );
 
     const unlocks = await db
       .select({ mediaId: contentUnlocksTable.mediaId })

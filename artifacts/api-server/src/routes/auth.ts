@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
-import { db, usersTable, dollsTable, creditBalancesTable } from "@workspace/db";
+import { and, eq } from "drizzle-orm";
+import { db, usersTable, dollsTable, creditBalancesTable, plansTable } from "@workspace/db";
 import {
   RegisterDollBody,
   RegisterMemberBody,
@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-zod";
 import { hashPassword, verifyPassword, getSessionUser } from "../lib/auth";
 import { toUserResponse } from "../lib/mappers";
+import { activateMembership } from "../lib/membership";
 
 const router: IRouter = Router();
 
@@ -121,6 +122,16 @@ router.post("/auth/register/member", async (req, res): Promise<void> => {
     .returning();
 
   await db.insert(creditBalancesTable).values({ userId: user.id, membershipBalance: 0, purchasedBalance: 0 });
+
+  // Every new member starts on the free Bronze membership. Paid plans are
+  // activated after checkout via POST /subscriptions.
+  const [bronzePlan] = await db
+    .select()
+    .from(plansTable)
+    .where(and(eq(plansTable.audience, "member"), eq(plansTable.tier, "bronze")));
+  if (bronzePlan) {
+    await activateMembership(user.id, bronzePlan);
+  }
 
   req.session.userId = user.id;
   res.status(201).json({ user: toUserResponse(user) });

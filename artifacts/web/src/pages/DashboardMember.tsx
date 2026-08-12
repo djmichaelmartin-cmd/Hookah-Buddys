@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { useGetCredits, useListFavorites, type CreditTransaction, useListMyFeedPosts, useListSavedFeedPosts, useListLikedFeedPosts, useListFollows, getListFollowsQueryKey, useGetCurrentUser } from "@workspace/api-client-react";
+import { useGetCredits, useListFavorites, type CreditTransaction, useListMyFeedPosts, useListSavedFeedPosts, useListLikedFeedPosts, useListFollows, getListFollowsQueryKey, useGetCurrentUser, useListSubscriptions, getListSubscriptionsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { BuyCreditsDialog } from "@/components/BuyCreditsDialog";
-import { Coins, ArrowDownCircle, ArrowUpCircle, Settings2, RefreshCw, CalendarClock, UserPlus, Users } from "lucide-react";
+import { Coins, ArrowDownCircle, ArrowUpCircle, Settings2, RefreshCw, CalendarClock, UserPlus, Users, Crown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FeedPostCard } from "@/components/FeedPostCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +44,10 @@ export default function DashboardMember() {
   const userId = session?.user?.id ?? 0;
 
   const { data: credits } = useGetCredits();
+  const { data: subscriptions } = useListSubscriptions({ query: { enabled: !!session?.authenticated, queryKey: getListSubscriptionsQueryKey() } });
+  
+  const activeMembership = (subscriptions ?? []).find(s => s.audience === "member" && s.status === "active" && !s.dollId);
+
   const { data: favorites } = useListFavorites();
   const { data: myPosts } = useListMyFeedPosts();
   const { data: savedPosts } = useListSavedFeedPosts();
@@ -66,7 +70,22 @@ export default function DashboardMember() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-serif text-white mb-8">Member Dashboard</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <h1 className="text-3xl font-serif text-white">Member Dashboard</h1>
+          {activeMembership && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md">
+                <Crown className="w-4 h-4 text-primary" />
+                <span className="text-sm font-semibold text-primary uppercase tracking-wider">{activeMembership.planName} Member</span>
+              </div>
+              <Link href="/choose-membership">
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10" size="sm">
+                  Upgrade
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
 
         <Tabs defaultValue="credits" className="w-full">
           <TabsList className="bg-card/50 border border-white/10 mb-8 overflow-x-auto flex flex-nowrap w-full md:w-auto h-auto p-1 sticky top-[100px] z-20 backdrop-blur-xl">

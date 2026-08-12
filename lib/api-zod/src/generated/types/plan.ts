@@ -10,6 +10,8 @@ import type { PlanAudience } from './planAudience';
 export interface Plan {
   id: number;
   name: string;
+  slug?: string;
+  stripePriceId?: string;
   audience: PlanAudience;
   price: number;
   interval?: string;

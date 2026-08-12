@@ -10,6 +10,7 @@
 - [API server no hot-reload](api-server-no-hot-reload.md) — dev is build&start (no watcher); restart the api-server workflow after any route change or new endpoints 404 until restart.
 - [connect-pg-simple session table](connect-pg-simple-table.md) — createTableIfMissing ignores a custom tableName; define user_sessions in Drizzle and set createTableIfMissing:false.
 - [Credit spend atomicity](credit-spend-atomicity.md) — credit balance changes must be atomic and ledger-consistent; never read-then-write a balance from app code.
+- [Membership tiers](membership-tiers.md) — bronze/silver/gold/platinum in @workspace/pricing; gate doll subs on the ACTIVE membership tier, not client planId; placeholder checkout activation is intentional until real Stripe.
 - [Messaging/video feature gating](feature-membership-gating.md) — messaging & video chat require an active platform membership, distinct from per-Doll subscriptions.
 - [Lead collector (Google Places)](lead-collector.md) — run market collections via background POST /admin/leads/collect (bash 120s timeout); status is in-memory/process-local.
 - [Premium content entitlement](premium-content-gating.md) — locked premium media blanks the url server-side; access via doll subscription, unlock, owner, or admin.

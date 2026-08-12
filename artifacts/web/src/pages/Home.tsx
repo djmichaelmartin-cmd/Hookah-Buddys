@@ -418,7 +418,7 @@ export default function Home() {
                   Explore the Feed
                 </Button>
               </Link>
-              <Link href="/signup/member">
+              <Link href="/choose-membership">
                 <Button
                   size="lg"
                   variant="outline"
@@ -602,7 +602,7 @@ export default function Home() {
                   <span className="flex items-center gap-1.5"><Video className="h-3.5 w-3.5 text-primary" /> Video lounge</span>
                 </div>
 
-                <Link href="/signup/member">
+                <Link href="/choose-membership">
                   <Button className="w-full h-12 rounded-full bg-primary text-zinc-900 font-semibold hover:bg-primary/90 transition-colors">
                     Create my member profile <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>

@@ -359,6 +359,8 @@ export const PlanAudience = {
 export interface Plan {
   id: number;
   name: string;
+  slug?: string;
+  stripePriceId?: string;
   audience: PlanAudience;
   price: number;
   interval?: string;

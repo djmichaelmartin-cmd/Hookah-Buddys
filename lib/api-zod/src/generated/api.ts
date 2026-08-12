@@ -653,6 +653,8 @@ export const ListPlansQueryParams = zod.object({
 export const ListPlansResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "slug": zod.string().optional(),
+  "stripePriceId": zod.string().optional(),
   "audience": zod.enum(['member', 'doll']),
   "price": zod.number(),
   "interval": zod.string().optional(),

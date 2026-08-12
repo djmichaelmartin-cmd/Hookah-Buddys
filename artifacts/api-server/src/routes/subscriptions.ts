@@ -2,8 +2,9 @@ import { Router, type IRouter } from "express";
 import { eq, sql } from "drizzle-orm";
 import { db, subscriptionsTable, plansTable, dollsTable, type Subscription, type Plan } from "@workspace/db";
 import { CreateSubscriptionBody } from "@workspace/api-zod";
+import { DOLL_SUBSCRIPTION_TIERS } from "@workspace/pricing";
 import { requireAuth } from "../lib/auth";
-import { activateMembership } from "../lib/membership";
+import { activateMembership, getActiveMembership } from "../lib/membership";
 
 const router: IRouter = Router();
 
@@ -56,19 +57,25 @@ router.post("/subscriptions", requireAuth("member"), async (req, res): Promise<v
     return;
   }
 
-  // Content subscription to a specific Doll (requires a Premium membership tier).
-  // These are not the recurring membership plan and do not grant monthly credits.
+  // Content subscription to a specific Doll. Gated on the member's CURRENT
+  // active membership tier (not the client-submitted plan) so a Bronze member
+  // cannot self-select a Gold plan id to bypass the gate. These are not the
+  // recurring membership plan and do not grant monthly credits.
   if (parsed.data.dollId) {
-    if (plan.tier !== "premium") {
-      res.status(400).json({ error: "A Premium membership is required to unlock a Doll's premium content" });
+    const active = await getActiveMembership(user.id);
+    if (
+      !active ||
+      !DOLL_SUBSCRIPTION_TIERS.includes(active.plan.tier as (typeof DOLL_SUBSCRIPTION_TIERS)[number])
+    ) {
+      res.status(403).json({ error: "A Gold or Platinum membership is required to unlock a Doll's premium content" });
       return;
     }
     const [sub] = await db
       .insert(subscriptionsTable)
-      .values({ memberUserId: user.id, planId: plan.id, dollId: parsed.data.dollId, status: "active" })
+      .values({ memberUserId: user.id, planId: active.plan.id, dollId: parsed.data.dollId, status: "active" })
       .returning();
     const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, sub.dollId!));
-    res.status(201).json(serializeSubscription(sub, plan, doll?.stageName ?? null));
+    res.status(201).json(serializeSubscription(sub, active.plan, doll?.stageName ?? null));
     return;
   }
 
