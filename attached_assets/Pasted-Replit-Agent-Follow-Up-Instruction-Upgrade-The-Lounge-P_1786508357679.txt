@@ -1,0 +1,551 @@
+Replit Agent Follow-Up Instruction: Upgrade “The Lounge” Page With Facebook-Style Left and Right Sidebar Content
+
+Do not rebuild the platform. Only upgrade the existing “The Lounge” social feed page.
+
+The Lounge page should feel more like a complete social network home/feed page, similar to Facebook, with useful content on the left side, the main feed in the center, and social/community content on the right side.
+
+The page should use a 3-column desktop layout:
+
+* Left sidebar: navigation, shortcuts, profile, community tools
+* Center column: Lounge feed posts, stories/reels, create post box
+* Right sidebar: birthdays, contacts, trending, suggested Dolls/Bros, events, lounges, ads/promotions
+
+On tablet/mobile, collapse the sidebars into drawers, tabs, or stacked sections so the page remains mobile responsive.
+
+Main Route
+
+Use the existing Lounge route. If the route does not exist, create:
+
+`/lounge`
+
+Page title:
+
+“The Lounge”
+
+Subtitle:
+
+“Your hookah social feed — post, browse, connect, and discover what’s happening in the HookahDolls community.”
+
+Left Sidebar Content
+
+Add a left sidebar similar to Facebook’s navigation area.
+
+Include:
+
+1. User Profile Shortcut
+
+* Profile photo
+* Display name
+* Link to user profile
+* Membership badge if applicable: Free, Silver, Gold, Platinum, VIP Bro, Verified Doll
+
+2. Main Navigation Links
+
+* The Lounge
+* My Profile
+* Friends
+* Following
+* Followers
+* Messages
+* Notifications
+* Saved Posts
+* Photos
+* Reels
+* Browse Dolls
+* Buy Credits
+* Pricing / Upgrade
+
+3. Hookah Community Shortcuts
+
+* Hookah Setups
+* Favorite Flavors
+* Lounge Reviews
+* Hookah Events
+* Smoke Tricks
+* Hookah Memes
+* Doll Spotlights
+* Bro Posts
+* Local Hookah Scene
+
+4. User Shortcuts
+   Allow user to pin shortcuts such as:
+
+* Favorite Dolls
+* Favorite Lounges
+* Saved Reels
+* Saved Events
+* My Albums
+* My Groups, if groups are added later
+
+5. Footer Links
+   At the bottom of the left sidebar include smaller links:
+
+* Privacy
+* Terms
+* Content Rules
+* Support
+* Advertising
+* Cookies
+* About HookahDolls
+
+Center Feed Content
+
+Keep the main feed in the center, but improve it.
+
+At the top of the feed, add:
+
+1. Create Post Box
+
+* User profile photo
+* Placeholder text: “What’s happening in the lounge?”
+* Quick buttons:
+
+  * Photo
+  * Reel
+  * Hookah Setup
+  * Lounge Review
+  * Event
+  * Poll
+* Checkbox or confirmation:
+  “I confirm this post is hookah-related.”
+
+2. Stories / Reels Row
+   Add a horizontal carousel above the main posts.
+
+Cards should include:
+
+* Create Story
+* Doll stories
+* Bro stories
+* Lounge stories
+* Event stories
+* Reels previews
+
+Each story card should show:
+
+* Profile image
+* Background image/video thumbnail
+* Username
+* User badge if applicable
+
+3. Feed Filters
+   Add tabs or filter pills:
+
+* For You
+* Following
+* Friends
+* Trending
+* New
+* Nearby
+* Dolls
+* Bros
+* Lounges
+* Events
+* Reels
+
+4. Feed Post Cards
+   Each post should include:
+
+* Profile photo
+* Display name
+* User type badge: Doll or Bro
+* Verified badge if applicable
+* Membership badge if applicable
+* Timestamp
+* Post category
+* Post text
+* Image/video/reel if uploaded
+* Like button
+* Comment button
+* Share button
+* Save button
+* Follow button if not already following
+* Report menu
+* Comment preview
+* Add comment field
+
+5. Suggested Post Types
+   Seed the page with hookah-relevant sample posts:
+
+* Hookah setup of the day
+* Favorite flavor discussion
+* Lounge review
+* Doll spotlight post
+* Bro community post
+* Hookah meme
+* Upcoming hookah event
+* Reel featuring smoke tricks or lounge vibe
+* Poll: “What flavor are you smoking tonight?”
+
+Right Sidebar Content
+
+Add a right sidebar similar to Facebook’s right column, but relevant to HookahDolls.
+
+Include:
+
+1. Birthdays
+   Show birthdays for friends/followed users when available.
+
+Example:
+“Today’s Birthdays”
+
+* “Samantha and 2 others have birthdays today.”
+* Button: “Send a birthday message”
+
+2. Contacts / Online Now
+   Show users who are online.
+
+Sections:
+
+* Online Dolls
+* Online Bros
+* Recently Active
+
+Each contact should show:
+
+* Profile photo
+* Display name
+* Online green dot
+* Badge if Verified Doll or VIP Bro
+* Quick message button
+
+For Bros messaging Dolls:
+
+* If messaging requires credits, show credit requirement before sending.
+
+3. Suggested Dolls
+   Show “Suggested Dolls to Follow”
+
+Each card:
+
+* Profile photo with hookah
+* Stage name
+* City/state
+* Verified badge
+* Follow button
+* View Profile button
+
+4. Suggested Bros / People You May Know
+   Show “People You May Know”
+
+Each card:
+
+* Profile photo
+* Username
+* City/state
+* Mutual friends/follows if available
+* Add Friend button
+* Follow button
+
+5. Trending in The Lounge
+   Show trending topics/hashtags.
+
+Examples:
+
+* #DoubleApple
+* #MintHookah
+* #VegasHookah
+* #HookahLounge
+* #SmokeTricks
+* #HookahSetup
+* #DollSpotlight
+* #FridayNightSmoke
+
+Each hashtag should link to filtered feed results.
+
+6. Upcoming Hookah Events
+   Show event cards.
+
+Each card:
+
+* Event title
+* Date/time
+* City/state
+* Lounge name if applicable
+* RSVP button
+* Save event button
+
+Example events:
+
+* Friday Night Hookah Lounge Meetup
+* Vegas Smoke Session
+* Doll Spotlight Live Night
+* Flavor Battle: Mint vs Blueberry
+
+7. Hookah Lounge Spotlight
+   Show featured local or sponsored lounges.
+
+Each card:
+
+* Lounge name
+* City/state
+* Rating placeholder
+* “View Lounge” button
+* “Check In” button
+
+8. Sponsored / Promotional Block
+   Add a small ad-ready area.
+
+Examples:
+
+* Featured Doll promotion
+* Hookah lounge promo
+* Hookah brand sponsorship
+* Buy Credits promo
+* Upgrade to Gold / Platinum promo
+
+Make this look native and elegant, not spammy.
+
+Suggested right sidebar sections order:
+
+1. Birthdays
+2. Online Now
+3. Suggested Dolls
+4. Trending in The Lounge
+5. Upcoming Events
+6. Suggested Friends
+7. Lounge Spotlight
+8. Sponsored / Promotions
+
+Functional Requirements
+
+The Lounge page should support:
+
+* Posting
+* Liking
+* Commenting
+* Saving posts
+* Following users
+* Adding friends
+* Viewing online users
+* Viewing suggested users
+* Viewing trending hashtags
+* Viewing upcoming events
+* Viewing suggested Dolls
+* Viewing suggested lounges
+* Reporting content
+* Admin moderation for reported content
+
+Privacy Rules
+
+Respect user privacy settings.
+
+Only show:
+
+* Public users
+* Friends/followers depending on privacy setting
+* Public profile data
+* Online status only if the user allows it
+* Birthdays only if the user allows birthday visibility
+
+Do not show:
+
+* Private email
+* Private phone number
+* Birth year
+* Government ID
+* Verification documents
+* Payment information
+* Private messages
+* Private profile fields
+
+Database Additions or Updates
+
+Add or update models as needed:
+
+UserOnlineStatus:
+
+* id
+* userId
+* isOnline
+* lastActiveAt
+* showOnlineStatus
+* createdAt
+* updatedAt
+
+LoungeShortcut:
+
+* id
+* userId
+* shortcutType
+* title
+* url
+* icon
+* sortOrder
+* createdAt
+* updatedAt
+
+Hashtag:
+
+* id
+* tag
+* postCount
+* trendingScore
+* createdAt
+* updatedAt
+
+PostHashtag:
+
+* id
+* postId
+* hashtagId
+* createdAt
+
+HookahEvent:
+
+* id
+* title
+* description
+* eventDate
+* eventTime
+* city
+* state
+* loungeName
+* imageUrl
+* createdByUserId
+* status
+* createdAt
+* updatedAt
+
+EventRSVP:
+
+* id
+* eventId
+* userId
+* status
+
+  * interested
+  * going
+  * not_going
+* createdAt
+* updatedAt
+
+HookahLounge:
+
+* id
+* name
+* city
+* state
+* description
+* imageUrl
+* rating
+* isSponsored
+* createdAt
+* updatedAt
+
+LoungeCheckIn:
+
+* id
+* loungeId
+* userId
+* postId
+* createdAt
+
+SuggestedUser:
+
+* id
+* userId
+* suggestedUserId
+* reason
+* score
+* createdAt
+
+AdPlacement:
+
+* id
+* title
+* description
+* imageUrl
+* linkUrl
+* placement
+
+  * lounge_right_sidebar
+  * feed_inline
+  * homepage
+* status
+* startDate
+* endDate
+* createdAt
+* updatedAt
+
+Admin Updates
+
+Update Admin Dashboard with Lounge management features:
+
+* Moderate Lounge posts
+* Moderate comments
+* Review reported Lounge content
+* Manage trending hashtags
+* Manage hookah events
+* Manage lounge spotlight cards
+* Manage right-sidebar promotions
+* Manage suggested content
+* View Lounge engagement analytics
+
+Analytics to show:
+
+* Total Lounge posts
+* Posts today
+* Likes today
+* Comments today
+* Active users
+* Trending hashtags
+* Most followed Dolls
+* Most active Bros
+* Most saved posts
+* Most reported posts
+* Event RSVPs
+* Lounge check-ins
+
+Design Requirements
+
+Use the Facebook-style layout as inspiration, but keep HookahDolls branding.
+
+Design style:
+
+* Dark luxury hookah lounge aesthetic
+* Smoke-inspired gradients
+* Gold and rose-gold accents
+* Glassmorphism cards
+* Rounded cards
+* Sticky left sidebar
+* Sticky right sidebar
+* Center feed column
+* Smooth mobile responsiveness
+* Clean icon-based navigation
+* Premium nightlife/social network look
+
+Desktop layout:
+
+* Left sidebar width: approximately 260–300px
+* Center feed width: approximately 600–720px
+* Right sidebar width: approximately 300–360px
+
+Mobile layout:
+
+* Hide left/right sidebars by default
+* Add top or bottom navigation
+* Show shortcuts in a slide-out menu
+* Show right sidebar content as cards below the feed or in a “Discover” tab
+
+Important Implementation Notes
+
+Do not rebuild the platform.
+
+Do not remove existing pages.
+
+Do not remove Doll monetization.
+
+Do not remove credits.
+
+Do not remove memberships.
+
+Do not remove paid messaging.
+
+Do not remove premium content.
+
+Do not make premium Doll content free.
+
+Only upgrade The Lounge page so it has a complete social dashboard feel with relevant left and right sidebar content like Facebook.
+
+The final result should make The Lounge feel active, useful, and socially rich, with the main feed in the center and helpful discovery/community content on both sides.
