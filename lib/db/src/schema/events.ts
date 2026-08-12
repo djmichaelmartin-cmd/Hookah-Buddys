@@ -50,6 +50,23 @@ export const eventSavesTable = pgTable(
   (t) => [uniqueIndex("event_saves_event_user_idx").on(t.eventId, t.userId)],
 );
 
+// Dedupe ledger for event notifications (reminders + cancellations).
+// One row per (event, user, kind); insert with onConflictDoNothing and only
+// send the notification when the insert actually returned a row.
+export const eventReminderSendsTable = pgTable(
+  "event_reminder_sends",
+  {
+    id: serial("id").primaryKey(),
+    eventId: integer("event_id").notNull(),
+    userId: integer("user_id").notNull(),
+    kind: text("kind").notNull(), // 24h | 1h | cancelled
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("event_reminder_sends_event_user_kind_idx").on(t.eventId, t.userId, t.kind),
+  ],
+);
+
 export type Event = typeof eventsTable.$inferSelect;
 export type InsertEvent = typeof eventsTable.$inferInsert;
 export type EventRsvp = typeof eventRsvpsTable.$inferSelect;

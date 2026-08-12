@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { syncPlans } from "./lib/syncPlans";
+import { startEventReminderScheduler } from "./lib/eventReminders";
 
 const rawPort = process.env["PORT"];
 
@@ -27,6 +28,7 @@ syncPlans()
         process.exit(1);
       }
       logger.info({ port }, "Server listening");
+      startEventReminderScheduler();
     });
   })
   .catch((err) => {

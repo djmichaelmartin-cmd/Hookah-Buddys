@@ -5,11 +5,13 @@ import {
   eventsTable,
   eventRsvpsTable,
   eventSavesTable,
+  eventReminderSendsTable,
   type Event,
 } from "@workspace/db";
 import { CreateAdminEventBody, UpdateAdminEventBody } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth";
 import { annotateEvents } from "./events";
+import { notifyEventCancelled } from "../lib/eventReminders";
 
 const router: IRouter = Router();
 
@@ -107,6 +109,11 @@ router.patch("/admin/events/:id", requireAuth("admin"), async (req, res): Promis
     res.status(404).json({ error: "Event not found" });
     return;
   }
+  // Notify RSVP'd users when an event is cancelled (deduped in the ledger,
+  // so re-saving a cancelled event doesn't re-notify).
+  if ((updated as Event).status === "cancelled") {
+    await notifyEventCancelled(updated as Event);
+  }
   const [response] = await annotateEvents([updated as Event], null);
   res.json(response);
 });
@@ -118,8 +125,14 @@ router.delete("/admin/events/:id", requireAuth("admin"), async (req, res): Promi
     res.status(404).json({ error: "Event not found" });
     return;
   }
+  // Tell RSVP'd users the event is off before clearing their RSVPs.
+  // Only for events that hadn't already been cancelled and haven't started.
+  if ((deleted as Event).status !== "cancelled" && (deleted as Event).startsAt > new Date()) {
+    await notifyEventCancelled(deleted as Event);
+  }
   await db.delete(eventRsvpsTable).where(eq(eventRsvpsTable.eventId, id));
   await db.delete(eventSavesTable).where(eq(eventSavesTable.eventId, id));
+  await db.delete(eventReminderSendsTable).where(eq(eventReminderSendsTable.eventId, id));
   res.status(204).end();
 });
 
