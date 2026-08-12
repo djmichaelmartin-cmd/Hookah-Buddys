@@ -15,6 +15,9 @@ export const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
+export const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
+export const MAX_VIDEO_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
 const STORAGE_URL_PREFIX = "/api/storage";
 
 export class InvalidUploadError extends Error {}
@@ -48,6 +51,47 @@ export function sniffImageType(bytes: Buffer): string | null {
   if (bytes.length >= 12 && bytes.subarray(4, 8).toString("latin1") === "ftyp") {
     const brand = bytes.subarray(8, 12).toString("latin1");
     if (brand === "avif" || brand === "avis") return "image/avif";
+  }
+  return null;
+}
+
+// ISO base media file format brands that identify an MP4 video container.
+// (avif/avis are excluded — those are images, handled by sniffImageType.)
+const MP4_BRANDS = new Set([
+  "isom",
+  "iso2",
+  "iso4",
+  "iso5",
+  "iso6",
+  "mp41",
+  "mp42",
+  "mp4v",
+  "avc1",
+  "dash",
+  "M4V ",
+]);
+
+/**
+ * Sniff the real video type from the file's magic bytes.
+ * Returns the authoritative MIME type, or null if the bytes are not a
+ * recognized video format (MP4 or WebM).
+ */
+export function sniffVideoType(bytes: Buffer): string | null {
+  if (bytes.length >= 12 && bytes.subarray(4, 8).toString("latin1") === "ftyp") {
+    const brand = bytes.subarray(8, 12).toString("latin1");
+    if (MP4_BRANDS.has(brand)) return "video/mp4";
+    return null;
+  }
+  if (
+    bytes.length >= 4 &&
+    bytes.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]))
+  ) {
+    // EBML container — require the "webm" DocType within the header to
+    // distinguish WebM from generic Matroska.
+    if (bytes.subarray(0, Math.min(bytes.length, 64)).includes("webm")) {
+      return "video/webm";
+    }
+    return null;
   }
   return null;
 }
@@ -87,7 +131,39 @@ export async function uploadImageBuffer(
       "Uploaded file is not an allowed image type (JPEG, PNG, WebP, GIF, AVIF).",
     );
   }
+  return storeValidatedBuffer(buffer, sniffedType, ownerId);
+}
 
+/**
+ * Store validated video bytes in the private object dir, stamped with a
+ * finalized owner ACL policy. Mirrors uploadImageBuffer: the route bounds the
+ * body size first; the size and bytes are re-checked here as defense in depth.
+ * Returns the object path ("/objects/...").
+ */
+export async function uploadVideoBuffer(
+  buffer: Buffer,
+  ownerId: number,
+): Promise<string> {
+  if (buffer.length === 0) {
+    throw new InvalidUploadError("Uploaded file is empty.");
+  }
+  if (buffer.length > MAX_VIDEO_UPLOAD_SIZE_BYTES) {
+    throw new InvalidUploadError("Uploaded file exceeds the 50 MB size limit.");
+  }
+  const sniffedType = sniffVideoType(buffer);
+  if (!sniffedType || !ALLOWED_VIDEO_TYPES.has(sniffedType)) {
+    throw new InvalidUploadError(
+      "Uploaded file is not an allowed video type (MP4, WebM).",
+    );
+  }
+  return storeValidatedBuffer(buffer, sniffedType, ownerId);
+}
+
+async function storeValidatedBuffer(
+  buffer: Buffer,
+  contentType: string,
+  ownerId: number,
+): Promise<string> {
   const service = new ObjectStorageService();
   const privateDir = service.getPrivateObjectDir().replace(/\/$/, "");
   const id = randomUUID();
@@ -97,7 +173,7 @@ export async function uploadImageBuffer(
   const objectName = pathParts.slice(2).join("/");
 
   const file = objectStorageClient.bucket(bucketName).file(objectName);
-  await file.save(buffer, { contentType: sniffedType });
+  await file.save(buffer, { contentType });
   await setObjectAclPolicy(file, {
     owner: String(ownerId),
     visibility: "public",
@@ -122,7 +198,7 @@ export async function finalizeMediaUrl(
     );
   }
   if (toObjectEntityPath(url)) {
-    return finalizeUploadedImage(url, ownerId);
+    return finalizeUploadedMedia(url, ownerId, "any");
   }
   return url;
 }
@@ -144,10 +220,25 @@ export async function finalizeUploadedImage(
   storageUrl: string,
   ownerId: number,
 ): Promise<string> {
+  return finalizeUploadedMedia(storageUrl, ownerId, "image");
+}
+
+/**
+ * Generic finalize step for an uploaded media object (image and/or video).
+ * `kind` restricts which media families are acceptable:
+ * - "image": images only (10 MB cap)
+ * - "video": videos only (50 MB cap)
+ * - "any":   either family, with the matching cap applied
+ */
+export async function finalizeUploadedMedia(
+  storageUrl: string,
+  ownerId: number,
+  kind: "image" | "video" | "any",
+): Promise<string> {
   const objectPath = toObjectEntityPath(storageUrl);
   if (!objectPath) {
     throw new InvalidUploadError(
-      "Image URL must reference an uploaded storage object (/api/storage/objects/...).",
+      "Media URL must reference an uploaded storage object (/api/storage/objects/...).",
     );
   }
 
@@ -157,7 +248,7 @@ export async function finalizeUploadedImage(
     file = await service.getObjectEntityFile(objectPath);
   } catch (err) {
     if (err instanceof ObjectNotFoundError) {
-      throw new InvalidUploadError("Uploaded image not found in storage.");
+      throw new InvalidUploadError("Uploaded file not found in storage.");
     }
     throw err;
   }
@@ -168,17 +259,37 @@ export async function finalizeUploadedImage(
   if (size <= 0) {
     throw new InvalidUploadError("Uploaded file is empty.");
   }
-  if (size > MAX_UPLOAD_SIZE_BYTES) {
-    throw new InvalidUploadError("Uploaded file exceeds the 10 MB size limit.");
-  }
 
   // Sniff the ACTUAL stored bytes — the object's contentType metadata is
-  // client-supplied at PUT time and cannot be trusted.
-  const [head] = await file.download({ start: 0, end: 31 });
-  const sniffedType = sniffImageType(head);
-  if (!sniffedType || !ALLOWED_IMAGE_TYPES.has(sniffedType)) {
+  // client-supplied at PUT time and cannot be trusted. 64 bytes covers all
+  // image signatures and the WebM DocType scan.
+  const [head] = await file.download({ start: 0, end: 63 });
+
+  let sniffedType: string | null = null;
+  if (kind === "image" || kind === "any") {
+    const imageType = sniffImageType(head);
+    if (imageType && ALLOWED_IMAGE_TYPES.has(imageType)) sniffedType = imageType;
+  }
+  if (!sniffedType && (kind === "video" || kind === "any")) {
+    const videoType = sniffVideoType(head);
+    if (videoType && ALLOWED_VIDEO_TYPES.has(videoType)) sniffedType = videoType;
+  }
+  if (!sniffedType) {
     throw new InvalidUploadError(
-      "Uploaded file is not an allowed image type (JPEG, PNG, WebP, GIF, AVIF).",
+      kind === "image"
+        ? "Uploaded file is not an allowed image type (JPEG, PNG, WebP, GIF, AVIF)."
+        : kind === "video"
+          ? "Uploaded file is not an allowed video type (MP4, WebM)."
+          : "Uploaded file is not an allowed media type (JPEG, PNG, WebP, GIF, AVIF, MP4, WebM).",
+    );
+  }
+
+  const maxSize = ALLOWED_VIDEO_TYPES.has(sniffedType)
+    ? MAX_VIDEO_UPLOAD_SIZE_BYTES
+    : MAX_UPLOAD_SIZE_BYTES;
+  if (size > maxSize) {
+    throw new InvalidUploadError(
+      `Uploaded file exceeds the ${maxSize === MAX_VIDEO_UPLOAD_SIZE_BYTES ? "50" : "10"} MB size limit.`,
     );
   }
 

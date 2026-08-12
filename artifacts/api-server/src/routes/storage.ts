@@ -9,9 +9,12 @@ import express, {
 import { requireAuth } from '../lib/auth';
 import {
   ALLOWED_IMAGE_TYPES,
+  ALLOWED_VIDEO_TYPES,
   InvalidUploadError,
   MAX_UPLOAD_SIZE_BYTES,
+  MAX_VIDEO_UPLOAD_SIZE_BYTES,
   uploadImageBuffer,
+  uploadVideoBuffer,
 } from '../lib/imageUploads';
 import {
   ObjectNotFoundError,
@@ -54,6 +57,42 @@ router.post(
       }
       req.log.error({ err: error }, 'Error uploading image');
       res.status(500).json({ error: 'Failed to upload image' });
+    }
+  },
+);
+
+/**
+ * POST /storage/uploads/video
+ *
+ * Bounded server-side video upload, mirroring the image endpoint. The raw
+ * body is capped at MAX_VIDEO_UPLOAD_SIZE_BYTES by the body parser, the
+ * bytes are sniffed for a real MP4/WebM signature before the object is
+ * written, and the stored object is stamped with an owner ACL policy.
+ */
+router.post(
+  '/storage/uploads/video',
+  requireAuth(),
+  express.raw({
+    type: () => true,
+    limit: MAX_VIDEO_UPLOAD_SIZE_BYTES,
+  }),
+  async (req: Request, res: Response) => {
+    try {
+      const body: unknown = req.body;
+      if (!Buffer.isBuffer(body) || body.length === 0) {
+        res.status(400).json({ error: 'Request body must be the raw video bytes.' });
+        return;
+      }
+
+      const objectPath = await uploadVideoBuffer(body, req.currentUser!.id);
+      res.status(201).json({ objectPath });
+    } catch (error) {
+      if (error instanceof InvalidUploadError) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      req.log.error({ err: error }, 'Error uploading video');
+      res.status(500).json({ error: 'Failed to upload video' });
     }
   },
 );
@@ -122,10 +161,10 @@ router.get('/storage/objects/*path', async (req: Request, res: Response) => {
     }
 
     // Never serve attacker-controlled content types from the app origin —
-    // only validated image types are allowed.
+    // only validated image and video types are allowed.
     const [metadata] = await objectFile.getMetadata();
     const contentType = (metadata.contentType as string) || '';
-    if (!ALLOWED_IMAGE_TYPES.has(contentType)) {
+    if (!ALLOWED_IMAGE_TYPES.has(contentType) && !ALLOWED_VIDEO_TYPES.has(contentType)) {
       res.status(404).json({ error: 'Object not found' });
       return;
     }

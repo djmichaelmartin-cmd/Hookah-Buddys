@@ -229,6 +229,82 @@ export const useUploadImage = <TError = ErrorType<ErrorEnvelope | void>,
       return useMutation(getUploadImageMutationOptions(options));
     }
 
+export const getUploadVideoUrl = () => {
+
+
+
+
+  return `/api/storage/uploads/video`
+}
+
+/**
+ * Bounded server-side video upload. Send the raw video bytes as the
+request body. The server enforces the size limit before storage,
+validates the bytes are a real video (MP4, WebM), and returns the
+stored object path.
+
+ * @summary Upload a video (raw bytes, max 50 MB)
+ */
+export const uploadVideo = async (uploadVideoBody: Blob, options?: RequestInit): Promise<ImageUploadResponse> => {
+
+  return customFetch<ImageUploadResponse>(getUploadVideoUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'video/*', ...options?.headers },
+    body: JSON.stringify(
+      uploadVideoBody,)
+  }
+);}
+
+
+
+
+export const getUploadVideoMutationOptions = <TError = ErrorType<ErrorEnvelope | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadVideo>>, TError,{data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadVideo>>, TError,{data: BodyType<Blob>}, TContext> => {
+
+const mutationKey = ['uploadVideo'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadVideo>>, {data: BodyType<Blob>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadVideo(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadVideoMutationResult = NonNullable<Awaited<ReturnType<typeof uploadVideo>>>
+    export type UploadVideoMutationBody = BodyType<Blob>
+    export type UploadVideoMutationError = ErrorType<ErrorEnvelope | void>
+
+    /**
+ * @summary Upload a video (raw bytes, max 50 MB)
+ */
+export const useUploadVideo = <TError = ErrorType<ErrorEnvelope | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadVideo>>, TError,{data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadVideo>>,
+        TError,
+        {data: BodyType<Blob>},
+        TContext
+      > => {
+      return useMutation(getUploadVideoMutationOptions(options));
+    }
+
 export const getGetPublicObjectUrl = (filePath: string,) => {
 
 

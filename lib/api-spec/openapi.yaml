@@ -101,6 +101,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /storage/uploads/video:
+    post:
+      tags: [Storage]
+      operationId: uploadVideo
+      summary: Upload a video (raw bytes, max 50 MB)
+      description: |
+        Bounded server-side video upload. Send the raw video bytes as the
+        request body. The server enforces the size limit before storage,
+        validates the bytes are a real video (MP4, WebM), and returns the
+        stored object path.
+      requestBody:
+        required: true
+        content:
+          'video/*':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: Video stored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageUploadResponse'
+        '400':
+          description: Body is not a valid video of an allowed type.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: Video exceeds the 50 MB size limit.
+        '500':
+          description: Failed to store video.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /storage/public-objects/{filePath}:
     get:
       tags: [Storage]

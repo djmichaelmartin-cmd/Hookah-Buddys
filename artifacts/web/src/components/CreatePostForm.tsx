@@ -13,9 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Image as ImageIcon, X, Sparkles, Loader2 } from "lucide-react";
+import { Image as ImageIcon, Video as VideoIcon, X, Sparkles, Loader2 } from "lucide-react";
 import { useGetCurrentUser } from "@workspace/api-client-react";
-import { uploadImage, MAX_IMAGE_SIZE_BYTES } from "@/lib/uploadImage";
+import { uploadImage, uploadVideo, MAX_IMAGE_SIZE_BYTES, MAX_VIDEO_SIZE_BYTES, ALLOWED_VIDEO_TYPES } from "@/lib/uploadImage";
 
 const CATEGORIES: { value: FeedPostInputCategory; label: string }[] = [
   { value: "discussion", label: "Discussion" },
@@ -33,6 +33,7 @@ export function CreatePostForm() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [text, setText] = useState("");
   const [category, setCategory] = useState<FeedPostInputCategory>("discussion");
@@ -61,7 +62,7 @@ export function CreatePostForm() {
     if (!file) return;
 
     if (file.type.startsWith("video/")) {
-      toast({ title: "Videos not supported yet", description: "Please choose an image (JPEG, PNG, WebP, GIF, or AVIF).", variant: "destructive" });
+      toast({ title: "Use the Video button", description: "Please choose an image (JPEG, PNG, WebP, GIF, or AVIF), or use the Video button for videos.", variant: "destructive" });
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -88,10 +89,43 @@ export function CreatePostForm() {
     }
   };
 
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+      toast({ title: "Unsupported video format", description: "Please choose an MP4 or WebM video.", variant: "destructive" });
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      return;
+    }
+    if (file.size > MAX_VIDEO_SIZE_BYTES) {
+      toast({ title: "File too large", description: "Maximum video size is 50MB.", variant: "destructive" });
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const url = await uploadVideo(file);
+      setMediaUrl(url);
+      setMediaType("video");
+    } catch (err) {
+      toast({
+        title: "Upload failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+      if (videoInputRef.current) videoInputRef.current.value = "";
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const removeMedia = () => {
     setMediaUrl("");
     setMediaType("none");
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (videoInputRef.current) videoInputRef.current.value = "";
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -143,7 +177,7 @@ export function CreatePostForm() {
 
         {isUploading && (
           <div className="pl-14 flex items-center gap-2 text-muted-foreground text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" /> Uploading image...
+            <Loader2 className="h-4 w-4 animate-spin" /> Uploading media...
           </div>
         )}
 
@@ -157,7 +191,11 @@ export function CreatePostForm() {
               >
                 <X className="h-4 w-4" />
               </button>
-              <img src={mediaUrl} alt="Upload preview" className="max-h-64 object-contain" />
+              {mediaType === "video" ? (
+                <video src={mediaUrl} controls className="max-h-64 object-contain" />
+              ) : (
+                <img src={mediaUrl} alt="Upload preview" className="max-h-64 object-contain" />
+              )}
             </div>
           </div>
         )}
@@ -179,6 +217,23 @@ export function CreatePostForm() {
               onClick={() => fileInputRef.current?.click()}
             >
               <ImageIcon className="h-4 w-4 mr-2" /> Photo
+            </Button>
+
+            <input
+              type="file"
+              accept="video/mp4,video/webm"
+              className="hidden"
+              ref={videoInputRef}
+              onChange={handleVideoChange}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full border-white/10 bg-background/50 hover:bg-white/10 hover:text-white text-muted-foreground h-9"
+              onClick={() => videoInputRef.current?.click()}
+            >
+              <VideoIcon className="h-4 w-4 mr-2" /> Video
             </Button>
 
             <Select value={category} onValueChange={(val: FeedPostInputCategory) => setCategory(val)}>
