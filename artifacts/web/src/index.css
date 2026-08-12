@@ -408,6 +408,28 @@
   }
 }
 
+/* Custom hookah-silhouette cursors (arrow + pointer). */
+html,
+body {
+  cursor: url("/brand/cursor-hookah.svg") 2 2, auto;
+}
+a,
+button,
+[role="button"],
+label,
+select,
+summary,
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"],
+.cursor-pointer {
+  cursor: url("/brand/cursor-hookah-pointer.svg") 2 2, pointer;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+textarea {
+  cursor: text;
+}
+
 /* Hide scrollbars on horizontally scrollable rows (e.g. feed filter tabs). */
 .hide-scrollbar {
   -ms-overflow-style: none;
