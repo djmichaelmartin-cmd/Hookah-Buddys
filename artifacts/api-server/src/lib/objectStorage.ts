@@ -91,21 +91,55 @@ export class ObjectStorageService {
   async downloadObject(
     file: File,
     cacheTtlSec: number = 3600,
+    rangeHeader?: string,
   ): Promise<Response> {
     const [metadata] = await file.getMetadata();
     const aclPolicy = await getObjectAclPolicy(file);
     const isPublic = aclPolicy?.visibility === 'public';
 
-    const nodeStream = file.createReadStream();
-    const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+    const totalSize = Number(metadata.size ?? 0);
 
     const headers: Record<string, string> = {
       'Content-Type':
         (metadata.contentType as string) || 'application/octet-stream',
       'Cache-Control': `${isPublic ? 'public' : 'private'}, max-age=${cacheTtlSec}`,
+      'Accept-Ranges': 'bytes',
     };
-    if (metadata.size) {
-      headers['Content-Length'] = String(metadata.size);
+
+    // Honor single-range requests (bytes=start-end) so <video> can seek
+    // without re-downloading the whole object.
+    if (rangeHeader && totalSize > 0) {
+      const range = parseRangeHeader(rangeHeader, totalSize);
+      if (range === 'unsatisfiable') {
+        return new Response(null, {
+          status: 416,
+          headers: {
+            ...headers,
+            'Content-Range': `bytes */${totalSize}`,
+          },
+        });
+      }
+      if (range) {
+        const { start, end } = range;
+        const nodeStream = file.createReadStream({ start, end });
+        const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+        return new Response(webStream, {
+          status: 206,
+          headers: {
+            ...headers,
+            'Content-Range': `bytes ${start}-${end}/${totalSize}`,
+            'Content-Length': String(end - start + 1),
+          },
+        });
+      }
+      // Malformed/multi-range headers fall through to a full response.
+    }
+
+    const nodeStream = file.createReadStream();
+    const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+
+    if (totalSize > 0) {
+      headers['Content-Length'] = String(totalSize);
     }
 
     return new Response(webStream, { headers });
@@ -209,6 +243,49 @@ export class ObjectStorageService {
       requestedPermission: requestedPermission ?? ObjectPermission.READ,
     });
   }
+}
+
+/**
+ * Parse a single-range `Range: bytes=start-end` header against a known total
+ * size. Returns the clamped byte range, `'unsatisfiable'` when the range is
+ * syntactically valid but out of bounds (RFC 9110 -> 416), or `null` for
+ * malformed or multi-range headers (callers fall back to a full 200).
+ */
+function parseRangeHeader(
+  rangeHeader: string,
+  totalSize: number,
+): { start: number; end: number } | 'unsatisfiable' | null {
+  const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim());
+  if (!match) {
+    return null;
+  }
+  const [, startStr, endStr] = match;
+  if (startStr === '' && endStr === '') {
+    return null;
+  }
+
+  if (startStr === '') {
+    // Suffix range: last N bytes.
+    const suffixLength = Number(endStr);
+    if (!Number.isSafeInteger(suffixLength) || suffixLength === 0) {
+      return 'unsatisfiable';
+    }
+    const start = Math.max(0, totalSize - suffixLength);
+    return { start, end: totalSize - 1 };
+  }
+
+  const start = Number(startStr);
+  if (!Number.isSafeInteger(start) || start >= totalSize) {
+    return 'unsatisfiable';
+  }
+  const end =
+    endStr === ''
+      ? totalSize - 1
+      : Math.min(Number(endStr), totalSize - 1);
+  if (!Number.isSafeInteger(end) || end < start) {
+    return 'unsatisfiable';
+  }
+  return { start, end };
 }
 
 function parseObjectPath(path: string): {
