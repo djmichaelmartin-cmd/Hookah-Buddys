@@ -7,13 +7,60 @@ import path from "path";
 /** Thrown when ffmpeg cannot decode/encode the uploaded bytes. */
 export class TranscodeError extends Error {}
 
+/** Thrown when the transcode queue is saturated — the caller should retry later. */
+export class TranscodeBusyError extends Error {}
+
 const FFMPEG_TIMEOUT_MS = 180_000;
+
+// Bound how much CPU video processing may consume so concurrent uploads never
+// starve the API event loop or each other:
+// - At most MAX_CONCURRENT_TRANSCODES ffmpeg jobs run at once; additional
+//   uploads wait their turn in a FIFO queue.
+// - Each ffmpeg process is capped at FFMPEG_THREADS threads, leaving CPU
+//   headroom for request handling even while a transcode is running.
+// - The wait queue is bounded (MAX_QUEUED_TRANSCODES); beyond that, uploads
+//   fail fast with TranscodeBusyError instead of piling up until they time out.
+const MAX_CONCURRENT_TRANSCODES = 1;
+const MAX_QUEUED_TRANSCODES = 8;
+const FFMPEG_THREADS = "2";
+
+let runningTranscodes = 0;
+const transcodeWaiters: Array<() => void> = [];
+
+async function acquireTranscodeSlot(): Promise<void> {
+  if (runningTranscodes < MAX_CONCURRENT_TRANSCODES) {
+    runningTranscodes++;
+    return;
+  }
+  if (transcodeWaiters.length >= MAX_QUEUED_TRANSCODES) {
+    throw new TranscodeBusyError(
+      "Too many videos are being processed right now. Please try again in a moment.",
+    );
+  }
+  // The releasing job hands its slot (and running count) directly to us, so
+  // do NOT increment here — the count was never decremented during handoff.
+  await new Promise<void>((resolve) => transcodeWaiters.push(resolve));
+}
+
+function releaseTranscodeSlot(): void {
+  const next = transcodeWaiters.shift();
+  if (next) {
+    // Hand the slot directly to the next waiter without ever decrementing the
+    // running count — otherwise a fresh acquire scheduled before the waiter
+    // resumes could grab the "free" slot and briefly exceed the limit.
+    next();
+    return;
+  }
+  runningTranscodes--;
+}
 
 function runFfmpeg(args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
     execFile(
       "ffmpeg",
-      ["-hide_banner", "-loglevel", "error", "-y", ...args],
+      // The global/input-level -threads (before any -i) caps decoder threads;
+      // encode-side caps are passed per-output in the args.
+      ["-hide_banner", "-loglevel", "error", "-y", "-threads", FFMPEG_THREADS, ...args],
       { timeout: FFMPEG_TIMEOUT_MS, maxBuffer: 1024 * 1024 },
       (err, _stdout, stderr) => {
         if (err) {
@@ -52,6 +99,17 @@ export type TranscodeResult = {
 export async function transcodeVideoForFeed(
   input: Buffer,
 ): Promise<TranscodeResult> {
+  await acquireTranscodeSlot();
+  try {
+    return await transcodeVideoForFeedNow(input);
+  } finally {
+    releaseTranscodeSlot();
+  }
+}
+
+async function transcodeVideoForFeedNow(
+  input: Buffer,
+): Promise<TranscodeResult> {
   const dir = await mkdtemp(path.join(tmpdir(), "video-transcode-"));
   const inPath = path.join(dir, `in-${randomUUID()}`);
   const outPath = path.join(dir, "out.mp4");
@@ -73,6 +131,7 @@ export async function transcodeVideoForFeed(
       "-c:a", "aac",
       "-b:a", "96k",
       "-movflags", "+faststart",
+      "-threads", FFMPEG_THREADS,
       outPath,
     ]);
 
@@ -90,11 +149,13 @@ export async function transcodeVideoForFeed(
       }
     };
     let poster = await extractPoster([
-      "-ss", "0.5", "-i", outPath, "-frames:v", "1", "-q:v", "4", posterPath,
+      "-ss", "0.5", "-i", outPath, "-frames:v", "1", "-q:v", "4",
+      "-threads", FFMPEG_THREADS, posterPath,
     ]);
     if (!poster) {
       poster = await extractPoster([
-        "-i", outPath, "-frames:v", "1", "-q:v", "4", posterPath,
+        "-i", outPath, "-frames:v", "1", "-q:v", "4",
+        "-threads", FFMPEG_THREADS, posterPath,
       ]);
     }
     if (!poster) {

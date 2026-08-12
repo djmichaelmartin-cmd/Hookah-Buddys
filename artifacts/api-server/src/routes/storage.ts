@@ -13,6 +13,7 @@ import {
   InvalidUploadError,
   MAX_UPLOAD_SIZE_BYTES,
   MAX_VIDEO_UPLOAD_SIZE_BYTES,
+  TranscodeBusyError,
   uploadImageBuffer,
   uploadVideoBuffer,
 } from '../lib/imageUploads';
@@ -91,6 +92,11 @@ router.post(
       );
       res.status(201).json({ objectPath, posterPath });
     } catch (error) {
+      if (error instanceof TranscodeBusyError) {
+        res.setHeader('Retry-After', '15');
+        res.status(503).json({ error: error.message });
+        return;
+      }
       if (error instanceof InvalidUploadError) {
         res.status(400).json({ error: error.message });
         return;

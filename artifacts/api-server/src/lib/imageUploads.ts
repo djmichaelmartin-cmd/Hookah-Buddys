@@ -5,7 +5,13 @@ import {
   objectStorageClient,
 } from "./objectStorage";
 import { getObjectAclPolicy, setObjectAclPolicy } from "./objectAcl";
-import { transcodeVideoForFeed, TranscodeError } from "./videoTranscode";
+import {
+  transcodeVideoForFeed,
+  TranscodeBusyError,
+  TranscodeError,
+} from "./videoTranscode";
+
+export { TranscodeBusyError };
 
 export const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -165,6 +171,9 @@ export async function uploadVideoBuffer(
   try {
     transcoded = await transcodeVideoForFeed(buffer);
   } catch (err) {
+    if (err instanceof TranscodeBusyError) {
+      throw err; // surfaced as 503 by the route — retryable, not a bad upload
+    }
     if (err instanceof TranscodeError) {
       throw new InvalidUploadError(
         "Uploaded video could not be processed. Please upload a valid MP4 or WebM video.",

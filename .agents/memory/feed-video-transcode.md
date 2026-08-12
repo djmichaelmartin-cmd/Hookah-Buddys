@@ -8,3 +8,5 @@ description: How uploaded feed videos are compressed and gotchas around ffmpeg p
 - **Why:** relying on exit code made valid sub-second uploads 500.
 - **How to apply:** any new ffmpeg-based extraction (thumbnails for reels/Doll media) must validate the output file, not the exit code.
 - Any new DB column holding an uploads object URL (e.g. poster/thumbnail fields) MUST be added to `collectReferencedIds` in the orphan-cleanup script, or the cleanup deletes live media after the grace period.
+
+**Transcode CPU bounding:** ffmpeg `-threads` before `-i` caps the decoder; a separate `-threads` before the output path caps the encoder — one placement alone leaves the other side unbounded. Transcodes run through an in-process FIFO semaphore (1 job, bounded queue, overflow → 503 + Retry-After); when handing a slot to a waiter, never decrement-then-increment the running count or a racing acquire can exceed the limit.
