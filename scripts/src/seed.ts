@@ -267,7 +267,7 @@ async function seedPlans() {
       tier: "bronze",
       monthlyCredits: membershipMonthlyCredits("bronze"),
       description:
-        "Bronze is free and gives you access to the social side of HookahDolls. Credits are only needed for premium Doll interactions like paid messaging, premium content unlocks, and video chat.",
+        "Bronze is free and gives you access to the social side of HookahDolls. Credits are only needed for premium Doll interactions like direct messaging, premium content unlocks, and video chat.",
       features: [
         "Create a free HookahDolls profile",
         "Join the public hookah social feed",
