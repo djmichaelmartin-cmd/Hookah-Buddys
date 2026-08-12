@@ -1,0 +1,162 @@
+import { Router, type IRouter } from "express";
+import { and, asc, count, eq, gt, inArray } from "drizzle-orm";
+import {
+  db,
+  eventsTable,
+  eventRsvpsTable,
+  eventSavesTable,
+  type Event,
+} from "@workspace/db";
+import { getSessionUser, requireAuth } from "../lib/auth";
+
+const router: IRouter = Router();
+
+function eventToResponse(
+  event: Event,
+  rsvpCount: number,
+  rsvped: boolean,
+  saved: boolean,
+) {
+  return {
+    id: event.id,
+    title: event.title,
+    description: event.description ?? null,
+    loungeId: event.loungeId ?? null,
+    venueName: event.venueName ?? null,
+    city: event.city,
+    state: event.state,
+    startsAt: event.startsAt.toISOString(),
+    endsAt: event.endsAt ? event.endsAt.toISOString() : null,
+    imageUrl: event.imageUrl ?? null,
+    status: event.status === "cancelled" ? ("cancelled" as const) : ("active" as const),
+    rsvpCount,
+    rsvped,
+    saved,
+  };
+}
+
+async function annotateEvents(events: Event[], viewerUserId: number | null) {
+  const ids = events.map((e) => e.id);
+  if (ids.length === 0) return [];
+  const counts = await db
+    .select({ eventId: eventRsvpsTable.eventId, n: count() })
+    .from(eventRsvpsTable)
+    .where(inArray(eventRsvpsTable.eventId, ids))
+    .groupBy(eventRsvpsTable.eventId);
+  const countMap = new Map(counts.map((c) => [c.eventId, Number(c.n)]));
+
+  const rsvpedSet = new Set<number>();
+  const savedSet = new Set<number>();
+  if (viewerUserId !== null) {
+    const [rsvps, saves] = await Promise.all([
+      db
+        .select({ eventId: eventRsvpsTable.eventId })
+        .from(eventRsvpsTable)
+        .where(
+          and(
+            inArray(eventRsvpsTable.eventId, ids),
+            eq(eventRsvpsTable.userId, viewerUserId),
+          ),
+        ),
+      db
+        .select({ eventId: eventSavesTable.eventId })
+        .from(eventSavesTable)
+        .where(
+          and(
+            inArray(eventSavesTable.eventId, ids),
+            eq(eventSavesTable.userId, viewerUserId),
+          ),
+        ),
+    ]);
+    for (const r of rsvps) rsvpedSet.add(r.eventId);
+    for (const s of saves) savedSet.add(s.eventId);
+  }
+
+  return events.map((e) =>
+    eventToResponse(e, countMap.get(e.id) ?? 0, rsvpedSet.has(e.id), savedSet.has(e.id)),
+  );
+}
+
+// Public: upcoming active events, soonest first.
+router.get("/events", async (req, res): Promise<void> => {
+  const rawLimit = req.query.limit !== undefined ? Number(req.query.limit) : 10;
+  const limit = Number.isFinite(rawLimit)
+    ? Math.min(Math.max(Math.trunc(rawLimit), 1), 50)
+    : 10;
+
+  const rows = await db
+    .select()
+    .from(eventsTable)
+    .where(and(eq(eventsTable.status, "active"), gt(eventsTable.startsAt, new Date())))
+    .orderBy(asc(eventsTable.startsAt))
+    .limit(limit);
+
+  const viewer = await getSessionUser(req);
+  res.json(await annotateEvents(rows, viewer?.id ?? null));
+});
+
+async function loadActiveUpcomingEvent(id: number): Promise<Event | null> {
+  if (!Number.isInteger(id)) return null;
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, id));
+  if (!event || event.status !== "active") return null;
+  return event;
+}
+
+router.post("/events/:id/rsvp", requireAuth(), async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const id = parseInt(req.params.id as string, 10);
+  const event = await loadActiveUpcomingEvent(id);
+  if (!event) {
+    res.status(404).json({ error: "Event not found" });
+    return;
+  }
+  const [existing] = await db
+    .select()
+    .from(eventRsvpsTable)
+    .where(and(eq(eventRsvpsTable.eventId, id), eq(eventRsvpsTable.userId, user.id)));
+  let rsvped: boolean;
+  if (existing) {
+    await db.delete(eventRsvpsTable).where(eq(eventRsvpsTable.id, existing.id));
+    rsvped = false;
+  } else {
+    await db
+      .insert(eventRsvpsTable)
+      .values({ eventId: id, userId: user.id })
+      .onConflictDoNothing();
+    rsvped = true;
+  }
+  const [{ n }] = await db
+    .select({ n: count() })
+    .from(eventRsvpsTable)
+    .where(eq(eventRsvpsTable.eventId, id));
+  res.json({ rsvped, rsvpCount: Number(n) });
+});
+
+router.post("/events/:id/save", requireAuth(), async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const id = parseInt(req.params.id as string, 10);
+  const event = await loadActiveUpcomingEvent(id);
+  if (!event) {
+    res.status(404).json({ error: "Event not found" });
+    return;
+  }
+  const [existing] = await db
+    .select()
+    .from(eventSavesTable)
+    .where(and(eq(eventSavesTable.eventId, id), eq(eventSavesTable.userId, user.id)));
+  let saved: boolean;
+  if (existing) {
+    await db.delete(eventSavesTable).where(eq(eventSavesTable.id, existing.id));
+    saved = false;
+  } else {
+    await db
+      .insert(eventSavesTable)
+      .values({ eventId: id, userId: user.id })
+      .onConflictDoNothing();
+    saved = true;
+  }
+  res.json({ saved });
+});
+
+export { annotateEvents };
+export default router;

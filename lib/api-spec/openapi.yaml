@@ -630,6 +630,115 @@ paths:
                 items:
                   $ref: "#/components/schemas/Lounge"
 
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: Upcoming hookah events
+      parameters:
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/{id}/rsvp:
+    post:
+      operationId: toggleEventRsvp
+      tags: [events]
+      summary: Toggle the current user's RSVP for an event
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventRsvpResult"
+
+  /events/{id}/save:
+    post:
+      operationId: toggleEventSave
+      tags: [events]
+      summary: Toggle the current user's save for an event
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventSaveResult"
+
+  /admin/events:
+    get:
+      operationId: listAdminEvents
+      tags: [admin]
+      summary: All events for admin management
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createAdminEvent
+      tags: [admin]
+      summary: Create an event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminEventCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /admin/events/{id}:
+    patch:
+      operationId: updateAdminEvent
+      tags: [admin]
+      summary: Update an event
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminEventUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    delete:
+      operationId: deleteAdminEvent
+      tags: [admin]
+      summary: Delete an event
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
   /subscriptions:
     get:
       operationId: listSubscriptions
@@ -2961,6 +3070,66 @@ components:
         features:
           type: array
           items: { type: string, minLength: 1 }
+
+    Event:
+      type: object
+      required: [id, title, city, state, startsAt, status, rsvpCount, rsvped, saved]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        loungeId: { type: ["integer", "null"] }
+        venueName: { type: ["string", "null"] }
+        city: { type: string }
+        state: { type: string }
+        startsAt: { type: string }
+        endsAt: { type: ["string", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        status: { type: string, enum: [active, cancelled] }
+        rsvpCount: { type: integer }
+        rsvped: { type: boolean }
+        saved: { type: boolean }
+
+    EventRsvpResult:
+      type: object
+      required: [rsvped, rsvpCount]
+      properties:
+        rsvped: { type: boolean }
+        rsvpCount: { type: integer }
+
+    EventSaveResult:
+      type: object
+      required: [saved]
+      properties:
+        saved: { type: boolean }
+
+    AdminEventCreate:
+      type: object
+      required: [title, city, state, startsAt]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
+        loungeId: { type: ["integer", "null"] }
+        venueName: { type: string, maxLength: 200 }
+        city: { type: string, minLength: 1, maxLength: 100 }
+        state: { type: string, minLength: 2, maxLength: 2 }
+        startsAt: { type: string }
+        endsAt: { type: ["string", "null"] }
+        imageUrl: { type: string }
+
+    AdminEventUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: ["string", "null"] }
+        loungeId: { type: ["integer", "null"] }
+        venueName: { type: ["string", "null"] }
+        city: { type: string, minLength: 1, maxLength: 100 }
+        state: { type: string, minLength: 2, maxLength: 2 }
+        startsAt: { type: string }
+        endsAt: { type: ["string", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        status: { type: string, enum: [active, cancelled] }
 
     Lounge:
       type: object

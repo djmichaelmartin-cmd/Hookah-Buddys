@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { RevenueBreakdownItem, DollRevenueShare } from "@workspace/api-client-react";
-import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye } from "lucide-react";
+import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
 import AdminPlans from "@/pages/AdminPlans";
+import AdminEvents from "@/pages/AdminEvents";
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
@@ -124,6 +125,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="profiles"><Search className="w-4 h-4 mr-2"/> Profiles</TabsTrigger>
             <TabsTrigger value="credits"><Coins className="w-4 h-4 mr-2"/> Credits</TabsTrigger>
             <TabsTrigger value="plans"><FileText className="w-4 h-4 mr-2"/> Plans</TabsTrigger>
+            <TabsTrigger value="events"><CalendarDays className="w-4 h-4 mr-2"/> Events</TabsTrigger>
             <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
           </TabsList>
           
@@ -329,6 +331,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="plans">
             <AdminPlans />
+          </TabsContent>
+
+          <TabsContent value="events">
+            <AdminEvents />
           </TabsContent>
 
           <TabsContent value="leads">

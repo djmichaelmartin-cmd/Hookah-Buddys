@@ -14,6 +14,7 @@ export * from "./reports";
 export * from "./contact";
 export * from "./sessions";
 export * from "./lounges";
+export * from "./events";
 export * from "./businessLeads";
 export * from "./feedPosts";
 export * from "./feedEngagement";

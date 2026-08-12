@@ -23,6 +23,8 @@ import type {
   AdminBlock,
   AdminCreditTransaction,
   AdminCreditTransactionPage,
+  AdminEventCreate,
+  AdminEventUpdate,
   AdminStats,
   AdminUser,
   AuthResponse,
@@ -54,6 +56,9 @@ import type {
   EnhancedProfile,
   ErrorEnvelope,
   EstimateVideoChatParams,
+  Event,
+  EventRsvpResult,
+  EventSaveResult,
   Favorite,
   FavoriteInput,
   FeedAnalytics,
@@ -83,6 +88,7 @@ import type {
   ListAlbumsParams,
   ListBusinessLeadsParams,
   ListDollsParams,
+  ListEventsParams,
   ListFeedPostsParams,
   ListFeedReportsParams,
   ListFollowsParams,
@@ -2348,6 +2354,520 @@ export function useListLounges<TData = Awaited<ReturnType<typeof listLounges>>, 
 
 
 
+
+export const getListEventsUrl = (params?: ListEventsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/events?${stringifiedParams}` : `/api/events`
+}
+
+/**
+ * @summary Upcoming hookah events
+ */
+export const listEvents = async (params?: ListEventsParams, options?: RequestInit): Promise<Event[]> => {
+
+  return customFetch<Event[]>(getListEventsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEventsQueryKey = (params?: ListEventsParams,) => {
+    return [
+    `/api/events`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListEventsQueryOptions = <TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<unknown>>(params?: ListEventsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEventsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEvents>>> = ({ signal }) => listEvents(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listEvents>>>
+export type ListEventsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Upcoming hookah events
+ */
+
+export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<unknown>>(
+ params?: ListEventsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListEventsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getToggleEventRsvpUrl = (id: number,) => {
+
+
+
+
+  return `/api/events/${id}/rsvp`
+}
+
+/**
+ * @summary Toggle the current user's RSVP for an event
+ */
+export const toggleEventRsvp = async (id: number, options?: RequestInit): Promise<EventRsvpResult> => {
+
+  return customFetch<EventRsvpResult>(getToggleEventRsvpUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getToggleEventRsvpMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleEventRsvp>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof toggleEventRsvp>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['toggleEventRsvp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleEventRsvp>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  toggleEventRsvp(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ToggleEventRsvpMutationResult = NonNullable<Awaited<ReturnType<typeof toggleEventRsvp>>>
+
+    export type ToggleEventRsvpMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Toggle the current user's RSVP for an event
+ */
+export const useToggleEventRsvp = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleEventRsvp>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof toggleEventRsvp>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getToggleEventRsvpMutationOptions(options));
+    }
+
+export const getToggleEventSaveUrl = (id: number,) => {
+
+
+
+
+  return `/api/events/${id}/save`
+}
+
+/**
+ * @summary Toggle the current user's save for an event
+ */
+export const toggleEventSave = async (id: number, options?: RequestInit): Promise<EventSaveResult> => {
+
+  return customFetch<EventSaveResult>(getToggleEventSaveUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getToggleEventSaveMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleEventSave>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof toggleEventSave>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['toggleEventSave'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleEventSave>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  toggleEventSave(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ToggleEventSaveMutationResult = NonNullable<Awaited<ReturnType<typeof toggleEventSave>>>
+
+    export type ToggleEventSaveMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Toggle the current user's save for an event
+ */
+export const useToggleEventSave = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleEventSave>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof toggleEventSave>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getToggleEventSaveMutationOptions(options));
+    }
+
+export const getListAdminEventsUrl = () => {
+
+
+
+
+  return `/api/admin/events`
+}
+
+/**
+ * @summary All events for admin management
+ */
+export const listAdminEvents = async ( options?: RequestInit): Promise<Event[]> => {
+
+  return customFetch<Event[]>(getListAdminEventsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminEventsQueryKey = () => {
+    return [
+    `/api/admin/events`
+    ] as const;
+    }
+
+
+export const getListAdminEventsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminEvents>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminEventsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminEvents>>> = ({ signal }) => listAdminEvents({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminEvents>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminEvents>>>
+export type ListAdminEventsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All events for admin management
+ */
+
+export function useListAdminEvents<TData = Awaited<ReturnType<typeof listAdminEvents>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminEventsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdminEventUrl = () => {
+
+
+
+
+  return `/api/admin/events`
+}
+
+/**
+ * @summary Create an event
+ */
+export const createAdminEvent = async (adminEventCreate: AdminEventCreate, options?: RequestInit): Promise<Event> => {
+
+  return customFetch<Event>(getCreateAdminEventUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminEventCreate,)
+  }
+);}
+
+
+
+
+export const getCreateAdminEventMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminEvent>>, TError,{data: BodyType<AdminEventCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminEvent>>, TError,{data: BodyType<AdminEventCreate>}, TContext> => {
+
+const mutationKey = ['createAdminEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminEvent>>, {data: BodyType<AdminEventCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminEvent(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminEventMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminEvent>>>
+    export type CreateAdminEventMutationBody = BodyType<AdminEventCreate>
+    export type CreateAdminEventMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create an event
+ */
+export const useCreateAdminEvent = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminEvent>>, TError,{data: BodyType<AdminEventCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminEvent>>,
+        TError,
+        {data: BodyType<AdminEventCreate>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminEventMutationOptions(options));
+    }
+
+export const getUpdateAdminEventUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/events/${id}`
+}
+
+/**
+ * @summary Update an event
+ */
+export const updateAdminEvent = async (id: number,
+    adminEventUpdate: AdminEventUpdate, options?: RequestInit): Promise<Event> => {
+
+  return customFetch<Event>(getUpdateAdminEventUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminEventUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateAdminEventMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminEvent>>, TError,{id: number;data: BodyType<AdminEventUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminEvent>>, TError,{id: number;data: BodyType<AdminEventUpdate>}, TContext> => {
+
+const mutationKey = ['updateAdminEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminEvent>>, {id: number;data: BodyType<AdminEventUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminEvent(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminEventMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminEvent>>>
+    export type UpdateAdminEventMutationBody = BodyType<AdminEventUpdate>
+    export type UpdateAdminEventMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an event
+ */
+export const useUpdateAdminEvent = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminEvent>>, TError,{id: number;data: BodyType<AdminEventUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminEvent>>,
+        TError,
+        {id: number;data: BodyType<AdminEventUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminEventMutationOptions(options));
+    }
+
+export const getDeleteAdminEventUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/events/${id}`
+}
+
+/**
+ * @summary Delete an event
+ */
+export const deleteAdminEvent = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteAdminEventUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAdminEventMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAdminEvent>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAdminEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAdminEvent>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAdminEvent(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAdminEventMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAdminEvent>>>
+
+    export type DeleteAdminEventMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an event
+ */
+export const useDeleteAdminEvent = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAdminEvent>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAdminEventMutationOptions(options));
+    }
 
 export const getListSubscriptionsUrl = () => {
 

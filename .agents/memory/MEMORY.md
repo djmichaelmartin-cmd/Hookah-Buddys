@@ -1,5 +1,6 @@
 - [Contract-route drift](contract-route-drift.md) — server Express route method+path must match openapi.yaml exactly or the generated client 404s silently (no onError = "nothing happens").
 - [Engagement-route visibility parity](engagement-route-visibility-parity.md) — like/save/comment/report/view routes need the same visibility+block guard as the detail route, or private content leaks by ID.
+- [Orval body-name collision](orval-body-name-collision.md) — never name a component schema `<OperationId>Body`; orval's zod output generates that name itself and exports collide.
 - [Orval path+query collision](orval-path-query-collision.md) — mixing path+query params in one op can collide generated *Params names; split paths and use named $ref bodies.
 - [List/detail visibility parity](list-detail-visibility-parity.md) — enforce a list's status filter on the by-id detail route too, or hidden rows leak via ID enumeration.
 - [Hand-written OpenAPI serializers](openapi-handwritten-serializers.md) — several routes serialize a schema by hand; a new `required` field means editing every one (codegen won't catch a miss).

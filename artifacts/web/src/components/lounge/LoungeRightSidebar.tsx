@@ -1,10 +1,17 @@
 import { Link } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useListDolls,
   useListLounges,
   useGetCurrentUser,
+  useListEvents,
+  useToggleEventRsvp,
+  useToggleEventSave,
+  getListEventsQueryKey,
+  type Event,
 } from "@workspace/api-client-react";
-import { BadgeCheck, MapPin, Star, Crown } from "lucide-react";
+import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   onSelectCategory?: (category: string) => void;
@@ -61,11 +68,111 @@ function DollRow({ doll, online }: { doll: any; online?: boolean }) {
   );
 }
 
+function formatEventDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function EventRow({ event, loggedIn }: { event: Event; loggedIn: boolean }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: getListEventsQueryKey() });
+  const requireLogin = () =>
+    toast({
+      title: "Sign in required",
+      description: "Log in to RSVP and save events.",
+      variant: "destructive",
+    });
+  const rsvp = useToggleEventRsvp({
+    mutation: {
+      onSuccess: (result) => {
+        invalidate();
+        toast({
+          title: result.rsvped ? "You're going!" : "RSVP removed",
+          description: result.rsvped ? `See you at ${event.title}.` : undefined,
+        });
+      },
+      onError: () =>
+        toast({
+          title: "RSVP failed",
+          description: "Please try again in a moment.",
+          variant: "destructive",
+        }),
+    },
+  });
+  const save = useToggleEventSave({
+    mutation: {
+      onSuccess: (result) => {
+        invalidate();
+        toast({ title: result.saved ? "Event saved" : "Event removed from saved" });
+      },
+      onError: () =>
+        toast({
+          title: "Save failed",
+          description: "Please try again in a moment.",
+          variant: "destructive",
+        }),
+    },
+  });
+
+  return (
+    <div className="py-2 border-b border-white/5 last:border-b-0">
+      <p className="text-sm text-white font-medium leading-snug">{event.title}</p>
+      <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+        <CalendarDays className="h-3 w-3 shrink-0" />
+        {formatEventDate(event.startsAt)}
+      </p>
+      <p className="text-xs text-muted-foreground flex items-center gap-1">
+        <MapPin className="h-3 w-3 shrink-0" />
+        {event.venueName ? `${event.venueName} · ` : ""}
+        {event.city}, {event.state}
+      </p>
+      <div className="flex items-center gap-2 mt-2">
+        <button
+          onClick={() => (loggedIn ? rsvp.mutate({ id: event.id }) : requireLogin())}
+          disabled={rsvp.isPending}
+          className={
+            event.rsvped
+              ? "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-primary text-primary-foreground font-medium disabled:opacity-60"
+              : "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-60"
+          }
+        >
+          {event.rsvped && <Check className="h-3 w-3" />}
+          {event.rsvped ? "Going" : "RSVP"}
+        </button>
+        <button
+          onClick={() => (loggedIn ? save.mutate({ id: event.id }) : requireLogin())}
+          disabled={save.isPending}
+          aria-label={event.saved ? "Unsave event" : "Save event"}
+          className={
+            event.saved
+              ? "inline-flex items-center px-2 py-1 rounded-full text-xs text-primary disabled:opacity-60"
+              : "inline-flex items-center px-2 py-1 rounded-full text-xs text-muted-foreground hover:text-white transition-colors disabled:opacity-60"
+          }
+        >
+          <Bookmark className={event.saved ? "h-3.5 w-3.5 fill-primary" : "h-3.5 w-3.5"} />
+        </button>
+        <span className="text-[11px] text-muted-foreground ml-auto">
+          {event.rsvpCount} going
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function LoungeRightSidebar({ onSelectCategory }: Props) {
   const { data: session } = useGetCurrentUser();
   const { data: onlineDolls } = useListDolls({ online: true });
   const { data: featuredDolls } = useListDolls({ featured: true });
   const { data: lounges } = useListLounges({ limit: 3 });
+  const { data: events } = useListEvents({ limit: 4 });
 
   const onlineList = (onlineDolls ?? []).slice(0, 5);
   const onlineIds = new Set(onlineList.map((d) => d.id));
@@ -94,6 +201,14 @@ export default function LoungeRightSidebar({ onSelectCategory }: Props) {
           >
             Browse all Dolls →
           </Link>
+        </SectionCard>
+      )}
+
+      {(events?.length ?? 0) > 0 && (
+        <SectionCard title="Upcoming Events">
+          {events!.map((event) => (
+            <EventRow key={event.id} event={event} loggedIn={!!session?.user} />
+          ))}
         </SectionCard>
       )}
 

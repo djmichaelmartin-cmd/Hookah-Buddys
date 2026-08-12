@@ -723,6 +723,163 @@ export const ListLoungesResponse = zod.array(ListLoungesResponseItem)
 
 
 /**
+ * @summary Upcoming hookah events
+ */
+export const ListEventsQueryParams = zod.object({
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListEventsResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "loungeId": zod.number().nullish(),
+  "venueName": zod.string().nullish(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "status": zod.enum(['active', 'cancelled']),
+  "rsvpCount": zod.number(),
+  "rsvped": zod.boolean(),
+  "saved": zod.boolean()
+})
+export const ListEventsResponse = zod.array(ListEventsResponseItem)
+
+
+/**
+ * @summary Toggle the current user's RSVP for an event
+ */
+export const ToggleEventRsvpParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ToggleEventRsvpResponse = zod.object({
+  "rsvped": zod.boolean(),
+  "rsvpCount": zod.number()
+})
+
+
+/**
+ * @summary Toggle the current user's save for an event
+ */
+export const ToggleEventSaveParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ToggleEventSaveResponse = zod.object({
+  "saved": zod.boolean()
+})
+
+
+/**
+ * @summary All events for admin management
+ */
+export const ListAdminEventsResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "loungeId": zod.number().nullish(),
+  "venueName": zod.string().nullish(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "status": zod.enum(['active', 'cancelled']),
+  "rsvpCount": zod.number(),
+  "rsvped": zod.boolean(),
+  "saved": zod.boolean()
+})
+export const ListAdminEventsResponse = zod.array(ListAdminEventsResponseItem)
+
+
+/**
+ * @summary Create an event
+ */
+export const createAdminEventBodyTitleMax = 200;
+
+export const createAdminEventBodyDescriptionMax = 2000;
+
+export const createAdminEventBodyVenueNameMax = 200;
+
+export const createAdminEventBodyCityMax = 100;
+
+export const createAdminEventBodyStateMin = 2;
+export const createAdminEventBodyStateMax = 2;
+
+
+
+export const CreateAdminEventBody = zod.object({
+  "title": zod.string().min(1).max(createAdminEventBodyTitleMax),
+  "description": zod.string().max(createAdminEventBodyDescriptionMax).optional(),
+  "loungeId": zod.number().nullish(),
+  "venueName": zod.string().max(createAdminEventBodyVenueNameMax).optional(),
+  "city": zod.string().min(1).max(createAdminEventBodyCityMax),
+  "state": zod.string().min(createAdminEventBodyStateMin).max(createAdminEventBodyStateMax),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().nullish(),
+  "imageUrl": zod.string().optional()
+})
+
+
+/**
+ * @summary Update an event
+ */
+export const UpdateAdminEventParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateAdminEventBodyTitleMax = 200;
+
+export const updateAdminEventBodyCityMax = 100;
+
+export const updateAdminEventBodyStateMin = 2;
+export const updateAdminEventBodyStateMax = 2;
+
+
+
+export const UpdateAdminEventBody = zod.object({
+  "title": zod.string().min(1).max(updateAdminEventBodyTitleMax).optional(),
+  "description": zod.string().nullish(),
+  "loungeId": zod.number().nullish(),
+  "venueName": zod.string().nullish(),
+  "city": zod.string().min(1).max(updateAdminEventBodyCityMax).optional(),
+  "state": zod.string().min(updateAdminEventBodyStateMin).max(updateAdminEventBodyStateMax).optional(),
+  "startsAt": zod.string().optional(),
+  "endsAt": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "status": zod.enum(['active', 'cancelled']).optional()
+})
+
+export const UpdateAdminEventResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "loungeId": zod.number().nullish(),
+  "venueName": zod.string().nullish(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "status": zod.enum(['active', 'cancelled']),
+  "rsvpCount": zod.number(),
+  "rsvped": zod.boolean(),
+  "saved": zod.boolean()
+})
+
+
+/**
+ * @summary Delete an event
+ */
+export const DeleteAdminEventParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary Current user's subscriptions
  */
 export const ListSubscriptionsResponseItem = zod.object({

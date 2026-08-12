@@ -378,6 +378,111 @@ export interface PlanUpdate {
   features?: string[];
 }
 
+export type EventStatus = typeof EventStatus[keyof typeof EventStatus];
+
+
+export const EventStatus = {
+  active: 'active',
+  cancelled: 'cancelled',
+} as const;
+
+export interface Event {
+  id: number;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  loungeId?: number | null;
+  /** @nullable */
+  venueName?: string | null;
+  city: string;
+  state: string;
+  startsAt: string;
+  /** @nullable */
+  endsAt?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+  status: EventStatus;
+  rsvpCount: number;
+  rsvped: boolean;
+  saved: boolean;
+}
+
+export interface EventRsvpResult {
+  rsvped: boolean;
+  rsvpCount: number;
+}
+
+export interface EventSaveResult {
+  saved: boolean;
+}
+
+export interface AdminEventCreate {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  /** @maxLength 2000 */
+  description?: string;
+  /** @nullable */
+  loungeId?: number | null;
+  /** @maxLength 200 */
+  venueName?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  city: string;
+  /**
+     * @minLength 2
+     * @maxLength 2
+     */
+  state: string;
+  startsAt: string;
+  /** @nullable */
+  endsAt?: string | null;
+  imageUrl?: string;
+}
+
+export type AdminEventUpdateStatus = typeof AdminEventUpdateStatus[keyof typeof AdminEventUpdateStatus];
+
+
+export const AdminEventUpdateStatus = {
+  active: 'active',
+  cancelled: 'cancelled',
+} as const;
+
+export interface AdminEventUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title?: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  loungeId?: number | null;
+  /** @nullable */
+  venueName?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  city?: string;
+  /**
+     * @minLength 2
+     * @maxLength 2
+     */
+  state?: string;
+  startsAt?: string;
+  /** @nullable */
+  endsAt?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+  status?: AdminEventUpdateStatus;
+}
+
 export interface Lounge {
   id: number;
   name: string;
@@ -2098,6 +2203,10 @@ state?: string;
 lat?: number;
 lng?: number;
 radius?: number;
+limit?: number;
+};
+
+export type ListEventsParams = {
 limit?: number;
 };
 
