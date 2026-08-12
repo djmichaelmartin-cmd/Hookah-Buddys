@@ -407,3 +407,12 @@
     mask-image: none;
   }
 }
+
+/* Hide scrollbars on horizontally scrollable rows (e.g. feed filter tabs). */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
