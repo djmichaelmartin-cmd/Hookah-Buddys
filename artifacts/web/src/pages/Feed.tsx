@@ -38,7 +38,7 @@ export default function Feed() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
           <h1 className="font-serif text-4xl text-white font-bold flex items-center gap-3 drop-shadow-md">
             The Lounge <Sparkles className="h-6 w-6 text-primary" />
