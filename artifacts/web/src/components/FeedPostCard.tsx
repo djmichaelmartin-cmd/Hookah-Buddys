@@ -135,7 +135,7 @@ export function FeedPostCard({
   };
 
   const authorLink = post.dollId ? `/dolls/${post.dollId}` : `/bros/${post.userId}`;
-  const badgeColor = post.userRole === "doll" ? "text-rose-400 border-rose-400/20 bg-rose-400/10" : "text-primary border-primary/20 bg-primary/10";
+  const badgeColor = post.userRole === "doll" ? "text-sky-400 border-sky-400/20 bg-sky-400/10" : "text-primary border-primary/20 bg-primary/10";
   const badgeText = post.userRole === "doll" ? "Doll" : "Bro";
 
   return (

@@ -194,7 +194,7 @@ export default function Browse() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {dolls.map((doll) => (
                 <Link key={doll.id} href={`/dolls/${doll.id}`} className="group block">
-                  <div className="relative h-[300px] w-full rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(255,36,46,0.2)] bg-card">
+                  <div className="relative h-[300px] w-full rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(0,90,156,0.2)] bg-card">
                     {doll.profilePhotoUrl ? (
                       <img
                         src={doll.profilePhotoUrl}

@@ -120,7 +120,7 @@ export default function Pricing() {
                 <div
                   key={plan.id}
                   className={`bg-card/50 backdrop-blur-xl border ${
-                    plan.highlighted ? "border-primary shadow-[0_0_30px_rgba(255,36,46,0.2)]" : "border-white/10"
+                    plan.highlighted ? "border-primary shadow-[0_0_30px_rgba(0,90,156,0.2)]" : "border-white/10"
                   } rounded-2xl p-8 flex flex-col relative`}
                 >
                   {plan.highlighted && (
@@ -232,7 +232,7 @@ export default function Pricing() {
                 <div
                   key={plan.id}
                   className={`bg-card/50 backdrop-blur-xl border ${
-                    plan.highlighted ? "border-secondary shadow-[0_0_30px_rgba(232,93,117,0.2)]" : "border-white/10"
+                    plan.highlighted ? "border-secondary shadow-[0_0_30px_rgba(56,189,248,0.2)]" : "border-white/10"
                   } rounded-2xl p-6 flex flex-col`}
                 >
                   <h3 className="text-xl font-serif font-bold text-white mb-2">{plan.name}</h3>

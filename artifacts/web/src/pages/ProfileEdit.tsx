@@ -320,7 +320,7 @@ export default function ProfileEdit() {
             <Button
               onClick={handleSave}
               disabled={updateProfile.isPending}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 font-semibold shadow-[0_0_20px_rgba(255,36,46,0.3)]"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 font-semibold shadow-[0_0_20px_rgba(0,90,156,0.3)]"
             >
               {updateProfile.isPending ? (
                 <>
