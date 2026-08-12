@@ -122,6 +122,7 @@ export * from './listBusinessLeadsStatus';
 export * from './listDollsParams';
 export * from './listEventsFilter';
 export * from './listEventsParams';
+export * from './listEventsScope';
 export * from './listFeedPostsFilter';
 export * from './listFeedPostsParams';
 export * from './listFeedReportsParams';

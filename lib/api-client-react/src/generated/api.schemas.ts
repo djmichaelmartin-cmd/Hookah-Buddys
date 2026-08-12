@@ -2239,9 +2239,25 @@ limit?: number;
 export type ListEventsParams = {
 limit?: number;
 filter?: ListEventsFilter;
+scope?: ListEventsScope;
 };
 
 export type ListEventsFilter = typeof ListEventsFilter[keyof typeof ListEventsFilter];
+
+
+export const ListEventsFilter = {
+  going: 'going',
+  saved: 'saved',
+} as const;
+
+export type ListEventsScope = typeof ListEventsScope[keyof typeof ListEventsScope];
+
+
+export const ListEventsScope = {
+  upcoming: 'upcoming',
+  past: 'past',
+} as const;
+
 export type EstimateVideoChatParams = {
 minutes?: number;
 };
@@ -2413,8 +2429,3 @@ export type ListAdminReelsParams = {
 status?: string;
 };
 
-
-export const ListEventsFilter = {
-  going: 'going',
-  saved: 'saved',
-} as const;

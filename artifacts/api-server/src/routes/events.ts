@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { and, asc, count, eq, gt, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, inArray, lte } from "drizzle-orm";
 import {
   db,
   eventsTable,
@@ -78,6 +78,7 @@ async function annotateEvents(events: Event[], viewerUserId: number | null) {
 }
 
 // Public: upcoming active events, soonest first.
+// With scope=past: past active events, newest first.
 // With filter=going|saved (auth required): the viewer's RSVP'd/saved active
 // events (including past ones), soonest first.
 router.get("/events", async (req, res): Promise<void> => {
@@ -106,11 +107,18 @@ router.get("/events", async (req, res): Promise<void> => {
     return;
   }
 
+  const past = req.query.scope === "past";
+  const now = new Date();
   const rows = await db
     .select()
     .from(eventsTable)
-    .where(and(eq(eventsTable.status, "active"), gt(eventsTable.startsAt, new Date())))
-    .orderBy(asc(eventsTable.startsAt))
+    .where(
+      and(
+        eq(eventsTable.status, "active"),
+        past ? lte(eventsTable.startsAt, now) : gt(eventsTable.startsAt, now),
+      ),
+    )
+    .orderBy(past ? desc(eventsTable.startsAt) : asc(eventsTable.startsAt))
     .limit(limit);
 
   res.json(await annotateEvents(rows, viewer?.id ?? null));

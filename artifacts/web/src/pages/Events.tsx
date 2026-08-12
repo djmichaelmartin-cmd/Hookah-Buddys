@@ -20,10 +20,11 @@ import {
   Users,
 } from "lucide-react";
 
-type TabId = "upcoming" | "going" | "saved";
+type TabId = "upcoming" | "past" | "going" | "saved";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "upcoming", label: "Upcoming" },
+  { id: "past", label: "Past" },
   { id: "going", label: "Going" },
   { id: "saved", label: "Saved" },
 ];
@@ -159,15 +160,24 @@ export default function Events() {
   const [tab, setTab] = useState<TabId>("upcoming");
 
   const params: ListEventsParams =
-    tab === "upcoming" ? { limit: 50 } : { limit: 50, filter: tab === "going" ? "going" : "saved" };
+    tab === "upcoming"
+      ? { limit: 50 }
+      : tab === "past"
+        ? { limit: 50, scope: "past" }
+        : { limit: 50, filter: tab === "going" ? "going" : "saved" };
+  const isPublicTab = tab === "upcoming" || tab === "past";
   const { data: events, isLoading } = useListEvents(params, {
-    query: { queryKey: getListEventsQueryKey(params), enabled: tab === "upcoming" || loggedIn },
+    query: { queryKey: getListEventsQueryKey(params), enabled: isPublicTab || loggedIn },
   });
 
   const emptyCopy: Record<TabId, { title: string; body: string }> = {
     upcoming: {
       title: "No upcoming events yet.",
       body: "Check back soon — new hookah nights and lounge events are added all the time.",
+    },
+    past: {
+      title: "No past events yet.",
+      body: "Once events wrap up, they'll show up here so you can see what the community's been up to.",
     },
     going: {
       title: "You haven't RSVP'd to anything yet.",
@@ -207,7 +217,7 @@ export default function Events() {
           ))}
         </div>
 
-        {tab !== "upcoming" && !loggedIn ? (
+        {!isPublicTab && !loggedIn ? (
           <div className="py-20 flex flex-col items-center justify-center text-center bg-card/20 rounded-2xl border border-white/5 backdrop-blur-md">
             <h3 className="font-serif text-xl text-white mb-2">Sign in to see your events</h3>
             <p className="text-muted-foreground max-w-sm">

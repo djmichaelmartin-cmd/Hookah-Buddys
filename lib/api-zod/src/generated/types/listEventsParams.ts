@@ -6,8 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ListEventsFilter } from './listEventsFilter';
+import type { ListEventsScope } from './listEventsScope';
 
 export type ListEventsParams = {
 limit?: number;
 filter?: ListEventsFilter;
+scope?: ListEventsScope;
 };
