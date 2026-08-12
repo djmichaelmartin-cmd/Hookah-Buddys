@@ -1200,6 +1200,13 @@ export interface FeedPostInput {
   audience?: FeedPostInputAudience;
 }
 
+export interface TrendingHashtag {
+  tag: string;
+  displayTag: string;
+  postCount: number;
+  score: number;
+}
+
 export type FeedCommentUserRole = typeof FeedCommentUserRole[keyof typeof FeedCommentUserRole];
 
 
@@ -2280,6 +2287,7 @@ state?: string;
 export type ListFeedPostsParams = {
 filter?: ListFeedPostsFilter;
 category?: string;
+hashtag?: string;
 userId?: number;
 limit?: number;
 };
@@ -2296,6 +2304,10 @@ export const ListFeedPostsFilter = {
   lounges: 'lounges',
   events: 'events',
 } as const;
+
+export type ListTrendingHashtagsParams = {
+limit?: number;
+};
 
 export type ListFollowsParams = {
 userId: number;

@@ -1441,6 +1441,7 @@ paths:
       parameters:
         - { name: filter, in: query, required: false, schema: { type: string, enum: [trending, new, nearby, dolls, bros, lounges, events] } }
         - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: hashtag, in: query, required: false, schema: { type: string } }
         - { name: userId, in: query, required: false, schema: { type: integer } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
       responses:
@@ -1471,6 +1472,23 @@ paths:
                 $ref: "#/components/schemas/FeedPost"
         "401":
           description: Unauthorized
+
+  /feed/hashtags/trending:
+    get:
+      operationId: listTrendingHashtags
+      tags: [feed]
+      summary: List trending hashtags from recent Lounge posts
+      parameters:
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendingHashtag"
 
   /feed/posts/{id}:
     get:
@@ -3671,6 +3689,15 @@ components:
         category: { type: string, enum: [setup, lounge, flavor, event, meme, review, question, discussion] }
         isHookahRelatedConfirmed: { type: boolean }
         audience: { type: string, enum: [public, friends, followers, only_me] }
+
+    TrendingHashtag:
+      type: object
+      required: [tag, displayTag, postCount, score]
+      properties:
+        tag: { type: string }
+        displayTag: { type: string }
+        postCount: { type: integer }
+        score: { type: integer }
 
     FeedComment:
       type: object

@@ -31,12 +31,20 @@ const TABS: { id: FilterTab; label: string }[] = [
 export default function Feed() {
   const [filter, setFilter] = useState<FilterTab>("new");
   const [category, setCategory] = useState<string | undefined>(undefined);
+  const [hashtag, setHashtag] = useState<string | undefined>(undefined);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
-  const { data: posts, isLoading } = useListFeedPosts({ filter, category });
+  const { data: posts, isLoading } = useListFeedPosts({ filter, category, hashtag });
 
   const selectCategory = (c: string) => {
     setCategory((prev) => (prev === c ? undefined : c));
+    setHashtag(undefined);
+    setFilter("new");
+  };
+
+  const selectHashtag = (tag: string) => {
+    setHashtag((prev) => (prev === tag ? undefined : tag));
+    setCategory(undefined);
     setFilter("new");
   };
 
@@ -90,6 +98,14 @@ export default function Feed() {
               {category} <X className="h-3.5 w-3.5" />
             </button>
           )}
+          {hashtag && (
+            <button
+              onClick={() => setHashtag(undefined)}
+              className="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium bg-primary/20 text-primary border border-primary/30 flex items-center gap-1.5 hover:bg-primary/30 transition-all"
+            >
+              #{hashtag} <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -120,13 +136,13 @@ export default function Feed() {
         {/* Discover content below the feed on mobile/tablet */}
         <div className="xl:hidden mt-10">
           <h2 className="font-serif text-2xl text-white mb-4">Discover</h2>
-          <LoungeRightSidebar onSelectCategory={selectCategory} />
+          <LoungeRightSidebar onSelectCategory={selectCategory} onSelectHashtag={selectHashtag} activeHashtag={hashtag} />
         </div>
         </div>
 
         {/* Right sidebar (desktop) */}
         <div className="hidden xl:block sticky top-[124px] max-h-[calc(100vh-140px)] overflow-y-auto hide-scrollbar">
-          <LoungeRightSidebar onSelectCategory={selectCategory} />
+          <LoungeRightSidebar onSelectCategory={selectCategory} onSelectHashtag={selectHashtag} activeHashtag={hashtag} />
         </div>
         </div>
       </div>

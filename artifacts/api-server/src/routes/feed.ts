@@ -9,6 +9,8 @@ import {
   postReportsTable,
   followsTable,
   usersTable,
+  hashtagsTable,
+  postHashtagsTable,
 } from "@workspace/db";
 import {
   CreateFeedPostBody,
@@ -21,6 +23,7 @@ import {
 import { requireAuth, getSessionUser } from "../lib/auth";
 import { finalizeMediaUrl, InvalidUploadError } from "../lib/imageUploads";
 import { hydratePosts, loadAuthors } from "../lib/feedHelpers";
+import { syncPostHashtags, removePostHashtags } from "../lib/hashtags";
 import { createNotification } from "../lib/notify";
 import {
   loadAudienceSets,
@@ -41,6 +44,10 @@ router.get("/feed/posts", async (req, res): Promise<void> => {
   const filter = typeof req.query.filter === "string" ? req.query.filter : undefined;
   const category = typeof req.query.category === "string" ? req.query.category : undefined;
   const userId = typeof req.query.userId === "string" ? parseInt(req.query.userId, 10) : undefined;
+  const hashtag =
+    typeof req.query.hashtag === "string" && req.query.hashtag.trim()
+      ? req.query.hashtag.trim().replace(/^#/, "").toLowerCase()
+      : undefined;
   const limit = Math.min(
     typeof req.query.limit === "string" ? parseInt(req.query.limit, 10) || 50 : 50,
     100,
@@ -53,6 +60,18 @@ router.get("/feed/posts", async (req, res): Promise<void> => {
   if (filter === "bros") conditions.push(eq(feedPostsTable.userRole, "member"));
   if (filter === "lounges") conditions.push(eq(feedPostsTable.category, "lounge"));
   if (filter === "events") conditions.push(eq(feedPostsTable.category, "event"));
+  if (hashtag) {
+    conditions.push(
+      inArray(
+        feedPostsTable.id,
+        db
+          .select({ postId: postHashtagsTable.postId })
+          .from(postHashtagsTable)
+          .innerJoin(hashtagsTable, eq(postHashtagsTable.hashtagId, hashtagsTable.id))
+          .where(eq(hashtagsTable.tag, hashtag)),
+      ),
+    );
+  }
 
   const orderBy =
     filter === "trending"
@@ -145,8 +164,55 @@ router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
       audience: audience ?? "public",
     })
     .returning();
+  await syncPostHashtags(post.id, post.text);
   const [result] = await hydratePosts([post], user.id);
   res.status(201).json(result);
+});
+
+// ---------- Trending hashtags ----------
+router.get("/feed/hashtags/trending", async (req, res): Promise<void> => {
+  const limit = Math.min(
+    typeof req.query.limit === "string" ? parseInt(req.query.limit, 10) || 6 : 6,
+    20,
+  );
+  // Score recent public activity: each post mention counts, engagement boosts it.
+  // Posts from the last 14 days keep trending fresh; falls back to all-time if quiet.
+  const computeTrending = async (sinceDays: number | null) =>
+    db
+      .select({
+        tag: hashtagsTable.tag,
+        displayTag: hashtagsTable.displayTag,
+        postCount: sql<number>`count(distinct ${feedPostsTable.id})::int`,
+        score: sql<number>`(count(distinct ${feedPostsTable.id}) * 3 + coalesce(sum(${feedPostsTable.likeCount} + ${feedPostsTable.commentCount} * 2 + ${feedPostsTable.saveCount} * 2), 0))::int`,
+      })
+      .from(hashtagsTable)
+      .innerJoin(postHashtagsTable, eq(postHashtagsTable.hashtagId, hashtagsTable.id))
+      .innerJoin(feedPostsTable, eq(feedPostsTable.id, postHashtagsTable.postId))
+      .where(
+        and(
+          eq(feedPostsTable.status, "active"),
+          eq(feedPostsTable.audience, "public"),
+          ...(sinceDays != null
+            ? [sql`${feedPostsTable.createdAt} > now() - make_interval(days => ${sinceDays})`]
+            : []),
+        ),
+      )
+      .groupBy(hashtagsTable.id, hashtagsTable.tag, hashtagsTable.displayTag)
+      .orderBy(sql`4 desc`, sql`3 desc`)
+      .limit(limit);
+
+  let rows = await computeTrending(14);
+  if (rows.length === 0) {
+    rows = await computeTrending(null);
+  }
+  res.json(
+    rows.map((r) => ({
+      tag: r.tag,
+      displayTag: r.displayTag,
+      postCount: r.postCount,
+      score: r.score,
+    })),
+  );
 });
 
 // ---------- Saved / liked / mine / stats (before /feed/posts/:id) ----------
@@ -284,6 +350,7 @@ router.delete("/feed/posts/:id", requireAuth(), async (req, res): Promise<void> 
   await db.delete(postLikesTable).where(eq(postLikesTable.postId, id));
   await db.delete(postCommentsTable).where(eq(postCommentsTable.postId, id));
   await db.delete(postSavesTable).where(eq(postSavesTable.postId, id));
+  await removePostHashtags(id);
   await db.delete(feedPostsTable).where(eq(feedPostsTable.id, id));
   res.sendStatus(204);
 });

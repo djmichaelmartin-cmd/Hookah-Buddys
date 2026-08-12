@@ -18,6 +18,7 @@ export * from "./events";
 export * from "./businessLeads";
 export * from "./feedPosts";
 export * from "./feedEngagement";
+export * from "./hashtags";
 export * from "./notifications";
 export * from "./profileDetails";
 export * from "./friends";

@@ -1658,6 +1658,7 @@ export const GetMemberProfileResponse = zod.object({
 export const ListFeedPostsQueryParams = zod.object({
   "filter": zod.enum(['trending', 'new', 'nearby', 'dolls', 'bros', 'lounges', 'events']).optional(),
   "category": zod.coerce.string().optional(),
+  "hashtag": zod.coerce.string().optional(),
   "userId": zod.coerce.number().optional(),
   "limit": zod.coerce.number().optional()
 })
@@ -1708,6 +1709,22 @@ export const CreateFeedPostBody = zod.object({
   "isHookahRelatedConfirmed": zod.boolean(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional()
 })
+
+
+/**
+ * @summary List trending hashtags from recent Lounge posts
+ */
+export const ListTrendingHashtagsQueryParams = zod.object({
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListTrendingHashtagsResponseItem = zod.object({
+  "tag": zod.string(),
+  "displayTag": zod.string(),
+  "postCount": zod.number(),
+  "score": zod.number()
+})
+export const ListTrendingHashtagsResponse = zod.array(ListTrendingHashtagsResponseItem)
 
 
 /**

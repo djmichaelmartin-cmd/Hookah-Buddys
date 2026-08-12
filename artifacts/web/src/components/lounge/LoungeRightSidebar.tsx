@@ -8,6 +8,7 @@ import {
   useToggleEventRsvp,
   useToggleEventSave,
   getListEventsQueryKey,
+  useListTrendingHashtags,
   type Event,
 } from "@workspace/api-client-react";
 import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check } from "lucide-react";
@@ -15,17 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   onSelectCategory?: (category: string) => void;
+  onSelectHashtag?: (tag: string) => void;
+  activeHashtag?: string;
 };
-
-const TRENDING_TAGS: { tag: string; category: string }[] = [
-  { tag: "#DoubleApple", category: "flavor" },
-  { tag: "#HookahSetup", category: "setup" },
-  { tag: "#LoungeNight", category: "lounge" },
-  { tag: "#SmokeTricks", category: "discussion" },
-  { tag: "#FridayNightSmoke", category: "event" },
-  { tag: "#HookahMemes", category: "meme" },
-];
-
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl bg-card/30 border border-white/5 backdrop-blur-md p-4">
@@ -167,12 +160,13 @@ function EventRow({ event, loggedIn }: { event: Event; loggedIn: boolean }) {
   );
 }
 
-export default function LoungeRightSidebar({ onSelectCategory }: Props) {
+export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory, onSelectHashtag, activeHashtag }: Props) {
   const { data: session } = useGetCurrentUser();
   const { data: onlineDolls } = useListDolls({ online: true });
   const { data: featuredDolls } = useListDolls({ featured: true });
   const { data: lounges } = useListLounges({ limit: 3 });
   const { data: events } = useListEvents({ limit: 4 });
+  const { data: trendingHashtags } = useListTrendingHashtags({ limit: 6 });
 
   const onlineList = (onlineDolls ?? []).slice(0, 5);
   const onlineIds = new Set(onlineList.map((d) => d.id));
@@ -212,19 +206,26 @@ export default function LoungeRightSidebar({ onSelectCategory }: Props) {
         </SectionCard>
       )}
 
-      <SectionCard title="Trending in The Lounge">
-        <div className="flex flex-wrap gap-2">
-          {TRENDING_TAGS.map(({ tag, category }) => (
-            <button
-              key={tag}
-              onClick={() => onSelectCategory?.(category)}
-              className="px-3 py-1 rounded-full text-xs bg-white/5 text-muted-foreground border border-white/5 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
-      </SectionCard>
+      {(trendingHashtags?.length ?? 0) > 0 && (
+        <SectionCard title="Trending in The Lounge">
+          <div className="flex flex-wrap gap-2">
+            {trendingHashtags!.map((t) => (
+              <button
+                key={t.tag}
+                onClick={() => onSelectHashtag?.(t.tag)}
+                title={`${t.postCount} post${t.postCount === 1 ? "" : "s"}`}
+                className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                  activeHashtag === t.tag
+                    ? "bg-primary/20 text-primary border-primary/30"
+                    : "bg-white/5 text-muted-foreground border-white/5 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                #{t.displayTag}
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+      )}
 
       {(lounges?.length ?? 0) > 0 && (
         <SectionCard title="Lounge Spotlight">

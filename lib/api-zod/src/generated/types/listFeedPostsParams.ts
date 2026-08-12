@@ -10,6 +10,7 @@ import type { ListFeedPostsFilter } from './listFeedPostsFilter';
 export type ListFeedPostsParams = {
 filter?: ListFeedPostsFilter;
 category?: string;
+hashtag?: string;
 userId?: number;
 limit?: number;
 };

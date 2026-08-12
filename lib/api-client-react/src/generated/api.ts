@@ -98,6 +98,7 @@ import type {
   ListPlansParams,
   ListReelsParams,
   ListRejectedLeadsParams,
+  ListTrendingHashtagsParams,
   ListUserPhotosParams,
   ListUserTagsParams,
   ListUsersParams,
@@ -134,6 +135,7 @@ import type {
   Subscription,
   SubscriptionInput,
   ThreadInput,
+  TrendingHashtag,
   UnlockInput,
   UnreadCount,
   UserStatusInput,
@@ -6124,6 +6126,90 @@ export const useCreateFeedPost = <TError = ErrorType<void>,
       > => {
       return useMutation(getCreateFeedPostMutationOptions(options));
     }
+
+export const getListTrendingHashtagsUrl = (params?: ListTrendingHashtagsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/feed/hashtags/trending?${stringifiedParams}` : `/api/feed/hashtags/trending`
+}
+
+/**
+ * @summary List trending hashtags from recent Lounge posts
+ */
+export const listTrendingHashtags = async (params?: ListTrendingHashtagsParams, options?: RequestInit): Promise<TrendingHashtag[]> => {
+
+  return customFetch<TrendingHashtag[]>(getListTrendingHashtagsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTrendingHashtagsQueryKey = (params?: ListTrendingHashtagsParams,) => {
+    return [
+    `/api/feed/hashtags/trending`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListTrendingHashtagsQueryOptions = <TData = Awaited<ReturnType<typeof listTrendingHashtags>>, TError = ErrorType<unknown>>(params?: ListTrendingHashtagsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTrendingHashtags>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTrendingHashtagsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTrendingHashtags>>> = ({ signal }) => listTrendingHashtags(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTrendingHashtags>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTrendingHashtagsQueryResult = NonNullable<Awaited<ReturnType<typeof listTrendingHashtags>>>
+export type ListTrendingHashtagsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List trending hashtags from recent Lounge posts
+ */
+
+export function useListTrendingHashtags<TData = Awaited<ReturnType<typeof listTrendingHashtags>>, TError = ErrorType<unknown>>(
+ params?: ListTrendingHashtagsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTrendingHashtags>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTrendingHashtagsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetFeedPostUrl = (id: number,) => {
 
