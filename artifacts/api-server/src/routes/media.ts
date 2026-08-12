@@ -4,7 +4,11 @@ import { db, mediaTable, dollsTable } from "@workspace/db";
 import { UploadMediaBody, ModerateMediaParams, ModerateMediaBody } from "@workspace/api-zod";
 import { isPremiumMediaType } from "@workspace/pricing";
 import { requireAuth } from "../lib/auth";
-import { finalizeMediaUrl, InvalidUploadError } from "../lib/imageUploads";
+import {
+  finalizeMediaUrl,
+  finalizeMediaUrlWithVideoTranscode,
+  InvalidUploadError,
+} from "../lib/imageUploads";
 import { toMediaResponse } from "../lib/mappers";
 
 const router: IRouter = Router();
@@ -28,9 +32,14 @@ router.post("/media", requireAuth("doll"), async (req, res): Promise<void> => {
   let url = data.url;
   let thumbnailUrl = data.thumbnailUrl;
   try {
-    url = await finalizeMediaUrl(url, user.id);
+    // Videos go through the shared transcode + poster pipeline (same as
+    // feed videos); images are finalized as-is.
+    const finalized = await finalizeMediaUrlWithVideoTranscode(url, user.id, "any");
+    url = finalized.url;
     if (thumbnailUrl) {
       thumbnailUrl = await finalizeMediaUrl(thumbnailUrl, user.id);
+    } else if (finalized.posterUrl) {
+      thumbnailUrl = finalized.posterUrl;
     }
   } catch (err) {
     if (err instanceof InvalidUploadError) {

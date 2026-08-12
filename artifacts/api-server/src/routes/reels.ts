@@ -20,6 +20,11 @@ import {
   ReviewUserTagBody,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import {
+  finalizeMediaUrl,
+  finalizeMediaUrlWithVideoTranscode,
+  InvalidUploadError,
+} from "../lib/imageUploads";
 import { loadAuthors } from "../lib/feedHelpers";
 import {
   getRelationship,
@@ -142,13 +147,32 @@ router.post("/reels", requireAuth(), async (req, res): Promise<void> => {
     res.status(400).json({ error: "Please confirm your reel is hookah lifestyle related" });
     return;
   }
+  let videoUrl = parsed.data.videoUrl;
+  let thumbnailUrl = parsed.data.thumbnailUrl ?? null;
+  try {
+    // Reel videos go through the same transcode + poster pipeline as feed
+    // videos; the generated poster backfills a missing thumbnail.
+    const finalized = await finalizeMediaUrlWithVideoTranscode(videoUrl, user.id, "video");
+    videoUrl = finalized.url;
+    if (thumbnailUrl) {
+      thumbnailUrl = await finalizeMediaUrl(thumbnailUrl, user.id);
+    } else if (finalized.posterUrl) {
+      thumbnailUrl = finalized.posterUrl;
+    }
+  } catch (err) {
+    if (err instanceof InvalidUploadError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    throw err;
+  }
   const [reel] = await db
     .insert(reelsTable)
     .values({
       userId: user.id,
       userRole: user.role,
-      videoUrl: parsed.data.videoUrl,
-      thumbnailUrl: parsed.data.thumbnailUrl ?? null,
+      videoUrl,
+      thumbnailUrl,
       caption: parsed.data.caption ?? null,
       category: parsed.data.category,
       hashtags: parsed.data.hashtags ? JSON.stringify(parsed.data.hashtags) : null,

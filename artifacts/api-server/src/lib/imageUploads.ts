@@ -183,16 +183,25 @@ export async function uploadVideoBuffer(
   }
 
   const [objectPath, posterPath] = await Promise.all([
-    storeValidatedBuffer(transcoded.video, "video/mp4", ownerId),
+    storeValidatedBuffer(transcoded.video, "video/mp4", ownerId, {
+      [TRANSCODED_METADATA_KEY]: "true",
+    }),
     storeValidatedBuffer(transcoded.poster, "image/jpeg", ownerId),
   ]);
   return { objectPath, posterPath };
 }
 
+/**
+ * Custom metadata flag stamped on videos produced by our own transcode
+ * pipeline, so finalize steps can tell an already-compressed video from a
+ * raw client upload and skip a pointless second transcode.
+ */
+const TRANSCODED_METADATA_KEY = "videoTranscoded";
 async function storeValidatedBuffer(
   buffer: Buffer,
   contentType: string,
   ownerId: number,
+  extraMetadata?: Record<string, string>,
 ): Promise<string> {
   const service = new ObjectStorageService();
   const privateDir = service.getPrivateObjectDir().replace(/\/$/, "");
@@ -203,7 +212,10 @@ async function storeValidatedBuffer(
   const objectName = pathParts.slice(2).join("/");
 
   const file = objectStorageClient.bucket(bucketName).file(objectName);
-  await file.save(buffer, { contentType });
+  await file.save(buffer, {
+    contentType,
+    ...(extraMetadata ? { metadata: { metadata: extraMetadata } } : {}),
+  });
   await setObjectAclPolicy(file, {
     owner: String(ownerId),
     visibility: "public",
@@ -265,6 +277,22 @@ export async function finalizeUploadedMedia(
   ownerId: number,
   kind: "image" | "video" | "any",
 ): Promise<string> {
+  const { url } = await finalizeUploadedMediaInternal(storageUrl, ownerId, kind);
+  return url;
+}
+
+async function finalizeUploadedMediaInternal(
+  storageUrl: string,
+  ownerId: number,
+  kind: "image" | "video" | "any",
+): Promise<{
+  url: string;
+  objectPath: string;
+  sniffedType: string;
+  file: Awaited<ReturnType<ObjectStorageService["getObjectEntityFile"]>>;
+  size: number;
+  alreadyTranscoded: boolean;
+}> {
   const objectPath = toObjectEntityPath(storageUrl);
   if (!objectPath) {
     throw new InvalidUploadError(
@@ -336,5 +364,86 @@ export async function finalizeUploadedMedia(
     visibility: "public",
   });
 
-  return `${STORAGE_URL_PREFIX}${objectPath}`;
+  const alreadyTranscoded =
+    (metadata.metadata?.[TRANSCODED_METADATA_KEY] as string | undefined) === "true";
+
+  return {
+    url: `${STORAGE_URL_PREFIX}${objectPath}`,
+    objectPath,
+    sniffedType,
+    file,
+    size,
+    alreadyTranscoded,
+  };
+}
+
+/**
+ * Finalize a user-supplied media URL that may reference a video, running any
+ * raw video upload through the same transcode + poster pipeline as feed
+ * videos (bounded-bitrate H.264 MP4, max 720p, JPEG poster).
+ *
+ * - `data:` URLs are rejected.
+ * - Non-storage URLs (external links) pass through unchanged, no poster.
+ * - Storage images are finalized as usual, no poster.
+ * - Storage videos already produced by our transcode pipeline are finalized
+ *   as-is (no double compression), no poster.
+ * - Raw storage videos are downloaded, transcoded, and re-stored; the
+ *   returned URL points at the compressed copy and `posterUrl` at the
+ *   generated poster frame. The raw original is left in place — it may
+ *   already be referenced by other records, so its removal (when truly
+ *   unreferenced) is deferred to the orphan-cleanup script.
+ *
+ * `kind` restricts the acceptable media families, as in
+ * `finalizeUploadedMedia`.
+ */
+export async function finalizeMediaUrlWithVideoTranscode(
+  url: string,
+  ownerId: number,
+  kind: "video" | "any" = "any",
+): Promise<{ url: string; posterUrl: string | null }> {
+  if (/^data:/i.test(url.trim())) {
+    throw new InvalidUploadError(
+      "Embedded data: URLs are not allowed. Upload the file to /api/storage/uploads/video and reference the returned URL.",
+    );
+  }
+  if (!toObjectEntityPath(url)) {
+    return { url, posterUrl: null };
+  }
+
+  const finalized = await finalizeUploadedMediaInternal(url, ownerId, kind);
+  const isVideo = ALLOWED_VIDEO_TYPES.has(finalized.sniffedType);
+  if (!isVideo || finalized.alreadyTranscoded) {
+    return { url: finalized.url, posterUrl: null };
+  }
+
+  // Raw video: download the stored bytes and run the shared transcode
+  // pipeline, storing the compressed copy + poster as new objects.
+  const [bytes] = await finalized.file.download();
+  let transcoded;
+  try {
+    transcoded = await transcodeVideoForFeed(bytes);
+  } catch (err) {
+    if (err instanceof TranscodeError) {
+      throw new InvalidUploadError(
+        "Uploaded video could not be processed. Please upload a valid MP4 or WebM video.",
+      );
+    }
+    throw err;
+  }
+
+  const [objectPath, posterPath] = await Promise.all([
+    storeValidatedBuffer(transcoded.video, "video/mp4", ownerId, {
+      [TRANSCODED_METADATA_KEY]: "true",
+    }),
+    storeValidatedBuffer(transcoded.poster, "image/jpeg", ownerId),
+  ]);
+
+  // NOTE: the raw original is intentionally NOT deleted here. Finalization
+  // has no view of database references — the same object may already back an
+  // existing gallery item, reel, or feed post. The reference-aware
+  // orphan-cleanup script removes it once nothing points at it.
+  return {
+    url: `${STORAGE_URL_PREFIX}${objectPath}`,
+    posterUrl: `${STORAGE_URL_PREFIX}${posterPath}`,
+  };
 }
