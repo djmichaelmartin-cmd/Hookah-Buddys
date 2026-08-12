@@ -28,7 +28,7 @@ const CATEGORIES: { value: FeedPostInputCategory; label: string }[] = [
   { value: "meme", label: "Meme" },
 ];
 
-export function CreatePostForm() {
+export function CreatePostForm({ onCreated }: { onCreated?: () => void } = {}) {
   const { data: session } = useGetCurrentUser();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -54,6 +54,7 @@ export function CreatePostForm() {
         setMediaType("none");
         queryClient.invalidateQueries({ queryKey: getListFeedPostsQueryKey() });
         toast({ title: "Posted successfully", description: "Your post is now live in the feed." });
+        onCreated?.();
       },
       onError: () => toast({ title: "Failed to post", description: "Please try again.", variant: "destructive" }),
     }

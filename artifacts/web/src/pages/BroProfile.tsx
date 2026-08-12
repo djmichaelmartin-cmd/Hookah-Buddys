@@ -19,6 +19,8 @@ import { FriendCard } from "@/components/profile/FriendCard";
 import { PhotoGrid } from "@/components/profile/PhotoGrid";
 import { ReelCard, ReelPlayer } from "@/components/profile/ReelCard";
 import { FeedPostCard } from "@/components/FeedPostCard";
+import { CreatePostForm } from "@/components/CreatePostForm";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, UserX } from "lucide-react";
 import type { Reel } from "@workspace/api-client-react";
 
@@ -30,6 +32,7 @@ export default function BroProfile() {
   const [activeTab, setActiveTab] = useState<Tab>("posts");
   const [selectedReel, setSelectedReel] = useState<Reel | null>(null);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: profile, isLoading } = useGetEnhancedProfile(userId, {
     query: { enabled: !!userId, queryKey: getGetEnhancedProfileQueryKey(userId) },
@@ -90,6 +93,13 @@ export default function BroProfile() {
       >
         {activeTab === "posts" && (
           <div className="max-w-2xl mx-auto space-y-6">
+            {profile.friendStatus === "self" && (
+              <CreatePostForm
+                onCreated={() =>
+                  queryClient.invalidateQueries({ queryKey: getListFeedPostsQueryKey({ userId }) })
+                }
+              />
+            )}
             {!posts || posts.length === 0 ? (
               <div className="bg-card/30 backdrop-blur-md border border-white/5 rounded-2xl p-12 text-center">
                 <p className="text-muted-foreground">No public posts yet.</p>
