@@ -121,13 +121,13 @@ export function Navbar() {
   const navLink = "text-white/85 hover:text-white";
   const outlineBtn =
     "border-white/25 text-white/90 hover:bg-white/10 hover:border-white/40";
-  const ctaBtn = "bg-white text-background hover:bg-white/90";
+  const ctaBtn = "bg-[#1877F2] text-white hover:bg-[#166FE5]";
 
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
         solid
-          ? "border-b border-white/15 bg-white/10 backdrop-blur-xl supports-[backdrop-filter]:bg-white/10"
+          ? "border-b border-[#343A46] bg-[#171A21] backdrop-blur-xl supports-[backdrop-filter]:bg-[#171A21]"
           : "border-b border-transparent bg-transparent"
       }`}
     >
@@ -191,7 +191,7 @@ export function Navbar() {
           <img
             src="/brand/logo.png"
             alt="HookahBuddys.com"
-            className="h-16 w-auto -translate-y-[5px] drop-shadow-[0_0_12px_rgba(0,90,156,0.4)]"
+            className="h-16 w-auto -translate-y-[5px] drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
           />
         </Link>
 
@@ -210,7 +210,7 @@ export function Navbar() {
               <Link href="/notifications" className="relative h-10 w-10 flex items-center justify-center rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:text-white transition-all mr-1">
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 h-2.5 w-2.5 bg-primary rounded-full border-2 border-card" />
+                  <span className="absolute top-1 right-1 h-2.5 w-2.5 bg-[#E11931] rounded-full border-2 border-card" />
                 )}
               </Link>
               <DropdownMenu>

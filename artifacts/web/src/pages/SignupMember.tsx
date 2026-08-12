@@ -88,7 +88,7 @@ export default function SignupMember() {
   return (
     <Layout>
       <div className="flex-1 container mx-auto px-4 py-12 max-w-4xl flex gap-8 flex-col lg:flex-row items-start">
-        <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(0,90,156,0.05)] flex-1 w-full">
+        <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(24,119,242,0.05)] flex-1 w-full">
           <h1 className="text-3xl font-serif text-white mb-2 text-center">
             {selectedPlan && selectedPlan.price > 0 ? "Join as a Member" : "Create Your Free Profile"}
           </h1>
@@ -161,14 +161,14 @@ export default function SignupMember() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-sky-400 hover:from-primary/90 hover:to-sky-400/90 text-primary-foreground font-semibold h-12" disabled={registerMember.isPending}>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-12" disabled={registerMember.isPending}>
               {registerMember.isPending ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
         </div>
 
         {selectedPlan && selectedPlan.price > 0 && (
-          <div className="w-full lg:w-80 shrink-0 bg-card/60 backdrop-blur-xl border border-primary/20 rounded-2xl p-6 shadow-[0_0_40px_rgba(0,90,156,0.1)]">
+          <div className="w-full lg:w-80 shrink-0 bg-card/60 backdrop-blur-xl border border-primary/20 rounded-2xl p-6 shadow-[0_0_40px_rgba(24,119,242,0.1)]">
             <h2 className="text-xl font-serif text-white mb-4">Membership Plan</h2>
             <div className="flex items-baseline justify-between mb-4">
               <span className="text-lg font-medium text-white">{selectedPlan.name}</span>

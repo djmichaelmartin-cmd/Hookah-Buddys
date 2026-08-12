@@ -148,7 +148,7 @@ export default function Feed() {
       </div>
 
       <Dialog open={loginPromptOpen} onOpenChange={setLoginPromptOpen}>
-        <DialogContent className="bg-card border-primary/20 shadow-[0_0_50px_rgba(0,90,156,0.15)] sm:max-w-md">
+        <DialogContent className="bg-card border-primary/20 shadow-[0_0_50px_rgba(24,119,242,0.15)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl text-white flex items-center gap-2">
               <Sparkle className="w-5 h-5 text-primary" /> Join the Lounge

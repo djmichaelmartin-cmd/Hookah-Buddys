@@ -100,7 +100,7 @@ export default function Notifications() {
                 }`}
               >
                 {!n.isRead && (
-                  <div className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_rgba(0,90,156,0.8)]" />
+                  <div className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_rgba(24,119,242,0.8)]" />
                 )}
                 
                 <div className="flex gap-4 items-start">

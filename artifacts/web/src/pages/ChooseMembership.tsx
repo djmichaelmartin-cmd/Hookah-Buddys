@@ -62,7 +62,7 @@ export default function ChooseMembership() {
                 <div
                   key={plan.id}
                   className={`bg-card/50 backdrop-blur-xl border ${
-                    plan.highlighted ? "border-primary shadow-[0_0_30px_rgba(0,90,156,0.2)]" : "border-white/10"
+                    plan.highlighted ? "border-[#D6B56D] shadow-[0_0_30px_rgba(214,181,109,0.2)]" : "border-white/10"
                   } rounded-2xl p-8 flex flex-col relative`}
                 >
                   {getBadgeText(slug) && (

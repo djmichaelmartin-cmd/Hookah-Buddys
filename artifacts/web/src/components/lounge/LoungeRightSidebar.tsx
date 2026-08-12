@@ -51,7 +51,7 @@ function DollRow({ doll, online }: { doll: any; online?: boolean }) {
           <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20" />
         )}
         {online && (
-          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[#31C48D] border-2 border-background" />
         )}
       </div>
       <div className="min-w-0">
@@ -81,7 +81,7 @@ function OnlineUserRow({ user }: { user: OnlineUser }) {
         ) : (
           <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20" />
         )}
-        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[#31C48D] border-2 border-background" />
       </div>
       <div className="min-w-0">
         <p className="text-sm text-white truncate group-hover:text-primary transition-colors flex items-center gap-1">
@@ -328,12 +328,12 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
 
       {/* Sponsored / upgrade promo — shows the viewer's next upgradable level */}
       {session?.user?.role !== "doll" && upgradePlan && (
-        <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card/40 to-card/20 backdrop-blur-md p-4">
+        <div className="rounded-2xl border border-[#D6B56D]/20 bg-gradient-to-br from-[#D6B56D]/10 via-card/40 to-card/20 backdrop-blur-md p-4">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">
             Sponsored
           </p>
           <h3 className="text-sm font-semibold text-white flex items-center gap-1.5 mb-1">
-            <Crown className="h-4 w-4 text-primary" /> {upgradePlan.name}
+            <Crown className="h-4 w-4 text-[#D6B56D]" /> {upgradePlan.name}
           </h3>
           <p className="text-xs text-muted-foreground mb-3">
             {upgradePlan.description ||
@@ -345,7 +345,7 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
                 ? `/checkout?type=membership&plan=${upgradePlan.slug}`
                 : "/pricing"
             }
-            className="inline-block w-full text-center rounded-full bg-primary text-primary-foreground text-xs font-medium py-2 hover:opacity-90 transition-opacity"
+            className="inline-block w-full text-center rounded-full bg-[#D6B56D] text-[#111111] text-xs font-medium py-2 hover:bg-[#C9A456] transition-colors"
           >
             {`Upgrade to ${upgradePlan.name.split("—")[0].trim()}`}
           </Link>

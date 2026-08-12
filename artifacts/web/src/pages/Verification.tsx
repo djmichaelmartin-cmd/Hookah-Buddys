@@ -43,7 +43,7 @@ export default function Verification() {
       <div className="container mx-auto px-4 py-12 max-w-2xl">
         <h1 className="text-3xl font-serif text-white mb-8 text-center">Doll Verification</h1>
 
-        <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(0,90,156,0.1)] mb-8 text-center">
+        <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(24,119,242,0.1)] mb-8 text-center">
           <h2 className="text-lg font-medium text-white mb-4">Current Status</h2>
           
           {verificationStatus?.status === 'approved' && (

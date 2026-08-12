@@ -1,0 +1,489 @@
+Replit Agent Follow-Up Instruction: Update HookahDolls Color Scheme and Sitewide Accent Styling
+
+Do not rebuild the platform. Only update the sitewide color scheme, theme tokens, buttons, cards, navigation, badges, feed elements, and accent colors.
+
+The HookahDolls logo uses red, but red should not be the dominant UI color because too much red can feel harsh, aggressive, urgent, or tiring during long browsing sessions.
+
+Use red only as a brand accent.
+
+The site should feel like a modern social media platform with a premium hookah lounge style.
+
+Design goal:
+
+HookahDolls should feel social, clean, premium, easy to browse, and not overly dark or overly red.
+
+Use this color system across the site:
+
+Primary Background:
+
+* `#0F1115`
+* Use for main page backgrounds.
+* This is softer than pure black and easier on the eyes.
+
+Secondary Background:
+
+* `#171A21`
+* Use for sidebars, nav panels, dashboard panels, and feed sections.
+
+Card Background:
+
+* `#1F232B`
+* Use for posts, membership cards, profile cards, modals, pricing cards, and dashboard cards.
+
+Elevated Card Background:
+
+* `#262B35`
+* Use for hover states, active cards, dropdowns, and highlighted panels.
+
+Border Color:
+
+* `#343A46`
+* Use for subtle card borders, dividers, input borders, and sidebar separation.
+
+Primary Text:
+
+* `#F5F7FA`
+* Use for main headings and important text.
+
+Secondary Text:
+
+* `#C7CBD3`
+* Use for body copy, descriptions, subtitles, and less important labels.
+
+Muted Text:
+
+* `#8E95A3`
+* Use for timestamps, metadata, placeholder text, and inactive labels.
+
+Primary Accent:
+
+* Champagne Gold: `#D6B56D`
+* Use for premium buttons, upgrade buttons, selected tabs, badges, highlights, and important calls to action.
+
+Secondary Accent:
+
+* Social Blue: `#1877F2`
+* Use for social actions such as Follow, Add Friend, Message, Create Profile, and Explore Feed.
+
+Brand Red:
+
+* `#E11931`
+* Use only for small brand accents, logo support, alerts, notification dots, active live indicators, and very limited CTA accents.
+* Do not use red as the main background.
+* Do not use red for large buttons across the whole site.
+* Do not use red for large page sections.
+
+Success / Online:
+
+* `#31C48D`
+* Use for online status dots, successful payments, verified success messages, and active status.
+
+Warning:
+
+* `#F59E0B`
+* Use for pending verification, pending review, low credits, and caution messages.
+
+Error:
+
+* `#EF4444`
+* Use for form errors, failed payments, rejected content, and admin warnings.
+
+Premium Purple:
+
+* `#8B5CF6`
+* Use sparingly for VIP, Platinum, special promotions, and exclusive content.
+
+Rose Accent:
+
+* `#E85D75`
+* Use sparingly for Doll-specific highlights, creator badges, and soft decorative accents.
+
+Sitewide Design Rules
+
+1. Do not make the site red-heavy.
+2. Do not use pure black as the only background.
+3. Do not use bright red for all buttons.
+4. Use blue for normal social actions.
+5. Use gold for premium actions.
+6. Use red only for brand details and alerts.
+7. Keep the site scroll-friendly and easy on the eyes.
+8. Make the interface feel like a premium social network, not a warning screen or adult-only paywall.
+
+Button Styling
+
+Primary Social Button:
+Use blue.
+
+Examples:
+
+* Create Free Profile
+* Follow
+* Add Friend
+* Message
+* Explore the Feed
+* Post
+
+Color:
+
+* Background: `#1877F2`
+* Hover: `#166FE5`
+* Text: `#FFFFFF`
+
+Premium Button:
+Use gold.
+
+Examples:
+
+* Upgrade
+* Buy Credits
+* Subscribe
+* Unlock Premium Content
+* Boost Profile
+* Become Featured
+
+Color:
+
+* Background: `#D6B56D`
+* Hover: `#C9A456`
+* Text: `#111111`
+
+Brand Accent Button:
+Use red only for special brand moments.
+
+Examples:
+
+* Go Live
+* Live Now
+* Limited promo
+* Delete/destructive confirmations only when appropriate
+
+Color:
+
+* Background: `#E11931`
+* Hover: `#C9152A`
+* Text: `#FFFFFF`
+
+Ghost Button:
+Use for secondary actions.
+
+Color:
+
+* Background: transparent
+* Border: `#343A46`
+* Text: `#F5F7FA`
+* Hover background: `#262B35`
+
+Navigation Updates
+
+Update the main navigation to feel like a social media platform.
+
+Use:
+
+* Dark charcoal nav background
+* Blue active icons for standard social pages
+* Gold active icons for premium/payment pages
+* Red only for notification badges and live indicators
+
+Navigation item colors:
+
+Default:
+
+* Text/Icon: `#C7CBD3`
+
+Hover:
+
+* Background: `#262B35`
+* Text/Icon: `#FFFFFF`
+
+Active Social Page:
+
+* Icon/Text: `#1877F2`
+
+Active Premium Page:
+
+* Icon/Text: `#D6B56D`
+
+Notification Dot:
+
+* Background: `#E11931`
+* Text: `#FFFFFF`
+
+The Lounge Page Styling
+
+Update The Lounge page to use the new theme.
+
+Left Sidebar:
+
+* Background: `#171A21`
+* Cards/shortcut hover: `#262B35`
+* Active item: blue accent
+* Premium shortcut such as Buy Credits or Upgrade: gold accent
+
+Center Feed:
+
+* Page background: `#0F1115`
+* Post cards: `#1F232B`
+* Post hover/elevated: `#262B35`
+* Like/follow/message actions: blue
+* Premium Doll actions: gold
+* Live or urgent labels: red
+
+Right Sidebar:
+
+* Background: `#171A21`
+* Widgets/cards: `#1F232B`
+* Online dots: green
+* Suggested Dolls: gold/rose accent
+* Trending hashtags: blue/gold mix
+* Sponsored blocks: gold accent
+
+Membership / Pricing Page Styling
+
+Update membership cards:
+
+Free Profile / Bronze:
+
+* Accent: Blue
+* Badge: “Free Social Profile”
+* Button: Blue
+
+Silver:
+
+* Accent: Silver gray
+* Suggested color: `#AAB2C0`
+
+Gold:
+
+* Accent: Gold
+* Suggested color: `#D6B56D`
+* Badge: “Most Popular”
+
+Platinum:
+
+* Accent: Purple/gold blend
+* Suggested colors: `#8B5CF6` and `#D6B56D`
+* Badge: “Best Access”
+
+Do not make all pricing cards red.
+
+Credits / Payment Styling
+
+Use gold for:
+
+* Buy Credits
+* Upgrade Membership
+* Subscribe
+* Unlock Premium Content
+* Video Chat Payment
+* Boost Profile
+
+Use blue for:
+
+* Continue
+* Create Profile
+* Browse
+* Follow
+* Message
+* Save
+
+Use red only for:
+
+* Failed payment
+* Low-credit warning badge
+* Delete payment method
+* Cancel subscription confirmation
+* Reported issue
+
+Profile Styling
+
+Profile pages should use:
+
+* Dark charcoal page background
+* Cover photo with subtle gradient overlay
+* Gold badges for premium/verified
+* Blue buttons for social actions
+* Gold buttons for paid/premium actions
+* Green online status
+* Red only for live status, report flags, or brand accent lines
+
+Badges
+
+Use these badge styles:
+
+Verified Doll:
+
+* Gold badge
+* Text: dark or white depending on contrast
+
+VIP Bro:
+
+* Purple/gold badge
+
+Online:
+
+* Green dot
+
+Featured:
+
+* Gold badge
+
+Live Now:
+
+* Red badge
+
+Free Profile:
+
+* Blue badge
+
+Silver:
+
+* Silver/gray badge
+
+Gold:
+
+* Gold badge
+
+Platinum:
+
+* Purple/gold badge
+
+Forms and Inputs
+
+Input background:
+
+* `#1F232B`
+
+Input border:
+
+* `#343A46`
+
+Input text:
+
+* `#F5F7FA`
+
+Placeholder:
+
+* `#8E95A3`
+
+Focus border:
+
+* `#1877F2`
+
+Premium/payment form focus:
+
+* `#D6B56D`
+
+Error:
+
+* `#EF4444`
+
+Success:
+
+* `#31C48D`
+
+CSS Theme Tokens
+
+Create or update global CSS variables:
+
+```css
+:root {
+  --color-bg-primary: #0F1115;
+  --color-bg-secondary: #171A21;
+  --color-bg-card: #1F232B;
+  --color-bg-elevated: #262B35;
+
+  --color-border: #343A46;
+
+  --color-text-primary: #F5F7FA;
+  --color-text-secondary: #C7CBD3;
+  --color-text-muted: #8E95A3;
+
+  --color-accent-social: #1877F2;
+  --color-accent-social-hover: #166FE5;
+
+  --color-accent-premium: #D6B56D;
+  --color-accent-premium-hover: #C9A456;
+
+  --color-brand-red: #E11931;
+  --color-brand-red-hover: #C9152A;
+
+  --color-success: #31C48D;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+
+  --color-vip-purple: #8B5CF6;
+  --color-doll-rose: #E85D75;
+}
+```
+
+Apply these variables across the full site.
+
+Component Updates
+
+Update these components to use the new color system:
+
+* Header
+* Sidebar
+* Mobile navigation
+* The Lounge feed
+* Post cards
+* Profile cards
+* Doll cards
+* Bro cards
+* Pricing cards
+* Membership cards
+* Credit package cards
+* Buttons
+* Badges
+* Inputs
+* Modals
+* Dashboards
+* Admin panels
+* Notifications
+* Messaging
+* Video chat pages
+* Verification pages
+* Content rules pages
+
+Accessibility Requirements
+
+Make sure text contrast is readable.
+
+Avoid:
+
+* Red text on black backgrounds for body copy
+* Red buttons everywhere
+* Low-contrast gray text
+* Neon red backgrounds
+* Large red page sections
+
+Use red only where it has a clear purpose.
+
+Design Inspiration
+
+Use the usability style of major social media platforms:
+
+* Blue for social interaction and trust
+* Neutral backgrounds for long browsing
+* Clear cards and feed layout
+* Subtle dividers
+* Easy-to-read text
+* Accent colors used intentionally
+
+But keep HookahDolls unique with:
+
+* Dark lounge atmosphere
+* Smoke-inspired gradients
+* Gold premium elements
+* Red logo accent
+* Rose highlights for Doll-related features
+
+Final Result
+
+The site should feel like:
+
+* A social network first
+* Premium hookah lounge second
+* Creator monetization platform third
+
+Users should not feel overwhelmed by red or feel like the site is pay-only. The color system should make free social features feel accessible and paid features feel premium.

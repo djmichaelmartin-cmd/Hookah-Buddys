@@ -116,20 +116,29 @@ export default function Pricing() {
             memberPlans.map((plan) => {
               const isCurrent = currentPlanId === plan.id || (isMember && !currentPlanId && plan.price === 0);
               const pending = subscribe.isPending && subscribe.variables?.data.planId === plan.id;
+              const isPaid = plan.price > 0;
+              const accentText = isPaid ? "text-[#D6B56D]" : "text-primary";
+              const accentBg = isPaid ? "bg-[#D6B56D]" : "bg-primary";
+              const accentHover = isPaid ? "hover:bg-[#C9A456]" : "hover:bg-primary/90";
+              const accentTextForeground = isPaid ? "text-[#111111]" : "text-primary-foreground";
+              const accentBorder = isPaid ? "border-[#D6B56D]/30" : "border-primary/30";
+              const accentBgMuted = isPaid ? "bg-[#D6B56D]/10" : "bg-primary/10";
+              const accentTextMuted = isPaid ? "text-[#D6B56D]/80" : "text-primary/80";
+
               return (
                 <div
                   key={plan.id}
                   className={`bg-card/50 backdrop-blur-xl border ${
-                    plan.highlighted ? "border-primary shadow-[0_0_30px_rgba(0,90,156,0.2)]" : "border-white/10"
+                    plan.highlighted ? "border-[#D6B56D] shadow-[0_0_30px_rgba(214,181,109,0.2)]" : "border-white/10"
                   } rounded-2xl p-8 flex flex-col relative`}
                 >
                   {plan.highlighted && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                    <span className={`absolute -top-3 left-1/2 -translate-x-1/2 ${accentBg} ${accentTextForeground} text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1`}>
                       <Crown className="w-3 h-3" /> Most Popular
                     </span>
                   )}
                   <h3 className="text-2xl font-serif font-bold text-white mb-2">{plan.name}</h3>
-                  <div className="text-3xl font-bold text-primary mb-4">
+                  <div className={`text-3xl font-bold ${accentText} mb-4`}>
                     {plan.price === 0 ? (
                       "Free to Join"
                     ) : (
@@ -141,12 +150,12 @@ export default function Pricing() {
                   </div>
                   <p className="text-muted-foreground mb-6">{plan.description}</p>
 
-                  <div className="mb-6 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wide text-primary/80 mb-1">
+                  <div className={`mb-6 rounded-xl border ${accentBorder} ${accentBgMuted} px-4 py-3`}>
+                    <p className={`text-xs uppercase tracking-wide ${accentTextMuted} mb-1`}>
                       Monthly Credits Included
                     </p>
                     <p className="text-lg font-semibold text-white flex items-center gap-2">
-                      <Coins className="w-4 h-4 text-primary" />
+                      <Coins className={`w-4 h-4 ${accentText}`} />
                       {plan.monthlyCredits > 0
                         ? `${plan.monthlyCredits} credits / month`
                         : "No included credits"}
@@ -161,7 +170,7 @@ export default function Pricing() {
                   <ul className="space-y-3 mb-8 text-left">
                     {plan.features?.map((f, i) => (
                       <li key={i} className="text-sm text-white flex items-start">
-                        <Check className="w-4 h-4 text-primary mr-2 mt-0.5 shrink-0" /> {f}
+                        <Check className={`w-4 h-4 ${accentText} mr-2 mt-0.5 shrink-0`} /> {f}
                       </li>
                     ))}
                   </ul>
@@ -169,7 +178,7 @@ export default function Pricing() {
                   <Button
                     className={`w-full mt-auto ${
                       plan.highlighted
-                        ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                        ? `${accentBg} ${accentHover} ${accentTextForeground}`
                         : "bg-white/10 hover:bg-white/20 text-white"
                     }`}
                     disabled={isCurrent || pending}
@@ -194,7 +203,7 @@ export default function Pricing() {
         <div className="max-w-6xl mx-auto mt-20">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-serif text-white mb-2 flex items-center justify-center gap-2">
-              <Coins className="w-6 h-6 text-primary" /> Buy Credits
+              <Coins className="w-6 h-6 text-[#D6B56D]" /> Buy Credits
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Credits power messaging, content unlocks, and video chats — separate from your membership. Buy a pack and use them any time.
@@ -217,7 +226,7 @@ export default function Pricing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {ADDITIONAL_FEATURES.map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-center gap-3 bg-background/40 border border-white/10 rounded-xl px-4 py-3">
-                <Icon className="w-5 h-5 text-primary shrink-0" />
+                <Icon className="w-5 h-5 text-[#D6B56D] shrink-0" />
                 <span className="text-sm text-white">{label}</span>
               </div>
             ))}
@@ -232,7 +241,7 @@ export default function Pricing() {
                 <div
                   key={plan.id}
                   className={`bg-card/50 backdrop-blur-xl border ${
-                    plan.highlighted ? "border-secondary shadow-[0_0_30px_rgba(56,189,248,0.2)]" : "border-white/10"
+                    plan.highlighted ? "border-secondary shadow-[0_0_30px_rgba(214,181,109,0.2)]" : "border-white/10"
                   } rounded-2xl p-6 flex flex-col`}
                 >
                   <h3 className="text-xl font-serif font-bold text-white mb-2">{plan.name}</h3>

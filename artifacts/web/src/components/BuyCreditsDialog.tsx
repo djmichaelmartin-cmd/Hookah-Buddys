@@ -105,19 +105,19 @@ export function CreditPackageGrid({
             key={pkg.id}
             className={`relative flex flex-col rounded-2xl border p-6 bg-card/50 backdrop-blur-xl ${
               pkg.label
-                ? "border-primary shadow-[0_0_30px_rgba(0,90,156,0.18)]"
+                ? "border-[#D6B56D] shadow-[0_0_30px_rgba(214,181,109,0.18)]"
                 : "border-white/10"
             }`}
           >
             {pkg.label && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#D6B56D] text-[#111111] text-xs font-semibold px-3 py-1 rounded-full">
                 {pkg.label}
               </span>
             )}
             <h3 className="text-lg font-serif font-bold text-white mb-1">{pkg.name}</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <Coins className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold text-primary">{pkg.credits.toLocaleString()}</span>
+              <Coins className="w-5 h-5 text-[#D6B56D]" />
+              <span className="text-2xl font-bold text-[#D6B56D]">{pkg.credits.toLocaleString()}</span>
               <span className="text-sm text-muted-foreground">credits</span>
             </div>
             <p className="text-2xl font-bold text-white mb-1">{formatPrice(pkg.priceCents)}</p>
@@ -125,7 +125,7 @@ export function CreditPackageGrid({
               {perCredit.toFixed(2)}¢ per credit
             </p>
             <Button
-              className="mt-auto w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="mt-auto w-full bg-[#D6B56D] hover:bg-[#C9A456] text-[#111111]"
               disabled={pending || createCheckout.isPending}
               onClick={() => handleBuy(pkg)}
             >
@@ -143,7 +143,7 @@ export function CreditUsesList() {
     <ul className="space-y-2">
       {CREDIT_COST_ITEMS.map((item) => (
         <li key={item.key} className="flex items-start gap-2 text-sm text-zinc-300">
-          <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />{" "}
+          <Check className="w-4 h-4 text-[#D6B56D] mt-0.5 shrink-0" />{" "}
           {item.label} — {item.credits} {item.unit ?? "credits"}
         </li>
       ))}
@@ -167,7 +167,7 @@ export function BuyCreditsDialog({
       <DialogContent className="bg-card border-white/10 sm:max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl text-white flex items-center gap-2">
-            <Coins className="w-5 h-5 text-primary" /> {title}
+            <Coins className="w-5 h-5 text-[#D6B56D]" /> {title}
           </DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>

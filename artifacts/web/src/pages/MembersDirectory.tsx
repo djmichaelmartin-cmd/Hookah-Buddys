@@ -179,7 +179,7 @@ export default function MembersDirectory() {
                   : null;
                 return (
                   <Link key={member.id} href={`/members/${member.id}`} className="group block">
-                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-card/50 border border-white/10 group-hover:border-primary/50 transition-all duration-300 group-hover:shadow-[0_0_24px_rgba(0,90,156,0.15)]">
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-card/50 border border-white/10 group-hover:border-primary/50 transition-all duration-300 group-hover:shadow-[0_0_24px_rgba(24,119,242,0.15)]">
                       <div className="w-16 h-16 rounded-full overflow-hidden border border-white/10 bg-card shrink-0 flex items-center justify-center">
                         {member.profilePhotoUrl ? (
                           <img

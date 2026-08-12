@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <p className="text-sm font-bold text-destructive uppercase tracking-wider">{report.targetType}</p>
-                          <p className="text-white mt-1">Reason: <span className="font-semibold text-sky-400">{report.reason}</span></p>
+                          <p className="text-white mt-1">Reason: <span className="font-semibold text-primary">{report.reason}</span></p>
                           <p className="text-xs text-muted-foreground mt-1">Reported by User ID: {report.reporterId}</p>
                         </div>
                         <div className="flex gap-2">
