@@ -191,7 +191,7 @@ export function Navbar() {
           <img
             src="/brand/logo.png"
             alt="HookahBuddys.com"
-            className="h-16 w-auto drop-shadow-[0_0_12px_rgba(255,36,46,0.4)]"
+            className="h-16 w-auto -translate-y-[5px] drop-shadow-[0_0_12px_rgba(255,36,46,0.4)]"
           />
         </Link>
 
