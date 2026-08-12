@@ -130,15 +130,18 @@ router.get("/events", async (req, res): Promise<void> => {
   res.json(await annotateEvents(rows, viewer?.id ?? null));
 });
 
+async function loadActiveEvent(id: number): Promise<Event | null> {
+  if (!Number.isInteger(id)) return null;
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, id));
+  if (!event || event.status !== "active") return null;
+  return event;
+}
+
 // Public: a single active event with full details (404 for missing/cancelled).
 router.get("/events/:id", async (req, res): Promise<void> => {
   const id = parseInt(req.params.id as string, 10);
-  if (!Number.isInteger(id)) {
-    res.status(404).json({ error: "Event not found" });
-    return;
-  }
-  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, id));
-  if (!event || event.status !== "active") {
+  const event = await loadActiveEvent(id);
+  if (!event) {
     res.status(404).json({ error: "Event not found" });
     return;
   }
@@ -147,17 +150,10 @@ router.get("/events/:id", async (req, res): Promise<void> => {
   res.json(annotated);
 });
 
-async function loadActiveUpcomingEvent(id: number): Promise<Event | null> {
-  if (!Number.isInteger(id)) return null;
-  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, id));
-  if (!event || event.status !== "active") return null;
-  return event;
-}
-
 router.post("/events/:id/rsvp", requireAuth(), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const id = parseInt(req.params.id as string, 10);
-  const event = await loadActiveUpcomingEvent(id);
+  const event = await loadActiveEvent(id);
   if (!event) {
     res.status(404).json({ error: "Event not found" });
     return;
@@ -187,7 +183,7 @@ router.post("/events/:id/rsvp", requireAuth(), async (req, res): Promise<void> =
 router.post("/events/:id/save", requireAuth(), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const id = parseInt(req.params.id as string, 10);
-  const event = await loadActiveUpcomingEvent(id);
+  const event = await loadActiveEvent(id);
   if (!event) {
     res.status(404).json({ error: "Event not found" });
     return;
