@@ -346,7 +346,7 @@ export function Navbar() {
                 href="/choose-membership"
                 className={`inline-flex items-center h-10 px-6 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
               >
-                Get Started
+                Create Free Profile
               </Link>
             </>
           )}
@@ -414,7 +414,7 @@ export function Navbar() {
                   onClick={() => setMenuOpen(false)}
                   className={`inline-flex items-center justify-center h-11 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
                 >
-                  Get Started
+                  Create Free Profile
                 </Link>
               </div>
             )}

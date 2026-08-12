@@ -67,7 +67,7 @@ export default function Login() {
           </form>
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link href="/signup/member" className="text-primary hover:underline">Join as Member</Link>
+            <Link href="/choose-membership" className="text-primary hover:underline">Create Free Profile</Link>
             {" "}or{" "}
             <Link href="/signup/doll" className="text-primary hover:underline">Apply as a Doll</Link>
           </div>

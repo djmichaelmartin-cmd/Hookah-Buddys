@@ -410,21 +410,21 @@ export default function Home() {
               intimate video sessions — tasteful, glamorous, always after dark.
             </p>
             <div className="mt-9 flex flex-col sm:flex-row gap-4">
-              <Link href="/feed">
+              <Link href="/choose-membership">
                 <Button
                   size="lg"
                   className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-widest uppercase h-14 px-9 shadow-[0_0_30px_rgba(212,175,55,0.4)] border-none"
                 >
-                  Explore the Feed
+                  Create Free Profile
                 </Button>
               </Link>
-              <Link href="/choose-membership">
+              <Link href="/feed">
                 <Button
                   size="lg"
                   variant="outline"
                   className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-primary font-semibold tracking-widest uppercase h-14 px-9 backdrop-blur-md bg-white/5"
                 >
-                  Join as a Member
+                  Explore the Feed
                 </Button>
               </Link>
               <Link href="/browse" className="hidden lg:block">
@@ -851,12 +851,12 @@ export default function Home() {
           <p className="text-lg text-muted-foreground mb-10">
             Join thousands enjoying premium content, private chats, and exclusive connections with verified Hookah Dolls.
           </p>
-          <Link href="/signup/member">
+          <Link href="/signup/bro?plan=bronze">
             <Button
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-widest uppercase h-14 px-12 shadow-[0_0_40px_rgba(212,175,55,0.4)] border-none"
             >
-              Create your free account
+              Create Free Profile
             </Button>
           </Link>
           <p className="mt-6 text-xs text-muted-foreground/60 uppercase tracking-widest">Strictly 21+ · Discreet billing</p>

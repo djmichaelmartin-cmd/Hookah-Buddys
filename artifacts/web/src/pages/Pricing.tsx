@@ -56,7 +56,7 @@ export default function Pricing() {
 
   const handleSelect = (plan: Plan) => {
     if (!session?.user) {
-      navigate(`/signup/member?plan=${plan.slug}`);
+      navigate(`/signup/bro?plan=${plan.slug}`);
       return;
     }
     if (plan.audience === "member" && role !== "member") {
@@ -86,13 +86,18 @@ export default function Pricing() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">
           <h1 className="text-4xl font-serif text-white mb-4">Memberships & Plans</h1>
-          <p className="text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Choose your level of access to the exclusive lounge. Upgrade any time as your needs grow.
+          <p className="text-muted-foreground mb-4 max-w-2xl mx-auto">
+            HookahDolls is free to join. Paid plans are optional upgrades that include monthly
+            credits for premium Doll interactions.
           </p>
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 mb-12 text-sm text-muted-foreground/80">
+            <span>Free: profile, public feed, friends & follows, photos & reels, likes & comments</span>
+            <span className="text-primary/80">Paid: monthly credits, Doll messaging, premium unlocks, video chat, VIP features</span>
+          </div>
         </div>
 
-        <h2 className="text-2xl font-serif text-white text-center mb-8">Member Memberships</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <h2 className="text-2xl font-serif text-white text-center mb-8">Member Plans</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {isLoading ? (
             <p className="col-span-full text-center text-muted-foreground">Loading plans...</p>
           ) : (
@@ -113,8 +118,14 @@ export default function Pricing() {
                   )}
                   <h3 className="text-2xl font-serif font-bold text-white mb-2">{plan.name}</h3>
                   <div className="text-3xl font-bold text-primary mb-4">
-                    ${plan.price}
-                    <span className="text-sm text-muted-foreground font-normal">/{plan.interval}</span>
+                    {plan.price === 0 ? (
+                      "Free to Join"
+                    ) : (
+                      <>
+                        ${plan.price}
+                        <span className="text-sm text-muted-foreground font-normal">/{plan.interval}</span>
+                      </>
+                    )}
                   </div>
                   <p className="text-muted-foreground mb-6">{plan.description}</p>
 

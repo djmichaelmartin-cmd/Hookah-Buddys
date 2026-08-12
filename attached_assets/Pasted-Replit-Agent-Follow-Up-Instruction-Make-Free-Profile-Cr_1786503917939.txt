@@ -1,0 +1,273 @@
+Replit Agent Follow-Up Instruction: Make Free Profile Creation Feel Social-First
+
+Do not rebuild the platform. Only adjust the language, buttons, and signup flow so HookahDolls.com does not feel like a pay-only membership site.
+
+The main message should be:
+
+“Create a free profile and join the HookahDolls social community.”
+
+Free profile creation should feel similar to joining a social network like Facebook: users can create a profile for free, post to the hookah feed, follow users, add friends, upload photos/reels, like, comment, and participate in the community.
+
+Paid memberships should feel optional and positioned as upgrades for more access, credits, premium Doll interactions, and VIP features.
+
+Update the “Get Started” flow language.
+
+When a user clicks “Get Started,” show the page title:
+
+“Create Your Profile”
+
+Subtitle:
+
+“Join the HookahDolls social community for free. Create your profile, post hookah content, follow users, make friends, and explore the feed. Upgrade anytime for credits, premium access, and VIP features.”
+
+Below that, show:
+
+“Choose how you want to join”
+
+Then show the 4 options:
+
+1. Bronze — Free Profile
+2. Silver — Social Plus
+3. Gold — Premium Access
+4. Platinum — VIP Access
+
+Update Membership Cards
+
+Bronze should no longer feel like a limited “membership plan.” It should feel like the default free account.
+
+Bronze / Free Profile
+
+Price:
+Free to Join
+
+Badge:
+Free Social Profile
+
+Included:
+
+* Create a free HookahDolls profile
+* Join the public hookah social feed
+* Post hookah-related content
+* Upload public photos
+* Upload public reels
+* Like posts
+* Comment on posts
+* Follow Dolls and Bros
+* Add friends
+* Browse public profiles
+* Use basic privacy settings
+* Receive notifications
+* Save posts
+* View public Doll profile previews
+* Upgrade anytime
+* Buy credits anytime
+
+Monthly Credits:
+0 included credits
+
+Clarifying language:
+“Bronze is free and gives you access to the social side of HookahDolls. Credits are only needed for premium Doll interactions like paid messaging, premium content unlocks, and video chat.”
+
+Button:
+“Create Free Profile”
+
+Silver
+
+Rename display label:
+Silver Social Plus
+
+Price:
+$19.99/month
+
+Included:
+
+* Everything in Free Profile
+* 100 monthly credits
+* Full Doll browsing
+* Save favorite Dolls
+* Access enhanced profile features
+* Use credits for Doll messaging
+* Use credits for premium content unlocks
+* Use credits toward video chat
+* Silver badge
+* Buy extra credits anytime
+
+Button:
+“Upgrade to Silver”
+
+Gold
+
+Rename display label:
+Gold Premium Access
+
+Price:
+$39.99/month
+
+Included:
+
+* Everything in Silver
+* 300 monthly credits
+* Better Doll discovery/search access
+* Priority access to featured Dolls
+* More premium previews
+* Gold badge
+* More saved favorites
+* More profile visibility
+* Better value for regular interaction
+
+Button:
+“Upgrade to Gold”
+
+Platinum
+
+Rename display label:
+Platinum VIP Access
+
+Price:
+$79.99/month
+
+Included:
+
+* Everything in Gold
+* 750 monthly credits
+* VIP Bro badge
+* Priority support
+* Best profile visibility
+* Advanced search filters
+* Early access to featured Dolls
+* Exclusive Platinum promotions
+* Best option for frequent messaging, unlocks, and video chat
+
+Button:
+“Upgrade to Platinum”
+
+Important Language Changes
+
+Replace language that says:
+
+“Choose Your Membership”
+
+With:
+
+“Create Your Profile”
+
+or:
+
+“Join HookahDolls”
+
+Use “membership” only when referring to paid upgrades.
+
+Use this language near the top of the page:
+
+“HookahDolls is free to join. Create a profile, post in the hookah feed, follow users, add friends, and explore the community. Paid plans are optional upgrades that include monthly credits and premium Doll access.”
+
+Add a small explainer section:
+
+“Free vs. Paid Access”
+
+Free profile access includes:
+
+* Public social feed
+* Profile creation
+* Friends and follows
+* Likes and comments
+* Public photos and reels
+* Basic profile browsing
+
+Paid upgrades include:
+
+* Monthly credits
+* Paid Doll messaging
+* Premium photo/video unlocks
+* Video chat credits
+* Enhanced discovery
+* VIP badges and access
+
+Signup Flow Changes
+
+When the user chooses Bronze / Free Profile:
+
+* Route to `/signup/bro?plan=bronze`
+* Show the form title: “Create Your Free Profile”
+* Do not show payment language
+* Do not require Stripe checkout
+* Create the account immediately after signup
+* Assign Bronze / Free Profile status
+* Set monthly credits to 0
+* Show “Buy Credits” and “Upgrade Anytime” options after signup
+
+When the user chooses Silver, Gold, or Platinum:
+
+* Route to the correct paid signup flow
+* Show the selected upgrade plan
+* Collect basic profile information first
+* Then proceed to Stripe checkout for recurring subscription
+* After payment, assign the correct plan and monthly credits
+
+Navigation / Button Updates
+
+Update main CTA buttons across the site:
+
+Instead of:
+“Get Started”
+
+Use one of these where appropriate:
+
+* “Create Free Profile”
+* “Join Free”
+* “Start Free”
+* “Explore the Feed”
+* “Upgrade for Premium Access”
+
+On the homepage hero, use:
+
+Primary button:
+“Create Free Profile”
+
+Secondary button:
+“Explore the Feed”
+
+Optional third button:
+“Browse Dolls”
+
+Pricing Page Update
+
+At the top of the Pricing page, add:
+
+“HookahDolls is free to join. Paid plans are optional upgrades that include monthly credits for premium Doll interactions.”
+
+Pricing should clearly separate:
+
+Free Social Access:
+
+* Create profile
+* Public feed
+* Friends/follows
+* Photos/reels
+* Likes/comments
+
+Paid Premium Access:
+
+* Monthly credits
+* Message Dolls
+* Unlock premium content
+* Video chat
+* VIP features
+
+Important Implementation Notes
+
+Do not remove the paid plans.
+
+Do not remove the credits system.
+
+Do not remove the Doll monetization features.
+
+Do not make premium Doll content free.
+
+Do not make paid messaging free.
+
+Only adjust the positioning so the platform feels like a free social network first, with optional paid premium upgrades.
+
+The goal is for users to immediately understand:
+
+“Joining and creating a profile is free. Paying is only for premium access, credits, and VIP features.”

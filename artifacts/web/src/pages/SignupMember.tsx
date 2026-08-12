@@ -89,8 +89,14 @@ export default function SignupMember() {
     <Layout>
       <div className="flex-1 container mx-auto px-4 py-12 max-w-4xl flex gap-8 flex-col lg:flex-row items-start">
         <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(212,175,55,0.05)] flex-1 w-full">
-          <h1 className="text-3xl font-serif text-white mb-2 text-center">Join as a Member</h1>
-          <p className="text-muted-foreground text-center mb-8">Create your profile to join the lounge.</p>
+          <h1 className="text-3xl font-serif text-white mb-2 text-center">
+            {selectedPlan && selectedPlan.price > 0 ? "Join as a Member" : "Create Your Free Profile"}
+          </h1>
+          <p className="text-muted-foreground text-center mb-8">
+            {selectedPlan && selectedPlan.price > 0
+              ? "Create your profile to join the lounge."
+              : "Join the HookahDolls social community for free — post, follow, make friends, and explore the feed. Upgrade anytime."}
+          </p>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">

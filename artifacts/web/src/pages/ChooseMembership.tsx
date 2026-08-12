@@ -16,17 +16,17 @@ export default function ChooseMembership() {
 
   const getBadgeText = (slug: string) => {
     switch (slug) {
-      case "bronze": return "Free";
-      case "silver": return "Starter";
+      case "bronze": return "Free Social Profile";
+      case "silver": return "Social Plus";
       case "gold": return "Most Popular";
-      case "platinum": return "Best Access";
+      case "platinum": return "VIP Access";
       default: return "";
     }
   };
 
   const getButtonText = (slug: string) => {
-    if (slug === "bronze") return "Join Free";
-    return `Choose ${slug.charAt(0).toUpperCase() + slug.slice(1)}`;
+    if (slug === "bronze") return "Create Free Profile";
+    return `Upgrade to ${slug.charAt(0).toUpperCase() + slug.slice(1)}`;
   };
 
   const memberPlans = (plans ?? []).filter(p => p.audience === "member");
@@ -38,10 +38,18 @@ export default function ChooseMembership() {
     <Layout>
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">
-          <h1 className="text-4xl font-serif text-white mb-4">Choose Your Membership</h1>
-          <p className="text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Select the membership level that gives you the access, credits, and features you want.
+          <h1 className="text-4xl font-serif text-white mb-4">Create Your Profile</h1>
+          <p className="text-muted-foreground mb-4 max-w-2xl mx-auto">
+            Join the HookahDolls social community for free. Create your profile, post hookah
+            content, follow users, make friends, and explore the feed. Upgrade anytime for
+            credits, premium access, and VIP features.
           </p>
+          <p className="text-sm text-muted-foreground/80 mb-8 max-w-2xl mx-auto">
+            HookahDolls is free to join. Create a profile, post in the hookah feed, follow users,
+            add friends, and explore the community. Paid plans are optional upgrades that include
+            monthly credits and premium Doll access.
+          </p>
+          <h2 className="text-xl font-serif text-white mb-10">Choose how you want to join</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
@@ -64,8 +72,14 @@ export default function ChooseMembership() {
                   )}
                   <h3 className="text-2xl font-serif font-bold text-white mb-2">{plan.name}</h3>
                   <div className="text-3xl font-bold text-primary mb-4">
-                    ${plan.price}
-                    <span className="text-sm text-muted-foreground font-normal">/{plan.interval || "mo"}</span>
+                    {plan.price === 0 ? (
+                      "Free to Join"
+                    ) : (
+                      <>
+                        ${plan.price}
+                        <span className="text-sm text-muted-foreground font-normal">/{plan.interval || "mo"}</span>
+                      </>
+                    )}
                   </div>
                   <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
 
@@ -95,7 +109,7 @@ export default function ChooseMembership() {
                         ? plan.price > 0
                           ? `/checkout?type=membership&plan=${slug}`
                           : "/dashboard/member"
-                        : `/signup/member?plan=${slug}`
+                        : `/signup/bro?plan=${slug}`
                     }
                     className="w-full mt-auto block"
                   >
@@ -115,7 +129,33 @@ export default function ChooseMembership() {
           )}
         </div>
 
-        <div className="max-w-3xl mx-auto mt-20 bg-card/30 border border-white/10 rounded-2xl p-8">
+        <div className="max-w-4xl mx-auto mt-20 bg-card/30 border border-white/10 rounded-2xl p-8">
+          <h2 className="text-2xl font-serif text-white text-center mb-6">Free vs. Paid Access</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">Free profile access includes</h3>
+              <ul className="space-y-2">
+                {["Public social feed", "Profile creation", "Friends and follows", "Likes and comments", "Public photos and reels", "Basic profile browsing"].map((f) => (
+                  <li key={f} className="text-sm text-muted-foreground flex items-start">
+                    <Check className="w-4 h-4 text-primary mr-2 mt-0.5 shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">Paid upgrades include</h3>
+              <ul className="space-y-2">
+                {["Monthly credits", "Paid Doll messaging", "Premium photo/video unlocks", "Video chat credits", "Enhanced discovery", "VIP badges and access"].map((f) => (
+                  <li key={f} className="text-sm text-muted-foreground flex items-start">
+                    <Crown className="w-4 h-4 text-primary mr-2 mt-0.5 shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-3xl mx-auto mt-12 bg-card/30 border border-white/10 rounded-2xl p-8">
           <h2 className="text-2xl font-serif text-white text-center mb-6">How Credits Work</h2>
           <div className="space-y-3">
             {CREDIT_COST_ITEMS.map((item) => (

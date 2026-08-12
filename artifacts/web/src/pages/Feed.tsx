@@ -104,9 +104,9 @@ export default function Feed() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 pt-4">
-            <Link href="/signup/member">
+            <Link href="/signup/bro?plan=bronze">
               <Button className="w-full h-12 text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
-                Become a Member
+                Create Free Profile
               </Button>
             </Link>
             <Link href="/login">
