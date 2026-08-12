@@ -17,8 +17,8 @@ import { Sparkles, Loader2, Frown, Sparkle } from "lucide-react";
 type FilterTab = "trending" | "new" | "nearby" | "dolls" | "bros" | "lounges" | "events";
 
 const TABS: { id: FilterTab; label: string }[] = [
-  { id: "trending", label: "Trending" },
   { id: "new", label: "New" },
+  { id: "trending", label: "Trending" },
   { id: "nearby", label: "Nearby" },
   { id: "dolls", label: "Dolls" },
   { id: "bros", label: "Bros" },
@@ -27,7 +27,7 @@ const TABS: { id: FilterTab; label: string }[] = [
 ];
 
 export default function Feed() {
-  const [filter, setFilter] = useState<FilterTab>("trending");
+  const [filter, setFilter] = useState<FilterTab>("new");
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
   const { data: posts, isLoading } = useListFeedPosts({ filter });
@@ -47,7 +47,8 @@ export default function Feed() {
         </div>
 
         <div className="mb-8">
-          <CreatePostForm />
+          {/* After posting, jump to the "New" tab so the fresh post is at the top. */}
+          <CreatePostForm onCreated={() => setFilter("new")} />
         </div>
 
         {/* Scrollable Tabs */}
