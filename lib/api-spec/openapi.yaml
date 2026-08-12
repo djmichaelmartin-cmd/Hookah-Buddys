@@ -60,7 +60,117 @@ tags:
     description: Follow relationships
   - name: notifications
     description: User notifications
+  - name: Storage
+    description: Object storage upload and serving endpoints.
 paths:
+  /storage/uploads/image:
+    post:
+      tags: [Storage]
+      operationId: uploadImage
+      summary: Upload an image (raw bytes, max 10 MB)
+      description: |
+        Bounded server-side image upload. Send the raw image bytes as the
+        request body. The server enforces the size limit before storage,
+        validates the bytes are a real image (JPEG, PNG, WebP, GIF, AVIF),
+        and returns the stored object path.
+      requestBody:
+        required: true
+        content:
+          'image/*':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: Image stored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageUploadResponse'
+        '400':
+          description: Body is not a valid image of an allowed type.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: Image exceeds the 10 MB size limit.
+        '500':
+          description: Failed to store image.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /storage/public-objects/{filePath}:
+    get:
+      tags: [Storage]
+      operationId: getPublicObject
+      summary: Serve a public asset from PUBLIC_OBJECT_SEARCH_PATHS
+      description: |
+        Unconditionally public — no authentication or ACL checks.
+        Searches PUBLIC_OBJECT_SEARCH_PATHS for the given file path.
+      parameters:
+        - name: filePath
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Relative file path within the public search paths.
+      responses:
+        '200':
+          description: Object content streamed with correct Content-Type.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Failed to serve public object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /storage/objects/{objectPath}:
+    get:
+      tags: [Storage]
+      operationId: getStorageObject
+      summary: Serve an object entity from PRIVATE_OBJECT_DIR
+      description: |
+        Serves object entities uploaded via presigned URLs. These can optionally
+        be protected with authentication or ACL checks based on the use case.
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Object path within the private object dir (e.g. `uploads/some-uuid`).
+      responses:
+        '200':
+          description: Object content streamed with correct Content-Type.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Object not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Failed to serve object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /healthz:
     get:
       operationId: healthCheck
@@ -3811,3 +3921,18 @@ components:
       required: [action]
       properties:
         action: { type: string, enum: [approve, remove] }
+
+    ImageUploadResponse:
+      type: object
+      required: [objectPath]
+      properties:
+        objectPath:
+          type: string
+          description: Stored object path (e.g. `/objects/uploads/uuid`). Serve via `/api/storage` + objectPath.
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

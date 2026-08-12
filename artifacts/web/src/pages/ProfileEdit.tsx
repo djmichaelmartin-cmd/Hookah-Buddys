@@ -26,6 +26,23 @@ import { InterestTags } from "@/components/profile/InterestTags";
 import { ProfileCompletionMeter } from "@/components/profile/ProfileCompletionMeter";
 import { Camera, Loader2, Eye, Save, Upload as UploadIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+async function uploadImage(file: File): Promise<string> {
+  const res = await fetch("/api/storage/uploads/image", {
+    method: "POST",
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+    body: file,
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Upload failed");
+  }
+  const { objectPath } = await res.json();
+  return `/api/storage${objectPath}`;
+}
 
 const SUGGESTED_INTERESTS = [
   "Hookah",
@@ -177,26 +194,60 @@ export default function ProfileEdit() {
     },
   });
 
-  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProfilePhoto(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const validateImageFile = (file: File): boolean => {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast({
+        title: "Unsupported file type",
+        description: "Please choose a JPEG, PNG, WebP, GIF, or AVIF image.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast({
+        title: "File too large",
+        description: "Images must be 10 MB or smaller.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
   };
 
-  const handleCoverPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [isUploadingProfile, setIsUploadingProfile] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setCoverPhoto(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const handleImageUpload = async (
+    file: File,
+    setUploading: (v: boolean) => void,
+    setUrl: (url: string) => void,
+  ) => {
+    setUploading(true);
+    try {
+      setUrl(await uploadImage(file));
+    } catch (err) {
+      toast({
+        title: "Upload failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleProfilePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !validateImageFile(file)) return;
+    await handleImageUpload(file, setIsUploadingProfile, setProfilePhoto);
+  };
+
+  const handleCoverPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !validateImageFile(file)) return;
+    await handleImageUpload(file, setIsUploadingCover, setCoverPhoto);
   };
 
   const handleSave = () => {
@@ -327,9 +378,18 @@ export default function ProfileEdit() {
                         type="button"
                         variant="outline"
                         onClick={() => profilePhotoInputRef.current?.click()}
+                        disabled={isUploadingProfile}
                         className="w-full border-white/20 text-white hover:bg-white/10"
                       >
-                        <UploadIcon className="w-4 h-4 mr-2" /> Upload Photo
+                        {isUploadingProfile ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <UploadIcon className="w-4 h-4 mr-2" /> Upload Photo
+                          </>
+                        )}
                       </Button>
                       <p className="text-xs text-muted-foreground mt-2">
                         Click to upload a new profile photo
@@ -361,9 +421,18 @@ export default function ProfileEdit() {
                       type="button"
                       variant="outline"
                       onClick={() => coverPhotoInputRef.current?.click()}
+                      disabled={isUploadingCover}
                       className="w-full border-white/20 text-white hover:bg-white/10"
                     >
-                      <UploadIcon className="w-4 h-4 mr-2" /> Upload Cover Photo
+                      {isUploadingCover ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <UploadIcon className="w-4 h-4 mr-2" /> Upload Cover Photo
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

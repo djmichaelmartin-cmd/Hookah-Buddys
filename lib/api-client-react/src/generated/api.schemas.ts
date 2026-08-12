@@ -2032,6 +2032,15 @@ export interface UserTagAction {
   action: UserTagActionAction;
 }
 
+export interface ImageUploadResponse {
+  /** Stored object path (e.g. `/objects/uploads/uuid`). Serve via `/api/storage` + objectPath. */
+  objectPath: string;
+}
+
+export interface ErrorEnvelope {
+  error: string;
+}
+
 export type ListDollsParams = {
 search?: string;
 city?: string;

@@ -16,4 +16,5 @@
 - [Premium content entitlement](premium-content-gating.md) — locked premium media blanks the url server-side; access via doll subscription, unlock, owner, or admin.
 - [UI mutation error handling](ui-mutation-error-handling.md) — member-facing mutations need an onError toast (esp. 402 credits) or the feature looks silently "broken".
 - [Orval query options](orval-query-options.md) — passing `query.enabled` to generated hooks requires an explicit `queryKey: get*QueryKey(params)` or typecheck fails.
+- [Image upload security](storage-upload-finalize.md) — presigned PUT can't bound size/type; use a bounded server endpoint with byte sniffing + owner ACL, and guard every write path incl. registration.
 - [Per-Doll revenue model](shared-doll-earnings-model.md) — Doll analytics & admin per-Doll revenue use one computeDollEarnings helper; illustrative GMV, NOT the platform subscription revenue.

@@ -25,6 +25,12 @@ router.post("/auth/register/doll", async (req, res): Promise<void> => {
     res.status(400).json({ error: "You must confirm you are 21+ and accept the platform rules." });
     return;
   }
+  if (data.profilePhotoUrl) {
+    res.status(400).json({
+      error: "Profile photos cannot be set at registration. Upload one from your profile after signing in.",
+    });
+    return;
+  }
 
   const existing = await db.select().from(usersTable).where(eq(usersTable.email, data.email));
   if (existing.length > 0) {
@@ -47,7 +53,6 @@ router.post("/auth/register/doll", async (req, res): Promise<void> => {
       accountStatus: "pending",
       ageConfirmed: data.ageConfirmed,
       rulesAccepted: data.rulesAccepted,
-      profilePhotoUrl: data.profilePhotoUrl,
     })
     .returning();
 
@@ -64,7 +69,6 @@ router.post("/auth/register/doll", async (req, res): Promise<void> => {
       favoriteFlavor: data.favoriteFlavor,
       experienceLevel: data.experienceLevel,
       preferences: data.preferences,
-      profilePhotoUrl: data.profilePhotoUrl,
       verificationPhotoUrl: data.verificationPhotoUrl,
       verificationVideoUrl: data.verificationVideoUrl,
       governmentIdUrl: data.governmentIdUrl,
@@ -94,6 +98,12 @@ router.post("/auth/register/member", async (req, res): Promise<void> => {
     res.status(400).json({ error: "You must confirm you are 21+ and accept the platform rules." });
     return;
   }
+  if (data.profilePhotoUrl) {
+    res.status(400).json({
+      error: "Profile photos cannot be set at registration. Upload one from your profile after signing in.",
+    });
+    return;
+  }
 
   const existing = await db.select().from(usersTable).where(eq(usersTable.email, data.email));
   if (existing.length > 0) {
@@ -117,7 +127,6 @@ router.post("/auth/register/member", async (req, res): Promise<void> => {
       accountStatus: "active",
       ageConfirmed: data.ageConfirmed,
       rulesAccepted: data.rulesAccepted,
-      profilePhotoUrl: data.profilePhotoUrl,
     })
     .returning();
 

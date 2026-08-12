@@ -9,6 +9,28 @@ import * as zod from 'zod';
 
 
 /**
+ * Unconditionally public — no authentication or ACL checks.
+Searches PUBLIC_OBJECT_SEARCH_PATHS for the given file path.
+
+ * @summary Serve a public asset from PUBLIC_OBJECT_SEARCH_PATHS
+ */
+export const GetPublicObjectParams = zod.object({
+  "filePath": zod.coerce.string().describe('Relative file path within the public search paths.')
+})
+
+
+/**
+ * Serves object entities uploaded via presigned URLs. These can optionally
+be protected with authentication or ACL checks based on the use case.
+
+ * @summary Serve an object entity from PRIVATE_OBJECT_DIR
+ */
+export const GetStorageObjectParams = zod.object({
+  "objectPath": zod.coerce.string().describe('Object path within the private object dir (e.g. `uploads\/some-uuid`).')
+})
+
+
+/**
  * Returns server health status
  * @summary Health check
  */

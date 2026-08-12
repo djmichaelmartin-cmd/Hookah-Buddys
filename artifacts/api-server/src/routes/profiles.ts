@@ -17,6 +17,7 @@ import {
 } from "@workspace/db";
 import { UpdateMyProfileBody, UpdatePrivacySettingsBody } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import { finalizeUploadedImage, InvalidUploadError } from "../lib/imageUploads";
 import {
   getRelationship,
   filterDetailsForViewer,
@@ -234,6 +235,44 @@ router.put("/profiles/me", requireAuth(), async (req, res): Promise<void> => {
     return;
   }
   const input = parsed.data;
+
+  // Profile/cover images must be uploaded to object storage
+  // (POST /storage/uploads/request-url) and referenced by their object URL.
+  // Each new value is finalized server-side: the actual stored bytes are
+  // checked for image type/size and stamped with an owner ACL before use.
+  const [currentDetails] = await db
+    .select({ coverPhotoUrl: profileDetailsTable.coverPhotoUrl })
+    .from(profileDetailsTable)
+    .where(eq(profileDetailsTable.userId, user.id));
+  const resolveImageUrl = async (
+    value: string | null | undefined,
+    currentValue: string | null | undefined,
+  ): Promise<string | null | undefined> => {
+    if (value === undefined || value === null || value === "") return value;
+    if (value === currentValue) return value; // unchanged
+    return await finalizeUploadedImage(value, user.id);
+  };
+  try {
+    if (input.profilePhotoUrl !== undefined) {
+      input.profilePhotoUrl = (await resolveImageUrl(
+        input.profilePhotoUrl,
+        user.profilePhotoUrl,
+      )) as typeof input.profilePhotoUrl;
+    }
+    const details = input.details;
+    if (details && details.coverPhotoUrl !== undefined) {
+      details.coverPhotoUrl = (await resolveImageUrl(
+        details.coverPhotoUrl,
+        currentDetails?.coverPhotoUrl,
+      )) as typeof details.coverPhotoUrl;
+    }
+  } catch (err) {
+    if (err instanceof InvalidUploadError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    throw err;
+  }
 
   // User row updates
   const userUpdates: Record<string, unknown> = {};

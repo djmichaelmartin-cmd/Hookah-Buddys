@@ -29,6 +29,7 @@ import friendsSocialRouter from "./friendsSocial";
 import photosRouter from "./photos";
 import reelsRouter from "./reels";
 import adminSocialRouter from "./adminSocial";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -62,5 +63,6 @@ router.use(friendsSocialRouter);
 router.use(photosRouter);
 router.use(reelsRouter);
 router.use(adminSocialRouter);
+router.use(storageRouter);
 
 export default router;
