@@ -410,7 +410,7 @@ export function Navbar() {
                   Log in
                 </Link>
                 <Link
-                  href="/signup/member"
+                  href="/choose-membership"
                   onClick={() => setMenuOpen(false)}
                   className={`inline-flex items-center justify-center h-11 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
                 >
