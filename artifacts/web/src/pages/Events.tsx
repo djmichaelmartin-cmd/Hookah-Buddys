@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/Layout";
@@ -166,52 +166,56 @@ export default function Events() {
   const { data: session } = useGetCurrentUser();
   const loggedIn = !!session?.user;
   const [tab, setTab] = useState<TabId>("upcoming");
-  const [extraPast, setExtraPast] = useState<Event[]>([]);
-  const [pastExhausted, setPastExhausted] = useState(false);
+  const tabRef = useRef<TabId>("upcoming");
+  const [extra, setExtra] = useState<Event[]>([]);
+  const [exhausted, setExhausted] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const { toast } = useToast();
 
+  const pageSize = tab === "past" ? PAST_PAGE_SIZE : 50;
   const params: ListEventsParams =
     tab === "upcoming"
-      ? { limit: 50 }
+      ? { limit: pageSize }
       : tab === "past"
-        ? { limit: PAST_PAGE_SIZE, scope: "past" }
-        : { limit: 50, filter: tab === "going" ? "going" : "saved" };
+        ? { limit: pageSize, scope: "past" }
+        : { limit: pageSize, filter: tab === "going" ? "going" : "saved" };
   const isPublicTab = tab === "upcoming" || tab === "past";
   const { data: firstPage, isLoading } = useListEvents(params, {
     query: { queryKey: getListEventsQueryKey(params), enabled: isPublicTab || loggedIn },
   });
 
-  const events =
-    tab === "past" && firstPage ? [...firstPage, ...extraPast] : firstPage;
+  const events = firstPage ? [...firstPage, ...extra] : firstPage;
   const showLoadMore =
-    tab === "past" &&
-    !pastExhausted &&
-    (firstPage?.length ?? 0) === PAST_PAGE_SIZE;
+    !exhausted && (firstPage?.length ?? 0) === pageSize;
 
   const selectTab = (t: TabId) => {
+    tabRef.current = t;
     setTab(t);
-    setExtraPast([]);
-    setPastExhausted(false);
+    setExtra([]);
+    setExhausted(false);
+    setLoadingMore(false);
   };
 
-  const loadMorePast = async () => {
+  const loadMore = async () => {
     if (loadingMore || !firstPage) return;
+    const requestTab = tab;
     setLoadingMore(true);
     try {
-      const offset = firstPage.length + extraPast.length;
-      const more = await listEvents({ limit: PAST_PAGE_SIZE, scope: "past", offset });
-      const seen = new Set([...firstPage, ...extraPast].map((e) => e.id));
-      setExtraPast((prev) => [...prev, ...more.filter((e) => !seen.has(e.id))]);
-      if (more.length < PAST_PAGE_SIZE) setPastExhausted(true);
+      const offset = firstPage.length + extra.length;
+      const more = await listEvents({ ...params, offset });
+      if (tabRef.current !== requestTab) return; // stale response after tab switch
+      const seen = new Set([...firstPage, ...extra].map((e) => e.id));
+      setExtra((prev) => [...prev, ...more.filter((e) => !seen.has(e.id))]);
+      if (more.length < pageSize) setExhausted(true);
     } catch {
+      if (tabRef.current !== requestTab) return;
       toast({
         title: "Couldn't load more events",
         description: "Please try again in a moment.",
         variant: "destructive",
       });
     } finally {
-      setLoadingMore(false);
+      if (tabRef.current === requestTab) setLoadingMore(false);
     }
   };
 
@@ -287,7 +291,7 @@ export default function Events() {
             ))}
             {showLoadMore && (
               <button
-                onClick={loadMorePast}
+                onClick={loadMore}
                 disabled={loadingMore}
                 className="mt-2 self-center px-6 py-2 rounded-full text-sm font-medium bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white border border-white/5 transition-all disabled:opacity-60 flex items-center gap-2"
               >
