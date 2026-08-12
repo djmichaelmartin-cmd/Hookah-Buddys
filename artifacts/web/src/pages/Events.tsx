@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/Layout";
 import {
@@ -97,7 +98,12 @@ function EventCard({ event, loggedIn }: { event: Event; loggedIn: boolean }) {
       <div className="p-5 flex-1 min-w-0">
         <div className="flex items-start gap-2">
           <h3 className="text-lg text-white font-semibold leading-snug flex-1 min-w-0">
-            {event.title}
+            <Link
+              href={`/events/${event.id}`}
+              className="hover:text-primary transition-colors"
+            >
+              {event.title}
+            </Link>
           </h3>
           {isPast && (
             <span className="shrink-0 px-2 py-0.5 rounded-full text-[11px] bg-white/5 text-muted-foreground border border-white/10">

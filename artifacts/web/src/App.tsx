@@ -37,6 +37,7 @@ import Friends from "@/pages/Friends";
 import Reels from "@/pages/Reels";
 import { usePresenceHeartbeatLoop } from "@/hooks/use-presence-heartbeat";
 import Events from "@/pages/Events";
+import EventDetail from "@/pages/EventDetail";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ function Router() {
       <Route path="/friends" component={Friends} />
       <Route path="/reels" component={Reels} />
       <Route path="/events" component={Events} />
+      <Route path="/events/:id" component={EventDetail} />
       
       <Route component={NotFound} />
     </Switch>

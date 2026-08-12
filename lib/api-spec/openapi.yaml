@@ -649,6 +649,23 @@ paths:
                 items:
                   $ref: "#/components/schemas/Event"
 
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: A single active event with full details
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Not found
+
   /events/{id}/rsvp:
     post:
       operationId: toggleEventRsvp

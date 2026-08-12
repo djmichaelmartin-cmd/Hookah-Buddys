@@ -2442,6 +2442,83 @@ export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TE
 
 
 
+export const getGetEventUrl = (id: number,) => {
+
+
+
+
+  return `/api/events/${id}`
+}
+
+/**
+ * @summary A single active event with full details
+ */
+export const getEvent = async (id: number, options?: RequestInit): Promise<Event> => {
+
+  return customFetch<Event>(getGetEventUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEventQueryKey = (id: number,) => {
+    return [
+    `/api/events/${id}`
+    ] as const;
+    }
+
+
+export const getGetEventQueryOptions = <TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEvent>>> = ({ signal }) => getEvent(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEventQueryResult = NonNullable<Awaited<ReturnType<typeof getEvent>>>
+export type GetEventQueryError = ErrorType<void>
+
+
+/**
+ * @summary A single active event with full details
+ */
+
+export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEventQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getToggleEventRsvpUrl = (id: number,) => {
 
 

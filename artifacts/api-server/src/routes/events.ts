@@ -90,19 +90,25 @@ router.get("/events", async (req, res): Promise<void> => {
   const filter = req.query.filter;
   const viewer = await getSessionUser(req);
 
+  const [annotated] = await annotateEvents([event], viewer?.id ?? null);
+
   if (filter === "going" || filter === "saved") {
     if (!viewer) {
       res.status(401).json({ error: "Authentication required" });
       return;
     }
     const table = filter === "going" ? eventRsvpsTable : eventSavesTable;
-    const rows = await db
-      .select({ event: eventsTable })
-      .from(table)
-      .innerJoin(eventsTable, eq(table.eventId, eventsTable.id))
-      .where(and(eq(table.userId, viewer.id), eq(eventsTable.status, "active")))
-      .orderBy(asc(eventsTable.startsAt))
-      .limit(limit);
+  const rows = await db
+    .select()
+    .from(eventsTable)
+    .where(
+      and(
+        eq(eventsTable.status, "active"),
+        past ? lte(eventsTable.startsAt, now) : gt(eventsTable.startsAt, now),
+      ),
+    )
+    .orderBy(past ? desc(eventsTable.startsAt) : asc(eventsTable.startsAt))
+    .limit(limit);
     res.json(await annotateEvents(rows.map((r) => r.event), viewer.id));
     return;
   }
@@ -130,8 +136,6 @@ async function loadActiveUpcomingEvent(id: number): Promise<Event | null> {
   if (!event || event.status !== "active") return null;
   return event;
 }
-
-router.post("/events/:id/rsvp", requireAuth(), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const id = parseInt(req.params.id as string, 10);
   const event = await loadActiveUpcomingEvent(id);
@@ -141,8 +145,8 @@ router.post("/events/:id/rsvp", requireAuth(), async (req, res): Promise<void> =
   }
   const [existing] = await db
     .select()
-    .from(eventRsvpsTable)
-    .where(and(eq(eventRsvpsTable.eventId, id), eq(eventRsvpsTable.userId, user.id)));
+    .from(eventSavesTable)
+    .where(and(eq(eventSavesTable.eventId, id), eq(eventSavesTable.userId, user.id)));
   let rsvped: boolean;
   if (existing) {
     await db.delete(eventRsvpsTable).where(eq(eventRsvpsTable.id, existing.id));
