@@ -2822,7 +2822,6 @@ paths:
                   $ref: "#/components/schemas/AdminBlock"
         "403":
           description: Forbidden
-
 components:
   schemas:
     HealthStatus:
@@ -3880,6 +3879,7 @@ components:
         relatedUserId: { type: ["integer", "null"] }
         relatedPostId: { type: ["integer", "null"] }
         relatedCommentId: { type: ["integer", "null"] }
+        relatedEventId: { type: ["integer", "null"] }
         isRead: { type: boolean }
         createdAt: { type: string }
 

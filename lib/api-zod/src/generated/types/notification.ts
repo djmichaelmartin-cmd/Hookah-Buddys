@@ -18,6 +18,8 @@ export interface Notification {
   relatedPostId?: number | null;
   /** @nullable */
   relatedCommentId?: number | null;
+  /** @nullable */
+  relatedEventId?: number | null;
   isRead: boolean;
   createdAt: string;
 }

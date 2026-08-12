@@ -118,6 +118,7 @@ export default function EventDetail() {
 
   const notFound = isError || (!isLoading && !event);
   const isPast = event ? new Date(event.startsAt).getTime() < Date.now() : false;
+  const cancelled = event?.status === "cancelled";
 
   return (
     <Layout>
@@ -159,11 +160,16 @@ export default function EventDetail() {
               />
             )}
             <div className="p-6 sm:p-8">
+              {cancelled && (
+                <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                  This event has been cancelled.
+                </div>
+              )}
               <div className="flex items-start gap-2">
                 <h1 className="font-serif text-3xl text-white font-bold leading-snug flex-1 min-w-0">
                   {event.title}
                 </h1>
-                {isPast && (
+                {isPast && !cancelled && (
                   <span className="shrink-0 px-2.5 py-1 rounded-full text-xs bg-white/5 text-muted-foreground border border-white/10">
                     Past
                   </span>
@@ -203,7 +209,7 @@ export default function EventDetail() {
                   onClick={() =>
                     loggedIn ? rsvp.mutate({ id: event.id }) : requireLogin()
                   }
-                  disabled={rsvp.isPending || isPast}
+                  disabled={rsvp.isPending || isPast || cancelled}
                   className={
                     event.rsvped
                       ? "inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm bg-primary text-primary-foreground font-medium disabled:opacity-60"
@@ -217,7 +223,7 @@ export default function EventDetail() {
                   onClick={() =>
                     loggedIn ? save.mutate({ id: event.id }) : requireLogin()
                   }
-                  disabled={save.isPending || isPast}
+                  disabled={save.isPending || isPast || cancelled}
                   aria-label={event.saved ? "Unsave event" : "Save event"}
                   className={
                     event.saved

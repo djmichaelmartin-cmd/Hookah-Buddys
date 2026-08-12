@@ -128,7 +128,9 @@ router.delete("/admin/events/:id", requireAuth("admin"), async (req, res): Promi
   // Tell RSVP'd users the event is off before clearing their RSVPs.
   // Only for events that hadn't already been cancelled and haven't started.
   if ((deleted as Event).status !== "cancelled" && (deleted as Event).startsAt > new Date()) {
-    await notifyEventCancelled(deleted as Event);
+    // The event row is gone, so omit the event link — the notification text
+    // carries the full details and there is no page left to resolve.
+    await notifyEventCancelled(deleted as Event, { includeEventLink: false });
   }
   await db.delete(eventRsvpsTable).where(eq(eventRsvpsTable.eventId, id));
   await db.delete(eventSavesTable).where(eq(eventSavesTable.eventId, id));

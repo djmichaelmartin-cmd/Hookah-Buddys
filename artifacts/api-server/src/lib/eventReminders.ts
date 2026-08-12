@@ -36,6 +36,7 @@ async function sendOnce(
   userId: number,
   kind: string,
   notification: { type: string; title: string; message: string },
+  includeEventLink = true,
 ): Promise<boolean> {
   const inserted = await db
     .insert(eventReminderSendsTable)
@@ -43,7 +44,11 @@ async function sendOnce(
     .onConflictDoNothing()
     .returning({ id: eventReminderSendsTable.id });
   if (inserted.length === 0) return false;
-  await createNotification({ userId, ...notification });
+  await createNotification({
+    userId,
+    relatedEventId: includeEventLink ? eventId : null,
+    ...notification,
+  });
   return true;
 }
 
@@ -100,18 +105,28 @@ export async function sendEventReminders(now: Date = new Date()): Promise<void> 
  * Notify everyone who RSVP'd that an event was cancelled (or removed).
  * Deduped via the ledger, so repeated cancel edits don't re-notify.
  */
-export async function notifyEventCancelled(event: Event): Promise<void> {
+export async function notifyEventCancelled(
+  event: Event,
+  options: { includeEventLink?: boolean } = {},
+): Promise<void> {
+  const includeEventLink = options.includeEventLink !== false;
   const rsvps = await db
     .select({ userId: eventRsvpsTable.userId })
     .from(eventRsvpsTable)
     .where(eq(eventRsvpsTable.eventId, event.id));
   for (const rsvp of rsvps) {
     try {
-      await sendOnce(event.id, rsvp.userId, "cancelled", {
-        type: "event_cancelled",
-        title: "Event cancelled",
-        message: `"${event.title}" on ${formatStartsAt(event.startsAt)} at ${eventPlace(event)} has been cancelled.`,
-      });
+      await sendOnce(
+        event.id,
+        rsvp.userId,
+        "cancelled",
+        {
+          type: "event_cancelled",
+          title: "Event cancelled",
+          message: `"${event.title}" on ${formatStartsAt(event.startsAt)} at ${eventPlace(event)} has been cancelled.`,
+        },
+        includeEventLink,
+      );
     } catch (err) {
       logger.error({ err, eventId: event.id, userId: rsvp.userId }, "event cancel notify failed");
     }

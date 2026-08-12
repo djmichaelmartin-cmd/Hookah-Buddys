@@ -9,6 +9,7 @@ export const notificationsTable = pgTable("notifications", {
   relatedUserId: integer("related_user_id"),
   relatedPostId: integer("related_post_id"),
   relatedCommentId: integer("related_comment_id"),
+  relatedEventId: integer("related_event_id"),
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

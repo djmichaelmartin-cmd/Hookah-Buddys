@@ -55,6 +55,7 @@ export default function Notifications() {
   };
 
   const getLink = (n: any) => {
+    if (n.relatedEventId) return `/events/${n.relatedEventId}`;
     if (n.relatedPostId) return `/feed?post=${n.relatedPostId}`;
     if (n.relatedUserId) return `/bros/${n.relatedUserId}`;
     return "#";

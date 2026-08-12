@@ -137,10 +137,15 @@ async function loadActiveEvent(id: number): Promise<Event | null> {
   return event;
 }
 
-// Public: a single active event with full details (404 for missing/cancelled).
+// Public: event detail by id. Cancelled events are included (with status
+// "cancelled") so reminder/cancellation notification links resolve.
 router.get("/events/:id", async (req, res): Promise<void> => {
   const id = parseInt(req.params.id as string, 10);
-  const event = await loadActiveEvent(id);
+  if (!Number.isInteger(id)) {
+    res.status(404).json({ error: "Event not found" });
+    return;
+  }
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, id));
   if (!event) {
     res.status(404).json({ error: "Event not found" });
     return;
