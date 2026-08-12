@@ -18,6 +18,7 @@ async function buildAll() {
     entryPoints: [
       path.resolve(artifactDir, "src/index.ts"),
       path.resolve(artifactDir, "src/scripts/migrateImagesToStorage.ts"),
+      path.resolve(artifactDir, "src/scripts/cleanupOrphanedUploads.ts"),
     ],
     platform: "node",
     bundle: true,
