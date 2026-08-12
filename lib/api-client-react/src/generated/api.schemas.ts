@@ -2238,8 +2238,10 @@ limit?: number;
 
 export type ListEventsParams = {
 limit?: number;
+filter?: ListEventsFilter;
 };
 
+export type ListEventsFilter = typeof ListEventsFilter[keyof typeof ListEventsFilter];
 export type EstimateVideoChatParams = {
 minutes?: number;
 };
@@ -2411,3 +2413,8 @@ export type ListAdminReelsParams = {
 status?: string;
 };
 
+
+export const ListEventsFilter = {
+  going: 'going',
+  saved: 'saved',
+} as const;

@@ -146,16 +146,27 @@ export default function LoungeLeftSidebar({ onSelectCategory }: Props) {
         <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-widest text-muted-foreground/70">
           Hookah Community
         </p>
-        {COMMUNITY_SHORTCUTS.map(({ label, category, icon: Icon }) => (
-          <button
-            key={category}
-            onClick={() => onSelectCategory?.(category)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors text-left"
-          >
-            <Icon className="h-4 w-4 text-primary/70" />
-            {label}
-          </button>
-        ))}
+        {COMMUNITY_SHORTCUTS.map(({ label, category, icon: Icon }) =>
+          category === "event" ? (
+            <Link
+              key={category}
+              href="/events"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors text-left"
+            >
+              <Icon className="h-4 w-4 text-primary/70" />
+              {label}
+            </Link>
+          ) : (
+            <button
+              key={category}
+              onClick={() => onSelectCategory?.(category)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors text-left"
+            >
+              <Icon className="h-4 w-4 text-primary/70" />
+              {label}
+            </button>
+          ),
+        )}
       </div>
 
       {/* Footer links */}

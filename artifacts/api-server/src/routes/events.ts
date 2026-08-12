@@ -78,11 +78,33 @@ async function annotateEvents(events: Event[], viewerUserId: number | null) {
 }
 
 // Public: upcoming active events, soonest first.
+// With filter=going|saved (auth required): the viewer's RSVP'd/saved active
+// events (including past ones), soonest first.
 router.get("/events", async (req, res): Promise<void> => {
   const rawLimit = req.query.limit !== undefined ? Number(req.query.limit) : 10;
   const limit = Number.isFinite(rawLimit)
     ? Math.min(Math.max(Math.trunc(rawLimit), 1), 50)
     : 10;
+
+  const filter = req.query.filter;
+  const viewer = await getSessionUser(req);
+
+  if (filter === "going" || filter === "saved") {
+    if (!viewer) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+    const table = filter === "going" ? eventRsvpsTable : eventSavesTable;
+    const rows = await db
+      .select({ event: eventsTable })
+      .from(table)
+      .innerJoin(eventsTable, eq(table.eventId, eventsTable.id))
+      .where(and(eq(table.userId, viewer.id), eq(eventsTable.status, "active")))
+      .orderBy(asc(eventsTable.startsAt))
+      .limit(limit);
+    res.json(await annotateEvents(rows.map((r) => r.event), viewer.id));
+    return;
+  }
 
   const rows = await db
     .select()
@@ -91,7 +113,6 @@ router.get("/events", async (req, res): Promise<void> => {
     .orderBy(asc(eventsTable.startsAt))
     .limit(limit);
 
-  const viewer = await getSessionUser(req);
   res.json(await annotateEvents(rows, viewer?.id ?? null));
 });
 

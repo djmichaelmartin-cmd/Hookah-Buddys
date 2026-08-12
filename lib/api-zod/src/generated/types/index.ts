@@ -120,6 +120,7 @@ export * from './listAlbumsParams';
 export * from './listBusinessLeadsParams';
 export * from './listBusinessLeadsStatus';
 export * from './listDollsParams';
+export * from './listEventsFilter';
 export * from './listEventsParams';
 export * from './listFeedPostsFilter';
 export * from './listFeedPostsParams';

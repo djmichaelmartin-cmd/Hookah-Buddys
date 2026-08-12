@@ -242,6 +242,12 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
           {events!.map((event) => (
             <EventRow key={event.id} event={event} loggedIn={!!session?.user} />
           ))}
+          <Link
+            href="/events"
+            className="block text-xs text-primary hover:underline mt-2"
+          >
+            See all events →
+          </Link>
         </SectionCard>
       )}
 

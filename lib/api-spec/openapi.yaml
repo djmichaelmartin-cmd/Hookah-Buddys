@@ -637,6 +637,7 @@ paths:
       summary: Upcoming hookah events
       parameters:
         - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: filter, in: query, required: false, schema: { type: string, enum: [going, saved] } }
       responses:
         "200":
           description: OK

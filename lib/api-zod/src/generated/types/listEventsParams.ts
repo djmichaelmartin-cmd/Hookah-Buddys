@@ -5,7 +5,9 @@
  * HookahDolls platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ListEventsFilter } from './listEventsFilter';
 
 export type ListEventsParams = {
 limit?: number;
+filter?: ListEventsFilter;
 };
