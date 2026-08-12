@@ -1712,6 +1712,7 @@ export interface PrivacySettings {
   allowSearchByEmail: PrivacySettingsAllowSearchByEmail;
   allowSearchByPhone: PrivacySettingsAllowSearchByPhone;
   allowExternalSearchIndexing: boolean;
+  showOnlineStatus: boolean;
 }
 
 export type PrivacySettingsInputDefaultPostAudience = typeof PrivacySettingsInputDefaultPostAudience[keyof typeof PrivacySettingsInputDefaultPostAudience];
@@ -1798,6 +1799,28 @@ export interface PrivacySettingsInput {
   allowSearchByEmail?: PrivacySettingsInputAllowSearchByEmail;
   allowSearchByPhone?: PrivacySettingsInputAllowSearchByPhone;
   allowExternalSearchIndexing?: boolean;
+  showOnlineStatus?: boolean;
+}
+
+export type OnlineUserRole = typeof OnlineUserRole[keyof typeof OnlineUserRole];
+
+
+export const OnlineUserRole = {
+  doll: 'doll',
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+export interface OnlineUser {
+  id: number;
+  role: OnlineUserRole;
+  displayName: string;
+  profilePhotoUrl?: string | null;
+  city?: string | null;
+  state?: string | null;
+  dollId?: number | null;
+  verified?: boolean;
+  lastActiveAt: string;
 }
 
 export interface FriendRequestInput {

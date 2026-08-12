@@ -45,6 +45,7 @@ export default function PrivacySettings() {
   const [allowSearchByEmail, setAllowSearchByEmail] = useState<PrivacySettingsInputAllowSearchByEmail>("everyone");
   const [allowSearchByPhone, setAllowSearchByPhone] = useState<PrivacySettingsInputAllowSearchByPhone>("everyone");
   const [allowExternalSearchIndexing, setAllowExternalSearchIndexing] = useState<boolean>(true);
+  const [showOnlineStatus, setShowOnlineStatus] = useState<boolean>(true);
 
   useEffect(() => {
     if (settings) {
@@ -58,6 +59,7 @@ export default function PrivacySettings() {
       if (settings.allowSearchByEmail) setAllowSearchByEmail(settings.allowSearchByEmail);
       if (settings.allowSearchByPhone) setAllowSearchByPhone(settings.allowSearchByPhone);
       if (settings.allowExternalSearchIndexing !== undefined) setAllowExternalSearchIndexing(settings.allowExternalSearchIndexing);
+      if (settings.showOnlineStatus !== undefined) setShowOnlineStatus(settings.showOnlineStatus);
     }
   }, [settings]);
 
@@ -83,6 +85,7 @@ export default function PrivacySettings() {
       allowSearchByEmail,
       allowSearchByPhone,
       allowExternalSearchIndexing,
+      showOnlineStatus,
     };
 
     updateSettings.mutate({ data: input });
@@ -332,6 +335,19 @@ export default function PrivacySettings() {
                 />
                 <Label htmlFor="allowExternalSearchIndexing" className="cursor-pointer">
                   Allow search engines outside of HookahDolls to link to your profile
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="checkbox"
+                  id="showOnlineStatus"
+                  checked={showOnlineStatus}
+                  onChange={(e) => setShowOnlineStatus(e.target.checked)}
+                  className="w-4 h-4 rounded border-white/20 bg-background/50 text-primary"
+                />
+                <Label htmlFor="showOnlineStatus" className="cursor-pointer">
+                  Show when you're online in The Lounge
                 </Label>
               </div>
             </div>

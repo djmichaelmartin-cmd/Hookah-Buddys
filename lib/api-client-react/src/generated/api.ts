@@ -115,6 +115,7 @@ import type {
   ModerationInput,
   MyProfileData,
   Notification,
+  OnlineUser,
   Photo,
   PhotoAlbum,
   PhotoAlbumInput,
@@ -8602,6 +8603,153 @@ export const useUpdatePrivacySettings = <TError = ErrorType<void>,
       > => {
       return useMutation(getUpdatePrivacySettingsMutationOptions(options));
     }
+
+export const getPresenceHeartbeatUrl = () => {
+
+
+
+
+  return `/api/presence/heartbeat`
+}
+
+/**
+ * @summary Record that the current user is active
+ */
+export const presenceHeartbeat = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getPresenceHeartbeatUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getPresenceHeartbeatMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof presenceHeartbeat>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof presenceHeartbeat>>, TError,void, TContext> => {
+
+const mutationKey = ['presenceHeartbeat'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof presenceHeartbeat>>, void> = () => {
+
+
+          return  presenceHeartbeat(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PresenceHeartbeatMutationResult = NonNullable<Awaited<ReturnType<typeof presenceHeartbeat>>>
+
+    export type PresenceHeartbeatMutationError = ErrorType<void>
+
+    /**
+ * @summary Record that the current user is active
+ */
+export const usePresenceHeartbeat = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof presenceHeartbeat>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof presenceHeartbeat>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getPresenceHeartbeatMutationOptions(options));
+    }
+
+export const getListOnlineUsersUrl = () => {
+
+
+
+
+  return `/api/presence/online`
+}
+
+/**
+ * @summary List users recently active who share their online status
+ */
+export const listOnlineUsers = async ( options?: RequestInit): Promise<OnlineUser[]> => {
+
+  return customFetch<OnlineUser[]>(getListOnlineUsersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOnlineUsersQueryKey = () => {
+    return [
+    `/api/presence/online`
+    ] as const;
+    }
+
+
+export const getListOnlineUsersQueryOptions = <TData = Awaited<ReturnType<typeof listOnlineUsers>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOnlineUsers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOnlineUsersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOnlineUsers>>> = ({ signal }) => listOnlineUsers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOnlineUsers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOnlineUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listOnlineUsers>>>
+export type ListOnlineUsersQueryError = ErrorType<void>
+
+
+/**
+ * @summary List users recently active who share their online status
+ */
+
+export function useListOnlineUsers<TData = Awaited<ReturnType<typeof listOnlineUsers>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOnlineUsers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOnlineUsersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getListFriendRequestsUrl = () => {
 

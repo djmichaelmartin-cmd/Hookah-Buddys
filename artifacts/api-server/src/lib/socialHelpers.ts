@@ -333,6 +333,7 @@ export function privacySettingsToResponse(s: PrivacySettings) {
     allowSearchByEmail: s.allowSearchByEmail,
     allowSearchByPhone: s.allowSearchByPhone,
     allowExternalSearchIndexing: s.allowExternalSearchIndexing === "true",
+    showOnlineStatus: s.showOnlineStatus === "true",
   };
 }
 

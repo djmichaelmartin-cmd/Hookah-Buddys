@@ -160,6 +160,8 @@ export * from './moderationInputDecision';
 export * from './myProfileData';
 export * from './myProfileDataProfileCompletion';
 export * from './notification';
+export * from './onlineUser';
+export * from './onlineUserRole';
 export * from './photo';
 export * from './photoAlbum';
 export * from './photoAlbumAlbumType';

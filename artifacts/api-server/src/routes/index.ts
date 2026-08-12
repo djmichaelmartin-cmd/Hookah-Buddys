@@ -32,6 +32,7 @@ import adminPlansRouter from "./adminPlans";
 import storageRouter from "./storage";
 import eventsRouter from "./events";
 import adminEventsRouter from "./adminEvents";
+import presenceRouter from "./presence";
 
 const router: IRouter = Router();
 
@@ -68,5 +69,6 @@ router.use(adminPlansRouter);
 router.use(storageRouter);
 router.use(eventsRouter);
 router.use(adminEventsRouter);
+router.use(presenceRouter);
 
 export default router;

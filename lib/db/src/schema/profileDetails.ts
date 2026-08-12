@@ -77,6 +77,7 @@ export const privacySettingsTable = pgTable(
     allowSearchByEmail: text("allow_search_by_email").notNull().default("no_one"),
     allowSearchByPhone: text("allow_search_by_phone").notNull().default("no_one"),
     allowExternalSearchIndexing: text("allow_external_search_indexing").notNull().default("false"),
+    showOnlineStatus: text("show_online_status").notNull().default("true"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()

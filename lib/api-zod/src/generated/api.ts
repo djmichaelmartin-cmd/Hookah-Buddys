@@ -2624,7 +2624,8 @@ export const GetPrivacySettingsResponse = zod.object({
   "requireTagReview": zod.boolean(),
   "allowSearchByEmail": zod.enum(['everyone', 'friends', 'no_one']),
   "allowSearchByPhone": zod.enum(['everyone', 'friends', 'no_one']),
-  "allowExternalSearchIndexing": zod.boolean()
+  "allowExternalSearchIndexing": zod.boolean(),
+  "showOnlineStatus": zod.boolean()
 })
 
 
@@ -2641,7 +2642,8 @@ export const UpdatePrivacySettingsBody = zod.object({
   "requireTagReview": zod.boolean().optional(),
   "allowSearchByEmail": zod.enum(['everyone', 'friends', 'no_one']).optional(),
   "allowSearchByPhone": zod.enum(['everyone', 'friends', 'no_one']).optional(),
-  "allowExternalSearchIndexing": zod.boolean().optional()
+  "allowExternalSearchIndexing": zod.boolean().optional(),
+  "showOnlineStatus": zod.boolean().optional()
 })
 
 export const UpdatePrivacySettingsResponse = zod.object({
@@ -2654,8 +2656,26 @@ export const UpdatePrivacySettingsResponse = zod.object({
   "requireTagReview": zod.boolean(),
   "allowSearchByEmail": zod.enum(['everyone', 'friends', 'no_one']),
   "allowSearchByPhone": zod.enum(['everyone', 'friends', 'no_one']),
-  "allowExternalSearchIndexing": zod.boolean()
+  "allowExternalSearchIndexing": zod.boolean(),
+  "showOnlineStatus": zod.boolean()
 })
+
+
+/**
+ * @summary List users recently active who share their online status
+ */
+export const ListOnlineUsersResponseItem = zod.object({
+  "id": zod.number(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "displayName": zod.string(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "dollId": zod.number().nullish(),
+  "verified": zod.boolean().optional(),
+  "lastActiveAt": zod.coerce.date()
+})
+export const ListOnlineUsersResponse = zod.array(ListOnlineUsersResponseItem)
 
 
 /**

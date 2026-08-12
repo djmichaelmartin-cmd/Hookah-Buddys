@@ -10,6 +10,9 @@ import {
   getListEventsQueryKey,
   useListTrendingHashtags,
   type Event,
+  useListOnlineUsers,
+  getListOnlineUsersQueryKey,
+  type OnlineUser,
 } from "@workspace/api-client-react";
 import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +64,34 @@ function DollRow({ doll, online }: { doll: any; online?: boolean }) {
   );
 }
 
+function OnlineUserRow({ user }: { user: OnlineUser }) {
+  const href = user.role === "doll" && user.dollId ? `/dolls/${user.dollId}` : `/bros/${user.id}`;
+  return (
+    <Link href={href} className="flex items-center gap-3 py-1.5 group">
+      <div className="relative shrink-0">
+        {user.profilePhotoUrl ? (
+          <img
+            src={user.profilePhotoUrl}
+            alt=""
+            className="h-9 w-9 rounded-full object-cover border border-white/10"
+          />
+        ) : (
+          <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20" />
+        )}
+        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm text-white truncate group-hover:text-primary transition-colors flex items-center gap-1">
+          {user.displayName}
+          {user.verified && <BadgeCheck className="h-3.5 w-3.5 text-primary shrink-0" />}
+        </p>
+        <p className="text-xs text-muted-foreground truncate">
+          {user.city && user.state ? `${user.city}, ${user.state}` : user.role === "doll" ? "Doll" : "Bro"}
+        </p>
+      </div>
+    </Link>
+  );
+}
 function formatEventDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleString(undefined, {
@@ -162,24 +193,32 @@ function EventRow({ event, loggedIn }: { event: Event; loggedIn: boolean }) {
 
 export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory, onSelectHashtag, activeHashtag }: Props) {
   const { data: session } = useGetCurrentUser();
-  const { data: onlineDolls } = useListDolls({ online: true });
+  const { data: onlineUsers } = useListOnlineUsers({
+    query: {
+      queryKey: getListOnlineUsersQueryKey(),
+      refetchInterval: 60_000,
+      enabled: !!session?.user,
+    },
+  });
   const { data: featuredDolls } = useListDolls({ featured: true });
   const { data: lounges } = useListLounges({ limit: 3 });
   const { data: events } = useListEvents({ limit: 4 });
   const { data: trendingHashtags } = useListTrendingHashtags({ limit: 6 });
 
-  const onlineList = (onlineDolls ?? []).slice(0, 5);
-  const onlineIds = new Set(onlineList.map((d) => d.id));
+  const onlineList = (onlineUsers ?? []).slice(0, 5);
+  const onlineDollIds = new Set(
+    onlineList.filter((u) => u.role === "doll" && u.dollId).map((u) => u.dollId as number),
+  );
   const suggested = (featuredDolls ?? [])
-    .filter((d) => !onlineIds.has(d.id))
+    .filter((d) => !onlineDollIds.has(d.id))
     .slice(0, 4);
 
   return (
     <aside className="space-y-4">
       {onlineList.length > 0 && (
         <SectionCard title="Online Now">
-          {onlineList.map((doll) => (
-            <DollRow key={doll.id} doll={doll} online />
+          {onlineList.map((user) => (
+            <OnlineUserRow key={user.id} user={user} />
           ))}
         </SectionCard>
       )}

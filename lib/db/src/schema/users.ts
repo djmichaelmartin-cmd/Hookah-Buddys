@@ -15,6 +15,7 @@ export const usersTable = pgTable("users", {
   rulesAccepted: boolean("rules_accepted").notNull().default(false),
   profilePhotoUrl: text("profile_photo_url"),
   dollId: integer("doll_id"),
+  lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

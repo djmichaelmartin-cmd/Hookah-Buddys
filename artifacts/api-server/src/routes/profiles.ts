@@ -422,6 +422,7 @@ router.put("/settings/privacy", requireAuth(), async (req, res): Promise<void> =
   if (input.allowSearchByPhone !== undefined) updates.allowSearchByPhone = input.allowSearchByPhone;
   if (input.allowExternalSearchIndexing !== undefined)
     updates.allowExternalSearchIndexing = String(input.allowExternalSearchIndexing);
+  if (input.showOnlineStatus !== undefined) updates.showOnlineStatus = String(input.showOnlineStatus);
   if (Object.keys(updates).length > 0) {
     await db.update(privacySettingsTable).set(updates).where(eq(privacySettingsTable.userId, user.id));
   }

@@ -35,8 +35,14 @@ import ProfileEdit from "@/pages/ProfileEdit";
 import PrivacySettings from "@/pages/PrivacySettings";
 import Friends from "@/pages/Friends";
 import Reels from "@/pages/Reels";
+import { usePresenceHeartbeatLoop } from "@/hooks/use-presence-heartbeat";
 
 const queryClient = new QueryClient();
+
+function PresenceHeartbeat() {
+  usePresenceHeartbeatLoop();
+  return null;
+}
 
 function Router() {
   return (
@@ -85,6 +91,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <PresenceHeartbeat />
           <Router />
         </WouterRouter>
         <Toaster />

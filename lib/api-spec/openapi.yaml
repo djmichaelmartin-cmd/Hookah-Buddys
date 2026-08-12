@@ -2043,6 +2043,34 @@ paths:
         "401":
           description: Unauthorized
 
+  /presence/heartbeat:
+    post:
+      operationId: presenceHeartbeat
+      tags: [presence]
+      summary: Record that the current user is active
+      responses:
+        "204":
+          description: Recorded
+        "401":
+          description: Unauthorized
+
+  /presence/online:
+    get:
+      operationId: listOnlineUsers
+      tags: [presence]
+      summary: List users recently active who share their online status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OnlineUser"
+        "401":
+          description: Unauthorized
+
   /friends/requests:
     get:
       operationId: listFriendRequests
@@ -4009,7 +4037,7 @@ components:
 
     PrivacySettings:
       type: object
-      required: [defaultPostAudience, showFriendsList, showFollowersList, allowFriendRequestsFrom, allowMessagesFrom, allowTagging, requireTagReview, allowSearchByEmail, allowSearchByPhone, allowExternalSearchIndexing]
+      required: [defaultPostAudience, showFriendsList, showFollowersList, allowFriendRequestsFrom, allowMessagesFrom, allowTagging, requireTagReview, allowSearchByEmail, allowSearchByPhone, allowExternalSearchIndexing, showOnlineStatus]
       properties:
         defaultPostAudience: { type: string, enum: [public, friends, followers, only_me] }
         showFriendsList: { type: string, enum: [public, friends, only_me] }
@@ -4021,6 +4049,7 @@ components:
         allowSearchByEmail: { type: string, enum: [everyone, friends, no_one] }
         allowSearchByPhone: { type: string, enum: [everyone, friends, no_one] }
         allowExternalSearchIndexing: { type: boolean }
+        showOnlineStatus: { type: boolean }
 
     PrivacySettingsInput:
       type: object
@@ -4035,6 +4064,21 @@ components:
         allowSearchByEmail: { type: string, enum: [everyone, friends, no_one] }
         allowSearchByPhone: { type: string, enum: [everyone, friends, no_one] }
         allowExternalSearchIndexing: { type: boolean }
+        showOnlineStatus: { type: boolean }
+
+    OnlineUser:
+      type: object
+      required: [id, role, displayName, lastActiveAt]
+      properties:
+        id: { type: integer }
+        role: { type: string, enum: [doll, member, admin] }
+        displayName: { type: string }
+        profilePhotoUrl: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        state: { type: string, nullable: true }
+        dollId: { type: integer, nullable: true }
+        verified: { type: boolean }
+        lastActiveAt: { type: string, format: date-time }
 
     FriendRequestInput:
       type: object

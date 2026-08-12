@@ -25,4 +25,5 @@ export interface PrivacySettings {
   allowSearchByEmail: PrivacySettingsAllowSearchByEmail;
   allowSearchByPhone: PrivacySettingsAllowSearchByPhone;
   allowExternalSearchIndexing: boolean;
+  showOnlineStatus: boolean;
 }
