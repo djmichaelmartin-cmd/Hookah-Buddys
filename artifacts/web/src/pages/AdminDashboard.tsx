@@ -11,6 +11,7 @@ import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins,
 import { useToast } from "@/hooks/use-toast";
 import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
+import AdminPlans from "@/pages/AdminPlans";
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
@@ -122,6 +123,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="blocks"><AlertTriangle className="w-4 h-4 mr-2"/> Blocks</TabsTrigger>
             <TabsTrigger value="profiles"><Search className="w-4 h-4 mr-2"/> Profiles</TabsTrigger>
             <TabsTrigger value="credits"><Coins className="w-4 h-4 mr-2"/> Credits</TabsTrigger>
+            <TabsTrigger value="plans"><FileText className="w-4 h-4 mr-2"/> Plans</TabsTrigger>
             <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
           </TabsList>
           
@@ -323,6 +325,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="credits">
             <AdminCredits />
+          </TabsContent>
+
+          <TabsContent value="plans">
+            <AdminPlans />
           </TabsContent>
 
           <TabsContent value="leads">

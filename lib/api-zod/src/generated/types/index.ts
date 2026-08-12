@@ -164,6 +164,7 @@ export * from './photoStatus';
 export * from './photoVisibility';
 export * from './plan';
 export * from './planAudience';
+export * from './planUpdate';
 export * from './privacySettings';
 export * from './privacySettingsAllowFriendRequestsFrom';
 export * from './privacySettingsAllowMessagesFrom';

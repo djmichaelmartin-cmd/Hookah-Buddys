@@ -1139,6 +1139,82 @@ export const UpdateUserStatusResponse = zod.object({
 
 
 /**
+ * @summary All pricing plans (Admin)
+ */
+export const ListAdminPlansResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "slug": zod.string().optional(),
+  "stripePriceId": zod.string().optional(),
+  "audience": zod.enum(['member', 'doll']),
+  "price": zod.number(),
+  "interval": zod.string().optional(),
+  "tier": zod.string(),
+  "description": zod.string().optional(),
+  "features": zod.array(zod.string()).optional(),
+  "highlighted": zod.boolean().optional(),
+  "monthlyCredits": zod.number()
+})
+export const ListAdminPlansResponse = zod.array(ListAdminPlansResponseItem)
+
+
+/**
+ * @summary Get a pricing plan (Admin)
+ */
+export const GetAdminPlanParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetAdminPlanResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "slug": zod.string().optional(),
+  "stripePriceId": zod.string().optional(),
+  "audience": zod.enum(['member', 'doll']),
+  "price": zod.number(),
+  "interval": zod.string().optional(),
+  "tier": zod.string(),
+  "description": zod.string().optional(),
+  "features": zod.array(zod.string()).optional(),
+  "highlighted": zod.boolean().optional(),
+  "monthlyCredits": zod.number()
+})
+
+
+/**
+ * @summary Update plan copy (Admin)
+ */
+export const UpdateAdminPlanParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+export const UpdateAdminPlanBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "description": zod.string().optional(),
+  "features": zod.array(zod.string().min(1)).optional()
+})
+
+export const UpdateAdminPlanResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "slug": zod.string().optional(),
+  "stripePriceId": zod.string().optional(),
+  "audience": zod.enum(['member', 'doll']),
+  "price": zod.number(),
+  "interval": zod.string().optional(),
+  "tier": zod.string(),
+  "description": zod.string().optional(),
+  "features": zod.array(zod.string()).optional(),
+  "highlighted": zod.boolean().optional(),
+  "monthlyCredits": zod.number()
+})
+
+
+/**
  * @summary All credit packages including inactive (Admin)
  */
 export const ListAdminCreditPackagesResponseItem = zod.object({

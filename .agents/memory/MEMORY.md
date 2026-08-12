@@ -19,4 +19,5 @@
 - [Image upload security](storage-upload-finalize.md) — presigned PUT can't bound size/type; use a bounded server endpoint with byte sniffing + owner ACL, and guard every write path incl. registration.
 - [Feed video transcode](feed-video-transcode.md) — ffmpeg exits 0 on seek-past-end with no output (check the file, not the code); new media-URL columns must be added to the orphan-cleanup reference scan.
 - [Payment provider](payment-provider.md) — user declined Stripe; Authorize.net planned. Keep the provider-agnostic 402 payment gate; swap checkout/webhook internals later.
+- [Plans copy source of truth](plans-copy-source-of-truth.md) — plan name/description/features are DB-owned via admin UI; startup sync must not overwrite them (only structural fields).
 - [Per-Doll revenue model](shared-doll-earnings-model.md) — Doll analytics & admin per-Doll revenue use one computeDollEarnings helper; illustrative GMV, NOT the platform subscription revenue.

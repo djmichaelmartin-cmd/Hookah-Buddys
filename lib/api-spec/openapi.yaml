@@ -1037,6 +1037,61 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdminUser"
 
+  /admin/plans:
+    get:
+      operationId: listAdminPlans
+      tags: [admin]
+      summary: All pricing plans (Admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+        "403":
+          description: Forbidden
+
+  /admin/plans/{id}:
+    get:
+      operationId: getAdminPlan
+      tags: [admin]
+      summary: Get a pricing plan (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateAdminPlan
+      tags: [admin]
+      summary: Update plan copy (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        "404":
+          description: Not found
+
   /admin/credit-packages:
     get:
       operationId: listAdminCreditPackages
@@ -2897,6 +2952,15 @@ components:
           items: { type: string }
         highlighted: { type: boolean }
         monthlyCredits: { type: integer }
+
+    PlanUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+        features:
+          type: array
+          items: { type: string, minLength: 1 }
 
     Lounge:
       type: object

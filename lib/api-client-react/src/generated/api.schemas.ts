@@ -371,6 +371,13 @@ export interface Plan {
   monthlyCredits: number;
 }
 
+export interface PlanUpdate {
+  /** @minLength 1 */
+  name?: string;
+  description?: string;
+  features?: string[];
+}
+
 export interface Lounge {
   id: number;
   name: string;

@@ -207,13 +207,17 @@ export async function syncPlans(): Promise<void> {
     if (existing) {
       // Never overwrite stripePriceId — it is managed by the payment provider
       // setup flow and must survive repeated server restarts.
+      //
+      // Copy fields (name, description, features) are intentionally NOT synced
+      // for existing rows: they are editable live via the admin Plans UI
+      // (PATCH /api/admin/plans/:id) and the database is their source of
+      // truth. Overwriting them here would silently revert admin edits on
+      // every deploy. Structural fields (tier, slug, credits, highlight) stay
+      // code-managed.
       await db
         .update(plansTable)
         .set({
-          name: plan.name,
           tier: plan.tier,
-          description: plan.description,
-          features: plan.features,
           highlighted: plan.highlighted,
           monthlyCredits: plan.monthlyCredits,
           ...(plan.slug !== undefined && { slug: plan.slug }),

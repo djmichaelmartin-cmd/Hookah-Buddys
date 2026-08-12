@@ -113,6 +113,7 @@ import type {
   PhotoAlbumInput,
   PhotoInput,
   Plan,
+  PlanUpdate,
   PrivacySettings,
   PrivacySettingsInput,
   ProfileUpdateInput,
@@ -4221,6 +4222,232 @@ export const useUpdateUserStatus = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateUserStatusMutationOptions(options));
+    }
+
+export const getListAdminPlansUrl = () => {
+
+
+
+
+  return `/api/admin/plans`
+}
+
+/**
+ * @summary All pricing plans (Admin)
+ */
+export const listAdminPlans = async ( options?: RequestInit): Promise<Plan[]> => {
+
+  return customFetch<Plan[]>(getListAdminPlansUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminPlansQueryKey = () => {
+    return [
+    `/api/admin/plans`
+    ] as const;
+    }
+
+
+export const getListAdminPlansQueryOptions = <TData = Awaited<ReturnType<typeof listAdminPlans>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminPlans>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminPlansQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminPlans>>> = ({ signal }) => listAdminPlans({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminPlans>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminPlansQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminPlans>>>
+export type ListAdminPlansQueryError = ErrorType<void>
+
+
+/**
+ * @summary All pricing plans (Admin)
+ */
+
+export function useListAdminPlans<TData = Awaited<ReturnType<typeof listAdminPlans>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminPlans>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminPlansQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAdminPlanUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/plans/${id}`
+}
+
+/**
+ * @summary Get a pricing plan (Admin)
+ */
+export const getAdminPlan = async (id: number, options?: RequestInit): Promise<Plan> => {
+
+  return customFetch<Plan>(getGetAdminPlanUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminPlanQueryKey = (id: number,) => {
+    return [
+    `/api/admin/plans/${id}`
+    ] as const;
+    }
+
+
+export const getGetAdminPlanQueryOptions = <TData = Awaited<ReturnType<typeof getAdminPlan>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminPlan>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminPlanQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminPlan>>> = ({ signal }) => getAdminPlan(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminPlan>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminPlanQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminPlan>>>
+export type GetAdminPlanQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a pricing plan (Admin)
+ */
+
+export function useGetAdminPlan<TData = Awaited<ReturnType<typeof getAdminPlan>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminPlan>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminPlanQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateAdminPlanUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/plans/${id}`
+}
+
+/**
+ * @summary Update plan copy (Admin)
+ */
+export const updateAdminPlan = async (id: number,
+    planUpdate: PlanUpdate, options?: RequestInit): Promise<Plan> => {
+
+  return customFetch<Plan>(getUpdateAdminPlanUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      planUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateAdminPlanMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminPlan>>, TError,{id: number;data: BodyType<PlanUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminPlan>>, TError,{id: number;data: BodyType<PlanUpdate>}, TContext> => {
+
+const mutationKey = ['updateAdminPlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminPlan>>, {id: number;data: BodyType<PlanUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminPlan(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminPlanMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminPlan>>>
+    export type UpdateAdminPlanMutationBody = BodyType<PlanUpdate>
+    export type UpdateAdminPlanMutationError = ErrorType<void>
+
+    /**
+ * @summary Update plan copy (Admin)
+ */
+export const useUpdateAdminPlan = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminPlan>>, TError,{id: number;data: BodyType<PlanUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminPlan>>,
+        TError,
+        {id: number;data: BodyType<PlanUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminPlanMutationOptions(options));
     }
 
 export const getListAdminCreditPackagesUrl = () => {
