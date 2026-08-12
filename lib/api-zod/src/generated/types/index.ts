@@ -65,6 +65,7 @@ export * from './enhancedProfileRole';
 export * from './errorEnvelope';
 export * from './estimateVideoChatParams';
 export * from './event';
+export * from './eventAttendee';
 export * from './eventRsvpResult';
 export * from './eventSaveResult';
 export * from './eventStatus';

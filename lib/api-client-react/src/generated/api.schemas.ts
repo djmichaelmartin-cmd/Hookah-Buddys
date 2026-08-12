@@ -386,6 +386,13 @@ export const EventStatus = {
   cancelled: 'cancelled',
 } as const;
 
+export interface EventAttendee {
+  id: number;
+  name: string;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+}
+
 export interface Event {
   id: number;
   title: string;
@@ -406,6 +413,10 @@ export interface Event {
   rsvpCount: number;
   rsvped: boolean;
   saved: boolean;
+  /** Preview of RSVP'd members (detail route only) */
+  attendees?: EventAttendee[];
+  /** Total visible attendees under the same eligibility filters as the preview (detail route only) */
+  attendeeCount?: number;
 }
 
 export interface EventRsvpResult {
@@ -2431,4 +2442,3 @@ status?: string;
 export type ListAdminReelsParams = {
 status?: string;
 };
-

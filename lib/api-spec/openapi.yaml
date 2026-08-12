@@ -3154,6 +3154,22 @@ components:
         rsvpCount: { type: integer }
         rsvped: { type: boolean }
         saved: { type: boolean }
+        attendees:
+          type: array
+          description: Preview of RSVP'd members (detail route only)
+          items:
+            $ref: "#/components/schemas/EventAttendee"
+        attendeeCount:
+          type: integer
+          description: Total visible attendees under the same eligibility filters as the preview (detail route only)
+
+    EventAttendee:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        profilePhotoUrl: { type: ["string", "null"] }
 
     EventRsvpResult:
       type: object

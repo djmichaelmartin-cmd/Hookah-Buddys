@@ -5,6 +5,7 @@
  * HookahDolls platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { EventAttendee } from './eventAttendee';
 import type { EventStatus } from './eventStatus';
 
 export interface Event {
@@ -27,4 +28,8 @@ export interface Event {
   rsvpCount: number;
   rsvped: boolean;
   saved: boolean;
+  /** Preview of RSVP'd members (detail route only) */
+  attendees?: EventAttendee[];
+  /** Total visible attendees under the same eligibility filters as the preview (detail route only) */
+  attendeeCount?: number;
 }

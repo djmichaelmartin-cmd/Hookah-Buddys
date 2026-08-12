@@ -198,6 +198,49 @@ export default function EventDetail() {
                 </p>
               </div>
 
+              {event.attendees && event.attendees.length > 0 && (
+                <div className="mt-5" data-testid="attendee-preview">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground/70 mb-2.5">
+                    Who's going
+                  </p>
+                  <div className="flex items-center">
+                    <div className="flex -space-x-2.5">
+                      {event.attendees.map((a) =>
+                        a.profilePhotoUrl ? (
+                          <img
+                            key={a.id}
+                            src={a.profilePhotoUrl}
+                            alt={a.name}
+                            title={a.name}
+                            className="h-9 w-9 rounded-full object-cover ring-2 ring-background bg-card"
+                          />
+                        ) : (
+                          <div
+                            key={a.id}
+                            title={a.name}
+                            className="h-9 w-9 rounded-full ring-2 ring-background bg-primary/20 text-primary flex items-center justify-center text-xs font-semibold uppercase"
+                          >
+                            {a.name.slice(0, 1)}
+                          </div>
+                        ),
+                      )}
+                    </div>
+                    {(event.attendeeCount ?? 0) > event.attendees.length && (
+                      <span className="ml-3 text-sm text-muted-foreground">
+                        +{(event.attendeeCount ?? 0) - event.attendees.length} more
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground/90 truncate">
+                    {event.attendees
+                      .slice(0, 3)
+                      .map((a) => a.name)
+                      .join(", ")}
+                    {event.attendees.length > 3 ? " and others are going" : " going"}
+                  </p>
+                </div>
+              )}
+
               {event.description && (
                 <p className="text-sm text-muted-foreground/90 mt-6 whitespace-pre-line leading-relaxed">
                   {event.description}

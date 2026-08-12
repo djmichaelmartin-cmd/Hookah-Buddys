@@ -1,13 +1,15 @@
 import { Router, type IRouter } from "express";
-import { and, asc, count, desc, eq, gt, inArray, lte } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, inArray, lte, notInArray } from "drizzle-orm";
 import {
   db,
   eventsTable,
   eventRsvpsTable,
   eventSavesTable,
+  usersTable,
   type Event,
 } from "@workspace/db";
 import { getSessionUser, requireAuth } from "../lib/auth";
+import { loadAudienceSets } from "../lib/socialHelpers";
 
 const router: IRouter = Router();
 
@@ -137,8 +139,61 @@ async function loadActiveEvent(id: number): Promise<Event | null> {
   return event;
 }
 
-// Public: event detail by id. Cancelled events are included (with status
-// "cancelled") so reminder/cancellation notification links resolve.
+const ATTENDEE_PREVIEW_LIMIT = 8;
+
+/**
+ * First 8 RSVP'd users for the avatar stack on the event page, plus the
+ * eligibility-filtered total. Applies the same guards as elsewhere: only
+ * active accounts, and users blocked either way (viewer blocked them or
+ * they blocked the viewer) are excluded — in the query itself, so the
+ * preview always fills to the limit when enough eligible attendees exist
+ * and the "+N more" count never reveals hidden profiles.
+ */
+async function loadAttendeePreview(
+  eventId: number,
+  viewer: { id: number } | null,
+) {
+  const sets = await loadAudienceSets(viewer?.id ?? null);
+  const blockedIds = [...sets.blockedEitherWay];
+  const conditions = [
+    eq(eventRsvpsTable.eventId, eventId),
+    eq(usersTable.accountStatus, "active"),
+  ];
+  if (blockedIds.length > 0) {
+    conditions.push(notInArray(usersTable.id, blockedIds));
+  }
+  const [rows, [{ n: attendeeCount }]] = await Promise.all([
+    db
+      .select({
+        userId: usersTable.id,
+        name: usersTable.name,
+        username: usersTable.username,
+        profilePhotoUrl: usersTable.profilePhotoUrl,
+      })
+      .from(eventRsvpsTable)
+      .innerJoin(usersTable, eq(eventRsvpsTable.userId, usersTable.id))
+      .where(and(...conditions))
+      .orderBy(asc(eventRsvpsTable.createdAt))
+      .limit(ATTENDEE_PREVIEW_LIMIT),
+    db
+      .select({ n: count() })
+      .from(eventRsvpsTable)
+      .innerJoin(usersTable, eq(eventRsvpsTable.userId, usersTable.id))
+      .where(and(...conditions)),
+  ]);
+  return {
+    attendees: rows.map((r) => ({
+      id: r.userId,
+      name: r.username ?? r.name,
+      profilePhotoUrl: r.profilePhotoUrl ?? null,
+    })),
+    attendeeCount: Number(attendeeCount),
+  };
+}
+
+// Public: event detail by id, plus an attendee preview. Cancelled events are
+// included (with status "cancelled") so reminder/cancellation notification
+// links resolve.
 router.get("/events/:id", async (req, res): Promise<void> => {
   const id = parseInt(req.params.id as string, 10);
   if (!Number.isInteger(id)) {
@@ -151,8 +206,15 @@ router.get("/events/:id", async (req, res): Promise<void> => {
     return;
   }
   const viewer = await getSessionUser(req);
-  const [annotated] = await annotateEvents([event], viewer?.id ?? null);
-  res.json(annotated);
+  const [[annotated], preview] = await Promise.all([
+    annotateEvents([event], viewer?.id ?? null),
+    loadAttendeePreview(id, viewer),
+  ]);
+  res.json({
+    ...annotated,
+    attendees: preview.attendees,
+    attendeeCount: preview.attendeeCount,
+  });
 });
 
 router.post("/events/:id/rsvp", requireAuth(), async (req, res): Promise<void> => {
