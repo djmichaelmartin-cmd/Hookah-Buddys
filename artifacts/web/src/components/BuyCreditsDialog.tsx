@@ -105,7 +105,7 @@ export function CreditPackageGrid({
             key={pkg.id}
             className={`relative flex flex-col rounded-2xl border p-6 bg-card/50 backdrop-blur-xl ${
               pkg.label
-                ? "border-primary shadow-[0_0_30px_rgba(254,0,1,0.18)]"
+                ? "border-primary shadow-[0_0_30px_rgba(255,36,46,0.18)]"
                 : "border-white/10"
             }`}
           >

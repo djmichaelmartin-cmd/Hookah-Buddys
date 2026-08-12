@@ -213,7 +213,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
                   className={`rounded-full px-6 h-11 font-semibold ${
                     profile.viewerFollows
                       ? "border-white/20 text-white hover:bg-white/10"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(254,0,1,0.3)]"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(255,36,46,0.3)]"
                   }`}
                 >
                   {profile.viewerFollows ? (

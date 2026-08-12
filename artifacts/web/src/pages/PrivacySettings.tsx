@@ -116,7 +116,7 @@ export default function PrivacySettings() {
           <Button
             onClick={handleSave}
             disabled={updateSettings.isPending}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 font-semibold shadow-[0_0_20px_rgba(254,0,1,0.3)]"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 font-semibold shadow-[0_0_20px_rgba(255,36,46,0.3)]"
           >
             {updateSettings.isPending ? (
               <>

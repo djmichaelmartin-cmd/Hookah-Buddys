@@ -88,7 +88,7 @@ export default function SignupMember() {
   return (
     <Layout>
       <div className="flex-1 container mx-auto px-4 py-12 max-w-4xl flex gap-8 flex-col lg:flex-row items-start">
-        <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(254,0,1,0.05)] flex-1 w-full">
+        <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(255,36,46,0.05)] flex-1 w-full">
           <h1 className="text-3xl font-serif text-white mb-2 text-center">
             {selectedPlan && selectedPlan.price > 0 ? "Join as a Member" : "Create Your Free Profile"}
           </h1>
@@ -168,7 +168,7 @@ export default function SignupMember() {
         </div>
 
         {selectedPlan && selectedPlan.price > 0 && (
-          <div className="w-full lg:w-80 shrink-0 bg-card/60 backdrop-blur-xl border border-primary/20 rounded-2xl p-6 shadow-[0_0_40px_rgba(254,0,1,0.1)]">
+          <div className="w-full lg:w-80 shrink-0 bg-card/60 backdrop-blur-xl border border-primary/20 rounded-2xl p-6 shadow-[0_0_40px_rgba(255,36,46,0.1)]">
             <h2 className="text-xl font-serif text-white mb-4">Membership Plan</h2>
             <div className="flex items-baseline justify-between mb-4">
               <span className="text-lg font-medium text-white">{selectedPlan.name}</span>
