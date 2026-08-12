@@ -13,6 +13,9 @@ import {
   useListOnlineUsers,
   getListOnlineUsersQueryKey,
   type OnlineUser,
+  useListPlans,
+  useListSubscriptions,
+  getListSubscriptionsQueryKey,
 } from "@workspace/api-client-react";
 import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -212,6 +215,23 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
       enabled: !!session?.user,
     },
   });
+  const isMember = !!session?.authenticated && session.user?.role === "member";
+  const { data: memberPlans } = useListPlans({ audience: "member" });
+  const { data: subscriptions } = useListSubscriptions({
+    query: { queryKey: getListSubscriptionsQueryKey(), enabled: isMember },
+  });
+
+  // Work out the next membership level the viewer can upgrade to.
+  const TIER_ORDER = ["bronze", "silver", "gold", "platinum"];
+  const activeMembership = (subscriptions ?? []).find(
+    (s) => s.audience === "member" && s.status === "active",
+  );
+  const currentPlan = (memberPlans ?? []).find((p) => p.id === activeMembership?.planId);
+  const currentTierIdx = currentPlan ? TIER_ORDER.indexOf(currentPlan.tier) : 0;
+  const upgradePlan = (memberPlans ?? [])
+    .filter((p) => TIER_ORDER.indexOf(p.tier) > currentTierIdx)
+    .sort((a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier))[0];
+
   const { data: featuredDolls } = useListDolls({ featured: true });
   const { data: lounges } = useListLounges({ limit: 3 });
   const { data: events } = useListEvents({ limit: 4 });
@@ -306,23 +326,28 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
         </SectionCard>
       )}
 
-      {/* Sponsored / upgrade promo */}
-      {session?.user?.role !== "doll" && (
+      {/* Sponsored / upgrade promo — shows the viewer's next upgradable level */}
+      {session?.user?.role !== "doll" && upgradePlan && (
         <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card/40 to-card/20 backdrop-blur-md p-4">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">
             Sponsored
           </p>
           <h3 className="text-sm font-semibold text-white flex items-center gap-1.5 mb-1">
-            <Crown className="h-4 w-4 text-primary" /> Go Gold
+            <Crown className="h-4 w-4 text-primary" /> {upgradePlan.name}
           </h3>
           <p className="text-xs text-muted-foreground mb-3">
-            Unlock premium Doll content, messaging credits, and VIP perks.
+            {upgradePlan.description ||
+              "Unlock premium Doll content, messaging credits, and VIP perks."}
           </p>
           <Link
-            href="/pricing"
+            href={
+              isMember
+                ? `/checkout?type=membership&plan=${upgradePlan.slug}`
+                : "/pricing"
+            }
             className="inline-block w-full text-center rounded-full bg-primary text-primary-foreground text-xs font-medium py-2 hover:opacity-90 transition-opacity"
           >
-            Upgrade Now
+            {`Upgrade to ${upgradePlan.name.split("—")[0].trim()}`}
           </Link>
         </div>
       )}

@@ -49,6 +49,9 @@ export const registerDollBodyEmailMin = 3;
 export const registerDollBodyPasswordMin = 6;
 
 
+
+
+
 export const RegisterDollBody = zod.object({
   "legalName": zod.string().min(1),
   "stageName": zod.string().min(1),
@@ -79,6 +82,7 @@ export const registerMemberBodyEmailMin = 3;
 
 
 export const registerMemberBodyPasswordMin = 6;
+
 
 
 export const RegisterMemberBody = zod.object({
@@ -432,6 +436,7 @@ export const GetMyDollAnalyticsResponse = zod.object({
  */
 
 
+
 export const UploadMediaBody = zod.object({
   "type": zod.enum(['profile', 'free_photo', 'premium_photo', 'premium_video', 'short_video', 'verification']),
   "url": zod.string().min(1),
@@ -527,6 +532,10 @@ export const ModerateMediaResponse = zod.object({
 /**
  * @summary Submit verification materials (Doll)
  */
+
+
+
+
 
 
 export const SubmitVerificationBody = zod.object({
@@ -740,12 +749,32 @@ export const ListEventsResponseItem = zod.object({
 })
 export const ListEventsResponse = zod.array(ListEventsResponseItem)
 
+
 /**
  * @summary A single active event with full details
  */
 export const GetEventParams = zod.object({
   "id": zod.coerce.number()
 })
+
+export const GetEventResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "loungeId": zod.number().nullish(),
+  "venueName": zod.string().nullish(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "status": zod.enum(['active', 'cancelled']),
+  "rsvpCount": zod.number(),
+  "rsvped": zod.boolean(),
+  "saved": zod.boolean()
+})
+
+
 /**
  * @summary Toggle the current user's RSVP for an event
  */
@@ -808,6 +837,7 @@ export const createAdminEventBodyStateMin = 2;
 export const createAdminEventBodyStateMax = 2;
 
 
+
 export const CreateAdminEventBody = zod.object({
   "title": zod.string().min(1).max(createAdminEventBodyTitleMax),
   "description": zod.string().max(createAdminEventBodyDescriptionMax).optional(),
@@ -834,6 +864,7 @@ export const updateAdminEventBodyCityMax = 100;
 
 export const updateAdminEventBodyStateMin = 2;
 export const updateAdminEventBodyStateMax = 2;
+
 
 
 export const UpdateAdminEventBody = zod.object({
@@ -1001,6 +1032,8 @@ export const SendMessageParams = zod.object({
 })
 
 
+
+
 export const SendMessageBody = zod.object({
   "body": zod.string().min(1)
 })
@@ -1138,6 +1171,7 @@ export const ListReportsResponse = zod.array(ListReportsResponseItem)
 /**
  * @summary Report content or a user
  */
+
 
 
 export const CreateReportBody = zod.object({
@@ -1339,6 +1373,9 @@ export const UpdateAdminPlanParams = zod.object({
 })
 
 
+
+
+
 export const UpdateAdminPlanBody = zod.object({
   "name": zod.string().min(1).optional(),
   "description": zod.string().optional(),
@@ -1386,6 +1423,8 @@ export const UpdateCreditPackageParams = zod.object({
 
 
 export const updateCreditPackageBodyPriceCentsMin = 0;
+
+
 
 
 export const UpdateCreditPackageBody = zod.object({
@@ -1589,6 +1628,8 @@ export const CreateCheckoutBody = zod.object({
 export const submitContactBodyEmailMin = 3;
 
 
+
+
 export const SubmitContactBody = zod.object({
   "name": zod.string().min(1),
   "email": zod.string().min(submitContactBodyEmailMin),
@@ -1683,6 +1724,7 @@ export const ListFeedPostsResponse = zod.array(ListFeedPostsResponseItem)
 /**
  * @summary Create a feed post (logged-in users)
  */
+
 
 
 export const CreateFeedPostBody = zod.object({
@@ -1791,6 +1833,8 @@ export const ReportFeedPostParams = zod.object({
 })
 
 
+
+
 export const ReportFeedPostBody = zod.object({
   "reason": zod.string().min(1),
   "notes": zod.string().optional()
@@ -1828,6 +1872,8 @@ export const CreateFeedCommentParams = zod.object({
 })
 
 
+
+
 export const CreateFeedCommentBody = zod.object({
   "commentText": zod.string().min(1)
 })
@@ -1847,6 +1893,8 @@ export const DeleteFeedCommentParams = zod.object({
 export const ReportFeedCommentParams = zod.object({
   "id": zod.coerce.number()
 })
+
+
 
 
 export const ReportFeedCommentBody = zod.object({
@@ -2835,6 +2883,7 @@ export const ListAlbumsResponse = zod.array(ListAlbumsResponseItem)
  */
 
 
+
 export const CreateAlbumBody = zod.object({
   "title": zod.string().min(1),
   "description": zod.string().optional(),
@@ -2875,6 +2924,8 @@ export const ListAlbumPhotosResponse = zod.array(ListAlbumPhotosResponseItem)
 export const UploadPhotoParams = zod.object({
   "id": zod.coerce.number()
 })
+
+
 
 
 export const UploadPhotoBody = zod.object({
@@ -2962,6 +3013,8 @@ export const CreatePhotoCommentParams = zod.object({
 })
 
 
+
+
 export const CreatePhotoCommentBody = zod.object({
   "commentText": zod.string().min(1)
 })
@@ -2973,6 +3026,8 @@ export const CreatePhotoCommentBody = zod.object({
 export const ReportPhotoParams = zod.object({
   "id": zod.coerce.number()
 })
+
+
 
 
 export const ReportPhotoBody = zod.object({
@@ -3022,6 +3077,7 @@ export const ListReelsResponse = zod.array(ListReelsResponseItem)
 /**
  * @summary Upload a reel
  */
+
 
 
 export const CreateReelBody = zod.object({
@@ -3120,6 +3176,8 @@ export const ReportReelParams = zod.object({
 })
 
 
+
+
 export const ReportReelBody = zod.object({
   "reason": zod.string().min(1),
   "notes": zod.string().optional()
@@ -3155,6 +3213,8 @@ export const ListReelCommentsResponse = zod.array(ListReelCommentsResponseItem)
 export const CreateReelCommentParams = zod.object({
   "id": zod.coerce.number()
 })
+
+
 
 
 export const CreateReelCommentBody = zod.object({
@@ -3504,19 +3564,3 @@ export const ListAdminBlocksResponseItem = zod.object({
 export const ListAdminBlocksResponse = zod.array(ListAdminBlocksResponseItem)
 
 
-export const GetEventResponse = zod.object({
-  "id": zod.number(),
-  "title": zod.string(),
-  "description": zod.string().nullish(),
-  "loungeId": zod.number().nullish(),
-  "venueName": zod.string().nullish(),
-  "city": zod.string(),
-  "state": zod.string(),
-  "startsAt": zod.string(),
-  "endsAt": zod.string().nullish(),
-  "imageUrl": zod.string().nullish(),
-  "status": zod.enum(['active', 'cancelled']),
-  "rsvpCount": zod.number(),
-  "rsvped": zod.boolean(),
-  "saved": zod.boolean()
-})

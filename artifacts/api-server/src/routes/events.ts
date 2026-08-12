@@ -136,6 +136,8 @@ async function loadActiveUpcomingEvent(id: number): Promise<Event | null> {
   if (!event || event.status !== "active") return null;
   return event;
 }
+
+router.post("/events/:id/rsvp", requireAuth(), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const id = parseInt(req.params.id as string, 10);
   const event = await loadActiveUpcomingEvent(id);
@@ -145,8 +147,8 @@ async function loadActiveUpcomingEvent(id: number): Promise<Event | null> {
   }
   const [existing] = await db
     .select()
-    .from(eventSavesTable)
-    .where(and(eq(eventSavesTable.eventId, id), eq(eventSavesTable.userId, user.id)));
+    .from(eventRsvpsTable)
+    .where(and(eq(eventRsvpsTable.eventId, id), eq(eventRsvpsTable.userId, user.id)));
   let rsvped: boolean;
   if (existing) {
     await db.delete(eventRsvpsTable).where(eq(eventRsvpsTable.id, existing.id));
