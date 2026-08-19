@@ -134,18 +134,24 @@ export function FeedPostCard({
     reportPost.mutate({ id: post.id, data: { reason: reportReason, notes: "Reported from feed" } });
   };
 
-  const authorLink = post.dollId ? `/dolls/${post.dollId}` : `/bros/${post.userId}`;
-  const badgeColor = post.userRole === "doll" ? "text-[#E85D75] border-[#E85D75]/20 bg-[#E85D75]/10" : "text-[#D6B56D] border-[#D6B56D]/20 bg-[#D6B56D]/10";
-  const badgeText = post.userRole === "doll" ? "Buddy" : "Bro";
+  const authorLink = post.business ? post.business.url : (post.dollId ? `/dolls/${post.dollId}` : `/bros/${post.userId}`);
+  const isDoll = post.userRole === "doll";
+  const badgeColor = isDoll ? "text-[#E85D75] border-[#E85D75]/20 bg-[#E85D75]/10" : "text-[#D6B56D] border-[#D6B56D]/20 bg-[#D6B56D]/10";
+  const badgeText = isDoll ? "Buddy" : "Bro";
+
+  const displayName = post.business ? post.business.name : post.userName;
+  const displayAvatar = post.business ? (post.business.logoUrl || "") : (post.userPhotoUrl || "");
+  const displaySubtext = post.business ? `@${post.business.handle}` : (post.username ? `@${post.username}` : "");
+  const isVerified = post.business ? post.business.verified : post.userVerified;
 
   return (
     <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors">
       <div className="p-5 flex gap-4">
         <Link href={authorLink} className="shrink-0 group">
           <Avatar className="h-12 w-12 border border-white/10 group-hover:border-primary/50 transition-colors">
-            <AvatarImage src={post.userPhotoUrl || ""} alt={post.userName} className="object-cover" />
+            <AvatarImage src={displayAvatar} alt={displayName} className="object-cover" />
             <AvatarFallback className="bg-background text-primary font-serif">
-              {post.userName.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </Link>
@@ -153,15 +159,17 @@ export function FeedPostCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
               <Link href={authorLink} className="font-serif font-bold text-white hover:text-primary transition-colors truncate max-w-[200px]">
-                {post.userName}
+                {displayName}
               </Link>
-              {post.userVerified && <ShieldCheck className="h-4 w-4 text-primary shrink-0" />}
-              {post.username && <span className="text-muted-foreground text-sm truncate max-w-[120px]">@{post.username}</span>}
-              <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border font-semibold ${badgeColor}`}>
-                {badgeText}
-              </span>
+              {isVerified && <ShieldCheck className="h-4 w-4 text-primary shrink-0" />}
+              {displaySubtext && <span className="text-muted-foreground text-sm truncate max-w-[120px]">{displaySubtext}</span>}
+              {!post.business && (
+                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border font-semibold ${badgeColor}`}>
+                  {badgeText}
+                </span>
+              )}
               <span className="text-muted-foreground/50 text-xs">&bull;</span>
-              <span className="text-muted-foreground text-xs">{formatDistanceToNow(new Date(post.createdAt))} ago</span>
+              <span className="text-muted-foreground text-xs">{formatDistanceToNow(new Date(post.createdAt || ""))} ago</span>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -174,7 +182,7 @@ export function FeedPostCard({
                   <>
                     <DropdownMenuItem onClick={handleFollow} className="cursor-pointer hover:bg-white/5 hover:text-white">
                       <UserPlus className="mr-2 h-4 w-4" />
-                      <span>{post.viewerFollowsAuthor ? "Unfollow" : "Follow"} {post.userName}</span>
+                      <span>{post.viewerFollowsAuthor ? "Unfollow" : "Follow"} {displayName}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => { if (!isAuthed) return onLoginPrompt(); setReportOpen(true); }} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
                       <Flag className="mr-2 h-4 w-4" />

@@ -1,0 +1,475 @@
+Replit Agent Follow-Up Instruction: Local Lounge Spotlight Logic
+
+Do not rebuild the platform. Only update the existing Lounge Spotlight feature on The Lounge feed and the `/lounges` page.
+
+We are using the new HookahBuddys branding. Keep the page name “The Lounge.”
+
+Feature Goal
+
+On The Lounge feed, the “Lounge Spotlight” section should only show businesses/lounges that are relevant to the logged-in user’s city and within a 25-mile radius.
+
+Every day, show 3 businesses with the highest ratings within that local radius.
+
+When the user clicks anywhere inside the Lounge Spotlight widget, redirect them to:
+
+`/lounges`
+
+On the `/lounges` page, those same 3 spotlight businesses should appear at the top of the page before the rest of the lounge/business listings.
+
+Location Logic
+
+Use the logged-in user’s saved profile location as the default location source.
+
+Use this priority:
+
+1. User profile latitude/longitude, if available
+2. User profile city/state, geocoded to latitude/longitude
+3. User-selected city/location, if the platform has a city selector
+4. If no location is available, show a prompt: “Add your city to see local Lounge Spotlights near you.”
+
+The radius should be:
+
+`25 miles`
+
+Only show businesses within 25 miles of the user’s location.
+
+Business Eligibility
+
+The Lounge Spotlight should use businesses that are appropriate for the Lounge/business discovery experience.
+
+Eligible businesses should include business profiles that are:
+
+* Active
+* Publicly visible
+* Not suspended
+* Not hidden
+* Not rejected
+* Approved by admin if business approval is required
+* Within 25 miles of the user’s profile city/location
+* Have ratings/recommendations enabled
+* Have at least one rating/recommendation, if ratings exist
+* Are marked as eligible for Lounge Spotlight
+
+Add or use this field:
+
+`eligibleForLoungeSpotlight: boolean`
+
+Default:
+
+`true`
+
+Admin should be able to turn this off for any business.
+
+Do not limit business creation by business type. However, Lounge Spotlight should only show businesses that are locally relevant and suitable for the Lounge discovery area.
+
+Recommended eligibility logic:
+
+A business can appear in Lounge Spotlight if:
+
+* `eligibleForLoungeSpotlight = true`
+* `status = active`
+* `visibility = public`
+* business has valid city/state or latitude/longitude
+* business is within 25 miles of logged-in user
+* business is not flagged, suspended, or banned
+
+Rating Logic
+
+Rank eligible businesses by:
+
+1. Highest average rating
+2. Highest number of reviews/recommendations
+3. Verified business status
+4. Featured/sponsored status, only as a tie-breaker
+5. Shortest distance from user
+
+Use this ordering:
+
+* `averageRating DESC`
+* `reviewCount DESC`
+* `isVerified DESC`
+* `isFeatured DESC`
+* `distance ASC`
+
+Minimum recommendation:
+
+If possible, require at least 3 reviews before a business can rank above businesses with fewer reviews.
+
+Example:
+
+A 4.8 rating with 40 reviews should rank above a 5.0 rating with 1 review.
+
+Use a weighted rating formula if possible:
+
+`weightedRating = (averageRating * reviewCount + 4.0 * 5) / (reviewCount + 5)`
+
+Then sort by:
+
+* `weightedRating DESC`
+* `reviewCount DESC`
+* `distance ASC`
+
+Daily Rotation
+
+Every day, calculate the top 3 Lounge Spotlight businesses for each user location/city.
+
+The same logged-in user should see the same 3 businesses throughout the day.
+
+The list should update once per day.
+
+Use the user’s timezone if available.
+
+If timezone is not available, use server date or UTC date.
+
+Daily rotation behavior:
+
+* Calculate all eligible businesses within 25 miles.
+* Rank by weighted rating.
+* Select the top 3.
+* Rotate the order daily so the same business is not always shown first.
+
+Example:
+
+Day 1:
+
+1. Business A
+2. Business B
+3. Business C
+
+Day 2:
+
+1. Business B
+2. Business C
+3. Business A
+
+Day 3:
+
+1. Business C
+2. Business A
+3. Business B
+
+Do not show random businesses that are poorly rated just for rotation. The 3 businesses should come from the highest-rated local businesses.
+
+Fallback Logic
+
+If fewer than 3 businesses are available within 25 miles:
+
+* Show however many are available.
+* Add a small message: “More local Lounge Spotlights coming soon.”
+
+If zero businesses are available:
+
+Show:
+
+“No local Lounge Spotlights found within 25 miles.”
+
+Add button:
+
+“Browse All Lounges”
+
+Route:
+
+`/lounges`
+
+If user is not logged in:
+
+Show a general Lounge Spotlight preview or ask user to log in/add city.
+
+Message:
+
+“Log in or add your city to see Lounge Spotlights near you.”
+
+Click Behavior
+
+The entire Lounge Spotlight widget on The Lounge feed should be clickable.
+
+Clicking anywhere inside the Lounge Spotlight area should redirect to:
+
+`/lounges?spotlight=local`
+
+This includes:
+
+* Widget header
+* Business cards
+* Images
+* Text
+* Empty space inside the widget
+* “See More” link
+
+Do not redirect individual spotlight cards to separate business profiles from The Lounge widget.
+
+The widget’s purpose is to send users to the `/lounges` page.
+
+On `/lounges`, show the same 3 spotlight businesses at the top.
+
+Lounges Page Update
+
+Update `/lounges`.
+
+At the top of the page, add a section:
+
+Title:
+
+“Today’s Lounge Spotlight Near You”
+
+Subtitle:
+
+“Top-rated businesses within 25 miles of your location.”
+
+Show the same 3 businesses from The Lounge Spotlight widget.
+
+These 3 spotlight businesses should appear before all other listings.
+
+After the spotlight section, show the rest of the lounge/business directory.
+
+Do not duplicate the 3 spotlight businesses immediately again in the standard listing below. Either exclude them from the first page of regular results or mark them as already featured.
+
+Business Cards on `/lounges`
+
+Each spotlight business card should show:
+
+* Business logo or cover image
+* Business name
+* Business type/category
+* City/state
+* Distance from user
+* Average rating
+* Review/recommendation count
+* Verified badge if verified
+* Featured badge if featured
+* Open now / closed status if business hours exist
+* Short description
+* Follow button
+* Message button
+* View Business button
+
+On `/lounges`, clicking the individual business card or “View Business” should route to that business profile.
+
+Example:
+
+`/businesses/:id`
+
+or, if lounge profiles use a separate route:
+
+`/lounges/:id`
+
+Use the route that already exists in the app.
+
+Backend/API Requirements
+
+Create or update an API endpoint to return local Lounge Spotlight businesses.
+
+Suggested endpoint:
+
+`GET /api/lounge-spotlight`
+
+Parameters:
+
+* userId from session/auth
+* optional city
+* optional state
+* optional lat
+* optional lng
+* radius default: 25
+* date key for daily rotation
+
+Response:
+
+```json
+{
+  "date": "2026-08-19",
+  "radiusMiles": 25,
+  "location": {
+    "city": "Las Vegas",
+    "state": "NV",
+    "lat": 36.1716,
+    "lng": -115.1391
+  },
+  "businesses": [
+    {
+      "id": "business_id",
+      "name": "Business Name",
+      "slug": "business-name",
+      "city": "Las Vegas",
+      "state": "NV",
+      "distanceMiles": 3.4,
+      "averageRating": 4.8,
+      "reviewCount": 42,
+      "weightedRating": 4.71,
+      "logoUrl": "",
+      "coverPhotoUrl": "",
+      "businessType": "",
+      "category": "",
+      "isVerified": true,
+      "isFeatured": false,
+      "openNow": true
+    }
+  ]
+}
+```
+
+Use the same endpoint for:
+
+* The Lounge feed sidebar/widget
+* `/lounges?spotlight=local`
+
+This ensures the same 3 businesses appear in both places.
+
+Distance Calculation
+
+If using PostgreSQL with latitude/longitude fields, use a Haversine distance calculation or PostGIS if already available.
+
+BusinessProfile should have:
+
+* `latitude`
+* `longitude`
+* `city`
+* `state`
+* `eligibleForLoungeSpotlight`
+* `averageRating`
+* `reviewCount`
+
+If latitude/longitude does not exist yet, add it to the model.
+
+When business owner enters city/state/address, store or prepare to store geocoded latitude/longitude.
+
+If geocoding is not available yet, add a placeholder geocoding service function and fallback to city/state matching until geocoding is connected.
+
+Temporary fallback:
+
+* Match same city/state
+* Then later upgrade to true 25-mile radius when coordinates are available
+
+But make the code structure ready for true radius search.
+
+Database Updates
+
+Update BusinessProfile model if needed:
+
+* `latitude`
+* `longitude`
+* `averageRating`
+* `reviewCount`
+* `weightedRating`
+* `eligibleForLoungeSpotlight`
+* `isVerified`
+* `isFeatured`
+* `status`
+* `visibility`
+
+Optional cache model:
+
+LoungeSpotlightCache:
+
+* id
+* locationKey
+* city
+* state
+* latitude
+* longitude
+* dateKey
+* businessIds
+* radiusMiles
+* createdAt
+* updatedAt
+
+Use cache so the same local top 3 do not change repeatedly throughout the day.
+
+Admin Controls
+
+Update Admin Dashboard for businesses.
+
+Admin should be able to:
+
+* Mark business eligible/ineligible for Lounge Spotlight
+* See whether a business has valid location data
+* See rating/review count
+* See average rating
+* See weighted rating
+* Manually feature or unfeature a business
+* Hide business from Lounge Spotlight
+* Recalculate spotlight cache if needed
+
+Add admin field:
+
+`Eligible for Lounge Spotlight`
+
+Toggle:
+
+On / Off
+
+Default:
+
+On for active approved businesses.
+
+UI Requirements for The Lounge Widget
+
+Update the widget title:
+
+“Lounge Spotlight”
+
+Subtitle:
+
+“Top-rated spots near you”
+
+Show 3 compact business cards.
+
+Each card should show:
+
+* Image/logo
+* Business name
+* City/state
+* Distance
+* Rating
+* Review count
+* Verified badge if applicable
+
+Add footer text:
+
+“Updated daily”
+
+Add CTA:
+
+“View Today’s Local Spotlights”
+
+Clicking any part of the widget should redirect to:
+
+`/lounges?spotlight=local`
+
+Make the cursor show pointer over the entire widget.
+
+Accessibility
+
+The entire widget should have an accessible label:
+
+“View today’s local Lounge Spotlight businesses”
+
+Keyboard users should be able to focus the widget and press Enter to go to `/lounges?spotlight=local`.
+
+Important Rules
+
+Do not rebuild.
+
+Do not remove The Lounge.
+
+Do not remove Business Profiles.
+
+Do not remove Groups.
+
+Do not remove member profiles.
+
+Do not remove pricing, credits, memberships, messaging, verification, premium content, or admin dashboard.
+
+Only update Lounge Spotlight and the `/lounges` page behavior.
+
+Final Result
+
+The Lounge feed should show a local, daily Lounge Spotlight based on the logged-in user’s city/location.
+
+Only businesses within 25 miles should appear.
+
+The 3 highest-rated local businesses should rotate daily.
+
+Clicking anywhere inside the Lounge Spotlight widget should send the user to `/lounges`.
+
+The `/lounges` page should show those same 3 businesses at the top before the rest of the listings.

@@ -9,6 +9,12 @@ export const feedPostsTable = pgTable("feed_posts", {
   posterUrl: text("poster_url"),
   mediaType: text("media_type").notNull().default("none"),
   category: text("category").notNull(),
+  // Business attribution (safe, no owner identity). When set, the feed item is
+  // rendered as authored by the Business Page and links to /business/:handle.
+  // source: null (personal) | business_post | business_checkin | business_event
+  source: text("source"),
+  sourceId: integer("source_id"),          // originating business child entity id
+  businessId: integer("business_id"),      // attributed Business Page id
   isHookahRelatedConfirmed: boolean("is_hookah_related_confirmed").notNull().default(false),
   status: text("status").notNull().default("active"),
   audience: text("audience").notNull().default("public"), // public | friends | followers | only_me

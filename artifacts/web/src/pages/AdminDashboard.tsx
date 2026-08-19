@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getErrorMessage } from "@/lib/error";
 import { Layout } from "@/components/Layout";
 import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,6 +14,8 @@ import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
 import AdminPlans from "@/pages/AdminPlans";
 import AdminEvents from "@/pages/AdminEvents";
+import AdminBusinesses from "@/pages/AdminBusinesses";
+import { Briefcase } from "lucide-react";
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
@@ -127,6 +130,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="plans"><FileText className="w-4 h-4 mr-2"/> Plans</TabsTrigger>
             <TabsTrigger value="events"><CalendarDays className="w-4 h-4 mr-2"/> Events</TabsTrigger>
             <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
+            <TabsTrigger value="businesses"><Briefcase className="w-4 h-4 mr-2"/> Businesses</TabsTrigger>
           </TabsList>
 
           <TabsContent value="applications" className="space-y-4">
@@ -339,6 +343,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="leads">
             <AdminLeads />
+          </TabsContent>
+
+          <TabsContent value="businesses">
+            <AdminBusinesses />
           </TabsContent>
         </Tabs>
       </div>

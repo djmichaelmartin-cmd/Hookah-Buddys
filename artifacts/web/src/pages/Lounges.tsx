@@ -99,6 +99,7 @@ export default function Lounges() {
   const [radius, setRadius] = useState<string>("50");
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const [selectedLoungeId, setSelectedLoungeId] = useState<number | null>(null);
 
   const params = useMemo<ListLoungesParams>(() => {
     const p: ListLoungesParams = {};
@@ -114,6 +115,14 @@ export default function Lounges() {
 
   const { data, isLoading, isError } = useListLounges(params);
   const lounges = data ?? [];
+  const orderedLounges = useMemo(() => {
+    if (selectedLoungeId === null) return lounges;
+
+    const selectedLounge = lounges.find((lounge) => lounge.id === selectedLoungeId);
+    return selectedLounge
+      ? [selectedLounge, ...lounges.filter((lounge) => lounge.id !== selectedLoungeId)]
+      : lounges;
+  }, [lounges, selectedLoungeId]);
 
   const useMyLocation = () => {
     if (!("geolocation" in navigator)) {
@@ -282,7 +291,12 @@ export default function Lounges() {
                     </Marker>
                   )}
                   {lounges.map((l) => (
-                    <Marker key={l.id} position={[l.lat, l.lng]} icon={loungeIcon}>
+                    <Marker
+                      key={l.id}
+                      position={[l.lat, l.lng]}
+                      icon={loungeIcon}
+                      eventHandlers={{ click: () => setSelectedLoungeId(l.id) }}
+                    >
                       <Popup>
                         <strong>{l.name}</strong>
                         <br />
@@ -319,10 +333,14 @@ export default function Lounges() {
               )}
 
               <div className="space-y-4 lg:max-h-[600px] lg:overflow-y-auto lg:pr-2">
-                {lounges.map((l) => (
+                {orderedLounges.map((l) => (
                   <article
                     key={l.id}
-                    className="overflow-hidden rounded-xl border border-white/10 bg-card/40 transition-colors hover:border-primary/40"
+                    className={`overflow-hidden rounded-xl border bg-card/40 transition-colors hover:border-primary/40 ${
+                      l.id === selectedLoungeId
+                        ? "border-primary ring-1 ring-primary/40"
+                        : "border-white/10"
+                    }`}
                   >
                     <div className="flex">
                       {l.imageUrl && (

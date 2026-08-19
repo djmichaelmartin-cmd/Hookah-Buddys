@@ -33,6 +33,7 @@ import storageRouter from "./storage";
 import eventsRouter from "./events";
 import adminEventsRouter from "./adminEvents";
 import presenceRouter from "./presence";
+import businessesRouter from "./businesses";
 
 const router: IRouter = Router();
 
@@ -70,5 +71,6 @@ router.use(storageRouter);
 router.use(eventsRouter);
 router.use(adminEventsRouter);
 router.use(presenceRouter);
+router.use(businessesRouter);
 
 export default router;

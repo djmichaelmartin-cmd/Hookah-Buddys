@@ -62,6 +62,8 @@ tags:
     description: User notifications
   - name: Storage
     description: Object storage upload and serving endpoints.
+  - name: businesses
+    description: Business Pages – hookah lounges, brands, shops, and service providers
 paths:
   /storage/uploads/image:
     post:
@@ -2822,6 +2824,1409 @@ paths:
                   $ref: "#/components/schemas/AdminBlock"
         "403":
           description: Forbidden
+
+  # ─── Business Pages ─────────────────────────────────────────────────────────
+
+  /businesses:
+    get:
+      operationId: listBusinesses
+      tags: [businesses]
+      summary: Public list/search of active business pages
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: city, in: query, required: false, schema: { type: string } }
+        - { name: state, in: query, required: false, schema: { type: string } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: businessType, in: query, required: false, schema: { type: string } }
+        - { name: verified, in: query, required: false, schema: { type: string } }
+        - { name: featured, in: query, required: false, schema: { type: string } }
+        - { name: sponsored, in: query, required: false, schema: { type: string } }
+        - { name: appointmentsAvailable, in: query, required: false, schema: { type: string } }
+        - { name: minRating, in: query, required: false, schema: { type: number } }
+        - { name: hasServices, in: query, required: false, schema: { type: string } }
+        - { name: hasProducts, in: query, required: false, schema: { type: string } }
+        - { name: hasOffers, in: query, required: false, schema: { type: string } }
+        - { name: hasEvents, in: query, required: false, schema: { type: string } }
+        - { name: openNow, in: query, required: false, schema: { type: string } }
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [recommended, distance, rating, newest, most_followed, most_recommended, recently_active]
+        - { name: lat, in: query, required: false, schema: { type: number } }
+        - { name: lng, in: query, required: false, schema: { type: number } }
+        - { name: radius, in: query, required: false, schema: { type: number } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessSummary"
+    post:
+      operationId: createBusiness
+      tags: [businesses]
+      summary: Create a new business page (requires personal profile / auth)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessDetail"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: Authentication required
+
+  /businesses/{handle}:
+    get:
+      operationId: getBusinessByHandle
+      tags: [businesses]
+      summary: Public business page detail by handle
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessDetail"
+        "404":
+          description: Not found
+
+  /businesses/{handle}/settings:
+    patch:
+      operationId: updateBusinessSettings
+      tags: [businesses]
+      summary: "Update business page settings. Content fields: owner/admin/editor. Publish/unpublish: owner only. Suspended/closed pages reject all team writes."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessSettingsUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessDetail"
+        "403":
+          description: Forbidden
+
+  /businesses/{handle}/follow:
+    post:
+      operationId: toggleBusinessFollow
+      tags: [businesses]
+      summary: Follow or unfollow a business page
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEngagementResult"
+
+  /businesses/{handle}/save:
+    post:
+      operationId: toggleBusinessSave
+      tags: [businesses]
+      summary: Save or unsave a business page
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEngagementResult"
+
+  /businesses/{handle}/checkin:
+    post:
+      operationId: checkInToBusiness
+      tags: [businesses]
+      summary: Check in to a business
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessCheckInInput"
+      responses:
+        "201":
+          description: Checked in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessCheckInResult"
+
+  /businesses/{handle}/reviews:
+    get:
+      operationId: listBusinessReviews
+      tags: [businesses]
+      summary: List reviews for a business
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessReviewItem"
+    post:
+      operationId: createBusinessReview
+      tags: [businesses]
+      summary: Submit a review for a business (authenticated)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessReviewInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessReviewItem"
+
+  /businesses/{handle}/reviews/{reviewId}/reply:
+    post:
+      operationId: replyToBusinessReview
+      tags: [businesses]
+      summary: "Reply to a review on behalf of the business. Accessible to: owner, admin, moderator. Reply is attributed to the business only (reviewer's userId is not exposed in reply)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: reviewId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessReviewReplyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessReviewReplyItem"
+
+  /businesses/{handle}/posts:
+    get:
+      operationId: listBusinessPosts
+      tags: [businesses]
+      summary: List posts for a business page
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessPostItem"
+    post:
+      operationId: createBusinessPost
+      tags: [businesses]
+      summary: "Create a post on behalf of the business. Accessible to: owner, admin, editor. mediaType must match mediaUrl content; images and videos must be finalized storage objects."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessPostInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessPostItem"
+
+  /businesses/{handle}/posts/{postId}:
+    delete:
+      operationId: deleteBusinessPost
+      tags: [businesses]
+      summary: "Soft-delete (status=removed) a business post. Accessible to: owner, admin, editor. 'removed' is terminal; team cannot restore it."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /businesses/{handle}/posts/{postId}/pin:
+    post:
+      operationId: pinBusinessPost
+      tags: [businesses]
+      summary: "Toggle pin on a business post. Accessible to: owner, admin only. Cannot pin a removed post."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEngagementResult"
+
+  /businesses/{handle}/posts/{postId}/hide:
+    post:
+      operationId: hideBusinessPost
+      tags: [businesses]
+      summary: "Toggle hide on a business post (active↔hidden). Accessible to: owner, admin, moderator. Cannot toggle a 'removed' post (terminal state)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEngagementResult"
+
+  /businesses/{handle}/posts/{postId}/like:
+    post:
+      operationId: toggleBusinessPostLike
+      tags: [businesses]
+      summary: "Toggle like on a business post. Any authenticated user. Idempotent; updates likeCount."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessPostLikeResult"
+
+  /businesses/{handle}/posts/{postId}/save:
+    post:
+      operationId: toggleBusinessPostSave
+      tags: [businesses]
+      summary: "Toggle save/bookmark on a business post. Any authenticated user. Idempotent."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEngagementResult"
+
+  /businesses/{handle}/posts/{postId}/report:
+    post:
+      operationId: reportBusinessPost
+      tags: [businesses]
+      summary: "Report a business post. Any authenticated user; one report per user (idempotent)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessPostReportInput"
+      responses:
+        "200":
+          description: Already reported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessPostReportResult"
+        "201":
+          description: Reported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessPostReportResult"
+
+  /businesses/{handle}/posts/{postId}/comments:
+    get:
+      operationId: listBusinessPostComments
+      tags: [businesses]
+      summary: "List comments on a business post. Public sees active comments; team/admin also see hidden."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessPostComment"
+    post:
+      operationId: createBusinessPostComment
+      tags: [businesses]
+      summary: "Comment on a business post. Any authenticated user on a visible post. Updates commentCount."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessPostCommentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessPostComment"
+
+  /businesses/{handle}/posts/{postId}/comments/{commentId}:
+    delete:
+      operationId: deleteBusinessPostComment
+      tags: [businesses]
+      summary: "Delete a comment. Author may delete own; team moderators/admin may remove any. Admin removals are moderation-locked."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+        - { name: commentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /businesses/{handle}/followers:
+    get:
+      operationId: listBusinessFollowers
+      tags: [businesses]
+      summary: "List followers of a business (private management data). Accessible to: owner, admin, analyst."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessFollowerList"
+
+  /businesses/{handle}/checkins/recent:
+    get:
+      operationId: listBusinessRecentCheckins
+      tags: [businesses]
+      summary: "Public list of recent check-ins for a business (excludes private check-ins)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessCheckInPublic"
+
+  /businesses/{handle}/albums:
+    get:
+      operationId: listBusinessAlbums
+      tags: [businesses]
+      summary: "List media albums. Public sees active albums; team/admin see all."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessAlbum"
+    post:
+      operationId: upsertBusinessAlbum
+      tags: [businesses]
+      summary: "Create or update a media album. Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessAlbumInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessAlbum"
+
+  /businesses/{handle}/albums/{albumId}:
+    delete:
+      operationId: deleteBusinessAlbum
+      tags: [businesses]
+      summary: "Delete an album (media items are detached, not deleted). Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: albumId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /businesses/{handle}/media:
+    get:
+      operationId: listBusinessMedia
+      tags: [businesses]
+      summary: "List media items (photos/videos/reels). Public sees active items; team/admin see all."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: albumId, in: query, required: false, schema: { type: integer } }
+        - { name: kind, in: query, required: false, schema: { type: string, enum: [photo, video, reel] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessMediaItem"
+    post:
+      operationId: createBusinessMedia
+      tags: [businesses]
+      summary: "Add a media item. Accessible to: owner, admin, editor. mediaUrl must be a finalized internal storage object."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessMediaInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessMediaItem"
+
+  /businesses/{handle}/media/{mediaId}:
+    patch:
+      operationId: updateBusinessMedia
+      tags: [businesses]
+      summary: "Update media metadata (title/caption/status/album/sortOrder). Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: mediaId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessMediaUpdateInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessMediaItem"
+    delete:
+      operationId: deleteBusinessMedia
+      tags: [businesses]
+      summary: "Delete a media item. Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: mediaId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /businesses/{handle}/events:
+    get:
+      operationId: listBusinessEvents
+      tags: [businesses]
+      summary: "List events. Public sees active+public events; team/admin see all non-removed."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessEvent"
+    post:
+      operationId: upsertBusinessEvent
+      tags: [businesses]
+      summary: "Create or update an event. Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessEventInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEvent"
+
+  /businesses/{handle}/events/{eventId}:
+    delete:
+      operationId: deleteBusinessEvent
+      tags: [businesses]
+      summary: "Cancel/remove an event (soft, status=removed). Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /businesses/{handle}/events/{eventId}/rsvp:
+    post:
+      operationId: toggleBusinessEventRsvp
+      tags: [businesses]
+      summary: "Toggle/switch RSVP (going|interested). Any authenticated user on a visible event. Idempotent; updates rsvpCount."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessEventRsvpInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEventRsvpResult"
+
+  /businesses/{handle}/verification:
+    get:
+      operationId: getBusinessVerification
+      tags: [businesses]
+      summary: "Get verification status + submissions. Accessible to: owner, admin. Document URLs are only returned to platform admin."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessVerificationState"
+    post:
+      operationId: submitBusinessVerification
+      tags: [businesses]
+      summary: "Submit a verification request. Owner only. Documents must be finalized internal storage objects and are never exposed publicly."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessVerificationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessVerificationSubmission"
+
+  /businesses/{handle}/verification/documents:
+    post:
+      operationId: uploadBusinessVerificationDocument
+      tags: [businesses]
+      summary: "Upload a PRIVATE verification document (owner only). Raw PDF/JPEG/PNG/WebP bytes; stored private (never public ACL). Returns an opaque documentRef."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessVerificationDocumentUploadResult"
+
+  /admin/businesses/verification/{submissionId}/documents/{index}:
+    get:
+      operationId: downloadBusinessVerificationDocument
+      tags: [businesses]
+      summary: "Platform-admin-only proxy download of a private verification document. Streamed by the server; no public URL, no shared caching."
+      parameters:
+        - { name: submissionId, in: path, required: true, schema: { type: integer } }
+        - { name: index, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Document bytes
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404":
+          description: Not found
+
+  /businesses/{handle}/appointments/{appointmentId}/reschedule:
+    patch:
+      operationId: rescheduleBusinessAppointment
+      tags: [businesses]
+      summary: "Reschedule an appointment. Customer may reschedule own (resets to pending); team managers may reschedule any. New slot re-validated against booking availability."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: appointmentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessAppointmentRescheduleInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessAppointmentItem"
+
+  /businesses/{handle}/services:
+    get:
+      operationId: listBusinessServices
+      tags: [businesses]
+      summary: List services offered by a business
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessServiceItem"
+    post:
+      operationId: upsertBusinessService
+      tags: [businesses]
+      summary: "Create or update a service. Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessServiceInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessServiceItem"
+
+  /businesses/{handle}/services/{serviceId}:
+    delete:
+      operationId: deleteBusinessService
+      tags: [businesses]
+      summary: "Delete a service. Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: serviceId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /businesses/{handle}/products:
+    get:
+      operationId: listBusinessProducts
+      tags: [businesses]
+      summary: List products for a business
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessProductItem"
+    post:
+      operationId: upsertBusinessProduct
+      tags: [businesses]
+      summary: "Create or update a product. Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessProductInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessProductItem"
+
+  /businesses/{handle}/products/{productId}:
+    delete:
+      operationId: deleteBusinessProduct
+      tags: [businesses]
+      summary: "Delete a product. Accessible to: owner, admin, editor."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: productId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /businesses/{handle}/offers:
+    get:
+      operationId: listBusinessOffers
+      tags: [businesses]
+      summary: List active offers for a business
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessOfferItem"
+    post:
+      operationId: upsertBusinessOffer
+      tags: [businesses]
+      summary: "Create or update an offer. Accessible to: owner, admin, editor, advertiser. imageUrl must be a finalized storage image object."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessOfferInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessOfferItem"
+
+  /businesses/{handle}/offers/{offerId}:
+    delete:
+      operationId: deleteBusinessOffer
+      tags: [businesses]
+      summary: "Delete an offer. Accessible to: owner, admin, editor, advertiser."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: offerId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /businesses/{handle}/appointments:
+    get:
+      operationId: listBusinessAppointments
+      tags: [businesses]
+      summary: List appointments for a business (owner/admin sees all, user sees own)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessAppointmentItem"
+    post:
+      operationId: createBusinessAppointment
+      tags: [businesses]
+      summary: Request an appointment at a business (authenticated)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessAppointmentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessAppointmentItem"
+
+  /businesses/{handle}/appointments/{appointmentId}/status:
+    patch:
+      operationId: updateBusinessAppointmentStatus
+      tags: [businesses]
+      summary: Update appointment status (owner confirms/cancels; user cancels own)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: appointmentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessAppointmentStatusUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessAppointmentItem"
+
+  /businesses/{handle}/conversations:
+    get:
+      operationId: listBusinessConversations
+      tags: [businesses]
+      summary: "List all business conversations. Restricted to: owner, admin, support_agent roles."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessConversationItem"
+    post:
+      operationId: startBusinessConversation
+      tags: [businesses]
+      summary: Start or retrieve a conversation with a business (authenticated user)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessConversationItem"
+
+  /businesses/{handle}/conversations/{conversationId}/messages:
+    get:
+      operationId: listBusinessMessages
+      tags: [businesses]
+      summary: "Read messages in a conversation. Accessible to: the conversation's own user, OR owner/admin/support_agent."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: conversationId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessMessageItem"
+    post:
+      operationId: sendBusinessMessage
+      tags: [businesses]
+      summary: "Send a message. senderType is auto-set: 'user' for the conversation owner, 'business' for owner/admin/support_agent."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: conversationId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessMessageInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessMessageItem"
+
+  /businesses/{handle}/team:
+    get:
+      operationId: listBusinessTeam
+      tags: [businesses]
+      summary: "List team members. Accessible to all team roles (any assigned role). Public users are denied."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessTeamMember"
+    post:
+      operationId: addBusinessTeamMember
+      tags: [businesses]
+      summary: Add a team member to a business page (owner only)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessTeamMemberInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessTeamMember"
+
+  /businesses/{handle}/team/{userId}:
+    delete:
+      operationId: removeBusinessTeamMember
+      tags: [businesses]
+      summary: Remove a team member (owner only)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Removed
+
+  /businesses/{handle}/dashboard:
+    get:
+      operationId: getBusinessDashboard
+      tags: [businesses]
+      summary: "Business dashboard summary. Accessible to: owner, admin, analyst roles."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessDashboard"
+
+  /businesses/{handle}/insights:
+    get:
+      operationId: getBusinessInsights
+      tags: [businesses]
+      summary: "Page insights and analytics (30 days). Accessible to: owner, admin, analyst roles."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessInsights"
+
+  /businesses/{handle}/notifications:
+    get:
+      operationId: listBusinessNotifications
+      tags: [businesses]
+      summary: "Business page notifications for the calling team member. Accessible to: owner, admin, analyst roles."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessNotificationItem"
+
+  /admin/businesses:
+    get:
+      operationId: listAdminBusinesses
+      tags: [admin]
+      summary: Admin list of all business pages
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string } }
+        - { name: verificationStatus, in: query, required: false, schema: { type: string, enum: [unverified, pending, verified, rejected] } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: businessType, in: query, required: false, schema: { type: string } }
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: featured, in: query, required: false, schema: { type: string } }
+        - { name: sponsored, in: query, required: false, schema: { type: string } }
+        - { name: appointmentsAvailable, in: query, required: false, schema: { type: string } }
+        - { name: hasServices, in: query, required: false, schema: { type: string } }
+        - { name: hasProducts, in: query, required: false, schema: { type: string } }
+        - { name: hasOffers, in: query, required: false, schema: { type: string } }
+        - { name: hasEvents, in: query, required: false, schema: { type: string } }
+        - { name: reportsPending, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessSummary"
+
+  /admin/businesses/{handle}/moderate:
+    post:
+      operationId: moderateBusiness
+      tags: [admin]
+      summary: Admin moderation action on a business page
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessModerationInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessDetail"
+
+  /businesses/{handle}/{entityType}/{entityId}/like:
+    post:
+      operationId: toggleBusinessChildLike
+      tags: [businesses]
+      summary: "Like/unlike a public business child entity (media|event|product|offer|checkin)"
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
+        - { name: entityId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEngagementResult"
+
+  /businesses/{handle}/{entityType}/{entityId}/save:
+    post:
+      operationId: toggleBusinessChildSave
+      tags: [businesses]
+      summary: "Save/unsave a public business child entity"
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
+        - { name: entityId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessEngagementResult"
+
+  /businesses/{handle}/{entityType}/{entityId}/report:
+    post:
+      operationId: reportBusinessChild
+      tags: [businesses]
+      summary: "Report a business child entity to the admin report queue"
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: entityType, in: path, required: true, schema: { type: string, enum: [post, comment, media, event, product, offer, checkin] } }
+        - { name: entityId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string }
+                details: { type: string }
+      responses:
+        "200": { description: Already reported }
+        "201": { description: Reported }
+
+  /businesses/{handle}/{entityType}/{entityId}/comments:
+    get:
+      operationId: listBusinessChildComments
+      tags: [businesses]
+      summary: "List comments on a public business child entity (media|event|product|offer|checkin)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
+        - { name: entityId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessChildCommentItem"
+    post:
+      operationId: createBusinessChildComment
+      tags: [businesses]
+      summary: "Create a comment on a public business child entity."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
+        - { name: entityId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessChildCommentItem"
+
+  /businesses/{handle}/{entityType}/{entityId}/comments/{commentId}:
+    delete:
+      operationId: deleteBusinessChildComment
+      tags: [businesses]
+      summary: "Soft-delete a business child comment (author, page moderator, or admin)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
+        - { name: entityId, in: path, required: true, schema: { type: integer } }
+        - { name: commentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  removed: { type: boolean }
+
+  /businesses/{handle}/media/submissions:
+    post:
+      operationId: submitBusinessCustomerMedia
+      tags: [businesses]
+      summary: "Submit customer media to a public page (lands pending; requires page approval)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessMediaSubmissionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessMediaItem"
+
+  /businesses/{handle}/media/{mediaId}/review:
+    patch:
+      operationId: reviewBusinessCustomerMedia
+      tags: [businesses]
+      summary: "Approve or reject a pending customer media submission (owner/admin/editor)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: mediaId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessMediaReviewInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessMediaItem"
+
+  /businesses/{handle}/media/{mediaId}/view:
+    post:
+      operationId: recordBusinessMediaView
+      tags: [businesses]
+      summary: "Record a reel/video view. Authenticated; idempotent per (media,user) — repeats do not re-count."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: mediaId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Recorded (no content) }
+
+  /businesses/{handle}/mentions:
+    get:
+      operationId: listBusinessMentions
+      tags: [businesses]
+      summary: "List business @-mentions (page team; moderator+)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: status, in: query, required: false, schema: { type: string, enum: [pending, approved, rejected] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessMentionItem"
+
+  /businesses/{handle}/mentions/{mentionId}:
+    patch:
+      operationId: reviewBusinessMention
+      tags: [businesses]
+      summary: "Approve or reject a business @-mention (page team)."
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: mentionId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [approve, reject] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessMentionItem"
+
+  /admin/business-reports:
+    get:
+      operationId: listBusinessReports
+      tags: [admin]
+      summary: "Admin report queue for business content."
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string, enum: [open, dismissed, actioned] } }
+        - { name: entityType, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessContentReportItem"
+
+  /admin/business-reports/{reportId}:
+    patch:
+      operationId: reviewBusinessReport
+      tags: [admin]
+      summary: "Dismiss or action a business content report."
+      parameters:
+        - { name: reportId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [dismiss, action] }
+                reason: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessContentReportItem"
+
 components:
   schemas:
     HealthStatus:
@@ -3716,7 +5121,7 @@ components:
       properties:
         id: { type: integer }
         userId: { type: integer }
-        userRole: { type: string, enum: [doll, member, admin] }
+        userRole: { type: string }
         userName: { type: string }
         username: { type: ["string", "null"] }
         userPhotoUrl: { type: ["string", "null"] }
@@ -3724,11 +5129,19 @@ components:
         dollId: { type: ["integer", "null"] }
         city: { type: ["string", "null"] }
         state: { type: ["string", "null"] }
+        source: { type: ["string", "null"], description: "Set for business-attributed feed items (business_post|business_checkin|business_event)." }
+        sourceId: { type: ["integer", "null"] }
+        businessId: { type: ["integer", "null"] }
+        business:
+          description: "Safe public business author object; null for personal posts."
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/FeedBusinessAuthor"
         text: { type: string }
         mediaUrl: { type: ["string", "null"] }
         posterUrl: { type: ["string", "null"], description: Poster/thumbnail image for video posts. }
         mediaType: { type: string, enum: [none, image, video] }
-        category: { type: string, enum: [setup, lounge, flavor, event, meme, review, question, discussion] }
+        category: { type: string }
         status: { type: string, enum: [active, hidden, removed, pending_review] }
         likeCount: { type: integer }
         commentCount: { type: integer }
@@ -3740,6 +5153,17 @@ components:
         audience: { type: string, enum: [public, friends, followers, only_me] }
         createdAt: { type: string }
         updatedAt: { type: string }
+
+    FeedBusinessAuthor:
+      type: object
+      required: [id, handle, name, url]
+      properties:
+        id: { type: integer }
+        handle: { type: string }
+        name: { type: string }
+        logoUrl: { type: ["string", "null"] }
+        verified: { type: boolean }
+        url: { type: string, description: "Navigation target, e.g. /business/:handle" }
 
     FeedPostInput:
       type: object
@@ -4329,3 +5753,928 @@ components:
       properties:
         error:
           type: string
+
+    # ─── Business Pages ───────────────────────────────────────────────────────
+
+    BusinessSummary:
+      type: object
+      required: [id, handle, name, businessType, category, status, isPublished]
+      properties:
+        id: { type: integer }
+        handle: { type: string }
+        name: { type: string }
+        businessType: { type: string }
+        category: { type: string }
+        tagline: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        coverUrl: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        averageRating: { type: ["number", "null"] }
+        reviewCount: { type: integer }
+        followerCount: { type: integer }
+        checkInCount: { type: integer }
+        badges: { type: array, items: { type: string } }
+        status: { type: string }
+        isPublished: { type: boolean }
+        createdAt: { type: string }
+
+    BusinessDetail:
+      type: object
+      required: [id, handle, name, businessType, status, isPublished]
+      properties:
+        id: { type: integer }
+        handle: { type: string }
+        name: { type: string }
+        businessType: { type: string }
+        category: { type: ["string", "null"] }
+        tagline: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        mission: { type: ["string", "null"] }
+        foundedDate: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        coverUrl: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        zip: { type: ["string", "null"] }
+        country: { type: string }
+        lat: { type: ["number", "null"] }
+        lng: { type: ["number", "null"] }
+        serviceArea: { type: ["string", "null"] }
+        phone: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        website: { type: ["string", "null"] }
+        socials: { type: ["object", "null"] }
+        hours: { type: ["object", "null"] }
+        specialHours: { type: ["array", "null"], items: { type: object } }
+        parkingInfo: { type: ["string", "null"] }
+        priceRange: { type: ["string", "null"] }
+        amenities: { type: array, items: { type: string } }
+        paymentMethods: { type: array, items: { type: string } }
+        accessibility: { type: ["string", "null"] }
+        ageRequirement: { type: ["string", "null"] }
+        status: { type: string }
+        isOpenNowOverride: { type: ["boolean", "null"] }
+        isPublished: { type: boolean }
+        badges: { type: array, items: { type: string } }
+        ctaConfig: { type: ["object", "null"] }
+        tabsEnabled: { type: ["object", "null"] }
+        showOwner: { type: boolean }
+        followerCount: { type: integer }
+        saveCount: { type: integer }
+        reviewCount: { type: integer }
+        checkInCount: { type: integer }
+        postCount: { type: integer }
+        averageRating: { type: ["number", "null"] }
+        # ownerUserId is intentionally omitted from all public responses.
+        # owner is only present (non-null) when showOwner=true on the page.
+        owner:
+          type: ["object", "null"]
+          description: "Safe owner display object shown only when showOwner is true; never exposes raw userId"
+          properties:
+            name: { type: string }
+            photoUrl: { type: ["string", "null"] }
+        viewerFollows: { type: boolean }
+        viewerSaved: { type: boolean }
+        viewerRole:
+          type: ["string", "null"]
+          description: "Caller's own team role (owner/admin/editor/moderator/advertiser/analyst/support_agent) or null"
+        viewerIsTeam: { type: boolean }
+        timezone: { type: ["string", "null"] }
+        tags: { type: array, items: { type: string } }
+        communityInterests: { type: array, items: { type: string } }
+        bookingEnabled: { type: boolean }
+        bookingAvailability: { type: ["object", "null"] }
+        bookingLeadTimeMinutes: { type: ["integer", "null"] }
+        bookingSlotIntervalMinutes: { type: integer }
+        bookingMaxAdvanceMinutes: { type: ["integer", "null"] }
+        bookingBufferMinutes: { type: integer }
+        bookingDefaultDurationMinutes: { type: integer }
+        bookingTimezone: { type: ["string", "null"] }
+        allowMentions: { type: boolean }
+        mentionsRequireApproval: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    BusinessInput:
+      type: object
+      required: [handle, name, businessType]
+      properties:
+        handle: { type: string, minLength: 2, maxLength: 30 }
+        name: { type: string, minLength: 1 }
+        businessType: { type: string }
+        category: { type: ["string", "null"] }
+        tagline: { type: string }
+        description: { type: string }
+        mission: { type: string }
+        foundedDate: { type: string }
+        logoUrl: { type: string }
+        coverUrl: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zip: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        website: { type: string }
+        socials: { type: object }
+        hours: { type: object }
+
+    BusinessSettingsUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        tagline: { type: string }
+        description: { type: string }
+        mission: { type: string }
+        foundedDate: { type: string }
+        logoUrl: { type: string }
+        coverUrl: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zip: { type: string }
+        lat: { type: number }
+        lng: { type: number }
+        serviceArea: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        website: { type: string }
+        socials: { type: object }
+        hours: { type: object }
+        specialHours: { type: array, items: { type: object } }
+        parkingInfo: { type: string }
+        priceRange: { type: string }
+        amenities: { type: array, items: { type: string } }
+        paymentMethods: { type: array, items: { type: string } }
+        accessibility: { type: string }
+        ageRequirement: { type: string }
+        isOpenNowOverride: { type: ["boolean", "null"] }
+        isPublished: { type: boolean }
+        ctaConfig: { type: object }
+        tabsEnabled: { type: object }
+        showOwner: { type: boolean }
+        timezone: { type: ["string", "null"] }
+        category: { type: ["string", "null"] }
+        tags: { type: array, items: { type: string } }
+        communityInterests: { type: array, items: { type: string } }
+        bookingEnabled: { type: boolean }
+        bookingAvailability: { type: ["object", "null"] }
+        bookingLeadTimeMinutes: { type: ["integer", "null"] }
+        bookingSlotIntervalMinutes: { type: integer }
+        bookingMaxAdvanceMinutes: { type: ["integer", "null"] }
+        bookingBufferMinutes: { type: integer }
+        bookingDefaultDurationMinutes: { type: integer }
+        bookingTimezone: { type: ["string", "null"] }
+        allowMentions: { type: boolean }
+        mentionsRequireApproval: { type: boolean }
+
+    BusinessEngagementResult:
+      type: object
+      required: [active]
+      properties:
+        active: { type: boolean }
+        followerCount: { type: integer }
+        saveCount: { type: integer }
+        likeCount: { type: integer }
+        isPinned: { type: boolean }
+        isHidden: { type: boolean }
+
+    BusinessMentionItem:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: integer }
+        sourceType: { type: string }
+        sourceId: { type: integer }
+        authorUserId: { type: integer }
+        status: { type: string, enum: [pending, approved, rejected] }
+        createdAt: { type: string }
+
+    BusinessContentReportItem:
+      type: object
+      required: [id, entityType, entityId, status]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        entityType: { type: string }
+        entityId: { type: integer }
+        reporterUserId: { type: integer }
+        reason: { type: string }
+        details: { type: ["string", "null"] }
+        status: { type: string, enum: [open, dismissed, actioned] }
+        createdAt: { type: string }
+
+    BusinessChildCommentItem:
+      type: object
+      required: [id, entityType, entityId, userId, text, status]
+      properties:
+        id: { type: integer }
+        entityType: { type: string }
+        entityId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        text: { type: string }
+        status: { type: string, enum: [active, hidden, removed] }
+        createdAt: { type: string }
+
+    BusinessCheckInInput:
+      type: object
+      properties:
+        note: { type: string }
+        visibility: { type: string, enum: [public, private] }
+        shareToFeed: { type: boolean }
+        photoUrl: { type: string }
+        taggedUserIds: { type: array, items: { type: integer } }
+
+    BusinessCheckInResult:
+      type: object
+      required: [id, businessId, userId]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        userId: { type: integer }
+        note: { type: ["string", "null"] }
+        visibility: { type: string, enum: [public, private] }
+        shareToFeed: { type: boolean }
+        photoUrl: { type: ["string", "null"] }
+        taggedUserIds: { type: array, items: { type: integer } }
+        feedPostId: { type: ["integer", "null"] }
+        checkInCount: { type: integer }
+        createdAt: { type: string }
+
+    BusinessReviewItem:
+      type: object
+      required: [id, businessId, userId, rating]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        rating: { type: integer }
+        text: { type: ["string", "null"] }
+        status: { type: string }
+        reply: { $ref: "#/components/schemas/BusinessReviewReplyItem" }
+        createdAt: { type: string }
+
+    BusinessReviewInput:
+      type: object
+      required: [rating]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string }
+
+    BusinessReviewReplyItem:
+      type: object
+      required: [id, reviewId, text]
+      properties:
+        id: { type: integer }
+        reviewId: { type: integer }
+        # ownerUserId intentionally omitted — reply is attributed to the business, not the individual
+        text: { type: string }
+        createdAt: { type: string }
+
+    BusinessReviewReplyInput:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, minLength: 1 }
+
+    BusinessPostItem:
+      type: object
+      required: [id, businessId, text, status, isPinned]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        authorUserId: { type: integer }
+        authorName: { type: string }
+        authorPhotoUrl: { type: ["string", "null"] }
+        text: { type: string }
+        mediaUrl: { type: ["string", "null"] }
+        posterUrl: { type: ["string", "null"] }
+        mediaType: { type: string }
+        status: { type: string }
+        isPinned: { type: boolean }
+        likeCount: { type: integer }
+        commentCount: { type: integer }
+        viewerLiked: { type: boolean }
+        viewerSaved: { type: boolean }
+        createdAt: { type: string }
+
+    BusinessPostInput:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, minLength: 1 }
+        mediaUrl:
+          type: string
+          description: "Must be a storage object path for images (finalized) or an uploaded video path; arbitrary external URLs are rejected"
+        posterUrl:
+          type: string
+          description: "Thumbnail image URL for video posts; must be a finalized storage image path"
+        mediaType:
+          type: string
+          enum: [none, image, video]
+          description: "Must match the actual content type of mediaUrl; defaults to none"
+
+    BusinessServiceItem:
+      type: object
+      required: [id, businessId, name, isActive]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        category: { type: ["string", "null"] }
+        priceLabel: { type: ["string", "null"] }
+        priceCents: { type: ["integer", "null"] }
+        salePriceCents: { type: ["integer", "null"] }
+        durationMinutes: { type: ["integer", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        bookingUrl: { type: ["string", "null"] }
+        isActive: { type: boolean }
+        status: { type: string, enum: [active, draft, archived] }
+        sortOrder: { type: integer }
+        createdAt: { type: string }
+
+    BusinessServiceInput:
+      type: object
+      required: [name]
+      properties:
+        id: { type: integer }
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+        category: { type: string }
+        priceLabel: { type: string }
+        priceCents: { type: integer }
+        salePriceCents: { type: integer }
+        durationMinutes: { type: integer }
+        imageUrl: { type: string }
+        bookingUrl: { type: string, description: "External http(s) booking link" }
+        isActive: { type: boolean }
+        status: { type: string, enum: [active, draft, archived] }
+        sortOrder: { type: integer }
+
+    BusinessProductItem:
+      type: object
+      required: [id, businessId, name, isAvailable]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        category: { type: ["string", "null"] }
+        priceCents: { type: ["integer", "null"] }
+        salePriceCents: { type: ["integer", "null"] }
+        priceLabel: { type: ["string", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        imageUrls: { type: array, items: { type: string } }
+        purchaseUrl: { type: ["string", "null"] }
+        sku: { type: ["string", "null"] }
+        isAvailable: { type: boolean }
+        status: { type: string, enum: [active, draft, archived, out_of_stock, hidden, removed] }
+        likeCount: { type: integer }
+        saveCount: { type: integer }
+        commentCount: { type: integer }
+        viewerLiked: { type: boolean }
+        viewerSaved: { type: boolean }
+        sortOrder: { type: integer }
+        createdAt: { type: string }
+
+    BusinessProductInput:
+      type: object
+      required: [name]
+      properties:
+        id: { type: integer }
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+        category: { type: string }
+        priceCents: { type: integer }
+        salePriceCents: { type: integer }
+        priceLabel: { type: string }
+        imageUrl: { type: string }
+        imageUrls: { type: array, items: { type: string, description: "Finalized storage image objects" } }
+        purchaseUrl: { type: string, description: "External http(s) purchase link" }
+        sku: { type: string }
+        isAvailable: { type: boolean }
+        status: { type: string, enum: [active, draft, archived] }
+        sortOrder: { type: integer }
+
+    BusinessOfferItem:
+      type: object
+      required: [id, businessId, title, isActive]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        discountLabel: { type: ["string", "null"] }
+        code: { type: ["string", "null"] }
+        terms: { type: ["string", "null"] }
+        redeemUrl: { type: ["string", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        startsAt: { type: ["string", "null"] }
+        expiresAt: { type: ["string", "null"] }
+        isActive: { type: boolean }
+        likeCount: { type: integer }
+        saveCount: { type: integer }
+        commentCount: { type: integer }
+        viewerLiked: { type: boolean }
+        viewerSaved: { type: boolean }
+        createdAt: { type: string }
+
+    BusinessOfferInput:
+      type: object
+      required: [title]
+      properties:
+        id: { type: integer }
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        discountLabel: { type: string }
+        code: { type: string }
+        terms: { type: string }
+        redeemUrl: { type: string, description: "External http(s) redemption link" }
+        imageUrl: { type: string }
+        startsAt: { type: string }
+        expiresAt: { type: string }
+        isActive: { type: boolean }
+
+    BusinessAppointmentItem:
+      type: object
+      required: [id, businessId, userId, scheduledAt, status]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        serviceId: { type: ["integer", "null"] }
+        serviceName: { type: ["string", "null"] }
+        userId: { type: integer }
+        userName: { type: string }
+        scheduledAt: { type: string }
+        durationMinutes: { type: ["integer", "null"] }
+        notes: { type: ["string", "null"] }
+        status: { type: string }
+        createdAt: { type: string }
+
+    BusinessAppointmentInput:
+      type: object
+      required: [scheduledAt]
+      properties:
+        serviceId: { type: integer }
+        scheduledAt: { type: string }
+        durationMinutes: { type: integer }
+        notes: { type: string }
+
+    BusinessAppointmentStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [confirmed, cancelled, completed, declined]
+          description: "declined is team-only; a customer may only set cancelled on their own appointment."
+
+    BusinessConversationItem:
+      type: object
+      required: [id, businessId, userId]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        lastMessageAt: { type: ["string", "null"] }
+        unreadByBusiness: { type: integer }
+        unreadByUser: { type: integer }
+        status: { type: string }
+        createdAt: { type: string }
+
+    BusinessMessageItem:
+      type: object
+      required: [id, conversationId, senderUserId, senderType, body]
+      properties:
+        id: { type: integer }
+        conversationId: { type: integer }
+        senderUserId: { type: integer }
+        senderName: { type: string }
+        senderType: { type: string, enum: [user, business] }
+        body: { type: string }
+        mediaUrl: { type: ["string", "null"] }
+        isRead: { type: boolean }
+        createdAt: { type: string }
+
+    BusinessMessageInput:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1 }
+        mediaUrl: { type: string }
+
+    BusinessTeamMember:
+      type: object
+      required: [id, businessId, userId, role]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        role:
+          type: string
+          enum: [owner, admin, editor, moderator, advertiser, analyst, support_agent]
+          description: "Full role hierarchy: owner > admin > editor/moderator/advertiser/analyst/support_agent"
+        createdAt: { type: string }
+
+    BusinessTeamMemberInput:
+      type: object
+      required: [userId, role]
+      properties:
+        userId: { type: integer }
+        role:
+          type: string
+          enum: [admin, editor, moderator, advertiser, analyst, support_agent]
+          description: "Assignable roles (owner cannot be assigned via this endpoint)"
+
+    BusinessDashboard:
+      type: object
+      required: [businessId, followerCount, saveCount, reviewCount, checkInCount, postCount, appointmentCount, unreadMessages]
+      properties:
+        businessId: { type: integer }
+        followerCount: { type: integer }
+        saveCount: { type: integer }
+        reviewCount: { type: integer }
+        averageRating: { type: ["number", "null"] }
+        checkInCount: { type: integer }
+        postCount: { type: integer }
+        serviceCount: { type: integer }
+        productCount: { type: integer }
+        offerCount: { type: integer }
+        appointmentCount: { type: integer }
+        pendingAppointments: { type: integer }
+        unreadMessages: { type: integer }
+        recentActivity:
+          type: array
+          items: { type: object }
+
+    BusinessInsights:
+      type: object
+      required: [businessId, days]
+      properties:
+        businessId: { type: integer }
+        days: { type: integer }
+        profileViews: { type: integer }
+        newFollowers: { type: integer }
+        newCheckIns: { type: integer }
+        newReviews: { type: integer }
+        eventBreakdown:
+          type: array
+          items: { $ref: "#/components/schemas/BusinessInsightPoint" }
+
+    BusinessInsightPoint:
+      type: object
+      required: [label, count]
+      properties:
+        label: { type: string }
+        eventType: { type: string }
+        count: { type: integer }
+
+    BusinessNotificationItem:
+      type: object
+      required: [id, businessId, type, title, message, isRead]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        recipientUserId: { type: integer }
+        type: { type: string }
+        title: { type: string }
+        message: { type: string }
+        relatedEntityId: { type: ["integer", "null"] }
+        relatedEntityType: { type: ["string", "null"] }
+        isRead: { type: boolean }
+        createdAt: { type: string }
+
+    BusinessModerationInput:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum:
+            [
+              suspend,
+              reinstate,
+              remove_review,
+              restore_review,
+              hide_post,
+              restore_post,
+              warn,
+              badge_grant,
+              badge_revoke,
+              feature,
+              unfeature,
+              sponsor,
+              unsponsor,
+              verify,
+              reject_verification,
+              request_verification_changes,
+              set_category,
+              transfer_owner,
+            ]
+        targetEntityType: { type: string }
+        targetEntityId: { type: integer }
+        reason: { type: string }
+        badge: { type: string }
+        category: { type: string }
+        featuredUntil: { type: string }
+        sponsoredUntil: { type: string }
+        newOwnerUserId: { type: integer }
+
+    # ── Post engagement ──────────────────────────────────────────────────────
+    BusinessPostLikeResult:
+      type: object
+      required: [active, likeCount]
+      properties:
+        active: { type: boolean }
+        likeCount: { type: integer }
+
+    BusinessPostReportInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1 }
+        details: { type: string }
+
+    BusinessPostReportResult:
+      type: object
+      required: [reported]
+      properties:
+        reported: { type: boolean }
+        alreadyReported: { type: boolean }
+
+    BusinessPostComment:
+      type: object
+      required: [id, postId, userId, text, status]
+      properties:
+        id: { type: integer }
+        postId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        text: { type: string }
+        status: { type: string }
+        createdAt: { type: string }
+
+    BusinessPostCommentInput:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, minLength: 1 }
+
+    # ── Followers / check-ins ─────────────────────────────────────────────────
+    BusinessFollowerList:
+      type: object
+      required: [followerCount, followers]
+      properties:
+        followerCount: { type: integer }
+        followers:
+          type: array
+          items: { $ref: "#/components/schemas/BusinessFollower" }
+
+    BusinessFollower:
+      type: object
+      required: [userId, userName]
+      properties:
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        followedAt: { type: string }
+
+    BusinessCheckInPublic:
+      type: object
+      required: [id, businessId, userId]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        note: { type: ["string", "null"] }
+        photoUrl: { type: ["string", "null"] }
+        likeCount: { type: integer }
+        commentCount: { type: integer }
+        viewerLiked: { type: boolean }
+        createdAt: { type: string }
+
+    # ── Media: albums + items ─────────────────────────────────────────────────
+    BusinessAlbum:
+      type: object
+      required: [id, businessId, title, status]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        coverUrl: { type: ["string", "null"] }
+        status: { type: string, enum: [active, hidden] }
+        sortOrder: { type: integer }
+        createdAt: { type: string }
+
+    BusinessAlbumInput:
+      type: object
+      required: [title]
+      properties:
+        id: { type: integer }
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        coverUrl: { type: string, description: "Finalized storage image object" }
+        status: { type: string, enum: [active, hidden] }
+        sortOrder: { type: integer }
+
+    BusinessMediaItem:
+      type: object
+      required: [id, businessId, kind, mediaUrl, status]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        albumId: { type: ["integer", "null"] }
+        kind: { type: string, enum: [photo, video, reel] }
+        title: { type: ["string", "null"] }
+        caption: { type: ["string", "null"] }
+        category: { type: ["string", "null"] }
+        hashtags: { type: array, items: { type: string } }
+        mediaUrl: { type: string }
+        posterUrl: { type: ["string", "null"] }
+        source: { type: string, enum: [team, customer] }
+        submittedByUserId: { type: ["integer", "null"] }
+        status: { type: string, enum: [active, hidden, pending, rejected, removed] }
+        likeCount: { type: integer }
+        saveCount: { type: integer }
+        commentCount: { type: integer }
+        viewCount: { type: integer }
+        viewerLiked: { type: boolean }
+        viewerSaved: { type: boolean }
+        sortOrder: { type: integer }
+        createdAt: { type: string }
+
+    BusinessMediaSubmissionInput:
+      type: object
+      required: [kind, mediaUrl]
+      properties:
+        kind: { type: string, enum: [photo, video, reel] }
+        mediaUrl: { type: string, description: "Finalized internal storage object; external URLs rejected" }
+        caption: { type: string }
+
+    BusinessMediaReviewInput:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [approve, reject] }
+
+    BusinessMediaInput:
+      type: object
+      required: [kind, mediaUrl]
+      properties:
+        kind: { type: string, enum: [photo, video, reel] }
+        mediaUrl: { type: string, description: "Finalized internal storage object; external URLs rejected" }
+        posterUrl: { type: string, description: "Optional finalized storage image poster for video/reel" }
+        albumId: { type: integer }
+        title: { type: string }
+        caption: { type: string }
+        sortOrder: { type: integer }
+
+    BusinessMediaUpdateInput:
+      type: object
+      properties:
+        albumId: { type: ["integer", "null"] }
+        title: { type: string }
+        caption: { type: string }
+        status: { type: string, enum: [active, hidden] }
+        sortOrder: { type: integer }
+
+    # ── Events + RSVP ─────────────────────────────────────────────────────────
+    BusinessEvent:
+      type: object
+      required: [id, businessId, title, startsAt, status, visibility]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        location: { type: ["string", "null"] }
+        startsAt: { type: string }
+        endsAt: { type: ["string", "null"] }
+        onlineUrl: { type: ["string", "null"] }
+        imageUrls: { type: array, items: { type: string } }
+        ticketUrl: { type: ["string", "null"] }
+        status: { type: string, enum: [draft, active, cancelled, completed, hidden, removed] }
+        visibility: { type: string, enum: [public, private] }
+        rsvpCount: { type: integer }
+        likeCount: { type: integer }
+        saveCount: { type: integer }
+        commentCount: { type: integer }
+        feedPostId: { type: ["integer", "null"] }
+        viewerRsvp: { type: ["string", "null"], enum: [going, interested, null] }
+        viewerLiked: { type: boolean }
+        viewerSaved: { type: boolean }
+        createdAt: { type: string }
+
+    BusinessEventInput:
+      type: object
+      required: [title, startsAt]
+      properties:
+        id: { type: integer }
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        location: { type: string }
+        startsAt: { type: string }
+        endsAt: { type: string }
+        imageUrls: { type: array, items: { type: string, description: "Finalized storage image object" } }
+        ticketUrl: { type: string }
+        status: { type: string, enum: [draft, active, cancelled] }
+        visibility: { type: string, enum: [public, private] }
+
+    BusinessEventRsvpInput:
+      type: object
+      properties:
+        status: { type: string, enum: [going, interested] }
+
+    BusinessEventRsvpResult:
+      type: object
+      required: [active, rsvpCount]
+      properties:
+        active: { type: boolean }
+        rsvpStatus: { type: ["string", "null"], enum: [going, interested, null] }
+        rsvpCount: { type: integer }
+
+    # ── Verification ──────────────────────────────────────────────────────────
+    BusinessVerificationState:
+      type: object
+      required: [verificationStatus, submissions]
+      properties:
+        verificationStatus: { type: string, enum: [unverified, pending, verified, rejected] }
+        submissions:
+          type: array
+          items: { $ref: "#/components/schemas/BusinessVerificationSubmission" }
+
+    BusinessVerificationDocumentRef:
+      type: object
+      required: [index, downloadUrl]
+      properties:
+        index: { type: integer }
+        downloadUrl:
+          type: string
+          description: "Admin-only proxy download URL for this private document. The raw storage path is never exposed."
+
+    BusinessVerificationSubmission:
+      type: object
+      required: [id, businessId, status, documentCount]
+      properties:
+        id: { type: integer }
+        businessId: { type: integer }
+        legalName: { type: ["string", "null"] }
+        contactEmail: { type: ["string", "null"] }
+        contactPhone: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        documentCount: { type: integer, description: "Number of attached private documents" }
+        documents:
+          type: array
+          description: "Only present for platform admin — opaque admin-only download refs (no raw storage paths)"
+          items: { $ref: "#/components/schemas/BusinessVerificationDocumentRef" }
+        status: { type: string, enum: [pending, approved, rejected, changes_requested] }
+        reviewNotes: { type: ["string", "null"] }
+        reviewedAt: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    BusinessVerificationDocumentUploadResult:
+      type: object
+      required: [documentRef, contentType]
+      properties:
+        documentRef:
+          type: string
+          description: "Opaque private object ref to submit as a document. Never a public URL."
+        contentType: { type: string }
+
+    BusinessVerificationInput:
+      type: object
+      required: [documentRefs]
+      properties:
+        legalName: { type: string }
+        contactEmail: { type: string }
+        contactPhone: { type: string }
+        notes: { type: string }
+        documentRefs:
+          type: array
+          minItems: 1
+          description: "Opaque PRIVATE document refs from POST /businesses/{handle}/verification/documents. Owner-scoped; external/public URLs rejected."
+          items: { type: string }
+
+    # ── Appointments ──────────────────────────────────────────────────────────
+    BusinessAppointmentRescheduleInput:
+      type: object
+      required: [scheduledAt]
+      properties:
+        scheduledAt: { type: string }
+        durationMinutes: { type: integer }

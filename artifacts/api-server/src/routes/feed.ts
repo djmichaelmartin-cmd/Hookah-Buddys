@@ -22,8 +22,14 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
 import { finalizeMediaUrl, InvalidUploadError } from "../lib/imageUploads";
-import { hydratePosts, loadAuthors } from "../lib/feedHelpers";
+import {
+  hydratePosts,
+  loadAuthors,
+  feedBusinessLifecycleVisible,
+  feedPostBusinessVisible,
+} from "../lib/feedHelpers";
 import { syncPostHashtags, removePostHashtags } from "../lib/hashtags";
+import { createBusinessMentions } from "../lib/businessMentions";
 import { createNotification } from "../lib/notify";
 import {
   loadAudienceSets,
@@ -53,7 +59,11 @@ router.get("/feed/posts", async (req, res): Promise<void> => {
     100,
   );
 
-  const conditions = [eq(feedPostsTable.status, "active")];
+  const conditions = [
+    eq(feedPostsTable.status, "active"),
+    // Business-attributed rows must obey page lifecycle (active + published).
+    feedBusinessLifecycleVisible(),
+  ];
   if (category) conditions.push(eq(feedPostsTable.category, category));
   if (userId != null && !Number.isNaN(userId)) conditions.push(eq(feedPostsTable.userId, userId));
   if (filter === "dolls") conditions.push(eq(feedPostsTable.userRole, "doll"));
@@ -165,6 +175,15 @@ router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
     })
     .returning();
   await syncPostHashtags(post.id, post.text);
+  // Parse business @handle mentions in the post text and create mention
+  // records (honors each page's allowMentions/approval; never leaks
+  // unpublished/suspended pages; notifies the mentioned page team).
+  await createBusinessMentions(db, {
+    text: post.text,
+    sourceType: "feed_post",
+    sourceId: post.id,
+    authorUserId: user.id,
+  });
   const [result] = await hydratePosts([post], user.id);
   res.status(201).json(result);
 });
@@ -192,6 +211,7 @@ router.get("/feed/hashtags/trending", async (req, res): Promise<void> => {
         and(
           eq(feedPostsTable.status, "active"),
           eq(feedPostsTable.audience, "public"),
+          feedBusinessLifecycleVisible(),
           ...(sinceDays != null
             ? [sql`${feedPostsTable.createdAt} > now() - make_interval(days => ${sinceDays})`]
             : []),
@@ -228,7 +248,13 @@ router.get("/feed/saved", requireAuth(), async (req, res): Promise<void> => {
     ? await db
         .select()
         .from(feedPostsTable)
-        .where(and(inArray(feedPostsTable.id, ids), eq(feedPostsTable.status, "active")))
+        .where(
+          and(
+            inArray(feedPostsTable.id, ids),
+            eq(feedPostsTable.status, "active"),
+            feedBusinessLifecycleVisible(),
+          ),
+        )
     : [];
   const order = new Map(ids.map((id, i) => [id, i]));
   posts.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
@@ -247,7 +273,13 @@ router.get("/feed/liked", requireAuth(), async (req, res): Promise<void> => {
     ? await db
         .select()
         .from(feedPostsTable)
-        .where(and(inArray(feedPostsTable.id, ids), eq(feedPostsTable.status, "active")))
+        .where(
+          and(
+            inArray(feedPostsTable.id, ids),
+            eq(feedPostsTable.status, "active"),
+            feedBusinessLifecycleVisible(),
+          ),
+        )
     : [];
   const order = new Map(ids.map((id, i) => [id, i]));
   posts.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
@@ -331,6 +363,12 @@ router.get("/feed/posts/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Post not found" });
     return;
   }
+  // Business-attributed rows must obey page lifecycle even on the detail path;
+  // management preview never leaks through this public endpoint.
+  if (!(await feedPostBusinessVisible(post))) {
+    res.status(404).json({ error: "Post not found" });
+    return;
+  }
   const [result] = await hydratePosts([post], viewer?.id ?? null);
   res.json(result);
 });
@@ -360,7 +398,12 @@ router.post("/feed/posts/:id/like", requireAuth(), async (req, res): Promise<voi
   const user = req.currentUser!;
   const id = parseId(req.params.id);
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post || post.status !== "active" || !(await viewerCanSeePost(post, user))) {
+  if (
+    !post ||
+    post.status !== "active" ||
+    !(await viewerCanSeePost(post, user)) ||
+    !(await feedPostBusinessVisible(post))
+  ) {
     res.status(404).json({ error: "Post not found" });
     return;
   }
@@ -410,7 +453,12 @@ router.post("/feed/posts/:id/save", requireAuth(), async (req, res): Promise<voi
   const user = req.currentUser!;
   const id = parseId(req.params.id);
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post || post.status !== "active" || !(await viewerCanSeePost(post, user))) {
+  if (
+    !post ||
+    post.status !== "active" ||
+    !(await viewerCanSeePost(post, user)) ||
+    !(await feedPostBusinessVisible(post))
+  ) {
     res.status(404).json({ error: "Post not found" });
     return;
   }
@@ -456,7 +504,7 @@ router.post("/feed/posts/:id/report", requireAuth(), async (req, res): Promise<v
     return;
   }
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post || !(await viewerCanSeePost(post, user))) {
+  if (!post || !(await viewerCanSeePost(post, user)) || !(await feedPostBusinessVisible(post))) {
     res.status(404).json({ error: "Post not found" });
     return;
   }
@@ -494,6 +542,15 @@ router.post("/feed/comments/:id/report", requireAuth(), async (req, res): Promis
     res.status(404).json({ error: "Comment not found" });
     return;
   }
+  // The parent post must itself be publicly visible (incl. business lifecycle).
+  const [parentPost] = await db
+    .select()
+    .from(feedPostsTable)
+    .where(eq(feedPostsTable.id, comment.postId));
+  if (!parentPost || !(await feedPostBusinessVisible(parentPost))) {
+    res.status(404).json({ error: "Comment not found" });
+    return;
+  }
   await db.insert(postReportsTable).values({
     targetType: "comment",
     postId: comment.postId,
@@ -510,7 +567,12 @@ router.get("/feed/posts/:id/comments", async (req, res): Promise<void> => {
   const id = parseId(req.params.id);
   const viewer = await getSessionUser(req);
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post || post.status !== "active" || !(await viewerCanSeePost(post, viewer ?? null))) {
+  if (
+    !post ||
+    post.status !== "active" ||
+    !(await viewerCanSeePost(post, viewer ?? null)) ||
+    !(await feedPostBusinessVisible(post))
+  ) {
     res.status(404).json({ error: "Post not found" });
     return;
   }
@@ -549,7 +611,12 @@ router.post("/feed/posts/:id/comments", requireAuth(), async (req, res): Promise
     return;
   }
   const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, id));
-  if (!post || post.status !== "active" || !(await viewerCanSeePost(post, user))) {
+  if (
+    !post ||
+    post.status !== "active" ||
+    !(await viewerCanSeePost(post, user)) ||
+    !(await feedPostBusinessVisible(post))
+  ) {
     res.status(404).json({ error: "Post not found" });
     return;
   }

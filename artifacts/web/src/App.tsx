@@ -39,6 +39,10 @@ import { usePresenceHeartbeatLoop } from "@/hooks/use-presence-heartbeat";
 import Events from "@/pages/Events";
 import EventDetail from "@/pages/EventDetail";
 import CommunityFeed from "@/pages/CommunityFeed";
+import BusinessDiscover from "@/pages/BusinessDiscover";
+import BusinessCreate from "@/pages/BusinessCreate";
+import BusinessProfile from "@/pages/BusinessProfile";
+import BusinessDashboard from "@/pages/BusinessDashboard";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +99,12 @@ function Router() {
       <Route path="/community/questions" component={CommunityFeed} />
       <Route path="/community/hookah-events" component={Events} />
       <Route path="/community/local-lounges" component={Lounges} />
+
+      {/* Business Pages */}
+      <Route path="/businesses" component={BusinessDiscover} />
+      <Route path="/business/create" component={BusinessCreate} />
+      <Route path="/business/:handle" component={BusinessProfile} />
+      <Route path="/dashboard/business/:handle" component={BusinessDashboard} />
 
       <Route component={NotFound} />
     </Switch>

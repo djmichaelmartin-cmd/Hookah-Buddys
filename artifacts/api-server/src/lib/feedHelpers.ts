@@ -1,4 +1,4 @@
-import { inArray, and, eq } from "drizzle-orm";
+import { inArray, and, eq, or, isNull, sql, type SQL } from "drizzle-orm";
 import {
   db,
   usersTable,
@@ -6,9 +6,104 @@ import {
   postLikesTable,
   postSavesTable,
   followsTable,
+  feedPostsTable,
+  businessesTable,
   type FeedPost,
   type User,
 } from "@workspace/db";
+
+/**
+ * Public feed lifecycle gate for BUSINESS-ATTRIBUTED feed rows.
+ *
+ * A canonical feed row that is attributed to a Business Page (businessId set)
+ * must obey the page lifecycle: it is publicly visible ONLY when the linked
+ * business is status="active" AND isPublished=true. Personal (non-business)
+ * rows — businessId IS NULL — are unaffected by this gate.
+ *
+ * Returned as a SQL predicate to AND into any public feed list/detail query,
+ * so management-preview and suspended/unpublished pages never leak canonical
+ * business rows through public feed endpoints.
+ */
+export function feedBusinessLifecycleVisible(): SQL {
+  return or(
+    isNull(feedPostsTable.businessId),
+    inArray(
+      feedPostsTable.businessId,
+      db
+        .select({ id: businessesTable.id })
+        .from(businessesTable)
+        .where(
+          and(
+            eq(businessesTable.status, "active"),
+            eq(businessesTable.isPublished, true),
+          ),
+        ),
+    ),
+  ) as SQL;
+}
+
+/**
+ * Detail/engagement-path equivalent of feedBusinessLifecycleVisible: given a
+ * single already-fetched feed post, resolve whether it passes the business
+ * lifecycle gate. Personal rows always pass; business-attributed rows require
+ * the linked business to be active AND published. Returns false if the linked
+ * business is missing.
+ */
+export async function feedPostBusinessVisible(post: FeedPost): Promise<boolean> {
+  if (post.businessId == null) return true;
+  const [biz] = await db
+    .select({
+      status: businessesTable.status,
+      isPublished: businessesTable.isPublished,
+    })
+    .from(businessesTable)
+    .where(eq(businessesTable.id, post.businessId));
+  if (!biz) return false;
+  return biz.status === "active" && biz.isPublished === true;
+}
+
+// Re-export sql to keep a single drizzle import surface if needed later.
+export { sql };
+
+export type BusinessAuthor = {
+  id: number;
+  handle: string;
+  name: string;
+  logoUrl: string | null;
+  verified: boolean;
+};
+
+/**
+ * Loads safe public business author objects for feed items attributed to a
+ * Business Page. Only id/handle/name/logo/verification are exposed — never the
+ * owner's personal identity.
+ */
+export async function loadBusinessAuthors(
+  businessIds: number[],
+): Promise<Map<number, BusinessAuthor>> {
+  const map = new Map<number, BusinessAuthor>();
+  if (businessIds.length === 0) return map;
+  const rows = await db
+    .select({
+      id: businessesTable.id,
+      handle: businessesTable.handle,
+      name: businessesTable.name,
+      logoUrl: businessesTable.logoUrl,
+      verificationStatus: businessesTable.verificationStatus,
+    })
+    .from(businessesTable)
+    .where(inArray(businessesTable.id, businessIds));
+  for (const r of rows) {
+    map.set(r.id, {
+      id: r.id,
+      handle: r.handle,
+      name: r.name,
+      logoUrl: r.logoUrl ?? null,
+      verified: r.verificationStatus === "verified",
+    });
+  }
+  return map;
+}
 
 export type AuthorInfo = {
   user: User | undefined;
@@ -68,19 +163,43 @@ export async function loadViewerFlags(
   return flags;
 }
 
-export function toFeedPostResponse(post: FeedPost, author: AuthorInfo | undefined, flags: ViewerFlags) {
+export function toFeedPostResponse(
+  post: FeedPost,
+  author: AuthorInfo | undefined,
+  flags: ViewerFlags,
+  businessAuthor?: BusinessAuthor,
+) {
   const u = author?.user;
+  // Only business_post feed items are AUTHORED by the page (owner identity
+  // hidden). Check-in / event shares keep the real user as author but still
+  // carry a `business` navigation object.
+  const isBusiness =
+    post.source === "business_post" && post.businessId != null && businessAuthor != null;
   return {
     id: post.id,
     userId: post.userId,
     userRole: post.userRole,
-    userName: u?.name ?? "Unknown",
-    username: u?.username ?? null,
-    userPhotoUrl: u?.profilePhotoUrl ?? null,
-    userVerified: author?.dollVerified ?? false,
-    dollId: u?.dollId ?? null,
-    city: u?.city ?? null,
-    state: u?.state ?? null,
+    userName: isBusiness ? businessAuthor!.name : (u?.name ?? "Unknown"),
+    username: isBusiness ? businessAuthor!.handle : (u?.username ?? null),
+    userPhotoUrl: isBusiness ? businessAuthor!.logoUrl : (u?.profilePhotoUrl ?? null),
+    userVerified: isBusiness ? businessAuthor!.verified : (author?.dollVerified ?? false),
+    dollId: isBusiness ? null : (u?.dollId ?? null),
+    city: isBusiness ? null : (u?.city ?? null),
+    state: isBusiness ? null : (u?.state ?? null),
+    // Safe business author + navigation target (/business/:handle).
+    source: post.source ?? null,
+    sourceId: post.sourceId ?? null,
+    businessId: post.businessId ?? null,
+    business: isBusiness
+      ? {
+          id: businessAuthor!.id,
+          handle: businessAuthor!.handle,
+          name: businessAuthor!.name,
+          logoUrl: businessAuthor!.logoUrl,
+          verified: businessAuthor!.verified,
+          url: `/business/${businessAuthor!.handle}`,
+        }
+      : null,
     text: post.text,
     mediaUrl: post.mediaUrl ?? null,
     posterUrl: post.posterUrl ?? null,
@@ -103,10 +222,21 @@ export function toFeedPostResponse(post: FeedPost, author: AuthorInfo | undefine
 export async function hydratePosts(posts: FeedPost[], viewerId: number | null) {
   const authorIds = [...new Set(posts.map((p) => p.userId))];
   const authors = await loadAuthors(authorIds);
+  const businessIds = [
+    ...new Set(posts.map((p) => p.businessId).filter((b): b is number => b != null)),
+  ];
+  const businessAuthors = await loadBusinessAuthors(businessIds);
   const flags = await loadViewerFlags(
     viewerId,
     posts.map((p) => p.id),
     authorIds,
   );
-  return posts.map((p) => toFeedPostResponse(p, authors.get(p.userId), flags));
+  return posts.map((p) =>
+    toFeedPostResponse(
+      p,
+      authors.get(p.userId),
+      flags,
+      p.businessId != null ? businessAuthors.get(p.businessId) : undefined,
+    ),
+  );
 }

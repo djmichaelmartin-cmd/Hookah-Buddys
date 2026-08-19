@@ -1,0 +1,528 @@
+Replit Agent Follow-Up Instruction: Rename Communities to Groups and Rebrand HookahDolls to HookahBuddys
+
+Do not rebuild the platform. Only update naming, labels, routes, copy, navigation, and related feature wording.
+
+We are making two important changes:
+
+1. Use “Groups” instead of “Communities.”
+2. Rename the platform from “HookahDolls” to “HookahBuddys.”
+
+Important:
+
+Do not remove existing features.
+
+Do not remove the Lounge feed.
+
+Do not remove member profiles, business profiles, Doll/Bro profiles, credits, memberships, pricing, messaging, verification, premium content, video chat, admin dashboard, or social feed features.
+
+Only update the platform language and Group naming structure.
+
+Brand Name Change
+
+Replace all user-facing references from:
+
+“HookahDolls”
+
+To:
+
+“HookahBuddys”
+
+Replace all user-facing references from:
+
+“HookahDolls.com”
+
+To:
+
+“HookahBuddys.com”
+
+Use this exact spelling:
+
+“HookahBuddys”
+
+Do not spell it as “HookahBuddies.”
+
+Update the brand name across:
+
+* Header
+* Footer
+* Homepage
+* Login page
+* Signup pages
+* Pricing page
+* The Lounge
+* Feed
+* Profiles
+* Dashboards
+* Business pages
+* Groups
+* Admin dashboard
+* Notifications
+* Terms
+* Privacy Policy
+* Content Rules
+* Support pages
+* Checkout/payment pages
+* Emails/notification templates if any exist
+* Meta titles/descriptions
+* Page titles
+* Mobile nav
+* Sidebar nav
+* Empty states
+* Success messages
+* Error messages
+* Modals
+* Buttons
+* Form labels
+* Placeholder text
+
+Update platform positioning language to:
+
+“HookahBuddys is a social platform where members can create free profiles, post in The Lounge, join Groups, create Business Pages, follow friends, and access premium creator features.”
+
+Keep “The Lounge” as the main social feed name.
+
+Do not rename “The Lounge.”
+
+Groups Naming Change
+
+Replace all user-facing references from:
+
+“Communities”
+
+To:
+
+“Groups”
+
+Replace all user-facing references from:
+
+“Community”
+
+To:
+
+“Group”
+
+Examples:
+
+* “Create a Community” becomes “Create a Group”
+* “My Communities” becomes “My Groups”
+* “Suggested Communities” becomes “Suggested Groups”
+* “Community Rules” becomes “Group Rules”
+* “Community Admin” becomes “Group Admin”
+* “Community Members” becomes “Group Members”
+* “Community Events” becomes “Group Events”
+* “Community Posts” becomes “Group Posts”
+* “Community Insights” becomes “Group Insights”
+* “Community Notifications” becomes “Group Notifications”
+* “Community Settings” becomes “Group Settings”
+* “Community Activity Log” becomes “Group Activity Log”
+
+Routes
+
+Use Group-based routes going forward.
+
+Preferred routes:
+
+* `/groups`
+* `/groups/create`
+* `/groups/:id`
+* `/groups/:id/about`
+* `/groups/:id/posts`
+* `/groups/:id/members`
+* `/groups/:id/events`
+* `/groups/:id/photos`
+* `/groups/:id/videos`
+* `/groups/:id/reels`
+* `/groups/:id/files`
+* `/groups/:id/rules`
+* `/groups/:id/admin`
+* `/groups/:id/settings`
+* `/groups/:id/member-requests`
+* `/groups/:id/reported-content`
+* `/dashboard/groups`
+* `/admin/groups`
+
+If `/communities` routes were already created, do not delete them in a way that breaks the app.
+
+Instead:
+
+* Redirect `/communities` to `/groups`
+* Redirect `/communities/create` to `/groups/create`
+* Redirect `/communities/:id` to `/groups/:id`
+* Keep old routes as backward-compatible redirects only
+
+Database / Code Naming
+
+If Group features have not been implemented yet, use Group-based model and component names.
+
+Use:
+
+* Group
+* GroupMember
+* GroupInvite
+* GroupJoinRequest
+* GroupQuestion
+* GroupRule
+* GroupPost
+* GroupComment
+* GroupReaction
+* GroupSave
+* GroupShare
+* GroupMedia
+* GroupAlbum
+* GroupEvent
+* GroupEventRSVP
+* GroupReport
+* GroupAdminAction
+* GroupModerationRule
+* GroupKeywordAlert
+* GroupInsight
+* GroupNotification
+* GroupTag
+
+If Community-based models have already been created and renaming would be risky, keep the underlying database models temporarily but make all user-facing labels say “Group.”
+
+Add a developer note in comments or README:
+
+“Groups were previously referred to as Communities. User-facing language should use Groups.”
+
+Navigation Updates
+
+Update main navigation to include:
+
+* Home
+* The Lounge
+* Groups
+* Browse
+* Businesses
+* Messages
+* Notifications
+* Dashboard
+
+Update sidebar navigation to include:
+
+* Groups
+* Create Group
+* My Groups
+* Suggested Groups
+* Group Events
+* Saved Group Posts
+
+Update dashboard navigation to include:
+
+* My Groups
+* Groups I Manage
+* Groups I Joined
+* Group Invitations
+* Pending Group Requests
+* Create Group
+
+Group Creation Page
+
+Update page title:
+
+“Create a Group”
+
+Subtitle:
+
+“Start a public or private space where members can connect, post, share, invite friends, host events, and build around shared interests.”
+
+Group creation form fields should include:
+
+* Group name
+* Group handle / custom URL, optional
+* Description
+* Category
+* Custom category
+* Tags
+* Privacy: Public or Private
+* Visibility for private Groups: Visible or Hidden
+* Cover photo upload
+* Group icon/logo upload
+* Location, optional
+* Invite friends, optional
+* Group rules, optional
+* Membership questions, optional
+* Posting permissions
+* Post approval setting
+* Agreement to Group rules
+* Agreement that the creator will follow platform moderation standards
+
+Group Privacy Language
+
+Use this wording:
+
+Public Group:
+
+“Anyone can find this Group, see who is in it, and view posts, comments, photos, videos, and events.”
+
+Private Group:
+
+“Only approved members can see posts, comments, members, photos, videos, and events.”
+
+Private Group visibility options:
+
+Visible:
+
+“People can find this Group in search and request to join.”
+
+Hidden:
+
+“Only invited people can find this Group.”
+
+Group Page Tabs
+
+Use these tabs:
+
+* Discussion
+* About
+* Members
+* Events
+* Photos
+* Videos
+* Reels
+* Files
+* Rules
+* Featured
+
+Group Post Composer
+
+Use this placeholder:
+
+“What do you want to share with this Group?”
+
+Post composer options:
+
+* Text
+* Photo
+* Video
+* Reel
+* Poll
+* Question
+* Feeling / Activity
+* Tag people
+* Tag business
+* Add location
+* Add hashtags
+* Upload file, if enabled
+
+Group Admin Tools
+
+Rename all Community admin tools to Group admin tools.
+
+Use:
+
+* Group Admin
+* Group Settings
+* Group Member Requests
+* Group Reported Content
+* Group Rules
+* Group Insights
+* Group Activity Log
+* Group Moderation
+* Group Admin Assist
+* Group Keyword Alerts
+* Group Pending Posts
+* Group Pending Comments
+
+Admin Dashboard Updates
+
+Update platform admin route and labels:
+
+Route:
+
+`/admin/groups`
+
+Admin can:
+
+* View all Groups
+* Search Groups
+* Filter by public/private
+* Filter by category
+* Filter by status
+* View reported Groups
+* Suspend Group
+* Hide Group
+* Delete Group
+* Restore Group
+* View Group posts
+* Review reported posts
+* Review reported comments
+* Remove illegal, abusive, or spam content
+* View Group admins
+* Remove abusive Group admins
+* Transfer ownership if needed
+* Mark Group as featured
+* Remove featured status
+* View Group analytics
+* View Group activity log
+
+Homepage Copy Updates
+
+Update homepage copy to use HookahBuddys and Groups.
+
+Suggested hero copy:
+
+Headline:
+
+“HookahBuddys.com”
+
+Subheadline:
+
+“Create a free profile, post in The Lounge, join Groups, discover businesses, and connect with the hookah social community.”
+
+Hero buttons:
+
+* Create Free Profile
+* Explore The Lounge
+* Browse Groups
+
+Add a section:
+
+“Join Groups Built Around Shared Interests”
+
+Copy:
+
+“Create or join Groups for hookah culture, local events, businesses, nightlife, creators, hobbies, and private member spaces.”
+
+Button:
+
+“Browse Groups”
+
+The Lounge Updates
+
+Update The Lounge left sidebar:
+
+* Groups
+* Create Group
+* My Groups
+* Suggested Groups
+* Group Events
+* Saved Group Posts
+
+Update The Lounge right sidebar:
+
+* Suggested Groups
+* Trending Groups
+* Groups Friends Joined
+* Upcoming Group Events
+* Featured Groups
+
+Business Page Integration
+
+Allow businesses to interact with Groups where allowed.
+
+Use this wording:
+
+* “Post as business in Group”
+* “Share business post to Group”
+* “Create Group for your business”
+* “Invite followers to Group”
+
+Do not call these Communities.
+
+Content Rules Updates
+
+Replace Community rules with Group rules.
+
+Add:
+
+* Groups must follow HookahBuddys platform rules.
+* No fake Groups.
+* No impersonation.
+* No spam Groups.
+* No harassment.
+* No hate speech.
+* No illegal content.
+* No underage participation.
+* No stolen photos or videos.
+* No posting private personal information.
+* No scams.
+* No misleading business or event claims.
+* Public Groups may be reviewed by platform admin.
+* Private Groups are still subject to platform safety rules and reports.
+
+Important Brand Language
+
+Replace:
+
+“HookahDolls community”
+
+With:
+
+“HookahBuddys community”
+
+Replace:
+
+“HookahDolls culture”
+
+With:
+
+“HookahBuddys culture”
+
+Replace:
+
+“HookahDolls platform”
+
+With:
+
+“HookahBuddys platform”
+
+Use “members” as the general term for users when possible.
+
+Keep existing role names such as Doll and Bro unless there is already a separate instruction to rename those roles.
+
+Do not change Doll/Bro role logic unless specifically requested.
+
+Logo / Visual Branding
+
+Update the site logo area to use the HookahBuddys branding.
+
+If the HookahBuddys logo file already exists in the project, use it.
+
+If not, leave a clear placeholder:
+
+`/assets/hookahbuddys-logo.png`
+
+Alt text:
+
+“HookahBuddys logo”
+
+Do not keep old HookahDolls logo text in the header or footer.
+
+SEO / Metadata Updates
+
+Update app metadata:
+
+Site name:
+
+“HookahBuddys”
+
+Default title:
+
+“HookahBuddys - Social Hookah Platform”
+
+Default description:
+
+“HookahBuddys is a social platform where members create free profiles, post in The Lounge, join Groups, discover businesses, and connect around hookah culture and shared interests.”
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove existing features.
+
+Do not remove existing member profiles.
+
+Do not remove The Lounge.
+
+Do not remove business profiles.
+
+Do not remove Groups functionality.
+
+Do not remove paid features, credits, memberships, verification, messaging, or premium creator features.
+
+Only rename the platform brand to HookahBuddys and use Groups instead of Communities everywhere.
+
+Final Goal
+
+The final result should feel like HookahBuddys, not HookahDolls, and the group feature should be called Groups everywhere, similar to Facebook Groups but branded for HookahBuddys.

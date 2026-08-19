@@ -25,6 +25,17 @@ export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 export const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
 export const MAX_VIDEO_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
+// Verification documents: images we already sniff, plus PDF. These are stored
+// PRIVATELY (never public ACL) and only accessible to the owner + platform
+// admin via the dedicated admin download route.
+export const ALLOWED_DOCUMENT_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+]);
+export const MAX_DOCUMENT_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
+
 const STORAGE_URL_PREFIX = "/api/storage";
 
 export class InvalidUploadError extends Error {}
@@ -100,6 +111,23 @@ export function sniffVideoType(bytes: Buffer): string | null {
     }
     return null;
   }
+  return null;
+}
+
+/**
+ * Sniff the real document type from magic bytes. Recognizes the private
+ * verification document families: PDF and the still-image types (JPEG, PNG,
+ * WebP). Returns the authoritative MIME type, or null if unrecognized.
+ */
+export function sniffDocumentType(bytes: Buffer): string | null {
+  if (
+    bytes.length >= 5 &&
+    bytes.subarray(0, 5).toString("latin1") === "%PDF-"
+  ) {
+    return "application/pdf";
+  }
+  const imageType = sniffImageType(bytes);
+  if (imageType && ALLOWED_DOCUMENT_TYPES.has(imageType)) return imageType;
   return null;
 }
 
@@ -222,6 +250,146 @@ async function storeValidatedBuffer(
   });
 
   return `/objects/uploads/${id}`;
+}
+
+/**
+ * Metadata key stamped on private verification documents recording the
+ * business the document was scoped to at upload time. Read by the admin
+ * download route as defense-in-depth (the object key also encodes it).
+ */
+const VERIFICATION_BUSINESS_METADATA_KEY = "verificationBusinessId";
+
+/**
+ * Store a validated buffer in the PRIVATE object dir under an owner/business-
+ * scoped verification key, stamped with a PRIVATE ACL policy (owner-only read;
+ * NEVER public). Returns the opaque object path ("/objects/verification/...").
+ *
+ * Unlike storeValidatedBuffer, this never grants public visibility — the
+ * document is served only through the admin-authorized download route.
+ */
+async function storeValidatedPrivateVerificationBuffer(
+  buffer: Buffer,
+  contentType: string,
+  ownerId: number,
+  businessId: number,
+): Promise<string> {
+  const service = new ObjectStorageService();
+  const privateDir = service.getPrivateObjectDir().replace(/\/$/, "");
+  const id = randomUUID();
+  // Owner/business-scoped key so keys are opaque yet auditable.
+  const entityId = `verification/${businessId}/${ownerId}/${id}`;
+  const fullPath = `${privateDir}/${entityId}`;
+  const pathParts = fullPath.startsWith("/") ? fullPath.split("/") : `/${fullPath}`.split("/");
+  const bucketName = pathParts[1];
+  const objectName = pathParts.slice(2).join("/");
+
+  const file = objectStorageClient.bucket(bucketName).file(objectName);
+  await file.save(buffer, {
+    contentType,
+    metadata: {
+      metadata: { [VERIFICATION_BUSINESS_METADATA_KEY]: String(businessId) },
+    },
+  });
+  await setObjectAclPolicy(file, {
+    owner: String(ownerId),
+    visibility: "private",
+  });
+
+  return `/objects/${entityId}`;
+}
+
+/**
+ * Validate + store an uploaded verification document buffer PRIVATELY.
+ * Sniffs the actual bytes (PDF/JPEG/PNG/WebP), enforces the size cap, and
+ * writes to an owner/business-scoped private key with a private ACL. Returns
+ * the opaque object path; the caller stores this ref (never a public URL).
+ */
+export async function uploadVerificationDocumentBuffer(
+  buffer: Buffer,
+  ownerId: number,
+  businessId: number,
+): Promise<{ objectPath: string; contentType: string }> {
+  if (buffer.length === 0) {
+    throw new InvalidUploadError("Uploaded document is empty.");
+  }
+  if (buffer.length > MAX_DOCUMENT_SIZE_BYTES) {
+    throw new InvalidUploadError("Uploaded document exceeds the 15 MB size limit.");
+  }
+  const sniffedType = sniffDocumentType(buffer);
+  if (!sniffedType || !ALLOWED_DOCUMENT_TYPES.has(sniffedType)) {
+    throw new InvalidUploadError(
+      "Uploaded document is not an allowed type (PDF, JPEG, PNG, WebP).",
+    );
+  }
+  const objectPath = await storeValidatedPrivateVerificationBuffer(
+    buffer,
+    sniffedType,
+    ownerId,
+    businessId,
+  );
+  return { objectPath, contentType: sniffedType };
+}
+
+/**
+ * Confirm a client-supplied verification document ref is:
+ * - a storage object path (/objects/... — never an external/public URL),
+ * - an existing object,
+ * - owned by `ownerId` (per its ACL policy),
+ * - PRIVATE (visibility !== "public") — rejects any public-ACL object,
+ * - a valid document content type (PDF/JPEG/PNG/WebP).
+ *
+ * Returns the normalized opaque object path. Throws InvalidUploadError on any
+ * violation. This NEVER mutates the ACL to public.
+ */
+export async function assertPrivateVerificationDocument(
+  ref: string,
+  ownerId: number,
+): Promise<string> {
+  const objectPath = toObjectEntityPath(ref);
+  if (!objectPath) {
+    throw new InvalidUploadError(
+      "Verification documents must reference an uploaded storage object.",
+    );
+  }
+  const service = new ObjectStorageService();
+  let file;
+  try {
+    file = await service.getObjectEntityFile(objectPath);
+  } catch (err) {
+    if (err instanceof ObjectNotFoundError) {
+      throw new InvalidUploadError("Verification document not found in storage.");
+    }
+    throw err;
+  }
+  const [metadata] = await file.getMetadata();
+  const size = Number(metadata.size ?? 0);
+  if (size <= 0) throw new InvalidUploadError("Verification document is empty.");
+  if (size > MAX_DOCUMENT_SIZE_BYTES) {
+    throw new InvalidUploadError("Verification document exceeds the 15 MB size limit.");
+  }
+
+  const policy = await getObjectAclPolicy(file);
+  if (!policy) {
+    throw new InvalidUploadError("Verification document has no access policy.");
+  }
+  if (policy.owner !== String(ownerId)) {
+    throw new InvalidUploadError("Verification document belongs to another user.");
+  }
+  if (policy.visibility === "public") {
+    throw new InvalidUploadError(
+      "Verification document must be a private upload (public objects are not allowed).",
+    );
+  }
+
+  // Sniff the real bytes — content type metadata is client-controlled at PUT.
+  const [head] = await file.download({ start: 0, end: 63 });
+  const sniffed = sniffDocumentType(head);
+  if (!sniffed || !ALLOWED_DOCUMENT_TYPES.has(sniffed)) {
+    throw new InvalidUploadError(
+      "Verification document is not an allowed type (PDF, JPEG, PNG, WebP).",
+    );
+  }
+  return objectPath;
 }
 
 /**

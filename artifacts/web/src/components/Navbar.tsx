@@ -26,12 +26,14 @@ import {
   Menu,
   X,
   Bell,
+  Briefcase,
 } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Feed", href: "/feed" },
   { label: "Reels", href: "/reels" },
   { label: "Buddys", href: "/browse" },
+  { label: "Businesses", href: "/businesses" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
 ];
@@ -175,13 +177,6 @@ export function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Link
-            href="/signup/doll"
-            className={`inline-flex items-center h-9 px-5 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
-          >
-
-            Become a Buddy
-          </Link>
         </nav>
 
         {/* Centered wordmark */}
@@ -205,6 +200,12 @@ export function Navbar() {
             <Search className="h-4 w-4" />
 
             Find a Buddy
+          </Link>
+          <Link
+            href="/signup/doll"
+            className={`hidden xl:inline-flex items-center h-10 px-5 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
+          >
+            Become a Buddy
           </Link>
 
           {session?.authenticated && session.user ? (
@@ -270,6 +271,13 @@ export function Navbar() {
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator className="bg-white/10" />
+
+                <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                  <Link href="/business/create" className="flex items-center w-full">
+                    <Briefcase className="mr-2 h-4 w-4" />
+                    <span>Create a Business Page</span>
+                  </Link>
+                </DropdownMenuItem>
 
                 {session.user.role === "doll" && (
                   <>
