@@ -23,4 +23,5 @@
 - [Plans copy source of truth](plans-copy-source-of-truth.md) — plan name/description/features are DB-owned via admin UI; startup sync must not overwrite them (only structural fields).
 - [Mid-session merge corruption](mid-session-merge-corruption.md) — parallel-task merges can mangle hot route files mid-session; re-read and re-typecheck touched files after any merge notification.
 - [Per-Doll revenue model](shared-doll-earnings-model.md) — Doll analytics & admin per-Doll revenue use one computeDollEarnings helper; illustrative GMV, NOT the platform subscription revenue.
-- [Buddy naming convention](buddy-naming-convention.md) — public copy says Buddy/Buddys and HookahBuddys; stable internal role, route, schema, and API identifiers remain doll/dolls.
+- [Buddy naming convention](buddy-naming-convention.md) — public copy says Buddy/Buddies and HookahBuddys; stable internal role, route, schema, and API identifiers remain doll/dolls.
+- [Community room request resets](community-room-request-resets.md) — reset room-scoped feed filters before the destination query begins; effect-based resets briefly fetch stale filters.

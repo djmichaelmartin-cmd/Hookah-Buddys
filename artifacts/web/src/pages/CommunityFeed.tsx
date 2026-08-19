@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Link, useLocation } from "wouter";
 import { useListFeedPosts } from "@workspace/api-client-react";
@@ -16,7 +16,10 @@ import { AlertCircle, Loader2, Frown, Sparkle, X } from "lucide-react";
 import LoungeLeftSidebar from "@/components/lounge/LoungeLeftSidebar";
 import LoungeRightSidebar from "@/components/lounge/LoungeRightSidebar";
 import { CommunityTopicsNav } from "@/components/lounge/CommunityTopicsNav";
-import { COMMUNITY_SHORTCUTS } from "@/lib/communityTopics";
+import {
+  COMMUNITY_SHORTCUTS,
+  type CommunityShortcut,
+} from "@/lib/communityTopics";
 
 type FilterTab = "trending" | "new";
 
@@ -28,31 +31,6 @@ const TABS: { id: FilterTab; label: string }[] = [
 export default function CommunityFeed() {
   const [location] = useLocation();
   const shortcut = COMMUNITY_SHORTCUTS.find((item) => item.href === location);
-  const category = shortcut?.category;
-
-  const [filter, setFilter] = useState<FilterTab>("new");
-  const [hashtag, setHashtag] = useState<string | undefined>(undefined);
-  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
-
-  useEffect(() => {
-    setFilter("new");
-    setHashtag(undefined);
-  }, [category]);
-
-  const { data: posts, isLoading, isError } = useListFeedPosts({
-    filter,
-    category,
-    hashtag,
-  });
-
-  const selectHashtag = (tag: string) => {
-    setHashtag((prev) => (prev === tag ? undefined : tag));
-    setFilter("new");
-  };
-
-  const handleLoginPrompt = () => {
-    setLoginPromptOpen(true);
-  };
 
   if (!shortcut) {
     return (
@@ -72,6 +50,30 @@ export default function CommunityFeed() {
       </Layout>
     );
   }
+
+  return <CommunityFeedRoom key={shortcut.category} shortcut={shortcut} />;
+}
+
+function CommunityFeedRoom({ shortcut }: { shortcut: CommunityShortcut }) {
+  const category = shortcut.category;
+  const [filter, setFilter] = useState<FilterTab>("new");
+  const [hashtag, setHashtag] = useState<string | undefined>(undefined);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+
+  const { data: posts, isLoading, isError } = useListFeedPosts({
+    filter,
+    category,
+    hashtag,
+  });
+
+  const selectHashtag = (tag: string) => {
+    setHashtag((prev) => (prev === tag ? undefined : tag));
+    setFilter("new");
+  };
+
+  const handleLoginPrompt = () => {
+    setLoginPromptOpen(true);
+  };
 
   const Icon = shortcut.icon;
 
