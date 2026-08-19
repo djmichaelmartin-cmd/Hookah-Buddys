@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useCreateFeedPost, getListFeedPostsQueryKey, type FeedPostInputCategory } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +28,15 @@ const CATEGORIES: { value: FeedPostInputCategory; label: string }[] = [
   { value: "meme", label: "Meme" },
 ];
 
-export function CreatePostForm({ onCreated }: { onCreated?: () => void } = {}) {
+type CreatePostFormProps = {
+  onCreated?: () => void;
+  initialCategory?: FeedPostInputCategory;
+};
+
+export function CreatePostForm({
+  onCreated,
+  initialCategory = "discussion",
+}: CreatePostFormProps = {}) {
   const { data: session } = useGetCurrentUser();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -36,18 +44,22 @@ export function CreatePostForm({ onCreated }: { onCreated?: () => void } = {}) {
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [text, setText] = useState("");
-  const [category, setCategory] = useState<FeedPostInputCategory>("discussion");
+  const [category, setCategory] = useState<FeedPostInputCategory>(initialCategory);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [posterUrl, setPosterUrl] = useState<string>("");
   const [mediaType, setMediaType] = useState<"none" | "image" | "video">("none");
   const [isUploading, setIsUploading] = useState(false);
 
+  useEffect(() => {
+    setCategory(initialCategory);
+  }, [initialCategory]);
+
   const createPost = useCreateFeedPost({
     mutation: {
       onSuccess: () => {
         setText("");
-        setCategory("discussion");
+        setCategory(initialCategory);
         setIsConfirmed(false);
         setMediaUrl("");
         setPosterUrl("");

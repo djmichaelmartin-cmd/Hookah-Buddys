@@ -10,7 +10,7 @@ export function Footer() {
             <h3 className="font-serif text-2xl font-bold tracking-widest text-primary mb-4">HookahBuddys</h3>
             <p className="text-muted-foreground max-w-sm mb-4">
 
-              A premium, upscale platform connecting Verified Buddies and enthusiasts through a shared love of hookah culture. Tasteful, glamorous, and always 21+.
+              A premium, upscale platform connecting Verified Buddys and enthusiasts through a shared love of hookah culture. Tasteful, glamorous, and always 21+.
             </p>
             <p className="text-xs text-muted-foreground/60 max-w-sm">
               All content on HookahBuddys must feature a visible hookah. We enforce strict guidelines to maintain our premium lounge atmosphere.
@@ -19,7 +19,7 @@ export function Footer() {
           <div>
             <h4 className="font-medium text-white mb-4 uppercase tracking-wider text-sm">Platform</h4>
             <ul className="space-y-2">
-              <li><Link href="/browse" className="text-muted-foreground hover:text-primary transition-colors text-sm">Browse Buddies</Link></li>
+              <li><Link href="/browse" className="text-muted-foreground hover:text-primary transition-colors text-sm">Browse Buddys</Link></li>
               <li><Link href="/pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">Pricing & Plans</Link></li>
               <li><Link href="/signup/doll" className="text-sm text-muted-foreground hover:text-primary transition-colors">Become a Buddy</Link></li>
               <li><Link href="/choose-membership" className="text-sm text-muted-foreground hover:text-primary transition-colors">Create Free Profile</Link></li>

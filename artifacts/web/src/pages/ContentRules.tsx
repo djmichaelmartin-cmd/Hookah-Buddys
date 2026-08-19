@@ -12,7 +12,7 @@ export default function ContentRules() {
         <p><strong>Every piece of Buddy content must include a clearly visible hookah.</strong> This is the core of our brand. Content without a visible hookah will be rejected during moderation.</p>
 
         <h3>2. Strictly 21+</h3>
-        <p>All Buddies must be verified adults aged 21 or older. Any content suggesting a minor, or any attempt to misrepresent age, results in an immediate permanent ban and may be reported to authorities.</p>
+        <p>All Buddys must be verified adults aged 21 or older. Any content suggesting a minor, or any attempt to misrepresent age, results in an immediate permanent ban and may be reported to authorities.</p>
 
         <h3>3. Prohibited Content</h3>
         <p>No explicit sexual content, no illegal substances or activity, no hate speech, no harassment, and no non-consensual or impersonated content. Keep it tasteful and lounge-appropriate.</p>

@@ -76,7 +76,7 @@ export default function Pricing() {
       return;
     }
     if (plan.audience === "doll" && role !== "doll") {
-      toast({ title: "For Buddies only", description: "This plan is for verified Buddies.", variant: "destructive" });
+      toast({ title: "For Buddys only", description: "This plan is for verified Buddys.", variant: "destructive" });
       return;
     }
     if (plan.audience === "doll") {
@@ -236,7 +236,7 @@ export default function Pricing() {
 
         {dollPlans.length > 0 && (
           <>
-            <h2 className="text-2xl font-serif text-white text-center mt-20 mb-8">Plans for Buddies</h2>
+            <h2 className="text-2xl font-serif text-white text-center mt-20 mb-8">Plans for Buddys</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
               {dollPlans.map((plan) => (
                 <div

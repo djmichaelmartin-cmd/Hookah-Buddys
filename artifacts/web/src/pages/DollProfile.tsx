@@ -419,7 +419,7 @@ export default function DollProfile() {
             </DialogTitle>
             <DialogDescription>
 
-              Messaging and video chat are for premium "I Love Buddies" members. Upgrade to unlock them.
+              Messaging and video chat are for premium "I Love Buddys" members. Upgrade to unlock them.
             </DialogDescription>
           </DialogHeader>
 

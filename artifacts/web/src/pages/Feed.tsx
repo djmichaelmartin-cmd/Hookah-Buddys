@@ -15,6 +15,7 @@ import {
 import { Sparkles, Loader2, Frown, Sparkle, X } from "lucide-react";
 import LoungeLeftSidebar from "@/components/lounge/LoungeLeftSidebar";
 import LoungeRightSidebar from "@/components/lounge/LoungeRightSidebar";
+import { CommunityTopicsNav } from "@/components/lounge/CommunityTopicsNav";
 
 type FilterTab = "trending" | "new" | "nearby" | "dolls" | "bros" | "lounges" | "events";
 
@@ -22,7 +23,7 @@ const TABS: { id: FilterTab; label: string }[] = [
   { id: "new", label: "New" },
   { id: "trending", label: "Trending" },
   { id: "nearby", label: "Nearby" },
-  { id: "dolls", label: "Buddies" },
+  { id: "dolls", label: "Buddys" },
   { id: "bros", label: "Bros" },
   { id: "lounges", label: "Lounges" },
   { id: "events", label: "Events" },
@@ -30,21 +31,13 @@ const TABS: { id: FilterTab; label: string }[] = [
 
 export default function Feed() {
   const [filter, setFilter] = useState<FilterTab>("new");
-  const [category, setCategory] = useState<string | undefined>(undefined);
   const [hashtag, setHashtag] = useState<string | undefined>(undefined);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
-  const { data: posts, isLoading } = useListFeedPosts({ filter, category, hashtag });
-
-  const selectCategory = (c: string) => {
-    setCategory((prev) => (prev === c ? undefined : c));
-    setHashtag(undefined);
-    setFilter("new");
-  };
+  const { data: posts, isLoading } = useListFeedPosts({ filter, hashtag });
 
   const selectHashtag = (tag: string) => {
     setHashtag((prev) => (prev === tag ? undefined : tag));
-    setCategory(undefined);
     setFilter("new");
   };
 
@@ -55,17 +48,19 @@ export default function Feed() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-[1400px]">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="font-serif text-4xl text-white font-bold flex items-center gap-3 drop-shadow-md">
             The Lounge <Sparkles className="h-6 w-6 text-primary" />
           </h1>
           <p className="text-muted-foreground mt-2">Your hookah social feed — post, browse, connect, and discover what's happening in the HookahBuddys community.</p>
         </div>
 
+        <CommunityTopicsNav mobileOnly />
+
         <div className="lg:grid lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[270px_minmax(0,1fr)_320px] lg:gap-6 lg:items-start">
         {/* Left sidebar (desktop) */}
         <div className="hidden lg:block sticky top-[124px] max-h-[calc(100vh-140px)] overflow-y-auto hide-scrollbar">
-          <LoungeLeftSidebar onSelectCategory={selectCategory} />
+          <LoungeLeftSidebar />
         </div>
 
         {/* Center feed */}
@@ -81,6 +76,7 @@ export default function Feed() {
             <button
               key={tab.id}
               onClick={() => setFilter(tab.id)}
+              aria-pressed={filter === tab.id}
               className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all ${
                 filter === tab.id
                   ? "bg-white text-background shadow-[0_0_15px_rgba(255,255,255,0.3)]"
@@ -90,14 +86,6 @@ export default function Feed() {
               {tab.label}
             </button>
           ))}
-          {category && (
-            <button
-              onClick={() => setCategory(undefined)}
-              className="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium bg-primary/20 text-primary border border-primary/30 flex items-center gap-1.5 hover:bg-primary/30 transition-all"
-            >
-              {category} <X className="h-3.5 w-3.5" />
-            </button>
-          )}
           {hashtag && (
             <button
               onClick={() => setHashtag(undefined)}
@@ -136,13 +124,13 @@ export default function Feed() {
         {/* Discover content below the feed on mobile/tablet */}
         <div className="xl:hidden mt-10">
           <h2 className="font-serif text-2xl text-white mb-4">Discover</h2>
-          <LoungeRightSidebar onSelectCategory={selectCategory} onSelectHashtag={selectHashtag} activeHashtag={hashtag} />
+          <LoungeRightSidebar onSelectHashtag={selectHashtag} activeHashtag={hashtag} />
         </div>
         </div>
 
         {/* Right sidebar (desktop) */}
         <div className="hidden xl:block sticky top-[124px] max-h-[calc(100vh-140px)] overflow-y-auto hide-scrollbar">
-          <LoungeRightSidebar onSelectCategory={selectCategory} onSelectHashtag={selectHashtag} activeHashtag={hashtag} />
+          <LoungeRightSidebar onSelectHashtag={selectHashtag} activeHashtag={hashtag} />
         </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ export default function Privacy() {
         <p className="lead text-muted-foreground">Your privacy matters to us. This policy explains what we collect on HookahBuddys.com and how we use it.</p>
 
         <h3>1. Information We Collect</h3>
-        <p>We collect account details (name, email, location), age confirmation, and for Buddies, verification documents used solely to confirm identity and eligibility. Payment activity is processed by our payment partner; we do not store full card numbers.</p>
+        <p>We collect account details (name, email, location), age confirmation, and for Buddys, verification documents used solely to confirm identity and eligibility. Payment activity is processed by our payment partner; we do not store full card numbers.</p>
 
         <h3>2. Age & Identity Verification</h3>
         <p>Because HookahBuddys.com is strictly 21+, we may store proof of age confirmation. Buddy verification materials (government ID, selfie, and a hookah verification photo/video) are retained only as long as needed to maintain a verified status.</p>

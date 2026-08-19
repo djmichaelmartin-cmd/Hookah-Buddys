@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CommunityTopicsNav } from "@/components/lounge/CommunityTopicsNav";
 import {
   MapPin,
   Search,
@@ -169,7 +170,11 @@ export default function Lounges() {
           </div>
         </section>
 
-        <div className="container mx-auto px-4 py-10">
+        <div className="container mx-auto px-4 pt-6">
+          <CommunityTopicsNav />
+        </div>
+
+        <div className="container mx-auto px-4 pb-10">
           {/* Search controls */}
           <div className="rounded-2xl border border-white/10 bg-card/40 p-4 md:p-6 backdrop-blur">
             <form

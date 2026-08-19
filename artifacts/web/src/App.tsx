@@ -38,6 +38,7 @@ import Reels from "@/pages/Reels";
 import { usePresenceHeartbeatLoop } from "@/hooks/use-presence-heartbeat";
 import Events from "@/pages/Events";
 import EventDetail from "@/pages/EventDetail";
+import CommunityFeed from "@/pages/CommunityFeed";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,16 @@ function Router() {
       <Route path="/events" component={Events} />
       <Route path="/events/:id" component={EventDetail} />
       
+      {/* Community Routes */}
+      <Route path="/community/hookah-setups" component={CommunityFeed} />
+      <Route path="/community/favorite-flavors" component={CommunityFeed} />
+      <Route path="/community/lounge-reviews" component={CommunityFeed} />
+      <Route path="/community/smoke-talk" component={CommunityFeed} />
+      <Route path="/community/hookah-memes" component={CommunityFeed} />
+      <Route path="/community/questions" component={CommunityFeed} />
+      <Route path="/community/hookah-events" component={Events} />
+      <Route path="/community/local-lounges" component={Lounges} />
+
       <Route component={NotFound} />
     </Switch>
   );

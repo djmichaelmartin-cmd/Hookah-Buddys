@@ -57,10 +57,10 @@ export default function MembersDirectory() {
       <Layout>
         <div className="container mx-auto px-4 py-20 text-center max-w-lg">
           <Users className="mx-auto h-10 w-10 text-muted-foreground/30 mb-4" />
-          <h1 className="text-2xl font-serif text-white mb-2">Buddies only</h1>
+          <h1 className="text-2xl font-serif text-white mb-2">Buddys only</h1>
           <p className="text-muted-foreground text-sm">
 
-            The member directory is available to verified Buddies. Sign in with your Buddy account to
+            The member directory is available to verified Buddys. Sign in with your Buddy account to
             browse members.
           </p>
           <Link href="/login">

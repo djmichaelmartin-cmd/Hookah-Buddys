@@ -31,7 +31,7 @@ import {
 const NAV_LINKS = [
   { label: "Feed", href: "/feed" },
   { label: "Reels", href: "/reels" },
-  { label: "Buddies", href: "/browse" },
+  { label: "Buddys", href: "/browse" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
 ];
@@ -192,7 +192,7 @@ export function Navbar() {
           <img
             src="/brand/logo.png"
             alt="HookahBuddys.com"
-            className="h-16 w-auto -translate-y-[9px] drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
+            className="h-16 w-auto -translate-y-[27px] drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
           />
         </Link>
 

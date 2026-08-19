@@ -92,7 +92,7 @@ export default function AdminDashboard() {
             <p className="text-3xl font-bold text-primary">{currency(stats?.totalRevenue ?? 0)}</p>
           </div>
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
-            <h3 className="text-sm text-muted-foreground mb-2">Total Buddies</h3>
+            <h3 className="text-sm text-muted-foreground mb-2">Total Buddys</h3>
             <p className="text-3xl font-bold text-white">{stats?.totalDolls || 0}</p>
           </div>
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
@@ -818,7 +818,7 @@ function DollRevenueShares({ dolls }: { dolls?: DollRevenueShare[] }) {
           <Users className="w-5 h-5 text-primary" />  Revenue Share by Buddy
         </h2>
         <p className="text-sm text-muted-foreground">
-          Across {items.length} {items.length === 1 ? "Buddy" : "Buddies"} ·{" "}
+          Across {items.length} {items.length === 1 ? "Buddy" : "Buddys"} ·{" "}
           <span className="text-white font-medium">{currency(total)}</span>
         </p>
       </div>

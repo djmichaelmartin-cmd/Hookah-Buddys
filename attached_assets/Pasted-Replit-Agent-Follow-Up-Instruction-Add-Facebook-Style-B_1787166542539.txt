@@ -1,0 +1,1233 @@
+Replit Agent Follow-Up Instruction: Add Facebook-Style Business Page Features
+
+Do not rebuild the platform. Only expand the existing Business Profile feature set.
+
+Business Profiles should work similarly to Facebook Business Pages, while keeping the HookahDolls brand, privacy rules, moderation rules, and member-profile requirement.
+
+Important existing rule:
+
+A user must have a personal/member profile before creating a Business Profile.
+
+Do not limit the type of business. Business owners should be able to create a profile for any legitimate business, brand, service, organization, local company, creator business, or professional service.
+
+Business Profiles should feel like public business pages users can follow, message, review, check into, browse, and engage with.
+
+Core Business Page Features to Add
+
+Add the following Facebook-style business page features:
+
+1. Business Page Header
+
+Each Business Profile should have a full public page header with:
+
+* Cover photo
+* Business logo/profile image
+* Business name
+* Custom username/handle
+* Business type, free-text
+* Business category, optional
+* City/state
+* Verification badge if verified
+* Featured badge if featured
+* Sponsored badge if sponsored
+* Open now / closed status
+* Follower count
+* Rating/recommendation summary
+* Primary action button
+* Follow button
+* Message button
+* Save button
+* Share button
+* More options menu
+
+Primary action button should be customizable.
+
+Business owners should be able to choose one main CTA button:
+
+* Message
+* Call Now
+* Send Email
+* Visit Website
+* Book Now
+* Get Quote
+* Shop Now
+* Order Now
+* Reserve
+* Buy Tickets
+* Sign Up
+* Learn More
+* View Menu
+* View Services
+* Request Appointment
+* Contact Us
+
+Only show CTA buttons that the business has enough information to support.
+
+Examples:
+
+* Do not show “Call Now” unless phone number exists.
+* Do not show “Visit Website” unless website URL exists.
+* Do not show “Book Now” unless appointments are enabled.
+* Do not show “Shop Now” unless products/catalog are enabled.
+
+2. Business Page Tabs
+
+Add Facebook-style tabs to Business Profiles:
+
+* Posts
+* About
+* Photos
+* Reels
+* Videos
+* Events
+* Services
+* Products / Shop
+* Offers / Specials
+* Reviews / Recommendations
+* Check-ins
+* Community
+* Jobs, optional future placeholder
+
+Tabs should only show if enabled or if they contain content, except Posts and About.
+
+3. About Section
+
+The Business About tab should include:
+
+* Business name
+* Business type, free-text
+* Business category
+* Description
+* Mission statement, optional
+* Founded date, optional
+* Business hours
+* Holiday/special hours
+* Phone number
+* Email
+* Website
+* Social links
+* Address
+* Service area
+* Map placeholder
+* Parking info, optional
+* Price range, optional
+* Amenities, optional
+* Payment methods accepted, optional
+* Accessibility notes, optional
+* Age restriction notes, optional
+* Business owner display setting
+* Business verification status
+
+Add editable “Page Info” controls in the Business Dashboard.
+
+4. Custom Business Handle / Username
+
+Allow businesses to create a public handle.
+
+Example:
+
+`@VegasSmokeLounge`
+
+Rules:
+
+* Must be unique
+* Letters, numbers, periods, underscores allowed
+* No offensive words
+* No impersonation
+* Admin can change or revoke handles
+* Handle appears on the Business Profile and business posts
+
+5. Business Posts
+
+Allow business owners to post as the business.
+
+Business post types:
+
+* Text post
+* Photo post
+* Video post
+* Reel
+* Event announcement
+* Special/promotion
+* Product/service highlight
+* Poll
+* Question
+* Job/hiring post, placeholder
+* Customer spotlight
+* Community update
+
+Post composer should allow owner to choose:
+
+* Post as personal profile
+* Post as business profile
+
+Business posts should appear:
+
+* On the Business Profile Posts tab
+* In The Lounge feed
+* In followers’ feeds
+* In business directory activity
+* In search results where relevant
+
+Business posts should support:
+
+* Like
+* Comment
+* Share
+* Save
+* Follow business
+* Report
+* Pin post to top of Business Page
+* Hide post
+* Delete post
+* Schedule post, optional placeholder
+* Boost post, paid promotion placeholder
+
+6. Pin Featured Post
+
+Allow businesses to pin one post to the top of their Business Profile.
+
+Use cases:
+
+* Grand opening
+* Current promotion
+* Event announcement
+* Featured product/service
+* Important update
+
+7. Photos and Albums
+
+Add Facebook-style business photo albums.
+
+Default albums:
+
+* Profile Pictures
+* Cover Photos
+* Timeline Photos
+* Business Gallery
+* Products
+* Services
+* Events
+* Team
+* Customer Photos
+* Behind the Scenes
+
+Business owners should be able to:
+
+* Upload photos
+* Create albums
+* Add captions
+* Set album visibility
+* Reorder photos
+* Feature selected photos
+* Delete photos
+* Report inappropriate user-submitted photos
+
+Business page visitors should be able to:
+
+* View public photos
+* Like photos
+* Comment on photos
+* Share photos
+* Report photos
+
+8. Reels and Videos
+
+Add business Reels and Videos tabs.
+
+Business Reels:
+
+* Short vertical videos
+* Captions
+* Hashtags
+* Categories
+* View count
+* Like/comment/share/save/report
+
+Business Videos:
+
+* Longer videos
+* Promo videos
+* Event recap videos
+* Product/service videos
+* Behind-the-scenes videos
+* Educational videos
+
+Video/reel categories:
+
+* Promotion
+* Event
+* Product
+* Service
+* Tutorial
+* Behind the Scenes
+* Lounge Vibe
+* Customer Spotlight
+* Announcement
+* Other
+
+9. Services Section
+
+Add a Services tab for businesses.
+
+Services should include:
+
+* Service name
+* Description
+* Price or price range, optional
+* Duration, optional
+* Image, optional
+* Category, optional
+* Book Now button, optional
+* Request Quote button, optional
+* Availability, optional
+
+Examples:
+
+* Hookah catering
+* Web design
+* Photography session
+* Hair styling
+* Makeup service
+* Event planning
+* Table reservation
+* Private party package
+* Product consultation
+* Local service call
+
+Do not limit services to hookah services.
+
+10. Products / Shop Section
+
+Add a Products or Shop tab.
+
+This should be a lightweight storefront/catalog, not full ecommerce unless already supported.
+
+Products should include:
+
+* Product name
+* Description
+* Price
+* Sale price, optional
+* Product images
+* Category
+* Availability status
+* External purchase URL, optional
+* Message to Buy button
+* Shop Now button
+* Save product
+* Share product
+* Report product
+
+Product status:
+
+* Active
+* Draft
+* Out of stock
+* Hidden
+* Removed
+
+This can be Stripe-ready or external-link ready, but do not force businesses to sell directly through HookahDolls yet.
+
+11. Offers / Specials
+
+Add an Offers or Specials tab.
+
+Businesses should be able to create promotional offers.
+
+Offer fields:
+
+* Offer title
+* Description
+* Start date
+* End date
+* Promo code, optional
+* Image
+* Terms and conditions
+* Redeem online URL, optional
+* Redeem in person instructions, optional
+* Save offer button
+* Share offer button
+
+Examples:
+
+* 20% off services
+* Happy hour special
+* Ladies night
+* Weekend promo
+* Free consultation
+* Grand opening special
+* Buy one get one
+* Event ticket discount
+
+12. Events
+
+Add Facebook-style event creation for businesses.
+
+Businesses should be able to create events with:
+
+* Event title
+* Description
+* Event image
+* Date
+* Start time
+* End time
+* Location
+* Online event link, optional
+* Ticket URL, optional
+* RSVP options
+* Co-hosts, optional future placeholder
+* Invite followers, optional
+* Share to The Lounge
+
+Users should be able to:
+
+* Mark Interested
+* Mark Going
+* Save event
+* Share event
+* Comment on event
+* View event updates
+* Report event
+
+Business event statuses:
+
+* Draft
+* Published
+* Cancelled
+* Completed
+* Hidden
+
+13. Appointments / Bookings
+
+Add appointment booking functionality similar to business page appointment tools.
+
+Businesses should be able to enable appointments.
+
+Appointment features:
+
+* Turn appointments on/off
+* Set appointment services
+* Set business availability
+* Set appointment duration
+* Set buffer time
+* Set booking notice
+* Accept or decline appointment requests
+* Send appointment confirmation
+* Send appointment reminder
+* View booking calendar
+* Cancel appointment
+* Reschedule appointment
+* Mark appointment complete
+* Message customer from appointment
+
+User appointment flow:
+
+* User clicks Book Now
+* User selects service
+* User selects date/time
+* User enters notes
+* User submits request
+* Business confirms or declines
+
+Keep calendar sync as a future placeholder.
+
+14. Business Messaging Inbox
+
+Add a business inbox separate from personal messages and Doll paid messages.
+
+Business messaging should be free by default unless admin enables paid business messaging later.
+
+Business inbox features:
+
+* Inbox list
+* Message threads
+* Search messages
+* Unread status
+* Flag conversation
+* Archive conversation
+* Mark as read/unread
+* Saved replies
+* Auto-reply placeholder
+* Away message placeholder
+* Business hours response notice
+* Assign to owner/manager, if team members exist
+* Report/block abusive users
+
+Suggested saved replies:
+
+* Thanks for reaching out!
+* What service are you interested in?
+* Our business hours are...
+* Here is our website...
+* Please call us at...
+* We’ll get back to you soon.
+
+15. Reviews / Recommendations
+
+Add a Reviews or Recommendations tab.
+
+Use Facebook-style recommendations rather than only star ratings.
+
+Allow users to recommend a business:
+
+* Recommend: Yes / No
+* Written feedback
+* Optional tags
+* Optional photo
+* Date of visit, optional
+* Service used, optional
+
+Optional rating:
+
+* 1–5 stars
+
+Admin can enable or disable star ratings.
+
+Business owners should be able to:
+
+* Reply publicly to reviews
+* Report fake or abusive reviews
+* Hide reviews only if admin approves
+* View review analytics
+
+Users should be able to:
+
+* Leave one review per business
+* Edit their review
+* Delete their review
+* Report other reviews
+
+Review tags examples:
+
+* Great Service
+* Friendly Staff
+* Good Vibes
+* Fast Response
+* Good Prices
+* Clean Location
+* Great Music
+* Great Products
+* Professional
+* Highly Recommended
+
+16. Check-ins
+
+Add Business Check-ins.
+
+Users should be able to check in to a business.
+
+Check-in features:
+
+* Check in at business
+* Add text
+* Add photo
+* Tag friends
+* Share to Lounge feed
+* Show on Business Profile Check-ins tab
+* Respect privacy settings
+* Business can view check-in count
+
+Business Dashboard should show:
+
+* Total check-ins
+* Recent check-ins
+* Top check-in posts
+* Check-in engagement
+
+17. Followers and Community
+
+Add a Community tab or section.
+
+Business Community should show:
+
+* Followers
+* People who checked in
+* Public posts mentioning/tagging the business
+* Public user photos tagged with the business
+* Business mentions
+* Top fans/frequent engagers, optional
+
+Business owners should be able to:
+
+* Invite followers to events, placeholder
+* See follower growth
+* View engagement trends
+* Respond to public posts mentioning the business
+
+18. Business Mentions and Tagging
+
+Allow users to tag businesses in:
+
+* Lounge posts
+* Photos
+* Reels
+* Check-ins
+* Reviews
+* Events
+
+Business owners should receive notifications when their business is tagged.
+
+Add tag review setting:
+
+* Allow business tags automatically
+* Require owner approval before tags appear on business page
+
+Default:
+
+* Tags can appear in the original user post
+* Business page display requires approval
+
+19. Business Notifications
+
+Add business notifications for:
+
+* New follower
+* New message
+* New review
+* New recommendation
+* New comment
+* New like
+* New share
+* New check-in
+* New tag/mention
+* New event RSVP
+* New appointment request
+* Appointment confirmed
+* Appointment cancelled
+* Product inquiry
+* Offer saved
+* Business verification status
+* Admin moderation notice
+* Promotion/boost status
+
+20. Business Dashboard
+
+Upgrade the Business Dashboard to feel like Meta Business Suite.
+
+Route:
+
+`/dashboard/business/:id`
+
+Dashboard sections:
+
+* Overview
+* Page Info
+* Posts
+* Planner / Scheduled Posts
+* Inbox
+* Notifications
+* Comments
+* Reviews
+* Appointments
+* Events
+* Services
+* Products / Shop
+* Offers / Specials
+* Photos
+* Reels / Videos
+* Followers
+* Check-ins
+* Mentions / Tags
+* Promotions / Boosts
+* Insights
+* Team Access
+* Verification
+* Settings
+
+Dashboard overview cards:
+
+* Profile views
+* New followers
+* Post reach
+* Post engagement
+* Messages
+* Response rate
+* Reviews/recommendations
+* Event RSVPs
+* Appointment requests
+* Offer saves
+* Product clicks
+* Website clicks
+* CTA button clicks
+* Check-ins
+
+21. Insights / Analytics
+
+Add Facebook-style page insights.
+
+Business Insights should include:
+
+* Page views
+* Profile visits
+* Follower count
+* New followers
+* Post reach
+* Post engagement
+* Likes
+* Comments
+* Shares
+* Saves
+* Reels views
+* Video views
+* CTA button clicks
+* Website clicks
+* Phone clicks
+* Email clicks
+* Direction/map clicks
+* Message count
+* Average response time
+* Reviews received
+* Recommendation score
+* Event RSVPs
+* Appointment requests
+* Product views
+* Offer saves
+* Check-ins
+* Audience location
+* Top posts
+* Top reels
+* Top traffic sources
+
+Allow date ranges:
+
+* Today
+* 7 days
+* 28 days
+* 90 days
+* Custom range
+
+22. Team Access / Page Roles
+
+Add team access similar to Facebook Page roles.
+
+Business owner can invite other members to help manage the page.
+
+Roles:
+
+Owner:
+
+* Full control
+* Delete/deactivate business
+* Manage team
+* Manage billing/promotions
+* Manage verification
+* Edit all settings
+
+Admin:
+
+* Manage page info
+* Create/edit/delete content
+* Respond to messages
+* Manage comments
+* View insights
+* Manage events/services/products/offers
+
+Manager:
+
+* Create posts
+* Respond to comments/messages
+* Manage events
+* Manage photos/videos
+* View basic insights
+
+Moderator:
+
+* Respond to comments
+* Hide/report comments
+* Respond to messages
+* Review reports
+
+Advertiser:
+
+* Create promotions/boosts
+* View ad/promotion analytics
+* Cannot edit core business info
+
+Analyst:
+
+* View insights only
+
+Team invite flow:
+
+* Owner enters member username or email
+* Selects role
+* Sends invitation
+* User accepts or declines
+* Owner can remove or change access
+
+Do not allow team members to see the owner’s private personal/member profile data.
+
+23. Promotions / Boosts
+
+Add promotion-ready features.
+
+Businesses should be able to:
+
+* Boost a post, placeholder Stripe-ready
+* Promote business page
+* Promote event
+* Promote offer/special
+* Promote product/service
+* Buy featured placement
+* Buy sponsored sidebar placement
+
+Promotion options:
+
+* 24-hour boost
+* 3-day boost
+* 7-day boost
+* 14-day boost
+* 30-day featured placement
+
+Promotion target options:
+
+* The Lounge feed
+* Business directory
+* Right sidebar
+* Events page
+* Nearby users
+* Category pages
+
+Admin should approve promotions before they go live.
+
+24. Page Quality / Moderation Status
+
+Add a Page Quality section in Business Dashboard.
+
+Show:
+
+* Business status
+* Verification status
+* Content violations
+* Removed posts
+* Reported content
+* Admin warnings
+* Appeal button, placeholder
+* Good standing badge
+
+25. Business Settings
+
+Add Business Settings section:
+
+* General info
+* Page visibility
+* Messaging settings
+* Review settings
+* Tag settings
+* Notification settings
+* Team access
+* Privacy/display settings
+* Business verification
+* Promotions/billing
+* Deactivate business profile
+
+26. Business Directory Enhancements
+
+Upgrade `/businesses`.
+
+Directory should include:
+
+* Search
+* Category filters
+* Custom business type filters
+* City/state filters
+* Open now
+* Verified only
+* Events
+* Offers
+* Products
+* Services
+* Appointments available
+* Most followed
+* Most recommended
+* Recently active
+* Featured
+* Sponsored
+
+Business cards should show:
+
+* Cover or logo
+* Name
+* Handle
+* Type/category
+* City/state
+* Open now
+* Rating/recommendation summary
+* Follower count
+* Featured/sponsored badge
+* Follow button
+* Message button
+* Primary CTA button
+
+27. The Lounge Integration
+
+Add more business content to The Lounge.
+
+Left sidebar:
+
+* Businesses
+* Create Business Profile
+* My Business Pages
+* Business Events
+* Business Offers
+* Local Businesses
+* Featured Businesses
+
+Right sidebar:
+
+* Featured Businesses
+* Local Businesses
+* Offers Near You
+* Upcoming Business Events
+* Suggested Businesses to Follow
+* Sponsored Business Spotlight
+
+Feed integration:
+
+* Business posts
+* Business offers
+* Business events
+* Business reels
+* Business check-ins
+* Business product/service highlights
+
+28. Business Verification
+
+Add business verification as an optional trust layer.
+
+Verification fields:
+
+* Proof of business ownership, optional
+* Website proof
+* Social proof
+* Business license, optional
+* Utility/location proof, optional
+* Admin notes
+* Submitted by
+* Reviewed by
+* Review date
+
+Only admin can view verification documents.
+
+Verified businesses get:
+
+* Verified badge
+* Higher directory placement
+* Higher trust
+* Eligibility for featured/sponsored placements
+
+29. Business Page Admin Controls
+
+Update Admin Dashboard:
+
+Route:
+
+`/admin/businesses`
+
+Admin can:
+
+* View all businesses
+* Search businesses
+* Filter by status
+* Filter by verification status
+* Approve/reject businesses
+* Verify businesses
+* Suspend businesses
+* Hide businesses
+* Remove fake businesses
+* Review reports
+* Review business posts
+* Review business photos/videos/reels
+* Review events
+* Review offers
+* Review products/services
+* Review reviews/recommendations
+* Manage business categories
+* Manage suggested tags
+* Manage featured placements
+* Manage sponsored placements
+* View business analytics
+* Manually assign or remove badges
+* Handle business appeals, placeholder
+
+30. Database Additions
+
+Add or update models as needed.
+
+BusinessPageSettings:
+
+* id
+* businessId
+* primaryCtaType
+* primaryCtaLabel
+* primaryCtaUrl
+* showPhone
+* showEmail
+* showAddress
+* allowMessages
+* allowReviews
+* allowCheckIns
+* allowTags
+* requireTagApproval
+* allowAppointments
+* allowProducts
+* allowServices
+* allowOffers
+* pageVisibility
+* createdAt
+* updatedAt
+
+BusinessService:
+
+* id
+* businessId
+* name
+* description
+* price
+* priceType
+* durationMinutes
+* imageUrl
+* category
+* isBookable
+* status
+* createdAt
+* updatedAt
+
+BusinessProduct:
+
+* id
+* businessId
+* name
+* description
+* price
+* salePrice
+* imageUrls
+* category
+* availabilityStatus
+* externalUrl
+* status
+* createdAt
+* updatedAt
+
+BusinessOffer:
+
+* id
+* businessId
+* title
+* description
+* promoCode
+* imageUrl
+* startDate
+* endDate
+* redemptionType
+* redemptionUrl
+* terms
+* saveCount
+* status
+* createdAt
+* updatedAt
+
+BusinessReview:
+
+* id
+* businessId
+* userId
+* recommendsBusiness
+* rating
+* reviewText
+* tags
+* photoUrl
+* visitDate
+* status
+* businessReply
+* repliedAt
+* createdAt
+* updatedAt
+
+BusinessCheckIn:
+
+* id
+* businessId
+* userId
+* postId
+* text
+* photoUrl
+* visibility
+* createdAt
+
+BusinessAppointmentService:
+
+* id
+* businessId
+* serviceId
+* durationMinutes
+* price
+* bufferMinutes
+* isActive
+* createdAt
+* updatedAt
+
+BusinessAppointmentAvailability:
+
+* id
+* businessId
+* dayOfWeek
+* startTime
+* endTime
+* isAvailable
+* createdAt
+* updatedAt
+
+BusinessAppointment:
+
+* id
+* businessId
+* userId
+* serviceId
+* appointmentDate
+* startTime
+* endTime
+* status
+
+  * requested
+  * confirmed
+  * declined
+  * cancelled
+  * completed
+  * no_show
+* customerNotes
+* businessNotes
+* createdAt
+* updatedAt
+
+BusinessTeamInvite:
+
+* id
+* businessId
+* invitedByUserId
+* invitedUserId
+* email
+* role
+* status
+
+  * pending
+  * accepted
+  * declined
+  * expired
+* createdAt
+* updatedAt
+
+BusinessInsight:
+
+* id
+* businessId
+* metricName
+* metricValue
+* metricDate
+* metadata
+* createdAt
+
+BusinessPromotion:
+
+* id
+* businessId
+* promotedType
+
+  * business
+  * post
+  * event
+  * offer
+  * product
+  * service
+* promotedId
+* placement
+* budget
+* durationDays
+* status
+* stripePaymentId
+* startDate
+* endDate
+* createdAt
+* updatedAt
+
+BusinessMention:
+
+* id
+* businessId
+* mentionedByUserId
+* relatedType
+
+  * post
+  * photo
+  * reel
+  * review
+  * checkin
+* relatedId
+* status
+
+  * pending
+  * approved
+  * hidden
+* createdAt
+* updatedAt
+
+BusinessPageQuality:
+
+* id
+* businessId
+* standingStatus
+* violationsCount
+* warningsCount
+* lastViolationAt
+* notes
+* createdAt
+* updatedAt
+
+Important Rules
+
+Do not rebuild.
+
+Do not remove the existing personal/member profiles.
+
+Do not remove Doll/Bro profiles.
+
+Do not remove credits, memberships, pricing, Doll monetization, messaging, verification, or The Lounge feed.
+
+Do not limit business type.
+
+Do not allow anonymous business profiles.
+
+Do not publicly expose business owner private profile information.
+
+Do not show payment data, verification documents, government ID, or private messages publicly.
+
+Keep business messaging separate from paid Doll messaging.
+
+Business pages should be public-facing pages connected to a real member profile.
+
+Design Direction
+
+Use HookahDolls styling, not Facebook branding.
+
+Design should feel:
+
+* Social-media familiar
+* Business-friendly
+* Clean
+* Premium
+* Dark lounge themed
+* Mobile responsive
+
+Use:
+
+* Blue for social actions: Follow, Message, Book, Contact
+* Gold for premium actions: Promote, Verify, Feature, Sponsor
+* Green for open/active/confirmed
+* Red only for alerts, reports, violations, and destructive actions
+
+Final Goal
+
+The finished Business Profile system should feel like Facebook Business Pages inside HookahDolls:
+
+A member can create a business page, add business info, post updates, upload photos/reels, list services/products, create events/offers, receive messages, collect reviews, get check-ins, view insights, manage team access, verify the business, and promote the page.

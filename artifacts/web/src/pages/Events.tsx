@@ -13,6 +13,7 @@ import {
   type ListEventsParams,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { CommunityTopicsNav } from "@/components/lounge/CommunityTopicsNav";
 import {
   CalendarDays,
   MapPin,
@@ -249,6 +250,8 @@ export default function Events() {
             Everything coming up in the HookahBuddys community — RSVP, save, and show up.
           </p>
         </div>
+
+        <CommunityTopicsNav />
 
         <div className="flex gap-2 mb-6">
           {TABS.map((t) => (

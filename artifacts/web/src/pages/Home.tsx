@@ -407,7 +407,7 @@ export default function Home() {
             </h1>
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
 
-              Connect with verified Buddies over a shared love of hookah. Exclusive content, private chats, and
+              Connect with verified Buddys over a shared love of hookah. Exclusive content, private chats, and
               intimate video sessions — tasteful, glamorous, always after dark.
             </p>
             <div className="mt-9 flex flex-col sm:flex-row gap-4">
@@ -435,7 +435,7 @@ export default function Home() {
                   className="w-full sm:w-auto text-white hover:bg-white/10 hover:text-white font-semibold tracking-widest uppercase h-14 px-9"
                 >
 
-                  Browse Buddies
+                  Browse Buddys
                 </Button>
               </Link>
             </div>
@@ -579,7 +579,7 @@ export default function Home() {
 
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6">
 
-                  Browse verified Buddies, unlock exclusive content, and start private
+                  Browse verified Buddys, unlock exclusive content, and start private
                   conversations. Buy credits once and spend them on the connections
                   and moments that matter most to you.
                 </p>
@@ -590,7 +590,7 @@ export default function Home() {
                 <ul className="space-y-2.5 mb-8">
                   {[
                     "Full name, username, email & password",
-                    "Optional city & state for nearby Buddies",
+                    "Optional city & state for nearby Buddys",
                     "A quick 21+ confirmation & Terms agreement",
                     "Add credits whenever you're ready to unlock",
                   ].map((item) => (
@@ -632,7 +632,7 @@ export default function Home() {
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
 
-                See the latest hookah setups, lounge posts, flavor talk, events, Buddies, Bros, and community conversations.
+                See the latest hookah setups, lounge posts, flavor talk, events, Buddys, Bros, and community conversations.
               </p>
             </div>
             <Link href="/feed">
@@ -681,13 +681,13 @@ export default function Home() {
             {[
               {
                 icon: ShieldCheck,
-                title: "Verified Buddies only",
+                title: "Verified Buddys only",
                 body: "Every creator is identity-verified before they earn a single credit. Authentic profiles, real connections.",
               },
               {
                 icon: MessageSquare,
                 title: "Message & unlock",
-                body: "Spend credits to start conversations and unlock premium photos and videos from your favorite Buddies.",
+                body: "Spend credits to start conversations and unlock premium photos and videos from your favorite Buddys.",
               },
               {
                 icon: Video,
@@ -736,12 +736,12 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
               <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">Tonight's lineup</p>
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white">Featured Buddies</h2>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white">Featured Buddys</h2>
             </div>
             <Link href="/browse">
               <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10">
 
-                View all Buddies <ArrowRight className="ml-2 h-4 w-4" />
+                View all Buddys <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
@@ -816,7 +816,7 @@ export default function Home() {
           ) : (
             <div className="py-12 text-center text-muted-foreground bg-card/30 rounded-2xl border border-white/5">
 
-              No featured Buddies at the moment. Check back soon!
+              No featured Buddys at the moment. Check back soon!
             </div>
           )}
         </div>
@@ -828,7 +828,7 @@ export default function Home() {
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-card/50 backdrop-blur-md p-10 md:p-16">
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/15 blur-[120px] rounded-full pointer-events-none" />
             <div className="relative z-10 max-w-2xl">
-              <p className="text-secondary uppercase tracking-[0.25em] text-xs font-semibold mb-4">For Buddies</p>
+              <p className="text-secondary uppercase tracking-[0.25em] text-xs font-semibold mb-4">For Buddys</p>
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight">
                 Turn your lounge nights into income.
               </h2>
@@ -859,7 +859,7 @@ export default function Home() {
           </h2>
           <p className="text-lg text-muted-foreground mb-10">
 
-            Join thousands enjoying premium content, private chats, and exclusive connections with verified Hookah Buddies.
+            Join thousands enjoying premium content, private chats, and exclusive connections with verified Hookah Buddys.
           </p>
           <Link href="/signup/bro?plan=bronze">
             <Button

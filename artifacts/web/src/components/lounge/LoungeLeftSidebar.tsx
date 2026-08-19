@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   useGetCurrentUser,
   useGetMyProfile,
@@ -12,24 +12,12 @@ import {
   Users,
   MessageCircle,
   Bell,
-  Bookmark,
   Clapperboard,
   Search,
   Coins,
   Crown,
-  Flame,
-  Star,
-  CalendarDays,
-  Wind,
-  Laugh,
-  Sparkles,
-  MapPin,
-  MessagesSquare,
 } from "lucide-react";
-
-type Props = {
-  onSelectCategory?: (category: string) => void;
-};
+import { COMMUNITY_SHORTCUTS } from "@/lib/communityTopics";
 
 const NAV_LINKS = [
   { to: "/feed", label: "The Lounge", icon: Home },
@@ -37,19 +25,8 @@ const NAV_LINKS = [
   { to: "/messages", label: "Messages", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/reels", label: "Reels", icon: Clapperboard },
-  { to: "/browse", label: "Browse Buddies", icon: Search },
+  { to: "/browse", label: "Browse Buddys", icon: Search },
   { to: "/pricing", label: "Pricing / Upgrade", icon: Coins },
-];
-
-const COMMUNITY_SHORTCUTS: { label: string; category: string; icon: typeof Flame }[] = [
-  { label: "Hookah Setups", category: "setup", icon: Flame },
-  { label: "Favorite Flavors", category: "flavor", icon: Star },
-  { label: "Lounge Reviews", category: "review", icon: MapPin },
-  { label: "Hookah Events", category: "event", icon: CalendarDays },
-  { label: "Smoke Talk", category: "discussion", icon: Wind },
-  { label: "Hookah Memes", category: "meme", icon: Laugh },
-  { label: "Questions", category: "question", icon: MessagesSquare },
-  { label: "Local Lounges", category: "lounge", icon: Sparkles },
 ];
 
 const FOOTER_LINKS = [
@@ -59,7 +36,7 @@ const FOOTER_LINKS = [
   { to: "/pricing", label: "Pricing" },
 ];
 
-export default function LoungeLeftSidebar({ onSelectCategory }: Props) {
+export default function LoungeLeftSidebar() {
   const { data: session } = useGetCurrentUser();
   const authenticated = session?.authenticated && session.user;
   const { data: profile } = useGetMyProfile({
@@ -71,6 +48,8 @@ export default function LoungeLeftSidebar({ onSelectCategory }: Props) {
       enabled: !!authenticated && session?.user?.role === "member",
     },
   });
+
+  const [location] = useLocation();
 
   const profileHref = authenticated
     ? session!.user!.role === "doll" && session!.user!.dollId
@@ -128,16 +107,23 @@ export default function LoungeLeftSidebar({ onSelectCategory }: Props) {
       {/* Navigation */}
       <nav className="rounded-2xl bg-card/30 border border-white/5 backdrop-blur-md p-2">
         {(authenticated ? NAV_LINKS : NAV_LINKS.filter((l) => ["/feed", "/reels", "/browse", "/pricing"].includes(l.to))).map(
-          ({ to, label, icon: Icon }) => (
-            <Link
-              key={to + label}
-              href={to}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <Icon className="h-4 w-4 text-primary/70" />
-              {label}
-            </Link>
-          ),
+          ({ to, label, icon: Icon }) => {
+            const isActive = location === to || (to !== "/" && location.startsWith(to) && to !== "/feed");
+            return (
+              <Link
+                key={to + label}
+                href={to}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+                  isActive
+                    ? "bg-white/10 text-white font-medium"
+                    : "text-muted-foreground hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-primary/70"}`} />
+                {label}
+              </Link>
+            );
+          }
         )}
       </nav>
 
@@ -146,27 +132,26 @@ export default function LoungeLeftSidebar({ onSelectCategory }: Props) {
         <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-widest text-muted-foreground/70">
           Hookah Community
         </p>
-        {COMMUNITY_SHORTCUTS.map(({ label, category, icon: Icon }) =>
-          category === "event" ? (
+        {COMMUNITY_SHORTCUTS.map(({ label, href, icon: Icon }) => {
+          const isActive = location === href ||
+            (href === "/community/hookah-events" && location.startsWith("/events")) ||
+            (href === "/community/local-lounges" && location.startsWith("/lounges"));
+          return (
             <Link
-              key={category}
-              href="/events"
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors text-left"
+              key={href}
+              href={href}
+              aria-current={isActive ? "page" : undefined}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors text-left ${
+                isActive
+                  ? "bg-primary/20 text-white font-medium"
+                  : "text-muted-foreground hover:text-white hover:bg-white/5"
+              }`}
             >
-              <Icon className="h-4 w-4 text-primary/70" />
+              <Icon className={`h-4 w-4 ${isActive ? "text-primary" : "text-primary/70"}`} />
               {label}
             </Link>
-          ) : (
-            <button
-              key={category}
-              onClick={() => onSelectCategory?.(category)}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors text-left"
-            >
-              <Icon className="h-4 w-4 text-primary/70" />
-              {label}
-            </button>
-          ),
-        )}
+          );
+        })}
       </div>
 
       {/* Footer links */}

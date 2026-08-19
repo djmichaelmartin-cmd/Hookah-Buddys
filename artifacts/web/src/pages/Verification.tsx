@@ -84,7 +84,7 @@ export default function Verification() {
             <h3 className="text-xl font-serif text-white mb-4">Submit Documents</h3>
             <p className="text-sm text-muted-foreground mb-6">
 
-              Only approved Buddies receive the Verified Badge and can earn on HookahBuddys.com. All URLs are placeholders for actual file uploads in this demo.
+              Only approved Buddys receive the Verified Badge and can earn on HookahBuddys.com. All URLs are placeholders for actual file uploads in this demo.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">

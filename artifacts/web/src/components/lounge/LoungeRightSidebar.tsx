@@ -21,7 +21,6 @@ import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check } from "
 import { useToast } from "@/hooks/use-toast";
 
 type Props = {
-  onSelectCategory?: (category: string) => void;
   onSelectHashtag?: (tag: string) => void;
   activeHashtag?: string;
 };
@@ -206,7 +205,7 @@ function EventRow({ event, loggedIn }: { event: Event; loggedIn: boolean }) {
   );
 }
 
-export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory, onSelectHashtag, activeHashtag }: Props) {
+export default function LoungeRightSidebar({ onSelectHashtag, activeHashtag }: Props) {
   const { data: session } = useGetCurrentUser();
   const { data: onlineUsers } = useListOnlineUsers({
     query: {
@@ -256,7 +255,7 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
       )}
 
       {suggested.length > 0 && (
-        <SectionCard title="Suggested Buddies">
+        <SectionCard title="Suggested Buddys">
           {suggested.map((doll) => (
             <DollRow key={doll.id} doll={doll} />
           ))}
@@ -265,7 +264,7 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
             className="block text-xs text-primary hover:underline mt-2"
           >
 
-            Browse all Buddies →
+            Browse all Buddys →
           </Link>
         </SectionCard>
       )}

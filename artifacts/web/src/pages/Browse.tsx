@@ -174,11 +174,11 @@ export default function Browse() {
         ) : !dolls || dolls.length === 0 ? (
           <div className="py-20 text-center">
             <Star className="mx-auto h-10 w-10 text-muted-foreground/30 mb-4" />
-            <h3 className="text-xl font-serif text-white mb-2">No Buddies found</h3>
+            <h3 className="text-xl font-serif text-white mb-2">No Buddys found</h3>
             <p className="text-muted-foreground text-sm">
               {hasFilters
                 ? "Try adjusting or clearing your filters."
-                : "Check back soon — new Buddies join the lounge often."}
+                : "Check back soon — new Buddys join the lounge often."}
             </p>
             {hasFilters && (
               <Button variant="outline" onClick={clearFilters} className="mt-6">
@@ -189,7 +189,7 @@ export default function Browse() {
         ) : (
           <>
             <p className="text-sm text-muted-foreground mb-5">
-              {dolls.length} {dolls.length === 1 ? "Buddy" : "Buddies"} in the lounge
+              {dolls.length} {dolls.length === 1 ? "Buddy" : "Buddys"} in the lounge
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {dolls.map((doll) => (
