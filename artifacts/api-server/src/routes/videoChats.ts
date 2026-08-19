@@ -83,7 +83,7 @@ router.post("/video-chats", requireAuth("member"), requirePaidMember(), async (r
   }
   const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, parsed.data.dollId));
   if (!doll) {
-    res.status(404).json({ error: "Doll not found" });
+    res.status(404).json({ error: "Buddy not found" });
     return;
   }
   // Enforce the 5-minute minimum, then atomically charge credits and create the

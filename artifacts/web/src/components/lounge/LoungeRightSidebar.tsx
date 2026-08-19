@@ -89,7 +89,7 @@ function OnlineUserRow({ user }: { user: OnlineUser }) {
           {user.verified && <BadgeCheck className="h-3.5 w-3.5 text-primary shrink-0" />}
         </p>
         <p className="text-xs text-muted-foreground truncate">
-          {user.city && user.state ? `${user.city}, ${user.state}` : user.role === "doll" ? "Doll" : "Bro"}
+          {user.city && user.state ? `${user.city}, ${user.state}` : user.role === "doll" ? "Buddy" : "Bro"}
         </p>
       </div>
     </Link>
@@ -256,7 +256,7 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
       )}
 
       {suggested.length > 0 && (
-        <SectionCard title="Suggested Dolls">
+        <SectionCard title="Suggested Buddies">
           {suggested.map((doll) => (
             <DollRow key={doll.id} doll={doll} />
           ))}
@@ -264,7 +264,8 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
             href="/browse"
             className="block text-xs text-primary hover:underline mt-2"
           >
-            Browse all Dolls →
+
+            Browse all Buddies →
           </Link>
         </SectionCard>
       )}
@@ -337,7 +338,7 @@ export default function LoungeRightSidebar({ onSelectCategory: _onSelectCategory
           </h3>
           <p className="text-xs text-muted-foreground mb-3">
             {upgradePlan.description ||
-              "Unlock premium Doll content, messaging credits, and VIP perks."}
+              "Unlock premium Buddy content, messaging credits, and VIP perks."}
           </p>
           <Link
             href={

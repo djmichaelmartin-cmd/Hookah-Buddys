@@ -37,7 +37,7 @@ const NAV_LINKS = [
   { to: "/messages", label: "Messages", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/reels", label: "Reels", icon: Clapperboard },
-  { to: "/browse", label: "Browse Dolls", icon: Search },
+  { to: "/browse", label: "Browse Buddies", icon: Search },
   { to: "/pricing", label: "Pricing / Upgrade", icon: Coins },
 ];
 
@@ -102,7 +102,7 @@ export default function LoungeLeftSidebar({ onSelectCategory }: Props) {
               <p className="text-xs text-muted-foreground truncate">
                 {session!.user!.role === "doll" ? (
                   <span className="inline-flex items-center gap-1 text-primary">
-                    <Crown className="h-3 w-3" /> Verified Doll
+                    <Crown className="h-3 w-3" />  Verified Buddy
                   </span>
                 ) : (
                   credits?.membershipPlanName || "View profile"
@@ -180,7 +180,7 @@ export default function LoungeLeftSidebar({ onSelectCategory }: Props) {
             {l.label}
           </Link>
         ))}
-        <span className="text-[11px] text-muted-foreground/40">© HookahDolls</span>
+        <span className="text-[11px] text-muted-foreground/40">© HookahBuddys</span>
       </div>
     </aside>
   );

@@ -246,7 +246,7 @@ export default function Events() {
             Hookah Events <CalendarDays className="h-6 w-6 text-primary" />
           </h1>
           <p className="text-muted-foreground mt-2">
-            Everything coming up in the HookahDolls community — RSVP, save, and show up.
+            Everything coming up in the HookahBuddys community — RSVP, save, and show up.
           </p>
         </div>
 

@@ -149,7 +149,7 @@ export default function AdminPlans() {
 
       {dollPlans.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-serif text-white">Doll Plans</h3>
+          <h3 className="text-lg font-serif text-white">Buddy Plans</h3>
           {dollPlans.map((plan) => <PlanRow key={plan.id} plan={plan} />)}
         </div>
       )}

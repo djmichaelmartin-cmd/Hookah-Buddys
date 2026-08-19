@@ -7,20 +7,21 @@ export function Footer() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-2">
-            <h3 className="font-serif text-2xl font-bold tracking-widest text-primary mb-4">HookahDolls</h3>
+            <h3 className="font-serif text-2xl font-bold tracking-widest text-primary mb-4">HookahBuddys</h3>
             <p className="text-muted-foreground max-w-sm mb-4">
-              A premium, upscale platform connecting Verified Dolls and enthusiasts through a shared love of hookah culture. Tasteful, glamorous, and always 21+.
+
+              A premium, upscale platform connecting Verified Buddies and enthusiasts through a shared love of hookah culture. Tasteful, glamorous, and always 21+.
             </p>
             <p className="text-xs text-muted-foreground/60 max-w-sm">
-              All content on HookahDolls must feature a visible hookah. We enforce strict guidelines to maintain our premium lounge atmosphere.
+              All content on HookahBuddys must feature a visible hookah. We enforce strict guidelines to maintain our premium lounge atmosphere.
             </p>
           </div>
           <div>
             <h4 className="font-medium text-white mb-4 uppercase tracking-wider text-sm">Platform</h4>
             <ul className="space-y-2">
-              <li><Link href="/browse" className="text-muted-foreground hover:text-primary transition-colors text-sm">Browse Dolls</Link></li>
+              <li><Link href="/browse" className="text-muted-foreground hover:text-primary transition-colors text-sm">Browse Buddies</Link></li>
               <li><Link href="/pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">Pricing & Plans</Link></li>
-              <li><Link href="/signup/doll" className="text-sm text-muted-foreground hover:text-primary transition-colors">Become a Doll</Link></li>
+              <li><Link href="/signup/doll" className="text-sm text-muted-foreground hover:text-primary transition-colors">Become a Buddy</Link></li>
               <li><Link href="/choose-membership" className="text-sm text-muted-foreground hover:text-primary transition-colors">Create Free Profile</Link></li>
             </ul>
           </div>
@@ -37,7 +38,7 @@ export function Footer() {
         </div>
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground/50">
-            &copy; {new Date().getFullYear()} HookahDolls.com. All rights reserved. 21+ only.
+            &copy; {new Date().getFullYear()} HookahBuddys.com. All rights reserved. 21+ only.
           </p>
           <div className="flex gap-4">
             <span className="text-xs text-muted-foreground/50 font-medium px-2 py-1 bg-white/5 rounded">100% Secure Checkout</span>

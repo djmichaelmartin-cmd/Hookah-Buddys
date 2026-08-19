@@ -334,7 +334,7 @@ export default function PrivacySettings() {
                   className="w-4 h-4 rounded border-white/20 bg-background/50 text-primary"
                 />
                 <Label htmlFor="allowExternalSearchIndexing" className="cursor-pointer">
-                  Allow search engines outside of HookahDolls to link to your profile
+                  Allow search engines outside of HookahBuddys to link to your profile
                 </Label>
               </div>
 

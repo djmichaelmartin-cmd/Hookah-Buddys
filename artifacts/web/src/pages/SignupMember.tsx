@@ -12,7 +12,7 @@ import { Coins } from "lucide-react";
 export default function SignupMember() {
   const registerMember = useRegisterMember();
   const { data: plans } = useListPlans({ audience: "member" }, { query: { queryKey: getListPlansQueryKey({ audience: "member" }) } });
-  
+
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -54,7 +54,7 @@ export default function SignupMember() {
       toast({ title: "Action Required", description: "Please accept all required agreements.", variant: "destructive" });
       return;
     }
-    
+
     const combinedName = `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
 
     registerMember.mutate({
@@ -95,9 +95,9 @@ export default function SignupMember() {
           <p className="text-muted-foreground text-center mb-8">
             {selectedPlan && selectedPlan.price > 0
               ? "Create your profile to join the lounge."
-              : "Join the HookahDolls social community for free — post, follow, make friends, and explore the feed. Upgrade anytime."}
+              : "Join the HookahBuddys social community for free — post, follow, make friends, and explore the feed. Upgrade anytime."}
           </p>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -174,14 +174,14 @@ export default function SignupMember() {
               <span className="text-lg font-medium text-white">{selectedPlan.name}</span>
               <span className="text-2xl font-bold text-primary">${selectedPlan.price}</span>
             </div>
-            
+
             <div className="mb-4 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3">
               <p className="text-sm font-semibold text-white flex items-center gap-2">
                 <Coins className="w-4 h-4 text-primary" />
                 {selectedPlan.monthlyCredits} credits / mo
               </p>
             </div>
-            
+
             <p className="text-xs text-muted-foreground">
               By creating your account, you will be redirected to complete your subscription purchase. You will be billed ${selectedPlan.price} per month until you cancel.
             </p>

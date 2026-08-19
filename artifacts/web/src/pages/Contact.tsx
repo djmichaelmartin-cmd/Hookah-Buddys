@@ -82,7 +82,7 @@ export default function Contact() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="member">Member</SelectItem>
-                    <SelectItem value="doll">Doll</SelectItem>
+                    <SelectItem value="doll">Buddy</SelectItem>
                     <SelectItem value="guest">Guest</SelectItem>
                   </SelectContent>
                 </Select>

@@ -275,7 +275,8 @@ export default function VideoChat() {
           <div>
             <h3 className="text-primary font-bold mb-1">Strict Platform Rule</h3>
             <p className="text-primary/80 text-sm">
-              A visible smoking hookah MUST be present during all Doll video chat sessions. Failure to comply will
+
+              A visible smoking hookah MUST be present during all Buddy video chat sessions. Failure to comply will
               result in session termination and potential account suspension.
             </p>
           </div>

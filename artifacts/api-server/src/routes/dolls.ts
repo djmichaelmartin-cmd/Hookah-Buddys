@@ -65,12 +65,12 @@ router.get("/dolls/featured", async (_req, res): Promise<void> => {
 router.get("/dolls/me", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, user.dollId));
   if (!doll) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const counts = await getDollCounts(doll.id);
@@ -80,7 +80,7 @@ router.get("/dolls/me", requireAuth("doll"), async (req, res): Promise<void> => 
 router.patch("/dolls/me", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const parsed = UpdateMyDollProfileBody.safeParse(req.body);
@@ -100,7 +100,7 @@ router.patch("/dolls/me", requireAuth("doll"), async (req, res): Promise<void> =
 router.get("/dolls/me/analytics", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const dollId = user.dollId;
@@ -143,7 +143,7 @@ router.get("/dolls/:id", async (req, res): Promise<void> => {
   const id = params.data.id;
   const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, id));
   if (!doll || doll.applicationStatus !== "approved") {
-    res.status(404).json({ error: "Doll not found" });
+    res.status(404).json({ error: "Buddy not found" });
     return;
   }
 

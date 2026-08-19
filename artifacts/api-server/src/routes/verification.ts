@@ -24,7 +24,7 @@ function toVerification(v: typeof verificationsTable.$inferSelect, dollName?: st
 router.post("/verification", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const parsed = SubmitVerificationBody.safeParse(req.body);
@@ -49,7 +49,7 @@ router.post("/verification", requireAuth("doll"), async (req, res): Promise<void
 router.get("/verification/mine", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const [v] = await db

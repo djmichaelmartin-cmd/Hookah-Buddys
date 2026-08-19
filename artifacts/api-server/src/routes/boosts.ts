@@ -28,7 +28,7 @@ function toBoost(b: typeof boostsTable.$inferSelect) {
 router.get("/boosts", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const rows = await db
@@ -42,7 +42,7 @@ router.get("/boosts", requireAuth("doll"), async (req, res): Promise<void> => {
 router.post("/boosts", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const parsed = PurchaseBoostBody.safeParse(req.body);

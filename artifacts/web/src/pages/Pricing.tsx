@@ -76,7 +76,7 @@ export default function Pricing() {
       return;
     }
     if (plan.audience === "doll" && role !== "doll") {
-      toast({ title: "For Dolls only", description: "This plan is for verified Dolls.", variant: "destructive" });
+      toast({ title: "For Buddies only", description: "This plan is for verified Buddies.", variant: "destructive" });
       return;
     }
     if (plan.audience === "doll") {
@@ -99,12 +99,13 @@ export default function Pricing() {
         <div className="text-center">
           <h1 className="text-4xl font-serif text-white mb-4">Memberships & Plans</h1>
           <p className="text-muted-foreground mb-4 max-w-2xl mx-auto">
-            HookahDolls is free to join. Paid plans are optional upgrades that include monthly
-            credits for premium Doll interactions.
+
+            HookahBuddys is free to join. Paid plans are optional upgrades that include monthly
+            credits for premium Buddy interactions.
           </p>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 mb-12 text-sm text-muted-foreground/80">
             <span>Free: profile, public feed, friends & follows, photos & reels, likes & comments</span>
-            <span className="text-primary/80">Paid: monthly credits, Doll messaging, premium unlocks, video chat, VIP features</span>
+            <span className="text-primary/80">Paid: monthly credits, Buddy messaging, premium unlocks, video chat, VIP features</span>
           </div>
         </div>
 
@@ -235,7 +236,7 @@ export default function Pricing() {
 
         {dollPlans.length > 0 && (
           <>
-            <h2 className="text-2xl font-serif text-white text-center mt-20 mb-8">Plans for Dolls</h2>
+            <h2 className="text-2xl font-serif text-white text-center mt-20 mb-8">Plans for Buddies</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
               {dollPlans.map((plan) => (
                 <div
@@ -266,7 +267,7 @@ export default function Pricing() {
                     </Button>
                   ) : (
                     <Link href="/signup/doll" className="w-full mt-auto">
-                      <Button className="w-full bg-white/10 hover:bg-white/20 text-white">Apply as a Doll</Button>
+                      <Button className="w-full bg-white/10 hover:bg-white/20 text-white">Apply as a Buddy</Button>
                     </Link>
                   )}
                 </div>

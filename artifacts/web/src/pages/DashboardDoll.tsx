@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function DashboardDoll() {
   const { data: profile, isLoading: loadingProfile } = useGetMyDollProfile();
   const { data: analytics } = useGetMyDollAnalytics();
-  
+
   const { data: myPosts } = useListMyFeedPosts();
   const { data: savedPosts } = useListSavedFeedPosts();
   const { data: feedStats } = useGetMyFeedStats();
@@ -20,7 +20,7 @@ export default function DashboardDoll() {
     <Layout>
       <div className="container mx-auto px-4 py-12 max-w-5xl">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-serif text-white">Doll Dashboard</h1>
+          <h1 className="text-3xl font-serif text-white">Buddy Dashboard</h1>
           <Link href="/upload"><Button className="bg-primary text-primary-foreground"><Upload className="w-4 h-4 mr-2" /> Upload Content</Button></Link>
         </div>
 
@@ -62,7 +62,7 @@ export default function DashboardDoll() {
                   </Link>
                </div>
             </div>
-            
+
             <div className="bg-card/50 border border-white/10 rounded-xl p-6">
                <h2 className="text-xl font-serif text-white mb-4">Profile Status</h2>
                <div className="space-y-3 mb-6 text-sm">

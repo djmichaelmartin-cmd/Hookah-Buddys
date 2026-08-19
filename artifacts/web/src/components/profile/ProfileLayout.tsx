@@ -168,7 +168,8 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
                 )}
                 {isDoll && (
                   <span className="px-3 py-1 rounded-full bg-primary/20 border border-primary/40 text-xs font-semibold text-primary uppercase tracking-wider">
-                    Doll
+
+                    Buddy
                   </span>
                 )}
                 {!isDoll && (

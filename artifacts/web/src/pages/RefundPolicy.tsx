@@ -6,7 +6,7 @@ export default function RefundPolicy() {
     <Layout>
       <div className="container mx-auto px-4 py-16 max-w-3xl prose prose-invert">
         <h1 className="font-serif text-4xl text-primary mb-8">Refund Policy</h1>
-        <p className="lead text-muted-foreground">Please read this policy carefully before making any purchase on HookahDolls.com.</p>
+        <p className="lead text-muted-foreground">Please read this policy carefully before making any purchase on HookahBuddys.com.</p>
 
         <h3>1. Digital Goods Are Final</h3>
         <p>Subscriptions, message credits, premium content unlocks, video chat sessions, and profile boosts are digital goods delivered instantly. As such, all sales are final and non-refundable once delivered or consumed.</p>

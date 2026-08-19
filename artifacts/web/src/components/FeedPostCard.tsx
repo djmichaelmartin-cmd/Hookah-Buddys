@@ -56,7 +56,7 @@ export function FeedPostCard({
   const [showComments, setShowComments] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
-  
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -136,7 +136,7 @@ export function FeedPostCard({
 
   const authorLink = post.dollId ? `/dolls/${post.dollId}` : `/bros/${post.userId}`;
   const badgeColor = post.userRole === "doll" ? "text-[#E85D75] border-[#E85D75]/20 bg-[#E85D75]/10" : "text-[#D6B56D] border-[#D6B56D]/20 bg-[#D6B56D]/10";
-  const badgeText = post.userRole === "doll" ? "Doll" : "Bro";
+  const badgeText = post.userRole === "doll" ? "Buddy" : "Bro";
 
   return (
     <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors">
@@ -191,7 +191,7 @@ export function FeedPostCard({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
+
           <div className="mt-2 text-white/90 whitespace-pre-wrap break-words leading-relaxed text-[15px]">
             {post.text}
           </div>

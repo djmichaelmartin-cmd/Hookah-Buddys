@@ -31,7 +31,7 @@ import {
 const NAV_LINKS = [
   { label: "Feed", href: "/feed" },
   { label: "Reels", href: "/reels" },
-  { label: "Dolls", href: "/browse" },
+  { label: "Buddies", href: "/browse" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
 ];
@@ -179,7 +179,8 @@ export function Navbar() {
             href="/signup/doll"
             className={`inline-flex items-center h-9 px-5 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
           >
-            Become a Doll
+
+            Become a Buddy
           </Link>
         </nav>
 
@@ -191,7 +192,7 @@ export function Navbar() {
           <img
             src="/brand/logo.png"
             alt="HookahBuddys.com"
-            className="h-16 w-auto -translate-y-[5px] drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
+            className="h-16 w-auto -translate-y-[9px] drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
           />
         </Link>
 
@@ -202,7 +203,8 @@ export function Navbar() {
             className={`hidden xl:inline-flex items-center gap-2 h-10 pl-4 pr-5 rounded-full border text-sm ${outlineBtn} transition-colors`}
           >
             <Search className="h-4 w-4" />
-            Find a Doll
+
+            Find a Buddy
           </Link>
 
           {session?.authenticated && session.user ? (
@@ -274,7 +276,7 @@ export function Navbar() {
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                       <Link href="/dashboard/doll" className="flex items-center w-full">
                         <DollarSign className="mr-2 h-4 w-4" />
-                        <span>Doll Dashboard</span>
+                        <span>Buddy Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
@@ -400,7 +402,8 @@ export function Navbar() {
               onClick={() => setMenuOpen(false)}
               className={`mt-3 inline-flex items-center justify-center h-11 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
             >
-              Become a Doll
+
+              Become a Buddy
             </Link>
             {!isAuthed && (
               <div className="mt-2 grid grid-cols-2 gap-3">

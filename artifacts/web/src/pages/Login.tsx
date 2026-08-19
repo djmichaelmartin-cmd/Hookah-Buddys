@@ -37,29 +37,29 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                required 
-                value={email} 
-                onChange={e => setEmail(e.target.value)} 
-                className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" 
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="bg-background/50 border-white/10 text-white focus-visible:ring-primary"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" 
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="bg-background/50 border-white/10 text-white focus-visible:ring-primary"
               />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" 
+            <Button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               disabled={login.isPending}
             >
               {login.isPending ? "Entering..." : "Enter"}
@@ -69,7 +69,7 @@ export default function Login() {
             Don't have an account?{" "}
             <Link href="/choose-membership" className="text-primary hover:underline">Create Free Profile</Link>
             {" "}or{" "}
-            <Link href="/signup/doll" className="text-primary hover:underline">Apply as a Doll</Link>
+            <Link href="/signup/doll" className="text-primary hover:underline">Apply as a Buddy</Link>
           </div>
         </div>
       </div>

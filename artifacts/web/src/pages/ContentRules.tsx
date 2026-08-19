@@ -6,13 +6,13 @@ export default function ContentRules() {
     <Layout>
       <div className="container mx-auto px-4 py-16 max-w-3xl prose prose-invert">
         <h1 className="font-serif text-4xl text-primary mb-8">Content Guidelines</h1>
-        <p className="lead text-muted-foreground">HookahDolls.com is a premium hookah lifestyle platform. These rules keep our community safe, classy, and on-brand.</p>
+        <p className="lead text-muted-foreground">HookahBuddys.com is a premium hookah lifestyle platform. These rules keep our community safe, classy, and on-brand.</p>
 
         <h3>1. The Hookah Rule</h3>
-        <p><strong>Every piece of Doll content must include a clearly visible hookah.</strong> This is the core of our brand. Content without a visible hookah will be rejected during moderation.</p>
+        <p><strong>Every piece of Buddy content must include a clearly visible hookah.</strong> This is the core of our brand. Content without a visible hookah will be rejected during moderation.</p>
 
         <h3>2. Strictly 21+</h3>
-        <p>All Dolls must be verified adults aged 21 or older. Any content suggesting a minor, or any attempt to misrepresent age, results in an immediate permanent ban and may be reported to authorities.</p>
+        <p>All Buddies must be verified adults aged 21 or older. Any content suggesting a minor, or any attempt to misrepresent age, results in an immediate permanent ban and may be reported to authorities.</p>
 
         <h3>3. Prohibited Content</h3>
         <p>No explicit sexual content, no illegal substances or activity, no hate speech, no harassment, and no non-consensual or impersonated content. Keep it tasteful and lounge-appropriate.</p>
@@ -27,13 +27,13 @@ export default function ContentRules() {
         <p>The public feed is the heart of the community. Posts, photos, and reels must be hookah-related.</p>
         <p><strong>Allowed:</strong> Lounges, setups, flavors, events, memes, reviews, photos, videos, discussion, profiles, friend posts.</p>
         <p><strong>Not Allowed:</strong> Spam, harassment, fake profiles, stolen content, illegal content, underage content, misleading posts, posting others' private information without consent, public street addresses, hate speech targeting individuals or groups.</p>
-        <p className="text-sm text-muted-foreground"><em>Note: While Doll premium and verification content must show a visible hookah, general feed discussion only needs to be hookah-related. All reports are reviewed by administration.</em></p>
+        <p className="text-sm text-muted-foreground"><em>Note: While Buddy premium and verification content must show a visible hookah, general feed discussion only needs to be hookah-related. All reports are reviewed by administration.</em></p>
 
         <h3>7. Profile Guidelines</h3>
-        <p>Your profile represents you on HookahDolls. Provide truthful information. Do not impersonate others. Do not steal photos from other accounts or the internet. Respect others' privacy settings — do not share private profile information without permission.</p>
+        <p>Your profile represents you on HookahBuddys. Provide truthful information. Do not impersonate others. Do not steal photos from other accounts or the internet. Respect others' privacy settings — do not share private profile information without permission.</p>
 
         <h3>8. Enforcement</h3>
-        <p>HookahDolls may remove violating content, issue warnings, temporarily suspend accounts, or permanently ban accounts that repeatedly violate these rules. We take safety and community standards seriously.</p>
+        <p>HookahBuddys may remove violating content, issue warnings, temporarily suspend accounts, or permanently ban accounts that repeatedly violate these rules. We take safety and community standards seriously.</p>
 
         <div className="mt-12 flex flex-wrap gap-4 not-prose">
           <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>

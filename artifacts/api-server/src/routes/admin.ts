@@ -63,7 +63,7 @@ router.get("/admin/stats", requireAuth("admin"), async (_req, res): Promise<void
       amount: round2(memberCount * MEMBER_PLAN_PRICE),
     },
     {
-      label: "Doll subscriptions",
+      label: "Buddy subscriptions",
       count: dollCount,
       unitPrice: DOLL_PLAN_PRICE,
       amount: round2(dollCount * DOLL_PLAN_PRICE),

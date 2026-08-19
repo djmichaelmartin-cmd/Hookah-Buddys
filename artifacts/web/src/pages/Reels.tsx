@@ -252,7 +252,7 @@ export default function Reels() {
                   <SelectItem value="smoke_tricks">Smoke Tricks</SelectItem>
                   <SelectItem value="event">Event</SelectItem>
                   <SelectItem value="meme">Meme</SelectItem>
-                  <SelectItem value="doll_spotlight">Doll Spotlight</SelectItem>
+                  <SelectItem value="doll_spotlight">Buddy Spotlight</SelectItem>
                   <SelectItem value="bro_post">Member Post</SelectItem>
                   <SelectItem value="tutorial">Tutorial</SelectItem>
                   <SelectItem value="other">Other</SelectItem>

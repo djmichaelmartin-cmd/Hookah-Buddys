@@ -41,19 +41,19 @@ export default function Verification() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12 max-w-2xl">
-        <h1 className="text-3xl font-serif text-white mb-8 text-center">Doll Verification</h1>
+        <h1 className="text-3xl font-serif text-white mb-8 text-center">Buddy Verification</h1>
 
         <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(24,119,242,0.1)] mb-8 text-center">
           <h2 className="text-lg font-medium text-white mb-4">Current Status</h2>
-          
+
           {verificationStatus?.status === 'approved' && (
             <div className="flex flex-col items-center">
               <ShieldCheck className="w-16 h-16 text-primary mb-4" />
               <p className="text-xl font-bold text-primary">Verified</p>
-              <p className="text-muted-foreground mt-2">You have full access to all Doll features.</p>
+              <p className="text-muted-foreground mt-2">You have full access to all Buddy features.</p>
             </div>
           )}
-          
+
           {verificationStatus?.status === 'pending' && (
             <div className="flex flex-col items-center">
               <ShieldAlert className="w-16 h-16 text-yellow-500 mb-4" />
@@ -83,9 +83,10 @@ export default function Verification() {
           <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
             <h3 className="text-xl font-serif text-white mb-4">Submit Documents</h3>
             <p className="text-sm text-muted-foreground mb-6">
-              Only approved Dolls receive the Verified Badge and can earn on HookahDolls.com. All URLs are placeholders for actual file uploads in this demo.
+
+              Only approved Buddies receive the Verified Badge and can earn on HookahBuddys.com. All URLs are placeholders for actual file uploads in this demo.
             </p>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="governmentIdUrl">Government ID (URL)</Label>
@@ -103,7 +104,7 @@ export default function Verification() {
                 <Label htmlFor="hookahVideoUrl">Short Video with Hookah (URL)</Label>
                 <Input id="hookahVideoUrl" required value={formData.hookahVideoUrl} onChange={handleChange} className="bg-background/50 border-white/10" />
               </div>
-              
+
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold mt-6" disabled={submitVerification.isPending}>
                 {submitVerification.isPending ? "Submitting..." : "Submit for Verification"}
               </Button>

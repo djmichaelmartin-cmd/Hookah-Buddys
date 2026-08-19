@@ -45,7 +45,7 @@ export default function SignupDoll() {
       toast({ title: "Action Required", description: "Please confirm your age and accept the rules.", variant: "destructive" });
       return;
     }
-    
+
     registerDoll.mutate({
       data: {
         ...formData,
@@ -66,9 +66,9 @@ export default function SignupDoll() {
     <Layout>
       <div className="flex-1 container mx-auto px-4 py-12 max-w-2xl">
         <div className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(24,119,242,0.1)]">
-          <h1 className="text-3xl font-serif text-white mb-2 text-center">Become a Doll</h1>
+          <h1 className="text-3xl font-serif text-white mb-2 text-center">Become a Buddy</h1>
           <p className="text-muted-foreground text-center mb-8">Join the exclusive hookah lounge creator platform.</p>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -112,7 +112,7 @@ export default function SignupDoll() {
 
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6">
               <h3 className="font-semibold text-primary mb-2">Mandatory Rule</h3>
-              <p className="text-sm text-muted-foreground">All Doll content must include a visible hookah. No explicit content is allowed. By applying, you agree to these brand standards.</p>
+              <p className="text-sm text-muted-foreground">All Buddy content must include a visible hookah. No explicit content is allowed. By applying, you agree to these brand standards.</p>
             </div>
 
             <div className="space-y-4">

@@ -64,7 +64,7 @@ router.post("/threads", requireAuth("member", "doll"), async (req, res): Promise
   // Doll initiating a conversation with a member — free, no credits charged.
   if (user.role === "doll") {
     if (!user.dollId) {
-      res.status(404).json({ error: "Doll profile not found" });
+      res.status(404).json({ error: "Buddy profile not found" });
       return;
     }
     if (!parsed.data.memberId) {
@@ -127,7 +127,7 @@ router.post("/threads", requireAuth("member", "doll"), async (req, res): Promise
   }
   const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, parsed.data.dollId));
   if (!doll) {
-    res.status(404).json({ error: "Doll not found" });
+    res.status(404).json({ error: "Buddy not found" });
     return;
   }
   const existing = await db

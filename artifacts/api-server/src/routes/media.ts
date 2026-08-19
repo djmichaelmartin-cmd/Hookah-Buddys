@@ -16,7 +16,7 @@ const router: IRouter = Router();
 router.post("/media", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const parsed = UploadMediaBody.safeParse(req.body);
@@ -26,7 +26,7 @@ router.post("/media", requireAuth("doll"), async (req, res): Promise<void> => {
   }
   const data = parsed.data;
   if (!data.containsHookah) {
-    res.status(400).json({ error: "All Doll content must include a visible hookah. No hookah, no approval." });
+    res.status(400).json({ error: "All Buddy content must include a visible hookah. No hookah, no approval." });
     return;
   }
   let url = data.url;
@@ -81,7 +81,7 @@ router.post("/media", requireAuth("doll"), async (req, res): Promise<void> => {
 router.get("/media/mine", requireAuth("doll"), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   if (!user.dollId) {
-    res.status(404).json({ error: "Doll profile not found" });
+    res.status(404).json({ error: "Buddy profile not found" });
     return;
   }
   const rows = await db

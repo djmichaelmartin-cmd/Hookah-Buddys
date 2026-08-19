@@ -17,7 +17,7 @@ import AdminEvents from "@/pages/AdminEvents";
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   const { data: stats } = useGetAdminStats();
   const { data: dollRevenue } = useGetDollRevenueShares();
   const { data: applications } = useListDollApplications();
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
   const { data: feedReports } = useListFeedReports({ status: "pending" });
   const { data: feedAnalytics } = useGetFeedAnalytics();
   const { data: allPosts } = useListAdminFeedPosts({});
-  
+
   const moderateFeed = useModerateFeedPost({
     mutation: {
       onSuccess: () => {
@@ -92,7 +92,7 @@ export default function AdminDashboard() {
             <p className="text-3xl font-bold text-primary">{currency(stats?.totalRevenue ?? 0)}</p>
           </div>
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
-            <h3 className="text-sm text-muted-foreground mb-2">Total Dolls</h3>
+            <h3 className="text-sm text-muted-foreground mb-2">Total Buddies</h3>
             <p className="text-3xl font-bold text-white">{stats?.totalDolls || 0}</p>
           </div>
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
@@ -128,9 +128,9 @@ export default function AdminDashboard() {
             <TabsTrigger value="events"><CalendarDays className="w-4 h-4 mr-2"/> Events</TabsTrigger>
             <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="applications" className="space-y-4">
-            <h2 className="text-xl font-serif text-white mb-4">Pending Doll Applications</h2>
+            <h2 className="text-xl font-serif text-white mb-4">Pending Buddy Applications</h2>
             {applications?.map(app => (
               <div key={app.id} className="bg-card/50 border border-white/10 rounded-xl p-6">
                 <div className="flex justify-between items-start gap-4 mb-4">
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
                     <img src={media.url} alt="Pending media" className="object-contain w-full h-full" />
                   </div>
                   <div className="p-4">
-                    <p className="text-sm text-white mb-2">Doll: {media.dollName || 'Unknown'}</p>
+                    <p className="text-sm text-white mb-2">Buddy: {media.dollName || 'Unknown'}</p>
                     <p className="text-xs text-muted-foreground mb-4">Type: {media.type}</p>
                     <div className="flex gap-2">
                       <Button onClick={() => handleModerateMedia(media.id, 'approve')} className="w-full bg-green-600 hover:bg-green-700 text-white">Approve</Button>
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-serif text-white mb-4">Pending Verifications</h2>
             {verifications?.map(verif => (
               <div key={verif.id} className="bg-card/50 border border-white/10 rounded-xl p-6">
-                <p className="font-bold text-white mb-4">Doll ID: {verif.dollId} - {verif.dollName}</p>
+                <p className="font-bold text-white mb-4">Buddy ID: {verif.dollId} - {verif.dollName}</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">ID</p>
@@ -815,20 +815,21 @@ function DollRevenueShares({ dolls }: { dolls?: DollRevenueShare[] }) {
     <div className="bg-card/50 border border-white/10 rounded-xl p-6 mb-8">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-xl font-serif text-white flex items-center gap-2">
-          <Users className="w-5 h-5 text-primary" /> Revenue Share by Doll
+          <Users className="w-5 h-5 text-primary" />  Revenue Share by Buddy
         </h2>
         <p className="text-sm text-muted-foreground">
-          Across {items.length} {items.length === 1 ? "Doll" : "Dolls"} ·{" "}
+          Across {items.length} {items.length === 1 ? "Buddy" : "Buddies"} ·{" "}
           <span className="text-white font-medium">{currency(total)}</span>
         </p>
       </div>
       <p className="text-xs text-muted-foreground mb-6">
-        Estimated gross earnings attributed to each Doll (creator revenue) — measured separately
+
+        Estimated gross earnings attributed to each Buddy (creator revenue) — measured separately
         from the platform subscription revenue above.
       </p>
 
       {items.length === 0 ? (
-        <p className="text-muted-foreground">No Doll revenue to show yet.</p>
+        <p className="text-muted-foreground">No Buddy revenue to show yet.</p>
       ) : (
         <div className="space-y-3">
           {items.map((d, i) => (

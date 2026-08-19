@@ -113,7 +113,7 @@ export default function DollProfile() {
   const subscribe = useCreateSubscription({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Subscribed", description: "You now have full access to this Doll's content." });
+        toast({ title: "Subscribed", description: "You now have full access to this Buddy's content." });
         refetchDoll();
       },
       onError: (err) => {
@@ -201,7 +201,7 @@ export default function DollProfile() {
   if (!doll)
     return (
       <Layout>
-        <div className="container p-12 text-center text-muted-foreground">Doll not found</div>
+        <div className="container p-12 text-center text-muted-foreground">Buddy not found</div>
       </Layout>
     );
 
@@ -389,7 +389,7 @@ export default function DollProfile() {
               <TabsContent value="posts" className="space-y-6 mt-0 outline-none">
                 <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-6">
                   <h2 className="text-xl font-serif text-white mb-2">Community Feed</h2>
-                  <p className="text-sm text-muted-foreground">Public posts by {doll.stageName} on the HookahDolls feed.</p>
+                  <p className="text-sm text-muted-foreground">Public posts by {doll.stageName} on the HookahBuddys feed.</p>
                 </div>
 
                 {postsLoading ? (
@@ -418,7 +418,8 @@ export default function DollProfile() {
               <Sparkles className="w-5 h-5 text-primary" /> Upgrade your membership
             </DialogTitle>
             <DialogDescription>
-              Messaging and video chat are for premium "I Love Dolls" members. Upgrade to unlock them.
+
+              Messaging and video chat are for premium "I Love Buddies" members. Upgrade to unlock them.
             </DialogDescription>
           </DialogHeader>
 

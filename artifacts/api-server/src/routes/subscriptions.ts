@@ -71,7 +71,7 @@ router.post("/subscriptions", requireAuth("member"), async (req, res): Promise<v
       !active ||
       !DOLL_SUBSCRIPTION_TIERS.includes(active.plan.tier as (typeof DOLL_SUBSCRIPTION_TIERS)[number])
     ) {
-      res.status(403).json({ error: "A Gold or Platinum membership is required to unlock a Doll's premium content" });
+      res.status(403).json({ error: "A Gold or Platinum membership is required to unlock a Buddy's premium content" });
       return;
     }
     const [sub] = await db

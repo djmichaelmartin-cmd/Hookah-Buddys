@@ -40,14 +40,15 @@ export default function ChooseMembership() {
         <div className="text-center">
           <h1 className="text-4xl font-serif text-white mb-4">Create Your Profile</h1>
           <p className="text-muted-foreground mb-4 max-w-2xl mx-auto">
-            Join the HookahDolls social community for free. Create your profile, post hookah
+            Join the HookahBuddys social community for free. Create your profile, post hookah
             content, follow users, make friends, and explore the feed. Upgrade anytime for
             credits, premium access, and VIP features.
           </p>
           <p className="text-sm text-muted-foreground/80 mb-8 max-w-2xl mx-auto">
-            HookahDolls is free to join. Create a profile, post in the hookah feed, follow users,
+
+            HookahBuddys is free to join. Create a profile, post in the hookah feed, follow users,
             add friends, and explore the community. Paid plans are optional upgrades that include
-            monthly credits and premium Doll access.
+            monthly credits and premium Buddy access.
           </p>
           <h2 className="text-xl font-serif text-white mb-10">Choose how you want to join</h2>
         </div>
@@ -145,7 +146,7 @@ export default function ChooseMembership() {
             <div>
               <h3 className="text-lg font-semibold text-white mb-3">Paid upgrades include</h3>
               <ul className="space-y-2">
-                {["Monthly credits", "Paid Doll messaging", "Premium photo/video unlocks", "Video chat credits", "Enhanced discovery", "VIP badges and access"].map((f) => (
+                {["Monthly credits", "Paid Buddy messaging", "Premium photo/video unlocks", "Video chat credits", "Enhanced discovery", "VIP badges and access"].map((f) => (
                   <li key={f} className="text-sm text-muted-foreground flex items-start">
                     <Crown className="w-4 h-4 text-primary mr-2 mt-0.5 shrink-0" /> {f}
                   </li>

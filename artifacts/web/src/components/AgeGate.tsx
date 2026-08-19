@@ -27,7 +27,7 @@ export function AgeGate() {
         <DialogHeader>
           <DialogTitle className="text-2xl text-primary font-serif tracking-wider uppercase text-center mb-2">Age Verification</DialogTitle>
           <DialogDescription className="text-muted-foreground text-center text-base">
-            HookahDolls.com is a premium platform centered on hookah culture and nightlife lifestyle. You must be 21 years of age or older to enter.
+            HookahBuddys.com is a premium platform centered on hookah culture and nightlife lifestyle. You must be 21 years of age or older to enter.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 mt-6">
