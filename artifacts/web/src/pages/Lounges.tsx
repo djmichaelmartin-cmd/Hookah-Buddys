@@ -143,7 +143,7 @@ export default function Lounges() {
     if (selectedLoungeId === null) return filteredLounges;
 
     // Make sure selected lounge is always at the top of the list if clicked on map
-    const selectedLounge = lounges.find((l) => l.id === selectedLoungeId);
+    const selectedLounge = filteredLounges.find((l) => l.id === selectedLoungeId);
     if (!selectedLounge) return filteredLounges;
 
     return [
