@@ -35,11 +35,11 @@ const NAV_LINKS = [
   { label: "Reels", href: "/reels" },
   { label: "Buddys", href: "/browse" },
   { label: "Businesses", href: "/businesses" },
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Pricing", href: "/pricing" },
 ];
 
 const RESOURCE_LINKS = [
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Search Lounges", href: "/lounges" },
   { label: "Contact", href: "/contact" },
   { label: "Content Rules", href: "/content-rules" },
@@ -94,18 +94,24 @@ export function Navbar() {
   // Close the mobile menu whenever the route changes.
   useEffect(() => {
     setMenuOpen(false);
+    setResourcesOpen(false);
   }, [location]);
 
   // Smooth-scroll for in-page hash links (e.g. /#how-it-works) when the
   // target already exists on the current page; otherwise let the Link navigate.
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
     const i = href.indexOf("#");
-    if (i === -1) return;
+    if (i === -1) {
+      setMenuOpen(false);
+      setResourcesOpen(false);
+      return;
+    }
     const el = document.querySelector(href.slice(i));
     if (el) {
       e.preventDefault();
       el.scrollIntoView({ behavior: "smooth" });
       setMenuOpen(false);
+      setResourcesOpen(false);
     }
   };
 
@@ -148,35 +154,46 @@ export function Navbar() {
             </Link>
           ))}
 
-          <DropdownMenu open={resourcesOpen} onOpenChange={setResourcesOpen} modal={false}>
-            <DropdownMenuTrigger
-              onMouseEnter={openResources}
-              onMouseLeave={scheduleCloseResources}
+          <div
+            className="relative"
+            onMouseEnter={openResources}
+            onMouseLeave={scheduleCloseResources}
+          >
+            <button
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={resourcesOpen}
+              onClick={() => setResourcesOpen((open) => !open)}
               className={`group flex items-center gap-1 text-sm font-medium ${navLink} transition-colors outline-none`}
             >
               Resources
-              <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              onMouseEnter={openResources}
-              onMouseLeave={scheduleCloseResources}
-              onCloseAutoFocus={(e) => e.preventDefault()}
-              className="w-52 bg-card/95 backdrop-blur-xl border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] text-foreground"
-            >
-              {RESOURCE_LINKS.map((r) => (
-                <DropdownMenuItem
-                  key={r.href}
-                  asChild
-                  className="cursor-pointer hover:bg-white/5 hover:text-primary"
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform ${
+                  resourcesOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {resourcesOpen && (
+              <div className="absolute left-0 top-full z-50 pt-2">
+                <div
+                  role="menu"
+                  className="w-52 rounded-md border border-white/10 bg-card/95 p-1 text-foreground shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
                 >
-                  <Link href={r.href} className="w-full">
-                    {r.label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  {RESOURCE_LINKS.map((r) => (
+                    <Link
+                      key={r.href}
+                      href={r.href}
+                      onClick={(e) => handleNavClick(e, r.href)}
+                      role="menuitem"
+                      className="block w-full rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-white/5 hover:text-primary focus:bg-white/5 focus:text-primary"
+                    >
+                      {r.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
         </nav>
 
@@ -188,7 +205,7 @@ export function Navbar() {
           <img
             src={`${import.meta.env.BASE_URL}brand/logo.png`}
             alt="HookahBuddys.com"
-            className="h-16 w-auto -translate-y-[27px] drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
+            className="h-16 w-auto -translate-y-5 drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
           />
         </Link>
 
@@ -406,7 +423,7 @@ export function Navbar() {
               <Link
                 key={r.href}
                 href={r.href}
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => handleNavClick(e, r.href)}
                 className={`py-2 text-sm ${navLink} transition-colors`}
               >
                 {r.label}
