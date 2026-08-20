@@ -202,11 +202,17 @@ export function Navbar() {
           href="/"
           className="flex items-center xl:absolute xl:left-1/2 xl:-translate-x-1/2"
         >
-          <img
-            src={`${import.meta.env.BASE_URL}brand/logo.png`}
-            alt="HookahBuddys.com"
-            className="h-16 w-auto -translate-y-5 drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
-          />
+          <picture>
+            <source
+              media="(max-width: 1279px)"
+              srcSet={`${import.meta.env.BASE_URL}brand/logo-mobile.png`}
+            />
+            <img
+              src={`${import.meta.env.BASE_URL}brand/logo.png`}
+              alt="HookahBuddys.com"
+              className="h-16 w-auto -translate-y-5 drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
+            />
+          </picture>
         </Link>
 
         {/* Right action group */}
