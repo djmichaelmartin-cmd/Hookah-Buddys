@@ -186,7 +186,7 @@ export function Navbar() {
           className="flex items-center xl:absolute xl:left-1/2 xl:-translate-x-1/2"
         >
           <img
-            src="/brand/logo.png"
+            src={`${import.meta.env.BASE_URL}brand/logo.png`}
             alt="HookahBuddys.com"
             className="h-16 w-auto -translate-y-[27px] drop-shadow-[0_0_12px_rgba(225,25,49,0.3)]"
           />
