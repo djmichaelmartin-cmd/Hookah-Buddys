@@ -5654,3 +5654,1782 @@ export const ReviewBusinessReportResponse = zod.object({
 })
 
 
+/**
+ * @summary Discover/search Groups
+ */
+export const ListGroupsQueryParams = zod.object({
+  "search": zod.coerce.string().optional(),
+  "category": zod.coerce.string().optional(),
+  "privacy": zod.enum(['public', 'private']).optional(),
+  "featured": zod.coerce.boolean().optional(),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const ListGroupsResponse = zod.object({
+  "groups": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "customCategory": zod.string().nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']),
+  "coverUrl": zod.string().nullish(),
+  "iconUrl": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "postingPermission": zod.string().optional(),
+  "postApproval": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'suspended', 'deleted']).optional(),
+  "isFeatured": zod.boolean().optional(),
+  "memberCount": zod.number(),
+  "postCount": zod.number().optional(),
+  "eventCount": zod.number().optional(),
+  "viewerMemberRole": zod.string().nullish(),
+  "viewerHasPendingRequest": zod.boolean().optional(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Create a new Group
+ */
+export const createGroupBodyNameMax = 100;
+
+
+
+export const CreateGroupBody = zod.object({
+  "name": zod.string().min(1).max(createGroupBodyNameMax),
+  "handle": zod.string().optional(),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "customCategory": zod.string().optional(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']).optional(),
+  "coverUrl": zod.string().optional().describe('Finalized internal storage image object path'),
+  "iconUrl": zod.string().optional().describe('Finalized internal storage image object path'),
+  "location": zod.string().optional(),
+  "postingPermission": zod.enum(['all_members', 'admins_only', 'approved_members']).optional(),
+  "postApproval": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Groups the current user belongs to
+ */
+export const ListMyGroupsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "customCategory": zod.string().nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']),
+  "coverUrl": zod.string().nullish(),
+  "iconUrl": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "postingPermission": zod.string().optional(),
+  "postApproval": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'suspended', 'deleted']).optional(),
+  "isFeatured": zod.boolean().optional(),
+  "memberCount": zod.number(),
+  "postCount": zod.number().optional(),
+  "eventCount": zod.number().optional(),
+  "viewerMemberRole": zod.string().nullish(),
+  "viewerHasPendingRequest": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+export const ListMyGroupsResponse = zod.array(ListMyGroupsResponseItem)
+
+
+/**
+ * @summary Pending group invites for the current user
+ */
+export const ListMyGroupInvitesResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "groupName": zod.string().nullish(),
+  "invitedByUserId": zod.number(),
+  "invitedByUserName": zod.string().optional(),
+  "invitedUserId": zod.number(),
+  "invitedUserName": zod.string().optional(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'expired', 'cancelled']),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish(),
+  "group": zod.union([zod.null(),zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "iconUrl": zod.string().nullish()
+})]).optional(),
+  "inviterId": zod.number().optional(),
+  "inviterName": zod.string().optional(),
+  "inviterPhotoUrl": zod.string().nullish()
+})
+export const ListMyGroupInvitesResponse = zod.array(ListMyGroupInvitesResponseItem)
+
+
+/**
+ * Members and public groups return the full GroupDetail. A non-member of a private + VISIBLE group (or a private + hidden group they hold a valid non-expired invite to) receives a sanitized preview (isPreview=true) with group summary/branding only — posts, members, media, and events stay behind their own membership-gated endpoints. Private + hidden groups without a valid invite return 403.
+
+ * @summary Get group detail (private-visible non-members get a sanitized preview)
+ */
+export const GetGroupParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const GetGroupResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "customCategory": zod.string().nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']),
+  "coverUrl": zod.string().nullish(),
+  "iconUrl": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "postingPermission": zod.string().optional(),
+  "postApproval": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'suspended', 'deleted']).optional(),
+  "isFeatured": zod.boolean().optional(),
+  "memberCount": zod.number(),
+  "postCount": zod.number().optional(),
+  "eventCount": zod.number().optional(),
+  "viewerMemberRole": zod.string().nullish(),
+  "viewerHasPendingRequest": zod.boolean().optional(),
+  "createdAt": zod.string()
+}).and(zod.object({
+  "creatorUserId": zod.number().optional(),
+  "updatedAt": zod.string().optional(),
+  "isPreview": zod.boolean().optional()
+}))
+
+
+/**
+ * @summary Update group settings (owner/admin)
+ */
+export const UpdateGroupParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const updateGroupBodyNameMax = 100;
+
+
+
+export const UpdateGroupBody = zod.object({
+  "name": zod.string().min(1).max(updateGroupBodyNameMax).optional(),
+  "handle": zod.string().optional(),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "customCategory": zod.string().optional(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']).optional(),
+  "visibility": zod.enum(['visible', 'hidden']).optional(),
+  "coverUrl": zod.string().nullish().describe('Finalized internal storage image object; null clears'),
+  "iconUrl": zod.string().nullish().describe('Finalized internal storage image object; null clears'),
+  "location": zod.string().optional(),
+  "postingPermission": zod.enum(['all_members', 'admins_only', 'approved_members']).optional(),
+  "postApproval": zod.boolean().optional()
+})
+
+export const UpdateGroupResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "customCategory": zod.string().nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']),
+  "coverUrl": zod.string().nullish(),
+  "iconUrl": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "postingPermission": zod.string().optional(),
+  "postApproval": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'suspended', 'deleted']).optional(),
+  "isFeatured": zod.boolean().optional(),
+  "memberCount": zod.number(),
+  "postCount": zod.number().optional(),
+  "eventCount": zod.number().optional(),
+  "viewerMemberRole": zod.string().nullish(),
+  "viewerHasPendingRequest": zod.boolean().optional(),
+  "createdAt": zod.string()
+}).and(zod.object({
+  "creatorUserId": zod.number().optional(),
+  "updatedAt": zod.string().optional(),
+  "isPreview": zod.boolean().optional()
+}))
+
+
+/**
+ * @summary Delete group (owner only; soft-deletes)
+ */
+export const DeleteGroupParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Join a public group or request to join a private group
+ */
+export const JoinGroupParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+
+
+
+export const JoinGroupBody = zod.object({
+  "answers": zod.array(zod.object({
+  "questionId": zod.number(),
+  "answerText": zod.string().min(1)
+})).optional().describe('Answers to membership questions (required when group has required questions)')
+})
+
+export const JoinGroupResponse = zod.object({
+  "status": zod.enum(['joined', 'requested']),
+  "message": zod.string().optional()
+})
+
+
+/**
+ * @summary Leave a group (cannot leave if owner)
+ */
+export const LeaveGroupParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const LeaveGroupResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary List group members (private group requires membership)
+ */
+export const ListGroupMembersParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupMembersQueryParams = zod.object({
+  "role": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const ListGroupMembersResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "role": zod.enum(['owner', 'admin', 'moderator', 'member']),
+  "joinedVia": zod.string().optional(),
+  "status": zod.enum(['active', 'suspended']),
+  "joinedAt": zod.string()
+})
+export const ListGroupMembersResponse = zod.array(ListGroupMembersResponseItem)
+
+
+/**
+ * @summary Update a member's role or status (admin/owner)
+ */
+export const UpdateGroupMemberParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "userId": zod.coerce.number()
+})
+
+export const UpdateGroupMemberBody = zod.object({
+  "role": zod.enum(['admin', 'moderator', 'member']).optional(),
+  "status": zod.enum(['active', 'suspended']).optional()
+})
+
+export const UpdateGroupMemberResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "role": zod.enum(['owner', 'admin', 'moderator', 'member']),
+  "joinedVia": zod.string().optional(),
+  "status": zod.enum(['active', 'suspended']),
+  "joinedAt": zod.string()
+})
+
+
+/**
+ * @summary Remove a member from the group (admin/owner)
+ */
+export const RemoveGroupMemberParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "userId": zod.coerce.number()
+})
+
+
+/**
+ * @summary List pending invites for this group (admin/owner)
+ */
+export const ListGroupInvitesParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupInvitesResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "groupName": zod.string().nullish(),
+  "invitedByUserId": zod.number(),
+  "invitedByUserName": zod.string().optional(),
+  "invitedUserId": zod.number(),
+  "invitedUserName": zod.string().optional(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'expired', 'cancelled']),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish(),
+  "group": zod.union([zod.null(),zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "iconUrl": zod.string().nullish()
+})]).optional(),
+  "inviterId": zod.number().optional(),
+  "inviterName": zod.string().optional(),
+  "inviterPhotoUrl": zod.string().nullish()
+})
+export const ListGroupInvitesResponse = zod.array(ListGroupInvitesResponseItem)
+
+
+/**
+ * @summary Invite a user to a group
+ */
+export const InviteToGroupParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const InviteToGroupBody = zod.object({
+  "invitedUserId": zod.number()
+})
+
+
+/**
+ * @summary Accept or decline a group invite (invited user)
+ */
+export const RespondToGroupInviteParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "inviteId": zod.coerce.number()
+})
+
+export const RespondToGroupInviteBody = zod.object({
+  "action": zod.enum(['accept', 'decline'])
+})
+
+export const RespondToGroupInviteResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "groupName": zod.string().nullish(),
+  "invitedByUserId": zod.number(),
+  "invitedByUserName": zod.string().optional(),
+  "invitedUserId": zod.number(),
+  "invitedUserName": zod.string().optional(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'expired', 'cancelled']),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish(),
+  "group": zod.union([zod.null(),zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "iconUrl": zod.string().nullish()
+})]).optional(),
+  "inviterId": zod.number().optional(),
+  "inviterName": zod.string().optional(),
+  "inviterPhotoUrl": zod.string().nullish()
+})
+
+
+/**
+ * @summary Cancel a pending invite (admin/owner or inviter)
+ */
+export const CancelGroupInviteParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "inviteId": zod.coerce.number()
+})
+
+
+/**
+ * @summary List pending join requests (admin/owner/moderator)
+ */
+export const ListGroupJoinRequestsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupJoinRequestsQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
+})
+
+export const ListGroupJoinRequestsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "status": zod.enum(['pending', 'approved', 'declined', 'cancelled']),
+  "declineReason": zod.string().nullish(),
+  "answers": zod.array(zod.object({
+  "questionId": zod.number(),
+  "questionText": zod.string(),
+  "answerText": zod.string()
+})).optional(),
+  "createdAt": zod.string()
+})
+export const ListGroupJoinRequestsResponse = zod.array(ListGroupJoinRequestsResponseItem)
+
+
+/**
+ * @summary Approve or decline a join request (admin/owner/moderator)
+ */
+export const ReviewGroupJoinRequestParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "requestId": zod.coerce.number()
+})
+
+export const ReviewGroupJoinRequestBody = zod.object({
+  "action": zod.enum(['approve', 'decline']),
+  "reason": zod.string().optional()
+})
+
+export const ReviewGroupJoinRequestResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "status": zod.enum(['pending', 'approved', 'declined', 'cancelled']),
+  "declineReason": zod.string().nullish(),
+  "answers": zod.array(zod.object({
+  "questionId": zod.number(),
+  "questionText": zod.string(),
+  "answerText": zod.string()
+})).optional(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Get membership questions for this group
+ */
+export const ListGroupQuestionsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupQuestionsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "questionText": zod.string(),
+  "isRequired": zod.boolean(),
+  "sortOrder": zod.number()
+})
+export const ListGroupQuestionsResponse = zod.array(ListGroupQuestionsResponseItem)
+
+
+/**
+ * @summary Replace group membership questions (admin/owner)
+ */
+export const SetGroupQuestionsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+
+
+
+export const SetGroupQuestionsBody = zod.object({
+  "questions": zod.array(zod.object({
+  "questionText": zod.string().min(1),
+  "isRequired": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+}))
+})
+
+export const SetGroupQuestionsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "questionText": zod.string(),
+  "isRequired": zod.boolean(),
+  "sortOrder": zod.number()
+})
+export const SetGroupQuestionsResponse = zod.array(SetGroupQuestionsResponseItem)
+
+
+/**
+ * @summary Get group rules
+ */
+export const ListGroupRulesParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupRulesResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.string().optional()
+})
+export const ListGroupRulesResponse = zod.array(ListGroupRulesResponseItem)
+
+
+/**
+ * @summary Add a group rule (admin/owner)
+ */
+export const CreateGroupRuleParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const createGroupRuleBodyTitleMax = 200;
+
+
+
+export const CreateGroupRuleBody = zod.object({
+  "title": zod.string().min(1).max(createGroupRuleBodyTitleMax),
+  "description": zod.string().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+
+/**
+ * @summary Update a group rule (admin/owner)
+ */
+export const UpdateGroupRuleParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "ruleId": zod.coerce.number()
+})
+
+export const updateGroupRuleBodyTitleMax = 200;
+
+
+
+export const UpdateGroupRuleBody = zod.object({
+  "title": zod.string().min(1).max(updateGroupRuleBodyTitleMax),
+  "description": zod.string().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const UpdateGroupRuleResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a group rule (admin/owner)
+ */
+export const DeleteGroupRuleParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "ruleId": zod.coerce.number()
+})
+
+
+/**
+ * @summary List group posts (private group requires membership)
+ */
+export const ListGroupPostsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupPostsQueryParams = zod.object({
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional(),
+  "status": zod.coerce.string().optional()
+})
+
+export const ListGroupPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListGroupPostsResponse = zod.array(ListGroupPostsResponseItem)
+
+
+/**
+ * @summary Create a group post (member/admin)
+ */
+export const CreateGroupPostParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+
+
+
+export const CreateGroupPostBody = zod.object({
+  "text": zod.string().min(1),
+  "mediaUrl": zod.string().optional().describe('Finalized internal storage object'),
+  "posterUrl": zod.string().optional().describe('Finalized internal storage image for video poster'),
+  "mediaType": zod.enum(['none', 'image', 'video']).optional(),
+  "postType": zod.enum(['text', 'photo', 'video', 'poll', 'question', 'feeling', 'reel', 'file']).optional(),
+  "businessId": zod.number().optional().describe('Post as a Business Page the user manages'),
+  "pollData": zod.object({
+  "question": zod.string().optional(),
+  "options": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string()
+})).optional(),
+  "closesAt": zod.string().optional(),
+  "multiChoice": zod.boolean().optional()
+}).optional()
+})
+
+
+/**
+ * @summary Get a single group post (private group requires membership)
+ */
+export const GetGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const GetGroupPostResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Edit a group post (author or admin/mod)
+ */
+export const UpdateGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+
+
+
+export const UpdateGroupPostBody = zod.object({
+  "text": zod.string().min(1).optional(),
+  "status": zod.enum(['active', 'hidden']).optional(),
+  "isPinned": zod.boolean().optional()
+})
+
+export const UpdateGroupPostResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a group post (author, admin, or mod)
+ */
+export const DeleteGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Add/update/remove reaction on a group post
+ */
+export const ReactToGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const ReactToGroupPostBody = zod.object({
+  "reactionType": zod.enum(['like', 'heart', 'laugh', 'wow', 'sad', 'angry']).optional()
+})
+
+export const ReactToGroupPostResponse = zod.object({
+  "active": zod.boolean(),
+  "reactionType": zod.string().nullish(),
+  "likeCount": zod.number()
+})
+
+
+/**
+ * @summary Toggle save on a group post
+ */
+export const ToggleGroupPostSaveParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const ToggleGroupPostSaveResponse = zod.object({
+  "saved": zod.boolean(),
+  "saveCount": zod.number()
+})
+
+
+/**
+ * @summary Approve a pending post (admin/mod)
+ */
+export const ApproveGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const ApproveGroupPostResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Reject a pending post (admin/mod)
+ */
+export const RejectGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const RejectGroupPostBody = zod.object({
+  "reason": zod.string().optional()
+})
+
+export const RejectGroupPostResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Pin or unpin a group post (admin/owner)
+ */
+export const ToggleGroupPostPinParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const ToggleGroupPostPinResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Report a group post
+ */
+export const ReportGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+
+
+
+export const ReportGroupPostBody = zod.object({
+  "reason": zod.string().min(1),
+  "details": zod.string().optional()
+})
+
+
+/**
+ * @summary List comments on a group post (private group requires membership)
+ */
+export const ListGroupPostCommentsParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const ListGroupPostCommentsResponseItem = zod.object({
+  "id": zod.number(),
+  "postId": zod.number(),
+  "groupId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "parentCommentId": zod.number().nullish(),
+  "commentText": zod.string(),
+  "status": zod.string(),
+  "likeCount": zod.number(),
+  "createdAt": zod.string()
+})
+export const ListGroupPostCommentsResponse = zod.array(ListGroupPostCommentsResponseItem)
+
+
+/**
+ * @summary Add a comment to a group post
+ */
+export const CreateGroupPostCommentParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+
+
+
+export const CreateGroupPostCommentBody = zod.object({
+  "commentText": zod.string().min(1),
+  "parentCommentId": zod.number().optional()
+})
+
+
+/**
+ * @summary Delete a comment (author, admin, or mod)
+ */
+export const DeleteGroupPostCommentParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number(),
+  "commentId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Hide or restore a comment (admin/mod only)
+ */
+export const ModerateGroupPostCommentParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number(),
+  "commentId": zod.coerce.number()
+})
+
+export const ModerateGroupPostCommentBody = zod.object({
+  "action": zod.enum(['hide', 'restore']),
+  "reason": zod.string().optional()
+})
+
+export const ModerateGroupPostCommentResponse = zod.object({
+  "id": zod.number(),
+  "postId": zod.number(),
+  "groupId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "parentCommentId": zod.number().nullish(),
+  "commentText": zod.string(),
+  "status": zod.string(),
+  "likeCount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Posts the current user saved in this group
+ */
+export const ListGroupSavedPostsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupSavedPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListGroupSavedPostsResponse = zod.array(ListGroupSavedPostsResponseItem)
+
+
+/**
+ * @summary List group media (photos/videos/reels/files)
+ */
+export const ListGroupMediaParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupMediaQueryParams = zod.object({
+  "kind": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const ListGroupMediaResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "uploadedByUserId": zod.number().nullish(),
+  "uploaderName": zod.string().nullish(),
+  "uploaderPhotoUrl": zod.string().nullish(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "postId": zod.number().nullish(),
+  "kind": zod.enum(['photo', 'video', 'reel', 'file']),
+  "caption": zod.string().nullish(),
+  "mediaUrl": zod.string(),
+  "posterUrl": zod.string().nullish(),
+  "fileName": zod.string().nullish(),
+  "mimeType": zod.string().nullish(),
+  "fileSizeBytes": zod.number().nullish(),
+  "status": zod.enum(['active', 'hidden', 'removed', 'pending']),
+  "likeCount": zod.number().optional(),
+  "saveCount": zod.number().optional(),
+  "createdAt": zod.string()
+})
+export const ListGroupMediaResponse = zod.array(ListGroupMediaResponseItem)
+
+
+/**
+ * @summary Upload media to a group (member/admin)
+ */
+export const UploadGroupMediaParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const UploadGroupMediaBody = zod.object({
+  "kind": zod.enum(['photo', 'video', 'reel', 'file']),
+  "mediaUrl": zod.string().describe('Finalized internal storage object; external URLs rejected'),
+  "posterUrl": zod.string().optional(),
+  "caption": zod.string().optional(),
+  "businessId": zod.number().optional(),
+  "fileName": zod.string().optional(),
+  "mimeType": zod.string().optional(),
+  "fileSizeBytes": zod.number().optional()
+})
+
+
+/**
+ * @summary Delete a media item (uploader, admin, or mod)
+ */
+export const DeleteGroupMediaParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "mediaId": zod.coerce.number()
+})
+
+
+/**
+ * @summary List group events (private group requires membership)
+ */
+export const ListGroupEventsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupEventsQueryParams = zod.object({
+  "scope": zod.enum(['upcoming', 'past']).optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListGroupEventsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "createdByUserId": zod.number().optional(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "onlineUrl": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().nullish(),
+  "status": zod.enum(['draft', 'active', 'cancelled', 'completed', 'hidden', 'removed']),
+  "visibility": zod.enum(['public', 'private']),
+  "rsvpCount": zod.number(),
+  "hideAttendees": zod.boolean().optional(),
+  "viewerRsvpStatus": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListGroupEventsResponse = zod.array(ListGroupEventsResponseItem)
+
+
+/**
+ * @summary Create a group event (admin/owner/moderator)
+ */
+export const CreateGroupEventParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+
+
+
+export const CreateGroupEventBody = zod.object({
+  "title": zod.string().min(1),
+  "description": zod.string().optional(),
+  "location": zod.string().optional(),
+  "onlineUrl": zod.string().optional(),
+  "imageUrl": zod.string().optional().describe('Finalized internal storage image object'),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().optional(),
+  "visibility": zod.enum(['public', 'private']).optional(),
+  "hideAttendees": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get a group event (private group requires membership)
+ */
+export const GetGroupEventParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number()
+})
+
+export const GetGroupEventResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "createdByUserId": zod.number().optional(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "onlineUrl": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().nullish(),
+  "status": zod.enum(['draft', 'active', 'cancelled', 'completed', 'hidden', 'removed']),
+  "visibility": zod.enum(['public', 'private']),
+  "rsvpCount": zod.number(),
+  "hideAttendees": zod.boolean().optional(),
+  "viewerRsvpStatus": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Update a group event (admin/owner/moderator)
+ */
+export const UpdateGroupEventParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number()
+})
+
+
+
+
+export const UpdateGroupEventBody = zod.object({
+  "title": zod.string().min(1).optional(),
+  "description": zod.string().optional(),
+  "location": zod.string().optional(),
+  "onlineUrl": zod.string().optional(),
+  "imageUrl": zod.string().nullish(),
+  "startsAt": zod.string().optional(),
+  "endsAt": zod.string().optional(),
+  "status": zod.enum(['active', 'cancelled', 'completed', 'hidden']).optional(),
+  "visibility": zod.enum(['public', 'private']).optional(),
+  "hideAttendees": zod.boolean().optional()
+})
+
+export const UpdateGroupEventResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "createdByUserId": zod.number().optional(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "onlineUrl": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string().nullish(),
+  "status": zod.enum(['draft', 'active', 'cancelled', 'completed', 'hidden', 'removed']),
+  "visibility": zod.enum(['public', 'private']),
+  "rsvpCount": zod.number(),
+  "hideAttendees": zod.boolean().optional(),
+  "viewerRsvpStatus": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Cancel/delete a group event (admin/owner)
+ */
+export const DeleteGroupEventParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number()
+})
+
+
+/**
+ * @summary RSVP to a group event (toggle/update)
+ */
+export const RsvpGroupEventParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number()
+})
+
+export const RsvpGroupEventBody = zod.object({
+  "rsvpStatus": zod.enum(['going', 'interested', 'not_going']),
+  "isPrivate": zod.boolean().optional()
+})
+
+export const RsvpGroupEventResponse = zod.object({
+  "rsvpStatus": zod.string().nullable(),
+  "rsvpCount": zod.number()
+})
+
+
+/**
+ * @summary List attendees for a group event (non-private RSVPs)
+ */
+export const ListGroupEventAttendeesParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number()
+})
+
+export const ListGroupEventAttendeesResponseItem = zod.object({
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "rsvpStatus": zod.string(),
+  "rsvpAt": zod.string().optional()
+})
+export const ListGroupEventAttendeesResponse = zod.array(ListGroupEventAttendeesResponseItem)
+
+
+/**
+ * @summary List reports in this group (admin/mod/owner)
+ */
+export const ListGroupReportsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupReportsQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
+})
+
+export const ListGroupReportsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "reporterUserId": zod.number(),
+  "targetType": zod.enum(['group', 'post', 'comment', 'member', 'event', 'media']),
+  "targetId": zod.number(),
+  "reason": zod.string(),
+  "details": zod.string().nullish(),
+  "status": zod.enum(['pending', 'reviewed', 'dismissed', 'actioned']),
+  "reviewedByUserId": zod.number().nullish(),
+  "reviewedAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListGroupReportsResponse = zod.array(ListGroupReportsResponseItem)
+
+
+/**
+ * @summary Review a group report (admin/mod/owner)
+ */
+export const ReviewGroupReportParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "reportId": zod.coerce.number()
+})
+
+export const ReviewGroupReportBody = zod.object({
+  "action": zod.enum(['dismiss', 'action']),
+  "note": zod.string().optional()
+})
+
+export const ReviewGroupReportResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "reporterUserId": zod.number(),
+  "targetType": zod.enum(['group', 'post', 'comment', 'member', 'event', 'media']),
+  "targetId": zod.number(),
+  "reason": zod.string(),
+  "details": zod.string().nullish(),
+  "status": zod.enum(['pending', 'reviewed', 'dismissed', 'actioned']),
+  "reviewedByUserId": zod.number().nullish(),
+  "reviewedAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List keyword alerts (admin/owner)
+ */
+export const ListGroupKeywordAlertsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupKeywordAlertsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "keyword": zod.string(),
+  "action": zod.enum(['flag', 'auto_hide', 'auto_remove']),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListGroupKeywordAlertsResponse = zod.array(ListGroupKeywordAlertsResponseItem)
+
+
+/**
+ * @summary Create a keyword alert (admin/owner)
+ */
+export const CreateGroupKeywordAlertParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+
+
+
+export const CreateGroupKeywordAlertBody = zod.object({
+  "keyword": zod.string().min(1),
+  "action": zod.enum(['flag', 'auto_hide', 'auto_remove']).optional()
+})
+
+
+/**
+ * @summary Delete a keyword alert (admin/owner)
+ */
+export const DeleteGroupKeywordAlertParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "alertId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Group activity log (admin/owner)
+ */
+export const ListGroupActivityLogParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupActivityLogQueryParams = zod.object({
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const ListGroupActivityLogResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "actorUserId": zod.number(),
+  "actorName": zod.string().optional(),
+  "action": zod.string(),
+  "targetType": zod.string().nullish(),
+  "targetId": zod.number().nullish(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListGroupActivityLogResponse = zod.array(ListGroupActivityLogResponseItem)
+
+
+/**
+ * @summary Group insights/analytics (admin/owner)
+ */
+export const GetGroupInsightsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const GetGroupInsightsResponse = zod.object({
+  "groupId": zod.number(),
+  "memberCount": zod.number(),
+  "postCount": zod.number(),
+  "eventCount": zod.number(),
+  "newMembersLast7Days": zod.number().optional(),
+  "newMembersLast30Days": zod.number().optional(),
+  "postsLast7Days": zod.number().optional(),
+  "postsLast30Days": zod.number().optional(),
+  "topReactedPosts": zod.array(zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})).optional()
+})
+
+
+/**
+ * @summary List featured content in a group
+ */
+export const ListGroupFeaturedContentParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const ListGroupFeaturedContentResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "contentType": zod.enum(['post', 'member', 'media']),
+  "contentId": zod.number(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.string()
+})
+export const ListGroupFeaturedContentResponse = zod.array(ListGroupFeaturedContentResponseItem)
+
+
+/**
+ * @summary Feature a post/member/media in the group (admin/owner)
+ */
+export const AddGroupFeaturedContentParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const AddGroupFeaturedContentBody = zod.object({
+  "contentType": zod.enum(['post', 'member', 'media']),
+  "contentId": zod.number(),
+  "sortOrder": zod.number().optional()
+})
+
+
+/**
+ * @summary Remove featured content (admin/owner)
+ */
+export const RemoveGroupFeaturedContentParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "featuredId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Admin — list all groups with filters
+ */
+export const AdminListGroupsQueryParams = zod.object({
+  "search": zod.coerce.string().optional(),
+  "privacy": zod.coerce.string().optional(),
+  "category": zod.coerce.string().optional(),
+  "status": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const AdminListGroupsResponse = zod.object({
+  "total": zod.number(),
+  "groups": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "customCategory": zod.string().nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']),
+  "coverUrl": zod.string().nullish(),
+  "iconUrl": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "postingPermission": zod.string().optional(),
+  "postApproval": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'suspended', 'deleted']).optional(),
+  "isFeatured": zod.boolean().optional(),
+  "memberCount": zod.number(),
+  "postCount": zod.number().optional(),
+  "eventCount": zod.number().optional(),
+  "viewerMemberRole": zod.string().nullish(),
+  "viewerHasPendingRequest": zod.boolean().optional(),
+  "createdAt": zod.string()
+}).and(zod.object({
+  "creatorUserId": zod.number().optional(),
+  "reportCount": zod.number().optional()
+})))
+})
+
+
+/**
+ * @summary Admin — get full group detail
+ */
+export const AdminGetGroupParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const AdminGetGroupResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "customCategory": zod.string().nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']),
+  "coverUrl": zod.string().nullish(),
+  "iconUrl": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "postingPermission": zod.string().optional(),
+  "postApproval": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'suspended', 'deleted']).optional(),
+  "isFeatured": zod.boolean().optional(),
+  "memberCount": zod.number(),
+  "postCount": zod.number().optional(),
+  "eventCount": zod.number().optional(),
+  "viewerMemberRole": zod.string().nullish(),
+  "viewerHasPendingRequest": zod.boolean().optional(),
+  "createdAt": zod.string()
+}).and(zod.object({
+  "creatorUserId": zod.number().optional(),
+  "updatedAt": zod.string().optional(),
+  "isPreview": zod.boolean().optional()
+})).and(zod.object({
+  "reportCount": zod.number().optional(),
+  "activityLog": zod.array(zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "actorUserId": zod.number(),
+  "actorName": zod.string().optional(),
+  "action": zod.string(),
+  "targetType": zod.string().nullish(),
+  "targetId": zod.number().nullish(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.string()
+})).optional()
+}))
+
+
+/**
+ * @summary Admin — suspend / hide / restore / feature / delete a group
+ */
+export const AdminUpdateGroupStatusParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const AdminUpdateGroupStatusBody = zod.object({
+  "action": zod.enum(['suspend', 'hide', 'restore', 'delete', 'feature', 'unfeature']),
+  "reason": zod.string().optional(),
+  "featuredUntil": zod.string().optional()
+})
+
+export const AdminUpdateGroupStatusResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "customCategory": zod.string().nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']),
+  "coverUrl": zod.string().nullish(),
+  "iconUrl": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "postingPermission": zod.string().optional(),
+  "postApproval": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'suspended', 'deleted']).optional(),
+  "isFeatured": zod.boolean().optional(),
+  "memberCount": zod.number(),
+  "postCount": zod.number().optional(),
+  "eventCount": zod.number().optional(),
+  "viewerMemberRole": zod.string().nullish(),
+  "viewerHasPendingRequest": zod.boolean().optional(),
+  "createdAt": zod.string()
+}).and(zod.object({
+  "creatorUserId": zod.number().optional(),
+  "updatedAt": zod.string().optional(),
+  "isPreview": zod.boolean().optional()
+}))
+
+
+/**
+ * @summary Admin — view all posts in a group
+ */
+export const AdminListGroupPostsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const AdminListGroupPostsQueryParams = zod.object({
+  "status": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const AdminListGroupPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const AdminListGroupPostsResponse = zod.array(AdminListGroupPostsResponseItem)
+
+
+/**
+ * @summary Admin — hide/remove a group post (sets moderation lock)
+ */
+export const AdminModerateGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const AdminModerateGroupPostBody = zod.object({
+  "action": zod.enum(['hide', 'remove', 'restore']),
+  "reason": zod.string().optional()
+})
+
+export const AdminModerateGroupPostResponse = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "authorUserId": zod.number().nullish(),
+  "authorName": zod.string().optional(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "authorRole": zod.string().optional(),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
+  "text": zod.string(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.enum(['none', 'image', 'video']),
+  "postType": zod.string(),
+  "pollData": zod.object({
+
+}).passthrough().nullish(),
+  "status": zod.enum(['active', 'pending_approval', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "isPinned": zod.boolean().optional(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "saveCount": zod.number(),
+  "viewerReaction": zod.string().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Admin — view reports for a group
+ */
+export const AdminListGroupReportsParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const AdminListGroupReportsQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
+})
+
+export const AdminListGroupReportsResponseItem = zod.object({
+  "id": zod.number(),
+  "groupId": zod.number(),
+  "reporterUserId": zod.number(),
+  "targetType": zod.enum(['group', 'post', 'comment', 'member', 'event', 'media']),
+  "targetId": zod.number(),
+  "reason": zod.string(),
+  "details": zod.string().nullish(),
+  "status": zod.enum(['pending', 'reviewed', 'dismissed', 'actioned']),
+  "reviewedByUserId": zod.number().nullish(),
+  "reviewedAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const AdminListGroupReportsResponse = zod.array(AdminListGroupReportsResponseItem)
+
+
+/**
+ * @summary Admin — transfer group ownership
+ */
+export const AdminTransferGroupOwnerParams = zod.object({
+  "groupId": zod.coerce.number()
+})
+
+export const AdminTransferGroupOwnerBody = zod.object({
+  "newOwnerUserId": zod.number(),
+  "reason": zod.string().optional()
+})
+
+export const AdminTransferGroupOwnerResponse = zod.object({
+  "message": zod.string()
+})
+
+

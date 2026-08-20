@@ -19,6 +19,7 @@ export function Footer() {
           <div>
             <h4 className="font-medium text-white mb-4 uppercase tracking-wider text-sm">Platform</h4>
             <ul className="space-y-2">
+              <li><Link href="/groups" className="text-muted-foreground hover:text-primary transition-colors text-sm">Browse Groups</Link></li>
               <li><Link href="/browse" className="text-muted-foreground hover:text-primary transition-colors text-sm">Browse Buddys</Link></li>
               <li><Link href="/pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">Pricing & Plans</Link></li>
               <li><Link href="/signup/doll" className="text-sm text-muted-foreground hover:text-primary transition-colors">Become a Buddy</Link></li>

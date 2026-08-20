@@ -16,8 +16,9 @@ import {
   useListPlans,
   useListSubscriptions,
   getListSubscriptionsQueryKey,
+  useListGroups,
 } from "@workspace/api-client-react";
-import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check } from "lucide-react";
+import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check, Users, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type Props = {
@@ -235,6 +236,7 @@ export default function LoungeRightSidebar({ onSelectHashtag, activeHashtag }: P
   const { data: lounges } = useListLounges({ limit: 3 });
   const { data: events } = useListEvents({ limit: 4 });
   const { data: trendingHashtags } = useListTrendingHashtags({ limit: 6 });
+  const { data: featuredGroups } = useListGroups({ featured: true, limit: 3 });
 
   const onlineList = (onlineUsers ?? []).slice(0, 5);
   const onlineDollIds = new Set(
@@ -263,8 +265,48 @@ export default function LoungeRightSidebar({ onSelectHashtag, activeHashtag }: P
             href="/browse"
             className="block text-xs text-primary hover:underline mt-2"
           >
-
             Browse all Buddys →
+          </Link>
+        </SectionCard>
+      )}
+
+      {(featuredGroups?.groups?.length ?? 0) > 0 && (
+        <SectionCard title="Featured Groups">
+          {featuredGroups!.groups.map((group) => (
+            <Link
+              key={group.id}
+              href={`/groups/${group.id}`}
+              className="flex items-center gap-3 py-1.5 group"
+            >
+              <div className="relative shrink-0">
+                {group.iconUrl ? (
+                  <img
+                    src={group.iconUrl}
+                    alt=""
+                    className="h-9 w-9 rounded-lg object-cover border border-white/10"
+                  />
+                ) : (
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <Users className="h-4 w-4 text-primary" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-white truncate group-hover:text-primary transition-colors flex items-center gap-1">
+                  {group.name}
+                  {group.privacy === 'private' && <Lock className="h-3 w-3 text-muted-foreground shrink-0" />}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {group.memberCount} members
+                </p>
+              </div>
+            </Link>
+          ))}
+          <Link
+            href="/groups"
+            className="block text-xs text-primary hover:underline mt-2"
+          >
+            Explore all Groups →
           </Link>
         </SectionCard>
       )}

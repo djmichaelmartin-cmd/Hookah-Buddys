@@ -15,11 +15,15 @@ import AdminCredits from "@/pages/AdminCredits";
 import AdminPlans from "@/pages/AdminPlans";
 import AdminEvents from "@/pages/AdminEvents";
 import AdminBusinesses from "@/pages/AdminBusinesses";
+import AdminGroups from "@/pages/AdminGroups";
 import { Briefcase } from "lucide-react";
+
+import { useLocation } from "wouter";
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [location] = useLocation();
 
   const { data: stats } = useGetAdminStats();
   const { data: dollRevenue } = useGetDollRevenueShares();
@@ -116,7 +120,7 @@ export default function AdminDashboard() {
 
         <DollRevenueShares dolls={dollRevenue} />
 
-        <Tabs defaultValue="applications" className="w-full">
+        <Tabs defaultValue={location === "/admin/groups" ? "groups" : "applications"} className="w-full">
           <TabsList className="bg-card border border-white/10 mb-6 flex flex-wrap h-auto p-1">
             <TabsTrigger value="applications"><Users className="w-4 h-4 mr-2"/> Applications</TabsTrigger>
             <TabsTrigger value="media"><ImageIcon className="w-4 h-4 mr-2"/> Media Moderation</TabsTrigger>
@@ -131,6 +135,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="events"><CalendarDays className="w-4 h-4 mr-2"/> Events</TabsTrigger>
             <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
             <TabsTrigger value="businesses"><Briefcase className="w-4 h-4 mr-2"/> Businesses</TabsTrigger>
+            <TabsTrigger value="groups"><Users className="w-4 h-4 mr-2"/> Groups</TabsTrigger>
           </TabsList>
 
           <TabsContent value="applications" className="space-y-4">
@@ -347,6 +352,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="businesses">
             <AdminBusinesses />
+          </TabsContent>
+
+          <TabsContent value="groups">
+            <AdminGroups />
           </TabsContent>
         </Tabs>
       </div>

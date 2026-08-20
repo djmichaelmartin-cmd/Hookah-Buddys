@@ -38,9 +38,9 @@ export default function CommunityFeed() {
         <div className="container mx-auto px-4 py-8 flex justify-center text-center">
           <div className="py-20 flex flex-col items-center justify-center bg-card/20 rounded-2xl border border-white/5 backdrop-blur-md p-10">
             <Frown className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="font-serif text-xl text-white mb-2">Community not found</h3>
+            <h3 className="font-serif text-xl text-white mb-2">Group topic not found</h3>
             <p className="text-muted-foreground max-w-sm mb-6">
-              We couldn't find this community section.
+              We couldn't find this Group topic.
             </p>
             <Link href="/feed">
               <Button>Go to The Lounge</Button>
@@ -139,7 +139,7 @@ function CommunityFeedRoom({ shortcut }: { shortcut: CommunityShortcut }) {
           ) : isError ? (
             <div className="py-20 flex flex-col items-center justify-center text-center bg-card/20 rounded-2xl border border-destructive/20 backdrop-blur-md">
               <AlertCircle className="h-12 w-12 text-destructive/70 mb-4" />
-              <h3 className="font-serif text-xl text-white mb-2">Couldn't load this community.</h3>
+              <h3 className="font-serif text-xl text-white mb-2">Couldn't load this Group topic.</h3>
               <p className="text-muted-foreground max-w-sm">
                 Please refresh the page or try again in a moment.
               </p>
@@ -184,7 +184,7 @@ function CommunityFeedRoom({ shortcut }: { shortcut: CommunityShortcut }) {
               <Sparkle className="w-5 h-5 text-primary" /> Join the Lounge
             </DialogTitle>
             <DialogDescription className="text-base">
-              You need an account to like, comment, and interact with the community.
+              You need an account to like, comment, and interact with this Group topic.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 pt-4">

@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "codegen": "orval --config ./orval.config.ts && pnpm -w run typecheck:libs"
+    "codegen": "orval --config ./orval.config.ts && node ./fix-binary-request-bodies.mjs && pnpm -w run typecheck:libs",
+    "check:binary-bodies": "node ./fix-binary-request-bodies.mjs --check"
   },
   "devDependencies": {
     "orval": "^8.9.1"

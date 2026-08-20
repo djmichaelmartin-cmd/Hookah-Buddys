@@ -393,6 +393,137 @@ export async function assertPrivateVerificationDocument(
 }
 
 /**
+ * Allowed content types for a generic Group "file" attachment (kind=file).
+ *
+ * IMPORTANT — storage-model limitation: this backend can only *safely* finalize
+ * an uploaded object whose real bytes it can content-sniff and authoritatively
+ * type. We currently sniff PDF + the still-image families (JPEG/PNG/WebP). Truly
+ * arbitrary file types (docx, xlsx, zip, csv, ...) cannot be byte-verified here,
+ * so they are refused with an explicit error rather than persisted on trust.
+ * A future generic-file model (magic-byte table + declared-extension binding)
+ * would widen this set; until then kind=file is restricted to these types.
+ */
+export const ALLOWED_GROUP_FILE_TYPES = ALLOWED_DOCUMENT_TYPES;
+export const MAX_GROUP_FILE_SIZE_BYTES = MAX_DOCUMENT_SIZE_BYTES; // 15 MB
+
+/**
+ * Store validated Group file bytes in the private object dir, stamped with a
+ * finalized owner ACL policy AT WRITE TIME. This is the ONLY safe way to
+ * introduce a Group file object: ownership is assigned by the server as it
+ * writes bytes it has itself sniffed and bounded — never claimed after the fact
+ * on a caller-supplied path.
+ *
+ * The caller (route) is responsible for bounding the buffer size BEFORE it
+ * reaches this function; the size is re-checked here as defense in depth.
+ * Only content-sniffable, allowed Group file types (PDF/JPEG/PNG/WebP) are
+ * accepted; anything else is refused. Returns the object path ("/objects/...")
+ * and the authoritative sniffed content type.
+ */
+export async function uploadGroupFileBuffer(
+  buffer: Buffer,
+  ownerId: number,
+): Promise<{ objectPath: string; contentType: string }> {
+  if (buffer.length === 0) {
+    throw new InvalidUploadError("Uploaded file is empty.");
+  }
+  if (buffer.length > MAX_GROUP_FILE_SIZE_BYTES) {
+    throw new InvalidUploadError("Uploaded file exceeds the 15 MB size limit.");
+  }
+  const sniffedType = sniffDocumentType(buffer);
+  if (!sniffedType || !ALLOWED_GROUP_FILE_TYPES.has(sniffedType)) {
+    throw new InvalidUploadError(
+      "Uploaded file is not an allowed Group file type (PDF, JPEG, PNG, WebP).",
+    );
+  }
+  // storeValidatedBuffer stamps { owner, visibility: "public" } at write time.
+  const objectPath = await storeValidatedBuffer(buffer, sniffedType, ownerId);
+  return { objectPath, contentType: sniffedType };
+}
+
+/**
+ * Ownership-aware finalizer for a generic Group file attachment (kind=file).
+ *
+ * This does NOT claim ownership of an ACL-less object. A safe Group file object
+ * can only be created via `uploadGroupFileBuffer` (server-side raw upload),
+ * which stamps the owner ACL at write time. This function merely CONFIRMS a
+ * caller-supplied reference points at such an already-finalized object owned by
+ * the current uploader; it never mutates ownership.
+ *
+ *  1. Namespace: the ref must resolve to an internal storage object path
+ *     (/objects/...); external/`data:` URLs are rejected.
+ *  2. Existence: the object must exist in storage.
+ *  3. Finalized ownership: the object MUST already carry an ACL policy whose
+ *     owner equals `ownerId`. A missing (null) policy is REJECTED — we never
+ *     assign ownership to an ACL-less object here. A policy owned by another
+ *     user is REJECTED.
+ *  4. MIME policy: the ACTUAL stored bytes are sniffed and must be an allowed
+ *     Group file type (never trusts client-declared contentType).
+ *  5. Size policy: enforced against the real stored size (15 MB cap).
+ *
+ * Throws InvalidUploadError on any violation (mapped to HTTP 400 by callers).
+ */
+export async function finalizeUploadedGroupFile(
+  storageUrl: string,
+  ownerId: number,
+): Promise<{ url: string; contentType: string }> {
+  if (/^data:/i.test(storageUrl.trim())) {
+    throw new InvalidUploadError(
+      "Embedded data: URLs are not allowed. Upload the file first and reference the returned URL.",
+    );
+  }
+  const objectPath = toObjectEntityPath(storageUrl);
+  if (!objectPath) {
+    throw new InvalidUploadError(
+      "File must reference an uploaded storage object (/api/storage/objects/...).",
+    );
+  }
+
+  const service = new ObjectStorageService();
+  let file;
+  try {
+    file = await service.getObjectEntityFile(objectPath);
+  } catch (err) {
+    if (err instanceof ObjectNotFoundError) {
+      throw new InvalidUploadError("Uploaded file not found in storage.");
+    }
+    throw err;
+  }
+
+  const [metadata] = await file.getMetadata();
+  const size = Number(metadata.size ?? 0);
+  if (size <= 0) {
+    throw new InvalidUploadError("Uploaded file is empty.");
+  }
+  if (size > MAX_GROUP_FILE_SIZE_BYTES) {
+    throw new InvalidUploadError("Uploaded file exceeds the 15 MB size limit.");
+  }
+
+  // Ownership: the object MUST already be finalized (have an ACL policy) and be
+  // owned by this uploader. We NEVER claim an ACL-less object here — such an
+  // object was not created through the validated server-side upload path.
+  const existingPolicy = await getObjectAclPolicy(file);
+  if (!existingPolicy) {
+    throw new InvalidUploadError(
+      "Uploaded file is not finalized. Upload it via /api/storage/uploads/group-file first.",
+    );
+  }
+  if (existingPolicy.owner !== String(ownerId)) {
+    throw new InvalidUploadError("This uploaded file belongs to another user.");
+  }
+
+  // Sniff the ACTUAL stored bytes — client-declared contentType is untrusted.
+  const [head] = await file.download({ start: 0, end: 63 });
+  const sniffed = sniffDocumentType(head);
+  if (!sniffed || !ALLOWED_GROUP_FILE_TYPES.has(sniffed)) {
+    throw new InvalidUploadError(
+      "Uploaded file is not an allowed Group file type (PDF, JPEG, PNG, WebP).",
+    );
+  }
+
+  return { url: `${STORAGE_URL_PREFIX}${objectPath}`, contentType: sniffed };
+}
+
+/**
  * Guard + finalizer for user-supplied media URLs (feed posts, album photos,
  * Doll media). Rejects embedded `data:` URLs outright (they bloat the
  * database), finalizes storage object URLs (ACL + image validation), and

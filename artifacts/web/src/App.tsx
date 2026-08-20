@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,6 +35,10 @@ import ProfileEdit from "@/pages/ProfileEdit";
 import PrivacySettings from "@/pages/PrivacySettings";
 import Friends from "@/pages/Friends";
 import Reels from "@/pages/Reels";
+import GroupsDiscover from "@/pages/groups/GroupsDiscover";
+import GroupCreate from "@/pages/groups/GroupCreate";
+import GroupDetail from "@/pages/groups/GroupDetail";
+import DashboardGroups from "@/pages/dashboard/DashboardGroups";
 import { usePresenceHeartbeatLoop } from "@/hooks/use-presence-heartbeat";
 import Events from "@/pages/Events";
 import EventDetail from "@/pages/EventDetail";
@@ -89,8 +93,20 @@ function Router() {
       <Route path="/reels" component={Reels} />
       <Route path="/events" component={Events} />
       <Route path="/events/:id" component={EventDetail} />
-      
-      {/* Community Routes */}
+
+      {/* Group Routes */}
+      <Route path="/groups" component={GroupsDiscover} />
+      <Route path="/groups/create" component={GroupCreate} />
+      <Route path="/groups/:id" component={GroupDetail} />
+      <Route path="/groups/:id/:tab" component={GroupDetail} />
+      <Route path="/dashboard/groups" component={DashboardGroups} />
+      <Route path="/admin/groups" component={AdminDashboard} />
+
+      {/* Legacy topic routes and backward-compatible redirects */}
+      <Route path="/communities"><Redirect to="/groups" /></Route>
+      <Route path="/communities/create"><Redirect to="/groups/create" /></Route>
+      <Route path="/communities/:id">{({id}) => <Redirect to={`/groups/${id}`} />}</Route>
+
       <Route path="/community/hookah-setups" component={CommunityFeed} />
       <Route path="/community/favorite-flavors" component={CommunityFeed} />
       <Route path="/community/lounge-reviews" component={CommunityFeed} />

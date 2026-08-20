@@ -87,7 +87,7 @@ function formatEventDetails(event: EventData): string {
 }
 
 function injectEventMeta(html: string, event: EventData, pageUrl: string): string {
-  const title = `${event.title} | HookahDolls`;
+  const title = `${event.title} | HookahBuddys`;
   const description = formatEventDetails(event);
   const image = event.imageUrl
     ? event.imageUrl.startsWith("http")

@@ -2208,6 +2208,13 @@ export interface VideoUploadResponse {
   posterPath: string;
 }
 
+export interface GroupFileUploadResponse {
+  /** Stored object path (e.g. `/objects/uploads/uuid`). Serve via `/api/storage` + objectPath. */
+  objectPath: string;
+  /** Authoritative sniffed MIME type (PDF, JPEG, PNG, or WebP). */
+  contentType: string;
+}
+
 export interface ErrorEnvelope {
   error: string;
 }
@@ -3508,6 +3515,978 @@ export interface BusinessAppointmentRescheduleInput {
   durationMinutes?: number;
 }
 
+export type GroupSummaryPrivacy = typeof GroupSummaryPrivacy[keyof typeof GroupSummaryPrivacy];
+
+
+export const GroupSummaryPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type GroupSummaryVisibility = typeof GroupSummaryVisibility[keyof typeof GroupSummaryVisibility];
+
+
+export const GroupSummaryVisibility = {
+  visible: 'visible',
+  hidden: 'hidden',
+} as const;
+
+export type GroupSummaryStatus = typeof GroupSummaryStatus[keyof typeof GroupSummaryStatus];
+
+
+export const GroupSummaryStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  suspended: 'suspended',
+  deleted: 'deleted',
+} as const;
+
+export interface GroupSummary {
+  id: number;
+  name: string;
+  /** @nullable */
+  handle?: string | null;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  customCategory?: string | null;
+  tags?: string[];
+  privacy: GroupSummaryPrivacy;
+  visibility: GroupSummaryVisibility;
+  /** @nullable */
+  coverUrl?: string | null;
+  /** @nullable */
+  iconUrl?: string | null;
+  /** @nullable */
+  location?: string | null;
+  postingPermission?: string;
+  postApproval?: boolean;
+  status?: GroupSummaryStatus;
+  isFeatured?: boolean;
+  memberCount: number;
+  postCount?: number;
+  eventCount?: number;
+  /** @nullable */
+  viewerMemberRole?: string | null;
+  viewerHasPendingRequest?: boolean;
+  createdAt: string;
+}
+
+export type GroupDetail = GroupSummary & {
+  creatorUserId?: number;
+  updatedAt?: string;
+  isPreview?: boolean;
+};
+
+export interface GroupList {
+  groups: GroupSummary[];
+  total: number;
+}
+
+export type CreateGroupBodyPrivacy = typeof CreateGroupBodyPrivacy[keyof typeof CreateGroupBodyPrivacy];
+
+
+export const CreateGroupBodyPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type CreateGroupBodyVisibility = typeof CreateGroupBodyVisibility[keyof typeof CreateGroupBodyVisibility];
+
+
+export const CreateGroupBodyVisibility = {
+  visible: 'visible',
+  hidden: 'hidden',
+} as const;
+
+export type CreateGroupBodyPostingPermission = typeof CreateGroupBodyPostingPermission[keyof typeof CreateGroupBodyPostingPermission];
+
+
+export const CreateGroupBodyPostingPermission = {
+  all_members: 'all_members',
+  admins_only: 'admins_only',
+  approved_members: 'approved_members',
+} as const;
+
+export interface CreateGroupBody {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name: string;
+  handle?: string;
+  description?: string;
+  category?: string;
+  customCategory?: string;
+  tags?: string[];
+  privacy: CreateGroupBodyPrivacy;
+  visibility?: CreateGroupBodyVisibility;
+  /** Finalized internal storage image object path */
+  coverUrl?: string;
+  /** Finalized internal storage image object path */
+  iconUrl?: string;
+  location?: string;
+  postingPermission?: CreateGroupBodyPostingPermission;
+  postApproval?: boolean;
+}
+
+export type UpdateGroupBodyPrivacy = typeof UpdateGroupBodyPrivacy[keyof typeof UpdateGroupBodyPrivacy];
+
+
+export const UpdateGroupBodyPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type UpdateGroupBodyVisibility = typeof UpdateGroupBodyVisibility[keyof typeof UpdateGroupBodyVisibility];
+
+
+export const UpdateGroupBodyVisibility = {
+  visible: 'visible',
+  hidden: 'hidden',
+} as const;
+
+export type UpdateGroupBodyPostingPermission = typeof UpdateGroupBodyPostingPermission[keyof typeof UpdateGroupBodyPostingPermission];
+
+
+export const UpdateGroupBodyPostingPermission = {
+  all_members: 'all_members',
+  admins_only: 'admins_only',
+  approved_members: 'approved_members',
+} as const;
+
+export interface UpdateGroupBody {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name?: string;
+  handle?: string;
+  description?: string;
+  category?: string;
+  customCategory?: string;
+  tags?: string[];
+  privacy?: UpdateGroupBodyPrivacy;
+  visibility?: UpdateGroupBodyVisibility;
+  /**
+     * Finalized internal storage image object; null clears
+     * @nullable
+     */
+  coverUrl?: string | null;
+  /**
+     * Finalized internal storage image object; null clears
+     * @nullable
+     */
+  iconUrl?: string | null;
+  location?: string;
+  postingPermission?: UpdateGroupBodyPostingPermission;
+  postApproval?: boolean;
+}
+
+export type JoinGroupBodyAnswersItem = {
+  questionId: number;
+  /** @minLength 1 */
+  answerText: string;
+};
+
+export interface JoinGroupBody {
+  /** Answers to membership questions (required when group has required questions) */
+  answers?: JoinGroupBodyAnswersItem[];
+}
+
+export type GroupJoinResultStatus = typeof GroupJoinResultStatus[keyof typeof GroupJoinResultStatus];
+
+
+export const GroupJoinResultStatus = {
+  joined: 'joined',
+  requested: 'requested',
+} as const;
+
+export interface GroupJoinResult {
+  status: GroupJoinResultStatus;
+  message?: string;
+}
+
+export type GroupMemberRole = typeof GroupMemberRole[keyof typeof GroupMemberRole];
+
+
+export const GroupMemberRole = {
+  owner: 'owner',
+  admin: 'admin',
+  moderator: 'moderator',
+  member: 'member',
+} as const;
+
+export type GroupMemberStatus = typeof GroupMemberStatus[keyof typeof GroupMemberStatus];
+
+
+export const GroupMemberStatus = {
+  active: 'active',
+  suspended: 'suspended',
+} as const;
+
+export interface GroupMember {
+  id: number;
+  groupId: number;
+  userId: number;
+  userName?: string;
+  /** @nullable */
+  userPhotoUrl?: string | null;
+  role: GroupMemberRole;
+  joinedVia?: string;
+  status: GroupMemberStatus;
+  joinedAt: string;
+}
+
+export type UpdateGroupMemberBodyRole = typeof UpdateGroupMemberBodyRole[keyof typeof UpdateGroupMemberBodyRole];
+
+
+export const UpdateGroupMemberBodyRole = {
+  admin: 'admin',
+  moderator: 'moderator',
+  member: 'member',
+} as const;
+
+export type UpdateGroupMemberBodyStatus = typeof UpdateGroupMemberBodyStatus[keyof typeof UpdateGroupMemberBodyStatus];
+
+
+export const UpdateGroupMemberBodyStatus = {
+  active: 'active',
+  suspended: 'suspended',
+} as const;
+
+export interface UpdateGroupMemberBody {
+  role?: UpdateGroupMemberBodyRole;
+  status?: UpdateGroupMemberBodyStatus;
+}
+
+export type GroupInviteStatus = typeof GroupInviteStatus[keyof typeof GroupInviteStatus];
+
+
+export const GroupInviteStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  declined: 'declined',
+  expired: 'expired',
+  cancelled: 'cancelled',
+} as const;
+
+export interface GroupInviteGroupSummary {
+  id: number;
+  name: string;
+  /** @nullable */
+  iconUrl?: string | null;
+}
+
+export interface GroupInvite {
+  id: number;
+  groupId: number;
+  /** @nullable */
+  groupName?: string | null;
+  invitedByUserId: number;
+  invitedByUserName?: string;
+  invitedUserId: number;
+  invitedUserName?: string;
+  status: GroupInviteStatus;
+  createdAt: string;
+  /** @nullable */
+  expiresAt?: string | null;
+  group?: null | GroupInviteGroupSummary;
+  inviterId?: number;
+  inviterName?: string;
+  /** @nullable */
+  inviterPhotoUrl?: string | null;
+}
+
+export interface GroupInviteInput {
+  invitedUserId: number;
+}
+
+export type GroupInviteResponseAction = typeof GroupInviteResponseAction[keyof typeof GroupInviteResponseAction];
+
+
+export const GroupInviteResponseAction = {
+  accept: 'accept',
+  decline: 'decline',
+} as const;
+
+export interface GroupInviteResponse {
+  action: GroupInviteResponseAction;
+}
+
+export type GroupJoinRequestStatus = typeof GroupJoinRequestStatus[keyof typeof GroupJoinRequestStatus];
+
+
+export const GroupJoinRequestStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  declined: 'declined',
+  cancelled: 'cancelled',
+} as const;
+
+export interface GroupQuestionAnswerItem {
+  questionId: number;
+  questionText: string;
+  answerText: string;
+}
+
+export interface GroupJoinRequest {
+  id: number;
+  groupId: number;
+  userId: number;
+  userName?: string;
+  /** @nullable */
+  userPhotoUrl?: string | null;
+  status: GroupJoinRequestStatus;
+  /** @nullable */
+  declineReason?: string | null;
+  answers?: GroupQuestionAnswerItem[];
+  createdAt: string;
+}
+
+export type ReviewGroupJoinRequestBodyAction = typeof ReviewGroupJoinRequestBodyAction[keyof typeof ReviewGroupJoinRequestBodyAction];
+
+
+export const ReviewGroupJoinRequestBodyAction = {
+  approve: 'approve',
+  decline: 'decline',
+} as const;
+
+export interface ReviewGroupJoinRequestBody {
+  action: ReviewGroupJoinRequestBodyAction;
+  reason?: string;
+}
+
+export interface GroupQuestion {
+  id: number;
+  groupId: number;
+  questionText: string;
+  isRequired: boolean;
+  sortOrder: number;
+}
+
+export interface GroupQuestionInput {
+  /** @minLength 1 */
+  questionText: string;
+  isRequired?: boolean;
+  sortOrder?: number;
+}
+
+export interface GroupRule {
+  id: number;
+  groupId: number;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  sortOrder: number;
+  createdAt?: string;
+}
+
+export interface GroupRuleInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  description?: string;
+  sortOrder?: number;
+}
+
+export type GroupPostMediaType = typeof GroupPostMediaType[keyof typeof GroupPostMediaType];
+
+
+export const GroupPostMediaType = {
+  none: 'none',
+  image: 'image',
+  video: 'video',
+} as const;
+
+/**
+ * @nullable
+ */
+export type GroupPostPollData = { [key: string]: unknown } | null;
+
+export type GroupPostStatus = typeof GroupPostStatus[keyof typeof GroupPostStatus];
+
+
+export const GroupPostStatus = {
+  active: 'active',
+  pending_approval: 'pending_approval',
+  hidden: 'hidden',
+  removed: 'removed',
+} as const;
+
+export interface GroupPost {
+  id: number;
+  groupId: number;
+  /** @nullable */
+  authorUserId?: number | null;
+  authorName?: string;
+  /** @nullable */
+  authorPhotoUrl?: string | null;
+  authorRole?: string;
+  /** @nullable */
+  businessId?: number | null;
+  /** @nullable */
+  businessName?: string | null;
+  /** @nullable */
+  businessHandle?: string | null;
+  /** @nullable */
+  businessLogoUrl?: string | null;
+  text: string;
+  /** @nullable */
+  mediaUrl?: string | null;
+  /** @nullable */
+  posterUrl?: string | null;
+  mediaType: GroupPostMediaType;
+  postType: string;
+  /** @nullable */
+  pollData?: GroupPostPollData;
+  status: GroupPostStatus;
+  moderationLocked?: boolean;
+  isPinned?: boolean;
+  likeCount: number;
+  commentCount: number;
+  saveCount: number;
+  /** @nullable */
+  viewerReaction?: string | null;
+  viewerSaved?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type CreateGroupPostBodyMediaType = typeof CreateGroupPostBodyMediaType[keyof typeof CreateGroupPostBodyMediaType];
+
+
+export const CreateGroupPostBodyMediaType = {
+  none: 'none',
+  image: 'image',
+  video: 'video',
+} as const;
+
+export type CreateGroupPostBodyPostType = typeof CreateGroupPostBodyPostType[keyof typeof CreateGroupPostBodyPostType];
+
+
+export const CreateGroupPostBodyPostType = {
+  text: 'text',
+  photo: 'photo',
+  video: 'video',
+  poll: 'poll',
+  question: 'question',
+  feeling: 'feeling',
+  reel: 'reel',
+  file: 'file',
+} as const;
+
+export type CreateGroupPostBodyPollDataOptionsItem = {
+  id: string;
+  text: string;
+};
+
+export type CreateGroupPostBodyPollData = {
+  question?: string;
+  options?: CreateGroupPostBodyPollDataOptionsItem[];
+  closesAt?: string;
+  multiChoice?: boolean;
+};
+
+export interface CreateGroupPostBody {
+  /** @minLength 1 */
+  text: string;
+  /** Finalized internal storage object */
+  mediaUrl?: string;
+  /** Finalized internal storage image for video poster */
+  posterUrl?: string;
+  mediaType?: CreateGroupPostBodyMediaType;
+  postType?: CreateGroupPostBodyPostType;
+  /** Post as a Business Page the user manages */
+  businessId?: number;
+  pollData?: CreateGroupPostBodyPollData;
+}
+
+export type UpdateGroupPostBodyStatus = typeof UpdateGroupPostBodyStatus[keyof typeof UpdateGroupPostBodyStatus];
+
+
+export const UpdateGroupPostBodyStatus = {
+  active: 'active',
+  hidden: 'hidden',
+} as const;
+
+export interface UpdateGroupPostBody {
+  /** @minLength 1 */
+  text?: string;
+  status?: UpdateGroupPostBodyStatus;
+  isPinned?: boolean;
+}
+
+export type GroupPostReactInputReactionType = typeof GroupPostReactInputReactionType[keyof typeof GroupPostReactInputReactionType];
+
+
+export const GroupPostReactInputReactionType = {
+  like: 'like',
+  heart: 'heart',
+  laugh: 'laugh',
+  wow: 'wow',
+  sad: 'sad',
+  angry: 'angry',
+} as const;
+
+export interface GroupPostReactInput {
+  reactionType?: GroupPostReactInputReactionType;
+}
+
+export interface GroupPostReactResult {
+  active: boolean;
+  /** @nullable */
+  reactionType?: string | null;
+  likeCount: number;
+}
+
+export interface GroupPostSaveResult {
+  saved: boolean;
+  saveCount: number;
+}
+
+export interface GroupPostComment {
+  id: number;
+  postId: number;
+  groupId: number;
+  userId: number;
+  userName?: string;
+  /** @nullable */
+  userPhotoUrl?: string | null;
+  /** @nullable */
+  parentCommentId?: number | null;
+  commentText: string;
+  status: string;
+  likeCount: number;
+  createdAt: string;
+}
+
+export interface GroupPostCommentInput {
+  /** @minLength 1 */
+  commentText: string;
+  parentCommentId?: number;
+}
+
+export type ModerateGroupCommentBodyAction = typeof ModerateGroupCommentBodyAction[keyof typeof ModerateGroupCommentBodyAction];
+
+
+export const ModerateGroupCommentBodyAction = {
+  hide: 'hide',
+  restore: 'restore',
+} as const;
+
+export interface ModerateGroupCommentBody {
+  action: ModerateGroupCommentBodyAction;
+  reason?: string;
+}
+
+export type GroupMediaItemKind = typeof GroupMediaItemKind[keyof typeof GroupMediaItemKind];
+
+
+export const GroupMediaItemKind = {
+  photo: 'photo',
+  video: 'video',
+  reel: 'reel',
+  file: 'file',
+} as const;
+
+export type GroupMediaItemStatus = typeof GroupMediaItemStatus[keyof typeof GroupMediaItemStatus];
+
+
+export const GroupMediaItemStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+  pending: 'pending',
+} as const;
+
+export interface GroupMediaItem {
+  id: number;
+  groupId: number;
+  /** @nullable */
+  uploadedByUserId?: number | null;
+  /** @nullable */
+  uploaderName?: string | null;
+  /** @nullable */
+  uploaderPhotoUrl?: string | null;
+  /** @nullable */
+  businessId?: number | null;
+  /** @nullable */
+  businessName?: string | null;
+  /** @nullable */
+  postId?: number | null;
+  kind: GroupMediaItemKind;
+  /** @nullable */
+  caption?: string | null;
+  mediaUrl: string;
+  /** @nullable */
+  posterUrl?: string | null;
+  /** @nullable */
+  fileName?: string | null;
+  /** @nullable */
+  mimeType?: string | null;
+  /** @nullable */
+  fileSizeBytes?: number | null;
+  status: GroupMediaItemStatus;
+  likeCount?: number;
+  saveCount?: number;
+  createdAt: string;
+}
+
+export type GroupMediaInputKind = typeof GroupMediaInputKind[keyof typeof GroupMediaInputKind];
+
+
+export const GroupMediaInputKind = {
+  photo: 'photo',
+  video: 'video',
+  reel: 'reel',
+  file: 'file',
+} as const;
+
+export interface GroupMediaInput {
+  kind: GroupMediaInputKind;
+  /** Finalized internal storage object; external URLs rejected */
+  mediaUrl: string;
+  posterUrl?: string;
+  caption?: string;
+  businessId?: number;
+  fileName?: string;
+  mimeType?: string;
+  fileSizeBytes?: number;
+}
+
+export type GroupEventStatus = typeof GroupEventStatus[keyof typeof GroupEventStatus];
+
+
+export const GroupEventStatus = {
+  draft: 'draft',
+  active: 'active',
+  cancelled: 'cancelled',
+  completed: 'completed',
+  hidden: 'hidden',
+  removed: 'removed',
+} as const;
+
+export type GroupEventVisibility = typeof GroupEventVisibility[keyof typeof GroupEventVisibility];
+
+
+export const GroupEventVisibility = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export interface GroupEvent {
+  id: number;
+  groupId: number;
+  createdByUserId?: number;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  location?: string | null;
+  /** @nullable */
+  onlineUrl?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+  startsAt: string;
+  /** @nullable */
+  endsAt?: string | null;
+  status: GroupEventStatus;
+  visibility: GroupEventVisibility;
+  rsvpCount: number;
+  hideAttendees?: boolean;
+  /** @nullable */
+  viewerRsvpStatus?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type CreateGroupEventBodyVisibility = typeof CreateGroupEventBodyVisibility[keyof typeof CreateGroupEventBodyVisibility];
+
+
+export const CreateGroupEventBodyVisibility = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export interface CreateGroupEventBody {
+  /** @minLength 1 */
+  title: string;
+  description?: string;
+  location?: string;
+  onlineUrl?: string;
+  /** Finalized internal storage image object */
+  imageUrl?: string;
+  startsAt: string;
+  endsAt?: string;
+  visibility?: CreateGroupEventBodyVisibility;
+  hideAttendees?: boolean;
+}
+
+export type UpdateGroupEventBodyStatus = typeof UpdateGroupEventBodyStatus[keyof typeof UpdateGroupEventBodyStatus];
+
+
+export const UpdateGroupEventBodyStatus = {
+  active: 'active',
+  cancelled: 'cancelled',
+  completed: 'completed',
+  hidden: 'hidden',
+} as const;
+
+export type UpdateGroupEventBodyVisibility = typeof UpdateGroupEventBodyVisibility[keyof typeof UpdateGroupEventBodyVisibility];
+
+
+export const UpdateGroupEventBodyVisibility = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export interface UpdateGroupEventBody {
+  /** @minLength 1 */
+  title?: string;
+  description?: string;
+  location?: string;
+  onlineUrl?: string;
+  /** @nullable */
+  imageUrl?: string | null;
+  startsAt?: string;
+  endsAt?: string;
+  status?: UpdateGroupEventBodyStatus;
+  visibility?: UpdateGroupEventBodyVisibility;
+  hideAttendees?: boolean;
+}
+
+export type GroupEventRsvpInputRsvpStatus = typeof GroupEventRsvpInputRsvpStatus[keyof typeof GroupEventRsvpInputRsvpStatus];
+
+
+export const GroupEventRsvpInputRsvpStatus = {
+  going: 'going',
+  interested: 'interested',
+  not_going: 'not_going',
+} as const;
+
+export interface GroupEventRsvpInput {
+  rsvpStatus: GroupEventRsvpInputRsvpStatus;
+  isPrivate?: boolean;
+}
+
+export interface GroupEventRsvpResult {
+  /** @nullable */
+  rsvpStatus: string | null;
+  rsvpCount: number;
+}
+
+export interface GroupEventAttendee {
+  userId: number;
+  userName?: string;
+  /** @nullable */
+  userPhotoUrl?: string | null;
+  rsvpStatus: string;
+  rsvpAt?: string;
+}
+
+export type GroupReportTargetType = typeof GroupReportTargetType[keyof typeof GroupReportTargetType];
+
+
+export const GroupReportTargetType = {
+  group: 'group',
+  post: 'post',
+  comment: 'comment',
+  member: 'member',
+  event: 'event',
+  media: 'media',
+} as const;
+
+export type GroupReportStatus = typeof GroupReportStatus[keyof typeof GroupReportStatus];
+
+
+export const GroupReportStatus = {
+  pending: 'pending',
+  reviewed: 'reviewed',
+  dismissed: 'dismissed',
+  actioned: 'actioned',
+} as const;
+
+export interface GroupReport {
+  id: number;
+  groupId: number;
+  reporterUserId: number;
+  targetType: GroupReportTargetType;
+  targetId: number;
+  reason: string;
+  /** @nullable */
+  details?: string | null;
+  status: GroupReportStatus;
+  /** @nullable */
+  reviewedByUserId?: number | null;
+  /** @nullable */
+  reviewedAt?: string | null;
+  createdAt: string;
+}
+
+export interface GroupReportInput {
+  /** @minLength 1 */
+  reason: string;
+  details?: string;
+}
+
+export type ReviewGroupReportBodyAction = typeof ReviewGroupReportBodyAction[keyof typeof ReviewGroupReportBodyAction];
+
+
+export const ReviewGroupReportBodyAction = {
+  dismiss: 'dismiss',
+  action: 'action',
+} as const;
+
+export interface ReviewGroupReportBody {
+  action: ReviewGroupReportBodyAction;
+  note?: string;
+}
+
+export type GroupKeywordAlertAction = typeof GroupKeywordAlertAction[keyof typeof GroupKeywordAlertAction];
+
+
+export const GroupKeywordAlertAction = {
+  flag: 'flag',
+  auto_hide: 'auto_hide',
+  auto_remove: 'auto_remove',
+} as const;
+
+export interface GroupKeywordAlert {
+  id: number;
+  groupId: number;
+  keyword: string;
+  action: GroupKeywordAlertAction;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export type GroupKeywordAlertInputAction = typeof GroupKeywordAlertInputAction[keyof typeof GroupKeywordAlertInputAction];
+
+
+export const GroupKeywordAlertInputAction = {
+  flag: 'flag',
+  auto_hide: 'auto_hide',
+  auto_remove: 'auto_remove',
+} as const;
+
+export interface GroupKeywordAlertInput {
+  /** @minLength 1 */
+  keyword: string;
+  action?: GroupKeywordAlertInputAction;
+}
+
+export interface GroupActivityLogEntry {
+  id: number;
+  groupId: number;
+  actorUserId: number;
+  actorName?: string;
+  action: string;
+  /** @nullable */
+  targetType?: string | null;
+  /** @nullable */
+  targetId?: number | null;
+  /** @nullable */
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface GroupInsights {
+  groupId: number;
+  memberCount: number;
+  postCount: number;
+  eventCount: number;
+  newMembersLast7Days?: number;
+  newMembersLast30Days?: number;
+  postsLast7Days?: number;
+  postsLast30Days?: number;
+  topReactedPosts?: GroupPost[];
+}
+
+export type GroupFeaturedContentItemContentType = typeof GroupFeaturedContentItemContentType[keyof typeof GroupFeaturedContentItemContentType];
+
+
+export const GroupFeaturedContentItemContentType = {
+  post: 'post',
+  member: 'member',
+  media: 'media',
+} as const;
+
+export interface GroupFeaturedContentItem {
+  id: number;
+  groupId: number;
+  contentType: GroupFeaturedContentItemContentType;
+  contentId: number;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export type GroupFeaturedContentInputContentType = typeof GroupFeaturedContentInputContentType[keyof typeof GroupFeaturedContentInputContentType];
+
+
+export const GroupFeaturedContentInputContentType = {
+  post: 'post',
+  member: 'member',
+  media: 'media',
+} as const;
+
+export interface GroupFeaturedContentInput {
+  contentType: GroupFeaturedContentInputContentType;
+  contentId: number;
+  sortOrder?: number;
+}
+
+export type AdminGroupSummary = GroupSummary & {
+  creatorUserId?: number;
+  reportCount?: number;
+};
+
+export interface AdminGroupList {
+  total: number;
+  groups: AdminGroupSummary[];
+}
+
+export type AdminGroupDetail = GroupDetail & {
+  reportCount?: number;
+  activityLog?: GroupActivityLogEntry[];
+};
+
+export type AdminGroupActionBodyAction = typeof AdminGroupActionBodyAction[keyof typeof AdminGroupActionBodyAction];
+
+
+export const AdminGroupActionBodyAction = {
+  suspend: 'suspend',
+  hide: 'hide',
+  restore: 'restore',
+  delete: 'delete',
+  feature: 'feature',
+  unfeature: 'unfeature',
+} as const;
+
+export interface AdminGroupActionBody {
+  action: AdminGroupActionBodyAction;
+  reason?: string;
+  featuredUntil?: string;
+}
+
+export type AdminModerateGroupContentBodyAction = typeof AdminModerateGroupContentBodyAction[keyof typeof AdminModerateGroupContentBodyAction];
+
+
+export const AdminModerateGroupContentBodyAction = {
+  hide: 'hide',
+  remove: 'remove',
+  restore: 'restore',
+} as const;
+
+export interface AdminModerateGroupContentBody {
+  action: AdminModerateGroupContentBodyAction;
+  reason?: string;
+}
+
 export type ListDollsParams = {
 search?: string;
 city?: string;
@@ -3892,6 +4871,99 @@ export const ReviewBusinessReportBodyAction = {
 
 export type ReviewBusinessReportBody = {
   action: ReviewBusinessReportBodyAction;
+  reason?: string;
+};
+
+export type ListGroupsParams = {
+search?: string;
+category?: string;
+privacy?: ListGroupsPrivacy;
+featured?: boolean;
+limit?: number;
+offset?: number;
+};
+
+export type ListGroupsPrivacy = typeof ListGroupsPrivacy[keyof typeof ListGroupsPrivacy];
+
+
+export const ListGroupsPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type ListGroupMembersParams = {
+role?: string;
+limit?: number;
+offset?: number;
+};
+
+export type ListGroupJoinRequestsParams = {
+status?: string;
+};
+
+export type SetGroupQuestionsBody = {
+  questions: GroupQuestionInput[];
+};
+
+export type ListGroupPostsParams = {
+limit?: number;
+offset?: number;
+status?: string;
+};
+
+export type RejectGroupPostBody = {
+  reason?: string;
+};
+
+export type ListGroupMediaParams = {
+kind?: string;
+limit?: number;
+offset?: number;
+};
+
+export type ListGroupEventsParams = {
+scope?: ListGroupEventsScope;
+limit?: number;
+};
+
+export type ListGroupEventsScope = typeof ListGroupEventsScope[keyof typeof ListGroupEventsScope];
+
+
+export const ListGroupEventsScope = {
+  upcoming: 'upcoming',
+  past: 'past',
+} as const;
+
+export type ListGroupReportsParams = {
+status?: string;
+};
+
+export type ListGroupActivityLogParams = {
+limit?: number;
+offset?: number;
+};
+
+export type AdminListGroupsParams = {
+search?: string;
+privacy?: string;
+category?: string;
+status?: string;
+limit?: number;
+offset?: number;
+};
+
+export type AdminListGroupPostsParams = {
+status?: string;
+limit?: number;
+offset?: number;
+};
+
+export type AdminListGroupReportsParams = {
+status?: string;
+};
+
+export type AdminTransferGroupOwnerBody = {
+  newOwnerUserId: number;
   reason?: string;
 };
 

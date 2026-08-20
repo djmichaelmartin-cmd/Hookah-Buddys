@@ -10,7 +10,7 @@ import {
   type CSSProperties,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { useListFeaturedDolls, useListFeedPosts } from "@workspace/api-client-react";
+import { useListFeaturedDolls, useListFeedPosts, useListGroups } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Star,
@@ -27,6 +27,7 @@ import {
   Check,
   DollarSign,
   Upload,
+  Users,
 } from "lucide-react";
 
 import { FeedPostCard } from "@/components/FeedPostCard";
@@ -47,6 +48,8 @@ export default function Home() {
   const dolls = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl);
 
   const { data: feedPosts } = useListFeedPosts({ limit: 4, filter: "trending" });
+  const { data: featuredGroupsData } = useListGroups({ featured: true, limit: 3 });
+  const featuredGroups = featuredGroupsData?.groups || [];
 
   // ---- Featured Dolls marquee ----
   // Repeat the lineup until there are enough tiles to span wide screens, then
@@ -621,35 +624,88 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ THE FEED PREVIEW ============ */}
+      {/* ============ THE COMMUNITY & GROUPS ============ */}
       <section className="py-24 relative z-10 bg-background/50 border-t border-white/5">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-12">
             <div className="max-w-2xl">
-              <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">The Community</p>
+              <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">Groups</p>
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
-                Explore the Hookah Feed
+                Explore Groups & The Feed
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-
-                See the latest hookah setups, lounge posts, flavor talk, events, Buddys, Bros, and community conversations.
+                Join member-owned Groups to connect over specific interests, or dive into the global Feed for the latest lounge updates.
               </p>
             </div>
-            <Link href="/feed">
-              <Button className="rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-8">
-                Explore the Feed <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
+            <div className="flex gap-4">
+              <Link href="/groups">
+                <Button className="rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-8">
+                  Browse Groups
+                </Button>
+              </Link>
+              <Link href="/feed">
+                <Button className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8">
+                  Explore Feed <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
 
+          {featuredGroups.length > 0 && (
+            <div className="mb-16">
+              <h3 className="text-xl font-serif text-white mb-6 flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" /> Featured Groups
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {featuredGroups.map(group => (
+                  <Link key={group.id} href={`/groups/${group.id}`}>
+                    <div className="group relative flex flex-col bg-card border border-white/10 hover:border-primary/50 rounded-2xl overflow-hidden transition-all duration-300 hover-elevate shadow-md cursor-pointer">
+                      <div className="h-32 bg-[#171A21] relative overflow-hidden shrink-0">
+                        {group.coverUrl ? (
+                          <img src={group.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20" />
+                        )}
+                      </div>
+                      <div className="p-5 pt-0 relative flex-grow flex flex-col">
+                        <div className="h-16 w-16 rounded-xl overflow-hidden border-4 border-card bg-[#171A21] -mt-8 mb-3 shrink-0 flex items-center justify-center shadow-md relative">
+                          {group.iconUrl ? (
+                            <img src={group.iconUrl} className="w-full h-full object-cover" alt="" />
+                          ) : (
+                            <Users className="w-6 h-6 text-white/40" />
+                          )}
+                        </div>
+
+                        <div className="flex-grow">
+                          <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors line-clamp-1">
+                            {group.name}
+                          </h3>
+                          <p className="text-sm text-white/50 mb-2">{group.memberCount} members</p>
+                          <p className="text-sm text-white/80 line-clamp-2 mt-2">
+                            {group.description || "A HookahBuddys group."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {feedPosts && feedPosts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {feedPosts.slice(0, 4).map(post => (
-                <div key={post.id} className="pointer-events-none opacity-80 scale-95 origin-top relative">
-                  <div className="absolute inset-0 z-10 pointer-events-auto cursor-pointer" onClick={() => window.location.href='/feed'} />
-                  <FeedPostCard post={post} onLoginPrompt={() => {}} />
-                </div>
-              ))}
+            <div>
+              <h3 className="text-xl font-serif text-white mb-6 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" /> Trending in the Feed
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {feedPosts.slice(0, 4).map(post => (
+                  <div key={post.id} className="pointer-events-none opacity-80 scale-95 origin-top relative">
+                    <div className="absolute inset-0 z-10 pointer-events-auto cursor-pointer" onClick={() => window.location.href='/feed'} />
+                    <FeedPostCard post={post} onLoginPrompt={() => {}} />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="bg-card/30 border border-white/5 rounded-2xl p-12 text-center backdrop-blur-sm">

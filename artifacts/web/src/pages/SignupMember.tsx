@@ -157,7 +157,7 @@ export default function SignupMember() {
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox id="rulesAccepted" checked={formData.rulesAccepted} onCheckedChange={(c) => handleCheckedChange('rulesAccepted', c as boolean)} />
-                <Label htmlFor="rulesAccepted" className="text-sm font-normal">I agree to the Community Rules.</Label>
+                <Label htmlFor="rulesAccepted" className="text-sm font-normal">I agree to the Platform Rules.</Label>
               </div>
             </div>
 

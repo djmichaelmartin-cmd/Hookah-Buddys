@@ -78,7 +78,7 @@ export default function DashboardDoll() {
             <div className="bg-card/50 border border-white/10 rounded-xl p-6 min-h-[600px]">
               <Tabs defaultValue="myposts" className="w-full">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-serif text-white">Community Feed</h2>
+                  <h2 className="text-xl font-serif text-white">Lounge Feed</h2>
                   <TabsList className="bg-background/50 border border-white/10">
                     <TabsTrigger value="myposts" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">My Posts</TabsTrigger>
                     <TabsTrigger value="saved" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Saved</TabsTrigger>

@@ -6,7 +6,7 @@ export function CommunityTopicsNav({ mobileOnly = false }: { mobileOnly?: boolea
 
   return (
     <nav
-      aria-label="Hookah Community"
+      aria-label="Hookah Groups and topics"
       className={`${mobileOnly ? "lg:hidden " : ""}flex overflow-x-auto pb-4 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar gap-2`}
     >
       {COMMUNITY_SHORTCUTS.map(({ label, href, icon: Icon }) => {

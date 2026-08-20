@@ -64,6 +64,8 @@ tags:
     description: Object storage upload and serving endpoints.
   - name: businesses
     description: Business Pages – hookah lounges, brands, shops, and service providers
+  - name: groups
+    description: Member-created Groups for HookahBuddys
 paths:
   /storage/uploads/image:
     post:
@@ -138,6 +140,47 @@ paths:
           description: Video exceeds the 50 MB size limit.
         '500':
           description: Failed to store video.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /storage/uploads/group-file:
+    post:
+      tags: [Storage]
+      operationId: uploadGroupFile
+      summary: Upload a Group file (raw bytes, max 15 MB)
+      description: |
+        Bounded server-side generic Group file upload. Send the raw file bytes
+        as the request body. The server enforces the size limit before storage,
+        validates the bytes are an allowed Group file type (PDF, JPEG, PNG,
+        WebP), and stamps an owner ACL policy at write time. Returns the stored
+        object path and the authoritative sniffed content type. Use the
+        returned objectPath as the `mediaUrl` when creating a `kind: file`
+        Group media item.
+      requestBody:
+        required: true
+        content:
+          'application/octet-stream':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: File stored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupFileUploadResponse'
+        '400':
+          description: Body is not an allowed Group file type.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: File exceeds the 15 MB size limit.
+        '500':
+          description: Failed to store file.
           content:
             application/json:
               schema:
@@ -4227,6 +4270,1237 @@ paths:
               schema:
                 $ref: "#/components/schemas/BusinessContentReportItem"
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Groups — member-created group spaces
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  /groups:
+    get:
+      operationId: listGroups
+      tags: [groups]
+      summary: Discover/search Groups
+      parameters:
+        - { name: search, in: query, required: false, schema: { type: string } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: privacy, in: query, required: false, schema: { type: string, enum: [public, private] } }
+        - { name: featured, in: query, required: false, schema: { type: boolean } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupList"
+    post:
+      operationId: createGroup
+      tags: [groups]
+      summary: Create a new Group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupDetail"
+
+  /groups/my:
+    get:
+      operationId: listMyGroups
+      tags: [groups]
+      summary: Groups the current user belongs to
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupSummary"
+
+  /groups/invites:
+    get:
+      operationId: listMyGroupInvites
+      tags: [groups]
+      summary: Pending group invites for the current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupInvite"
+
+  /groups/{groupId}:
+    get:
+      operationId: getGroup
+      tags: [groups]
+      summary: Get group detail (private-visible non-members get a sanitized preview)
+      description: >
+        Members and public groups return the full GroupDetail. A non-member of a
+        private + VISIBLE group (or a private + hidden group they hold a valid
+        non-expired invite to) receives a sanitized preview (isPreview=true) with
+        group summary/branding only — posts, members, media, and events stay
+        behind their own membership-gated endpoints. Private + hidden groups
+        without a valid invite return 403.
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK (full detail, or sanitized preview with isPreview=true)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupDetail"
+        "403":
+          description: Private hidden group — not a member and no valid invite
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    patch:
+      operationId: updateGroup
+      tags: [groups]
+      summary: Update group settings (owner/admin)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupDetail"
+    delete:
+      operationId: deleteGroup
+      tags: [groups]
+      summary: Delete group (owner only; soft-deletes)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /groups/{groupId}/join:
+    post:
+      operationId: joinGroup
+      tags: [groups]
+      summary: Join a public group or request to join a private group
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JoinGroupBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupJoinResult"
+
+  /groups/{groupId}/leave:
+    post:
+      operationId: leaveGroup
+      tags: [groups]
+      summary: Leave a group (cannot leave if owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /groups/{groupId}/members:
+    get:
+      operationId: listGroupMembers
+      tags: [groups]
+      summary: List group members (private group requires membership)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: role, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupMember"
+
+  /groups/{groupId}/members/{userId}:
+    patch:
+      operationId: updateGroupMember
+      tags: [groups]
+      summary: Update a member's role or status (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupMemberBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupMember"
+    delete:
+      operationId: removeGroupMember
+      tags: [groups]
+      summary: Remove a member from the group (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Removed
+
+  /groups/{groupId}/invites:
+    get:
+      operationId: listGroupInvites
+      tags: [groups]
+      summary: List pending invites for this group (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupInvite"
+    post:
+      operationId: inviteToGroup
+      tags: [groups]
+      summary: Invite a user to a group
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupInviteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupInvite"
+
+  /groups/{groupId}/invites/{inviteId}:
+    patch:
+      operationId: respondToGroupInvite
+      tags: [groups]
+      summary: Accept or decline a group invite (invited user)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: inviteId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupInviteResponse"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupInvite"
+    delete:
+      operationId: cancelGroupInvite
+      tags: [groups]
+      summary: Cancel a pending invite (admin/owner or inviter)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: inviteId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Cancelled
+
+  /groups/{groupId}/join-requests:
+    get:
+      operationId: listGroupJoinRequests
+      tags: [groups]
+      summary: List pending join requests (admin/owner/moderator)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: status, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupJoinRequest"
+
+  /groups/{groupId}/join-requests/{requestId}:
+    patch:
+      operationId: reviewGroupJoinRequest
+      tags: [groups]
+      summary: Approve or decline a join request (admin/owner/moderator)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: requestId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewGroupJoinRequestBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupJoinRequest"
+
+  /groups/{groupId}/questions:
+    get:
+      operationId: listGroupQuestions
+      tags: [groups]
+      summary: Get membership questions for this group
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupQuestion"
+    put:
+      operationId: setGroupQuestions
+      tags: [groups]
+      summary: Replace group membership questions (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [questions]
+              properties:
+                questions:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/GroupQuestionInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupQuestion"
+
+  /groups/{groupId}/rules:
+    get:
+      operationId: listGroupRules
+      tags: [groups]
+      summary: Get group rules
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupRule"
+    post:
+      operationId: createGroupRule
+      tags: [groups]
+      summary: Add a group rule (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupRuleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupRule"
+
+  /groups/{groupId}/rules/{ruleId}:
+    patch:
+      operationId: updateGroupRule
+      tags: [groups]
+      summary: Update a group rule (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: ruleId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupRuleInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupRule"
+    delete:
+      operationId: deleteGroupRule
+      tags: [groups]
+      summary: Delete a group rule (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: ruleId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /groups/{groupId}/posts:
+    get:
+      operationId: listGroupPosts
+      tags: [groups]
+      summary: List group posts (private group requires membership)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - { name: status, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupPost"
+    post:
+      operationId: createGroupPost
+      tags: [groups]
+      summary: Create a group post (member/admin)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupPostBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPost"
+
+  /groups/{groupId}/posts/{postId}:
+    get:
+      operationId: getGroupPost
+      tags: [groups]
+      summary: Get a single group post (private group requires membership)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPost"
+        "403":
+          description: Private group — not a member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    patch:
+      operationId: updateGroupPost
+      tags: [groups]
+      summary: Edit a group post (author or admin/mod)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupPostBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPost"
+    delete:
+      operationId: deleteGroupPost
+      tags: [groups]
+      summary: Delete a group post (author, admin, or mod)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /groups/{groupId}/posts/{postId}/react:
+    post:
+      operationId: reactToGroupPost
+      tags: [groups]
+      summary: Add/update/remove reaction on a group post
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupPostReactInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPostReactResult"
+
+  /groups/{groupId}/posts/{postId}/save:
+    post:
+      operationId: toggleGroupPostSave
+      tags: [groups]
+      summary: Toggle save on a group post
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPostSaveResult"
+
+  /groups/{groupId}/posts/{postId}/approve:
+    post:
+      operationId: approveGroupPost
+      tags: [groups]
+      summary: Approve a pending post (admin/mod)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPost"
+
+  /groups/{groupId}/posts/{postId}/reject:
+    post:
+      operationId: rejectGroupPost
+      tags: [groups]
+      summary: Reject a pending post (admin/mod)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPost"
+
+  /groups/{groupId}/posts/{postId}/pin:
+    post:
+      operationId: toggleGroupPostPin
+      tags: [groups]
+      summary: Pin or unpin a group post (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPost"
+
+  /groups/{groupId}/posts/{postId}/report:
+    post:
+      operationId: reportGroupPost
+      tags: [groups]
+      summary: Report a group post
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupReportInput"
+      responses:
+        "201":
+          description: Reported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /groups/{groupId}/posts/{postId}/comments:
+    get:
+      operationId: listGroupPostComments
+      tags: [groups]
+      summary: List comments on a group post (private group requires membership)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupPostComment"
+    post:
+      operationId: createGroupPostComment
+      tags: [groups]
+      summary: Add a comment to a group post
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupPostCommentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPostComment"
+
+  /groups/{groupId}/posts/{postId}/comments/{commentId}:
+    delete:
+      operationId: deleteGroupPostComment
+      tags: [groups]
+      summary: Delete a comment (author, admin, or mod)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+        - { name: commentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /groups/{groupId}/posts/{postId}/comments/{commentId}/moderate:
+    patch:
+      operationId: moderateGroupPostComment
+      tags: [groups]
+      summary: Hide or restore a comment (admin/mod only)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+        - { name: commentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerateGroupCommentBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPostComment"
+
+  /groups/{groupId}/saved-posts:
+    get:
+      operationId: listGroupSavedPosts
+      tags: [groups]
+      summary: Posts the current user saved in this group
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupPost"
+
+  /groups/{groupId}/media:
+    get:
+      operationId: listGroupMedia
+      tags: [groups]
+      summary: List group media (photos/videos/reels/files)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: kind, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupMediaItem"
+    post:
+      operationId: uploadGroupMedia
+      tags: [groups]
+      summary: Upload media to a group (member/admin)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupMediaInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupMediaItem"
+
+  /groups/{groupId}/media/{mediaId}:
+    delete:
+      operationId: deleteGroupMedia
+      tags: [groups]
+      summary: Delete a media item (uploader, admin, or mod)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: mediaId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /groups/{groupId}/events:
+    get:
+      operationId: listGroupEvents
+      tags: [groups]
+      summary: List group events (private group requires membership)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: scope, in: query, required: false, schema: { type: string, enum: [upcoming, past] } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupEvent"
+    post:
+      operationId: createGroupEvent
+      tags: [groups]
+      summary: Create a group event (admin/owner/moderator)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupEventBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEvent"
+
+  /groups/{groupId}/events/{eventId}:
+    get:
+      operationId: getGroupEvent
+      tags: [groups]
+      summary: Get a group event (private group requires membership)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEvent"
+    patch:
+      operationId: updateGroupEvent
+      tags: [groups]
+      summary: Update a group event (admin/owner/moderator)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupEventBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEvent"
+    delete:
+      operationId: deleteGroupEvent
+      tags: [groups]
+      summary: Cancel/delete a group event (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /groups/{groupId}/events/{eventId}/rsvp:
+    post:
+      operationId: rsvpGroupEvent
+      tags: [groups]
+      summary: RSVP to a group event (toggle/update)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupEventRsvpInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEventRsvpResult"
+
+  /groups/{groupId}/events/{eventId}/attendees:
+    get:
+      operationId: listGroupEventAttendees
+      tags: [groups]
+      summary: List attendees for a group event (non-private RSVPs)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupEventAttendee"
+
+  /groups/{groupId}/reports:
+    get:
+      operationId: listGroupReports
+      tags: [groups]
+      summary: List reports in this group (admin/mod/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: status, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupReport"
+
+  /groups/{groupId}/reports/{reportId}:
+    patch:
+      operationId: reviewGroupReport
+      tags: [groups]
+      summary: Review a group report (admin/mod/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: reportId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewGroupReportBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupReport"
+
+  /groups/{groupId}/keyword-alerts:
+    get:
+      operationId: listGroupKeywordAlerts
+      tags: [groups]
+      summary: List keyword alerts (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupKeywordAlert"
+    post:
+      operationId: createGroupKeywordAlert
+      tags: [groups]
+      summary: Create a keyword alert (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupKeywordAlertInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupKeywordAlert"
+
+  /groups/{groupId}/keyword-alerts/{alertId}:
+    delete:
+      operationId: deleteGroupKeywordAlert
+      tags: [groups]
+      summary: Delete a keyword alert (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: alertId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /groups/{groupId}/activity-log:
+    get:
+      operationId: listGroupActivityLog
+      tags: [groups]
+      summary: Group activity log (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupActivityLogEntry"
+
+  /groups/{groupId}/insights:
+    get:
+      operationId: getGroupInsights
+      tags: [groups]
+      summary: Group insights/analytics (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupInsights"
+
+  /groups/{groupId}/featured:
+    get:
+      operationId: listGroupFeaturedContent
+      tags: [groups]
+      summary: List featured content in a group
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupFeaturedContentItem"
+    post:
+      operationId: addGroupFeaturedContent
+      tags: [groups]
+      summary: Feature a post/member/media in the group (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupFeaturedContentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupFeaturedContentItem"
+
+  /groups/{groupId}/featured/{featuredId}:
+    delete:
+      operationId: removeGroupFeaturedContent
+      tags: [groups]
+      summary: Remove featured content (admin/owner)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: featuredId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Removed
+
+  # ── Platform admin Group endpoints ───────────────────────────────────────
+
+  /admin/groups:
+    get:
+      operationId: adminListGroups
+      tags: [admin]
+      summary: Admin — list all groups with filters
+      parameters:
+        - { name: search, in: query, required: false, schema: { type: string } }
+        - { name: privacy, in: query, required: false, schema: { type: string } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: status, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminGroupList"
+
+  /admin/groups/{groupId}:
+    get:
+      operationId: adminGetGroup
+      tags: [admin]
+      summary: Admin — get full group detail
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminGroupDetail"
+    patch:
+      operationId: adminUpdateGroupStatus
+      tags: [admin]
+      summary: Admin — suspend / hide / restore / feature / delete a group
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminGroupActionBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupDetail"
+
+  /admin/groups/{groupId}/posts:
+    get:
+      operationId: adminListGroupPosts
+      tags: [admin]
+      summary: Admin — view all posts in a group
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: status, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupPost"
+
+  /admin/groups/{groupId}/posts/{postId}/moderate:
+    patch:
+      operationId: adminModerateGroupPost
+      tags: [admin]
+      summary: Admin — hide/remove a group post (sets moderation lock)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminModerateGroupContentBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupPost"
+
+  /admin/groups/{groupId}/reports:
+    get:
+      operationId: adminListGroupReports
+      tags: [admin]
+      summary: Admin — view reports for a group
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: status, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupReport"
+
+  /admin/groups/{groupId}/transfer-owner:
+    post:
+      operationId: adminTransferGroupOwner
+      tags: [admin]
+      summary: Admin — transfer group ownership
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newOwnerUserId]
+              properties:
+                newOwnerUserId: { type: integer }
+                reason: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -5747,6 +7021,17 @@ components:
           type: string
           description: Stored path of the JPEG poster frame. Serve via `/api/storage` + posterPath.
 
+    GroupFileUploadResponse:
+      type: object
+      required: [objectPath, contentType]
+      properties:
+        objectPath:
+          type: string
+          description: Stored object path (e.g. `/objects/uploads/uuid`). Serve via `/api/storage` + objectPath.
+        contentType:
+          type: string
+          description: Authoritative sniffed MIME type (PDF, JPEG, PNG, or WebP).
+
     ErrorEnvelope:
       type: object
       required: [error]
@@ -6678,3 +7963,626 @@ components:
       properties:
         scheduledAt: { type: string }
         durationMinutes: { type: integer }
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Groups schemas
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    GroupSummary:
+      type: object
+      # NOTE: `status` and `postCount` are intentionally NOT required. The
+      # `getGroup` sanitized preview (private + visible non-member, or hidden
+      # invited) OMITS internal/lifecycle fields, so consumers must treat them
+      # as optional. All full (member/public/list) responses still populate them.
+      required: [id, name, privacy, visibility, memberCount, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        handle: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        category: { type: ["string", "null"] }
+        customCategory: { type: ["string", "null"] }
+        tags: { type: array, items: { type: string } }
+        privacy: { type: string, enum: [public, private] }
+        visibility: { type: string, enum: [visible, hidden] }
+        coverUrl: { type: ["string", "null"] }
+        iconUrl: { type: ["string", "null"] }
+        location: { type: ["string", "null"] }
+        postingPermission: { type: string }
+        postApproval: { type: boolean }
+        status: { type: string, enum: [active, hidden, suspended, deleted] }
+        isFeatured: { type: boolean }
+        memberCount: { type: integer }
+        postCount: { type: integer }
+        eventCount: { type: integer }
+        viewerMemberRole: { type: ["string", "null"] }
+        viewerHasPendingRequest: { type: boolean }
+        createdAt: { type: string }
+
+    GroupDetail:
+      allOf:
+        - $ref: "#/components/schemas/GroupSummary"
+        - type: object
+          properties:
+            # creatorUserId / updatedAt are present ONLY on full responses.
+            # They (and postingPermission/postApproval/status/isFeatured/
+            # postCount/eventCount) are OMITTED from the sanitized preview so a
+            # non-member cannot learn owner identity or internal settings.
+            creatorUserId: { type: integer }
+            updatedAt: { type: string }
+            # True when returned as a SANITIZED PREVIEW for a non-member of a
+            # discoverable (private + visible, or hidden with a valid invite)
+            # group. Only public discovery/request fields are included; posts,
+            # members, media, and events remain behind their own membership-gated
+            # endpoints and are NOT included here.
+            isPreview: { type: boolean }
+
+    GroupList:
+      type: object
+      required: [groups, total]
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupSummary"
+        total: { type: integer }
+
+    CreateGroupBody:
+      type: object
+      required: [name, privacy]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        handle: { type: string }
+        description: { type: string }
+        category: { type: string }
+        customCategory: { type: string }
+        tags: { type: array, items: { type: string } }
+        privacy: { type: string, enum: [public, private] }
+        visibility: { type: string, enum: [visible, hidden] }
+        coverUrl: { type: string, description: "Finalized internal storage image object path" }
+        iconUrl: { type: string, description: "Finalized internal storage image object path" }
+        location: { type: string }
+        postingPermission: { type: string, enum: [all_members, admins_only, approved_members] }
+        postApproval: { type: boolean }
+
+    UpdateGroupBody:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        handle: { type: string }
+        description: { type: string }
+        category: { type: string }
+        customCategory: { type: string }
+        tags: { type: array, items: { type: string } }
+        privacy: { type: string, enum: [public, private] }
+        visibility: { type: string, enum: [visible, hidden] }
+        coverUrl: { type: ["string", "null"], description: "Finalized internal storage image object; null clears" }
+        iconUrl: { type: ["string", "null"], description: "Finalized internal storage image object; null clears" }
+        location: { type: string }
+        postingPermission: { type: string, enum: [all_members, admins_only, approved_members] }
+        postApproval: { type: boolean }
+
+    JoinGroupBody:
+      type: object
+      properties:
+        answers:
+          type: array
+          description: Answers to membership questions (required when group has required questions)
+          items:
+            type: object
+            required: [questionId, answerText]
+            properties:
+              questionId: { type: integer }
+              answerText: { type: string, minLength: 1 }
+
+    GroupJoinResult:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [joined, requested] }
+        message: { type: string }
+
+    GroupMember:
+      type: object
+      required: [id, groupId, userId, role, status, joinedAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        role: { type: string, enum: [owner, admin, moderator, member] }
+        joinedVia: { type: string }
+        status: { type: string, enum: [active, suspended] }
+        joinedAt: { type: string }
+
+    UpdateGroupMemberBody:
+      type: object
+      properties:
+        role: { type: string, enum: [admin, moderator, member] }
+        status: { type: string, enum: [active, suspended] }
+
+    GroupInvite:
+      type: object
+      required: [id, groupId, invitedByUserId, invitedUserId, status, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        groupName: { type: ["string", "null"] }
+        invitedByUserId: { type: integer }
+        invitedByUserName: { type: string }
+        invitedUserId: { type: integer }
+        invitedUserName: { type: string }
+        status: { type: string, enum: [pending, accepted, declined, expired, cancelled] }
+        createdAt: { type: string }
+        expiresAt: { type: ["string", "null"] }
+        # Enriched payload for the dashboard "Pending Invitations" section.
+        group:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/GroupInviteGroupSummary"
+        inviterId: { type: integer }
+        inviterName: { type: string }
+        inviterPhotoUrl: { type: ["string", "null"] }
+
+    GroupInviteGroupSummary:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        iconUrl: { type: ["string", "null"] }
+
+    GroupInviteInput:
+      type: object
+      required: [invitedUserId]
+      properties:
+        invitedUserId: { type: integer }
+
+    GroupInviteResponse:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [accept, decline] }
+
+    GroupJoinRequest:
+      type: object
+      required: [id, groupId, userId, status, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        status: { type: string, enum: [pending, approved, declined, cancelled] }
+        declineReason: { type: ["string", "null"] }
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupQuestionAnswerItem"
+        createdAt: { type: string }
+
+    ReviewGroupJoinRequestBody:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [approve, decline] }
+        reason: { type: string }
+
+    GroupQuestion:
+      type: object
+      required: [id, groupId, questionText, isRequired, sortOrder]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        questionText: { type: string }
+        isRequired: { type: boolean }
+        sortOrder: { type: integer }
+
+    GroupQuestionInput:
+      type: object
+      required: [questionText]
+      properties:
+        questionText: { type: string, minLength: 1 }
+        isRequired: { type: boolean }
+        sortOrder: { type: integer }
+
+    GroupQuestionAnswerItem:
+      type: object
+      required: [questionId, questionText, answerText]
+      properties:
+        questionId: { type: integer }
+        questionText: { type: string }
+        answerText: { type: string }
+
+    GroupRule:
+      type: object
+      required: [id, groupId, title, sortOrder]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        sortOrder: { type: integer }
+        createdAt: { type: string }
+
+    GroupRuleInput:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string }
+        sortOrder: { type: integer }
+
+    GroupPost:
+      type: object
+      required: [id, groupId, text, mediaType, postType, status, likeCount, commentCount, saveCount, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        # null when posted as a Business Page (authorUserId is suppressed for privacy)
+        authorUserId: { type: ["integer", "null"] }
+        authorName: { type: string }
+        authorPhotoUrl: { type: ["string", "null"] }
+        authorRole: { type: string }
+        # Business attribution (authorUserId never exposed when businessId is set)
+        businessId: { type: ["integer", "null"] }
+        businessName: { type: ["string", "null"] }
+        businessHandle: { type: ["string", "null"] }
+        businessLogoUrl: { type: ["string", "null"] }
+        text: { type: string }
+        mediaUrl: { type: ["string", "null"] }
+        posterUrl: { type: ["string", "null"] }
+        mediaType: { type: string, enum: [none, image, video] }
+        postType: { type: string }
+        pollData: { type: ["object", "null"] }
+        status: { type: string, enum: [active, pending_approval, hidden, removed] }
+        moderationLocked: { type: boolean }
+        isPinned: { type: boolean }
+        likeCount: { type: integer }
+        commentCount: { type: integer }
+        saveCount: { type: integer }
+        viewerReaction: { type: ["string", "null"] }
+        viewerSaved: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    CreateGroupPostBody:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, minLength: 1 }
+        mediaUrl: { type: string, description: "Finalized internal storage object" }
+        posterUrl: { type: string, description: "Finalized internal storage image for video poster" }
+        mediaType: { type: string, enum: [none, image, video] }
+        postType: { type: string, enum: [text, photo, video, poll, question, feeling, reel, file] }
+        businessId: { type: integer, description: "Post as a Business Page the user manages" }
+        pollData:
+          type: object
+          properties:
+            question: { type: string }
+            options:
+              type: array
+              items:
+                type: object
+                required: [id, text]
+                properties:
+                  id: { type: string }
+                  text: { type: string }
+            closesAt: { type: string }
+            multiChoice: { type: boolean }
+
+    UpdateGroupPostBody:
+      type: object
+      properties:
+        text: { type: string, minLength: 1 }
+        status: { type: string, enum: [active, hidden] }
+        isPinned: { type: boolean }
+
+    GroupPostReactInput:
+      type: object
+      properties:
+        reactionType: { type: string, enum: [like, heart, laugh, wow, sad, angry] }
+
+    GroupPostReactResult:
+      type: object
+      required: [active, likeCount]
+      properties:
+        active: { type: boolean }
+        reactionType: { type: ["string", "null"] }
+        likeCount: { type: integer }
+
+    GroupPostSaveResult:
+      type: object
+      required: [saved, saveCount]
+      properties:
+        saved: { type: boolean }
+        saveCount: { type: integer }
+
+    GroupPostComment:
+      type: object
+      required: [id, postId, groupId, userId, commentText, status, likeCount, createdAt]
+      properties:
+        id: { type: integer }
+        postId: { type: integer }
+        groupId: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        parentCommentId: { type: ["integer", "null"] }
+        commentText: { type: string }
+        status: { type: string }
+        likeCount: { type: integer }
+        createdAt: { type: string }
+
+    GroupPostCommentInput:
+      type: object
+      required: [commentText]
+      properties:
+        commentText: { type: string, minLength: 1 }
+        parentCommentId: { type: integer }
+
+    ModerateGroupCommentBody:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [hide, restore] }
+        reason: { type: string }
+
+    GroupMediaItem:
+      type: object
+      required: [id, groupId, kind, mediaUrl, status, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        # null when uploaded as a Business Page
+        uploadedByUserId: { type: ["integer", "null"] }
+        uploaderName: { type: ["string", "null"] }
+        uploaderPhotoUrl: { type: ["string", "null"] }
+        businessId: { type: ["integer", "null"] }
+        businessName: { type: ["string", "null"] }
+        postId: { type: ["integer", "null"] }
+        kind: { type: string, enum: [photo, video, reel, file] }
+        caption: { type: ["string", "null"] }
+        mediaUrl: { type: string }
+        posterUrl: { type: ["string", "null"] }
+        fileName: { type: ["string", "null"] }
+        mimeType: { type: ["string", "null"] }
+        fileSizeBytes: { type: ["integer", "null"] }
+        status: { type: string, enum: [active, hidden, removed, pending] }
+        likeCount: { type: integer }
+        saveCount: { type: integer }
+        createdAt: { type: string }
+
+    GroupMediaInput:
+      type: object
+      required: [kind, mediaUrl]
+      properties:
+        kind: { type: string, enum: [photo, video, reel, file] }
+        mediaUrl: { type: string, description: "Finalized internal storage object; external URLs rejected" }
+        posterUrl: { type: string }
+        caption: { type: string }
+        businessId: { type: integer }
+        fileName: { type: string }
+        mimeType: { type: string }
+        fileSizeBytes: { type: integer }
+
+    GroupEvent:
+      type: object
+      required: [id, groupId, title, startsAt, status, visibility, rsvpCount, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        createdByUserId: { type: integer }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        location: { type: ["string", "null"] }
+        onlineUrl: { type: ["string", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        startsAt: { type: string }
+        endsAt: { type: ["string", "null"] }
+        status: { type: string, enum: [draft, active, cancelled, completed, hidden, removed] }
+        visibility: { type: string, enum: [public, private] }
+        rsvpCount: { type: integer }
+        hideAttendees: { type: boolean }
+        viewerRsvpStatus: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    CreateGroupEventBody:
+      type: object
+      required: [title, startsAt]
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        location: { type: string }
+        onlineUrl: { type: string }
+        imageUrl: { type: string, description: "Finalized internal storage image object" }
+        startsAt: { type: string }
+        endsAt: { type: string }
+        visibility: { type: string, enum: [public, private] }
+        hideAttendees: { type: boolean }
+
+    UpdateGroupEventBody:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        location: { type: string }
+        onlineUrl: { type: string }
+        imageUrl: { type: ["string", "null"] }
+        startsAt: { type: string }
+        endsAt: { type: string }
+        status: { type: string, enum: [active, cancelled, completed, hidden] }
+        visibility: { type: string, enum: [public, private] }
+        hideAttendees: { type: boolean }
+
+    GroupEventRsvpInput:
+      type: object
+      required: [rsvpStatus]
+      properties:
+        rsvpStatus: { type: string, enum: [going, interested, not_going] }
+        isPrivate: { type: boolean }
+
+    GroupEventRsvpResult:
+      type: object
+      required: [rsvpStatus, rsvpCount]
+      properties:
+        rsvpStatus: { type: ["string", "null"] }
+        rsvpCount: { type: integer }
+
+    GroupEventAttendee:
+      type: object
+      required: [userId, rsvpStatus]
+      properties:
+        userId: { type: integer }
+        userName: { type: string }
+        userPhotoUrl: { type: ["string", "null"] }
+        rsvpStatus: { type: string }
+        rsvpAt: { type: string }
+
+    GroupReport:
+      type: object
+      required: [id, groupId, reporterUserId, targetType, targetId, reason, status, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        reporterUserId: { type: integer }
+        targetType: { type: string, enum: [group, post, comment, member, event, media] }
+        targetId: { type: integer }
+        reason: { type: string }
+        details: { type: ["string", "null"] }
+        status: { type: string, enum: [pending, reviewed, dismissed, actioned] }
+        reviewedByUserId: { type: ["integer", "null"] }
+        reviewedAt: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    GroupReportInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1 }
+        details: { type: string }
+
+    ReviewGroupReportBody:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [dismiss, action] }
+        note: { type: string }
+
+    GroupKeywordAlert:
+      type: object
+      required: [id, groupId, keyword, action, isActive, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        keyword: { type: string }
+        action: { type: string, enum: [flag, auto_hide, auto_remove] }
+        isActive: { type: boolean }
+        createdAt: { type: string }
+
+    GroupKeywordAlertInput:
+      type: object
+      required: [keyword]
+      properties:
+        keyword: { type: string, minLength: 1 }
+        action: { type: string, enum: [flag, auto_hide, auto_remove] }
+
+    GroupActivityLogEntry:
+      type: object
+      required: [id, groupId, actorUserId, action, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        actorUserId: { type: integer }
+        actorName: { type: string }
+        action: { type: string }
+        targetType: { type: ["string", "null"] }
+        targetId: { type: ["integer", "null"] }
+        note: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    GroupInsights:
+      type: object
+      required: [groupId, memberCount, postCount, eventCount]
+      properties:
+        groupId: { type: integer }
+        memberCount: { type: integer }
+        postCount: { type: integer }
+        eventCount: { type: integer }
+        newMembersLast7Days: { type: integer }
+        newMembersLast30Days: { type: integer }
+        postsLast7Days: { type: integer }
+        postsLast30Days: { type: integer }
+        topReactedPosts:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupPost"
+
+    GroupFeaturedContentItem:
+      type: object
+      required: [id, groupId, contentType, contentId, sortOrder, createdAt]
+      properties:
+        id: { type: integer }
+        groupId: { type: integer }
+        contentType: { type: string, enum: [post, member, media] }
+        contentId: { type: integer }
+        sortOrder: { type: integer }
+        createdAt: { type: string }
+
+    GroupFeaturedContentInput:
+      type: object
+      required: [contentType, contentId]
+      properties:
+        contentType: { type: string, enum: [post, member, media] }
+        contentId: { type: integer }
+        sortOrder: { type: integer }
+
+    # ── Admin group schemas ────────────────────────────────────────────────────
+
+    AdminGroupList:
+      type: object
+      required: [groups, total]
+      properties:
+        total: { type: integer }
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminGroupSummary"
+
+    AdminGroupSummary:
+      allOf:
+        - $ref: "#/components/schemas/GroupSummary"
+        - type: object
+          properties:
+            creatorUserId: { type: integer }
+            reportCount: { type: integer }
+
+    AdminGroupDetail:
+      allOf:
+        - $ref: "#/components/schemas/GroupDetail"
+        - type: object
+          properties:
+            reportCount: { type: integer }
+            activityLog:
+              type: array
+              items:
+                $ref: "#/components/schemas/GroupActivityLogEntry"
+
+    AdminGroupActionBody:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [suspend, hide, restore, delete, feature, unfeature]
+        reason: { type: string }
+        featuredUntil: { type: string }
+
+    AdminModerateGroupContentBody:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [hide, remove, restore] }
+        reason: { type: string }

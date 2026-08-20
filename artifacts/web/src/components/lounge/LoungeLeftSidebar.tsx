@@ -21,6 +21,7 @@ import { COMMUNITY_SHORTCUTS } from "@/lib/communityTopics";
 
 const NAV_LINKS = [
   { to: "/feed", label: "The Lounge", icon: Home },
+  { to: "/groups", label: "Groups", icon: Users },
   { to: "/friends", label: "Friends", icon: Users },
   { to: "/messages", label: "Messages", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Bell },
@@ -106,7 +107,7 @@ export default function LoungeLeftSidebar() {
 
       {/* Navigation */}
       <nav className="rounded-2xl bg-card/30 border border-white/5 backdrop-blur-md p-2">
-        {(authenticated ? NAV_LINKS : NAV_LINKS.filter((l) => ["/feed", "/reels", "/browse", "/pricing"].includes(l.to))).map(
+        {(authenticated ? NAV_LINKS : NAV_LINKS.filter((l) => ["/feed", "/reels", "/groups", "/browse", "/pricing"].includes(l.to))).map(
           ({ to, label, icon: Icon }) => {
             const isActive = location === to || (to !== "/" && location.startsWith(to) && to !== "/feed");
             return (
@@ -127,10 +128,10 @@ export default function LoungeLeftSidebar() {
         )}
       </nav>
 
-      {/* Community shortcuts */}
+      {/* Group and topic shortcuts */}
       <div className="rounded-2xl bg-card/30 border border-white/5 backdrop-blur-md p-2">
         <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-widest text-muted-foreground/70">
-          Hookah Community
+          Groups & Topics
         </p>
         {COMMUNITY_SHORTCUTS.map(({ label, href, icon: Icon }) => {
           const isActive = location === href ||
