@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { syncPlans } from "./lib/syncPlans";
 import { startEventReminderScheduler } from "./lib/eventReminders";
+import { startBusinessSpotlightGeocodeScheduler } from "./lib/privateGeocoding";
 
 const rawPort = process.env["PORT"];
 
@@ -29,6 +30,7 @@ syncPlans()
       }
       logger.info({ port }, "Server listening");
       startEventReminderScheduler();
+      startBusinessSpotlightGeocodeScheduler();
     });
   })
   .catch((err) => {

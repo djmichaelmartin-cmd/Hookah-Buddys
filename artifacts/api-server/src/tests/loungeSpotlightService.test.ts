@@ -118,6 +118,19 @@ describe("25-mile filtering", () => {
     const ranked = rankCandidates([near, far], ORIGIN);
     expect(ranked.map((r) => r.id)).toEqual([1]);
   });
+
+  it("keeps nearby businesses outside the member's saved city boundary", () => {
+    const nearbyOtherCity = makeCandidate({
+      id: 3,
+      city: "Round Rock",
+      state: "TX",
+      lat: 30.31,
+      lng: -97.68,
+    });
+    expect(rankCandidates([nearbyOtherCity], ORIGIN).map((r) => r.id)).toEqual([
+      3,
+    ]);
+  });
 });
 
 describe("ranking tie-breaks", () => {

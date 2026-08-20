@@ -19,6 +19,8 @@ export function SettingsForm({ business }: { business: BusinessDetail }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const canManageLocation =
+    business.viewerRole === "owner" || business.viewerRole === "admin";
 
   const [formData, setFormData] = useState<Partial<BusinessSettingsUpdate>>({
     name: business.name || "",
@@ -54,6 +56,7 @@ export function SettingsForm({ business }: { business: BusinessDetail }) {
     mutation: {
       onSuccess: () => {
         toast({ title: "Settings updated successfully" });
+        setFormData((previous) => ({ ...previous, refreshSpotlightLocation: false }));
         queryClient.invalidateQueries({ queryKey: getGetBusinessByHandleQueryKey(business.handle) });
       },
       onError: (err: unknown) => {
@@ -161,24 +164,50 @@ export function SettingsForm({ business }: { business: BusinessDetail }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-white/80 mb-2">Address</label>
-                <Input value={formData.address || ""} onChange={e => setFormData(p => ({...p, address: e.target.value}))} className="bg-background border-white/10" />
+                <Input value={formData.address || ""} onChange={e => setFormData(p => ({...p, address: e.target.value}))} className="bg-background border-white/10" disabled={!canManageLocation} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">City</label>
-                <Input value={formData.city || ""} onChange={e => setFormData(p => ({...p, city: e.target.value}))} className="bg-background border-white/10" />
+                <Input value={formData.city || ""} onChange={e => setFormData(p => ({...p, city: e.target.value}))} className="bg-background border-white/10" disabled={!canManageLocation} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">State</label>
-                <Input value={formData.state || ""} onChange={e => setFormData(p => ({...p, state: e.target.value}))} className="bg-background border-white/10" />
+                <Input value={formData.state || ""} onChange={e => setFormData(p => ({...p, state: e.target.value}))} className="bg-background border-white/10" disabled={!canManageLocation} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">Zip</label>
-                <Input value={formData.zip || ""} onChange={e => setFormData(p => ({...p, zip: e.target.value}))} className="bg-background border-white/10" />
+                <Input value={formData.zip || ""} onChange={e => setFormData(p => ({...p, zip: e.target.value}))} className="bg-background border-white/10" disabled={!canManageLocation} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">Service Area</label>
                 <Input value={formData.serviceArea || ""} onChange={e => setFormData(p => ({...p, serviceArea: e.target.value}))} className="bg-background border-white/10" />
               </div>
+              {canManageLocation && (
+                <div className="md:col-span-2 flex items-start gap-3 rounded-xl border border-white/10 bg-background p-4">
+                  <Checkbox
+                    id="refreshSpotlightLocation"
+                    checked={formData.refreshSpotlightLocation === true}
+                    onCheckedChange={(checked) =>
+                      setFormData((previous) => ({
+                        ...previous,
+                        refreshSpotlightLocation: checked === true,
+                      }))
+                    }
+                  />
+                  <div>
+                    <label
+                      htmlFor="refreshSpotlightLocation"
+                      className="block text-sm font-medium text-white"
+                    >
+                      Refresh Local Spotlight location
+                    </label>
+                    <p className="mt-1 text-xs text-white/50">
+                      Recheck this address privately when you save. Coordinates stay
+                      on the server and are never added to this page.
+                    </p>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">Phone</label>
                 <Input value={formData.phone || ""} onChange={e => setFormData(p => ({...p, phone: e.target.value}))} className="bg-background border-white/10" />

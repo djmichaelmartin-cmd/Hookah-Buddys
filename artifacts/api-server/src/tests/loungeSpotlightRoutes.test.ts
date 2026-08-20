@@ -12,8 +12,8 @@
  *   2. `../lib/auth` — session user from an `x-test-user` header.
  *
  * Coverage: signed-out login_required, location_required (no saved loc + no
- * mappable centroid), city/state centroid derivation + persistence, ready with
- * top-3 ranking + rotation, partial, empty, daily persistence reuse, cache
+ * mappable centroid or geocode), city/state centroid/geocode persistence, ready
+ * with top-3 ranking + rotation, partial, empty, daily persistence reuse, cache
  * safety after admin disables a page, and a privacy assertion proving no
  * lat/lng/locationKey/coarse-key/user coords appear anywhere in the response.
  */
@@ -234,11 +234,20 @@ describe("GET /lounge-spotlight/local", () => {
     expect(body.radiusMiles).toBe(25);
   });
 
-  it("no saved location and no mappable city centroid → location_required", async () => {
-    // memberLocations empty; businesses+lounges centroid queries empty.
+  it("no saved location and no safe city result → location_required", async () => {
+    // memberLocations empty; businesses+lounges centroid queries empty; a
+    // recent failed city lookup prevents fabricated precision or another call.
     h.enqueue(T.memberLocationsTable, []); // saved
     h.enqueue(T.businessesTable, []); // centroid biz
     h.enqueue(T.loungesTable, []); // centroid lounges
+    h.enqueue(T.cityGeocodesTable, [
+      {
+        status: "unavailable",
+        lat: null,
+        lng: null,
+        attemptedAt: new Date(),
+      },
+    ]);
     const { body } = await get(user);
     expect(body.state).toBe("location_required");
     expect(body.businesses).toEqual([]);
@@ -263,6 +272,57 @@ describe("GET /lounge-spotlight/local", () => {
     expect(wrote).toBeTruthy();
     expect((wrote!.values as Record<string, unknown>).source).toBe("city_centroid");
     expect(body.state).toBe("partial"); // one candidate only
+  });
+
+  it("uses a private server-side city geocode when the city has no mapped venues", async () => {
+    h.enqueue(T.memberLocationsTable, []); // saved: none
+    h.enqueue(T.businessesTable, []); // no mapped business in the saved city
+    h.enqueue(T.loungesTable, []); // no mapped legacy lounge in the saved city
+    h.enqueue(T.cityGeocodesTable, [
+      {
+        status: "ready",
+        lat: ORIGIN.lat,
+        lng: ORIGIN.lng,
+        attemptedAt: new Date(),
+      },
+    ]);
+    // A business just outside the city can now rank from the real city origin.
+    h.enqueue(T.businessesTable, [biz({ id: 1, city: "Round Rock" })]);
+    h.enqueue(T.dailyLoungeSpotlightsTable, []);
+    h.enqueue(T.dailyLoungeSpotlightsTable, [{ businessIds: "1" }]);
+
+    const { body } = await get(user);
+    const wrote = h.inserted.find((i) => i.table === T.memberLocationsTable);
+    expect(wrote).toBeTruthy();
+    expect((wrote!.values as Record<string, unknown>).source).toBe("city_geocode");
+    expect(body.state).toBe("partial");
+    expect((body.businesses as unknown[]).length).toBe(1);
+
+    const serialized = JSON.stringify(body);
+    expect(serialized).not.toContain(String(ORIGIN.lat));
+    expect(serialized).not.toContain(String(ORIGIN.lng));
+    expect(body).not.toHaveProperty("lat");
+    expect(body).not.toHaveProperty("lng");
+  });
+
+  it("keeps the existing guidance for an ambiguous city geocode", async () => {
+    h.enqueue(T.memberLocationsTable, []);
+    h.enqueue(T.businessesTable, []);
+    h.enqueue(T.loungesTable, []);
+    h.enqueue(T.cityGeocodesTable, [
+      {
+        status: "ambiguous",
+        lat: null,
+        lng: null,
+        attemptedAt: new Date(),
+      },
+    ]);
+
+    const { body } = await get(user);
+    expect(body.state).toBe("location_required");
+    expect(body.locationLabel).toBe("Austin, TX");
+    expect(body.businesses).toEqual([]);
+    expect(h.inserted.find((i) => i.table === T.memberLocationsTable)).toBeFalsy();
   });
 
   it("ready → top-3 ranked winners, privacy-safe cards, no coords", async () => {

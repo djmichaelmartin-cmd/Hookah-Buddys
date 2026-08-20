@@ -3973,7 +3973,8 @@ export const UpdateBusinessSettingsBody = zod.object({
   "bookingDefaultDurationMinutes": zod.number().optional(),
   "bookingTimezone": zod.string().nullish(),
   "allowMentions": zod.boolean().optional(),
-  "mentionsRequireApproval": zod.boolean().optional()
+  "mentionsRequireApproval": zod.boolean().optional(),
+  "refreshSpotlightLocation": zod.boolean().optional().describe('Requests a server-side refresh of the private Business Spotlight location from the saved address. No coordinates are accepted or returned by this action.\n')
 })
 
 export const UpdateBusinessSettingsResponse = zod.object({

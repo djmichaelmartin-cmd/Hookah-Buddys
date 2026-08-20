@@ -66,4 +66,7 @@ export interface BusinessSettingsUpdate {
   bookingTimezone?: string | null;
   allowMentions?: boolean;
   mentionsRequireApproval?: boolean;
+  /** Requests a server-side refresh of the private Business Spotlight location from the saved address. No coordinates are accepted or returned by this action.
+   */
+  refreshSpotlightLocation?: boolean;
 }

@@ -78,6 +78,10 @@ import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage"
 import { logger } from "../lib/logger";
 import { createBusinessMentions } from "../lib/businessMentions";
 import {
+  processBusinessSpotlightLocation,
+  queueBusinessSpotlightLocation,
+} from "../lib/privateGeocoding";
+import {
   ALL_ASSIGNABLE_BUSINESS_ROLES,
   getBufferedAppointmentInterval,
   hasBusinessCapability,
@@ -93,6 +97,18 @@ import {
 } from "../lib/businessPolicies";
 
 const router: IRouter = Router();
+
+function processQueuedBusinessLocation(
+  business: typeof businessesTable.$inferSelect,
+  fingerprint: string,
+): void {
+  void processBusinessSpotlightLocation(business, fingerprint).catch(() => {
+    logger.warn(
+      { businessId: business.id },
+      "Business Spotlight location processing could not complete",
+    );
+  });
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Role capability helpers
@@ -1355,7 +1371,13 @@ router.post("/businesses", requireAuth(), async (req, res): Promise<void> => {
     role: "owner",
   });
 
-  res.status(201).json(await serializeBusinessDetail(biz, user.id));
+  const locationFingerprint =
+    biz.address?.trim() && biz.city?.trim() && biz.state?.trim()
+      ? await queueBusinessSpotlightLocation(biz)
+      : null;
+  const response = await serializeBusinessDetail(biz, user.id);
+  res.status(201).json(response);
+  if (locationFingerprint) processQueuedBusinessLocation(biz, locationFingerprint);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1419,6 +1441,22 @@ router.patch("/businesses/:handle/settings", requireAuth(), async (req, res): Pr
   }
 
   const body = req.body as Record<string, unknown>;
+  const refreshSpotlightLocation = body.refreshSpotlightLocation === true;
+  const normalizeLocationPart = (value: unknown) =>
+    typeof value === "string" ? value.trim().replace(/\s+/g, " ").toUpperCase() : "";
+  const locationChanged = (["address", "city", "state", "zip"] as const).some(
+    (field) =>
+      body[field] !== undefined &&
+      normalizeLocationPart(body[field]) !== normalizeLocationPart(biz[field]),
+  );
+  const canManageLocation = canManageSettings(role) || isAdmin;
+  if (
+    (refreshSpotlightLocation && !canManageLocation) ||
+    (locationChanged && !canManageLocation)
+  ) {
+    res.status(403).json({ error: "Insufficient permissions for location settings" });
+    return;
+  }
 
   // Finalize logo/cover images
   let logoUrl: string | null | undefined = undefined;
@@ -1513,6 +1551,11 @@ router.patch("/businesses/:handle/settings", requireAuth(), async (req, res): Pr
     if (body.mentionsRequireApproval !== undefined) {
       updates.mentionsRequireApproval = Boolean(body.mentionsRequireApproval);
     }
+    for (const field of ["address", "city", "state", "zip"] as const) {
+      if (body[field] !== undefined) {
+        updates[field] = typeof body[field] === "string" ? body[field].trim() : null;
+      }
+    }
   }
 
   // Publish/unpublish — owner only (+ platform admin)
@@ -1521,8 +1564,8 @@ router.patch("/businesses/:handle/settings", requireAuth(), async (req, res): Pr
   }
 
   const strFields = [
-    "tagline", "description", "mission", "foundedDate", "address", "city", "state",
-    "zip", "serviceArea", "phone", "email", "parkingInfo", "priceRange",
+    "tagline", "description", "mission", "foundedDate", "serviceArea", "phone",
+    "email", "parkingInfo", "priceRange",
     "accessibility", "ageRequirement",
   ] as const;
   for (const field of strFields) {
@@ -1547,7 +1590,7 @@ router.patch("/businesses/:handle/settings", requireAuth(), async (req, res): Pr
     updates.isOpenNowOverride = body.isOpenNowOverride === null ? null : Boolean(body.isOpenNowOverride);
   }
 
-  if (Object.keys(updates).length === 0) {
+  if (Object.keys(updates).length === 0 && !refreshSpotlightLocation) {
     res.status(400).json({ error: "No updatable fields provided" });
     return;
   }
@@ -1561,21 +1604,37 @@ router.patch("/businesses/:handle/settings", requireAuth(), async (req, res): Pr
       ? (updates.isPublished as boolean)
       : null;
 
-  const [updated] = await db.transaction(async (tx) => {
-    const [row] = await tx
-      .update(businessesTable)
-      .set(updates)
-      .where(eq(businessesTable.id, biz.id))
-      .returning();
-    if (publishTransition === false) {
-      await hideBusinessFeedRows(tx, biz.id);
-    } else if (publishTransition === true && row.status === "active") {
-      await restoreBusinessFeedRows(tx, biz.id);
-    }
-    return [row];
-  });
+  const updated =
+    Object.keys(updates).length === 0
+      ? biz
+      : (
+          await db.transaction(async (tx) => {
+            const [row] = await tx
+              .update(businessesTable)
+              .set(updates)
+              .where(eq(businessesTable.id, biz.id))
+              .returning();
+            if (publishTransition === false) {
+              await hideBusinessFeedRows(tx, biz.id);
+            } else if (publishTransition === true && row.status === "active") {
+              await restoreBusinessFeedRows(tx, biz.id);
+            }
+            return [row];
+          })
+        )[0];
 
-  res.json(await serializeBusinessDetail(updated, user.id));
+  const locationFingerprint =
+    locationChanged || refreshSpotlightLocation
+      ? await queueBusinessSpotlightLocation(updated, db, {
+          preserveExistingCoordinates:
+            refreshSpotlightLocation && !locationChanged,
+        })
+      : null;
+  const response = await serializeBusinessDetail(updated, user.id);
+  res.json(response);
+  if (locationFingerprint) {
+    processQueuedBusinessLocation(updated, locationFingerprint);
+  }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

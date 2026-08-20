@@ -7378,6 +7378,12 @@ components:
         bookingTimezone: { type: ["string", "null"] }
         allowMentions: { type: boolean }
         mentionsRequireApproval: { type: boolean }
+        refreshSpotlightLocation:
+          type: boolean
+          description: >
+            Requests a server-side refresh of the private Business Spotlight
+            location from the saved address. No coordinates are accepted or
+            returned by this action.
 
     BusinessEngagementResult:
       type: object

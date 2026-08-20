@@ -503,6 +503,11 @@ export default function ProfileEdit() {
                     />
                   </div>
                 </div>
+                <p className="text-xs text-white/50">
+                  Your saved city and state can be resolved privately on the server
+                  to find nearby lounges. If the location is unclear, Spotlight will
+                  ask you to check these fields instead of guessing.
+                </p>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>

@@ -13,7 +13,7 @@
  *     coordinate key — never raw exact coordinates.
  */
 import { createHash } from "node:crypto";
-import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import {
   db as defaultDb,
   usersTable,
@@ -21,8 +21,10 @@ import {
   businessFollowsTable,
   loungesTable,
   memberLocationsTable,
+  businessSpotlightLocationsTable,
   dailyLoungeSpotlightsTable,
 } from "@workspace/db";
+import { resolvePrivateCityGeocode } from "./privateGeocoding";
 
 export const RADIUS_MILES = 25;
 // Bayesian prior used by the weighted rating formula.
@@ -195,12 +197,14 @@ function normKey(v: string | null | undefined): string | null {
  * Resolve a signed-in member's location for the spotlight.
  *
  * Priority:
- *   1. Private saved coords in `member_locations` (device or fresh centroid).
+ *   1. Private saved coords in `member_locations` (device or fresh city result).
  *   2. users.city/state fallback: derive a deterministic city centroid from
  *      active/public Business Page coords and/or legacy lounge-directory coords
- *      matching city/state; persist as a server-private city_centroid location.
+ *      matching city/state.
+ *   3. If no mapped centroid exists, geocode city/state server-side and persist
+ *      the unambiguous result as a server-private city_geocode location.
  *
- * Returns null when no usable mapped centroid exists (=> location_required).
+ * Returns null when no safe location can be resolved (=> location_required).
  */
 export async function resolveMemberLocation(
   db: Db,
@@ -216,8 +220,8 @@ export async function resolveMemberLocation(
     .limit(1);
 
   if (saved && isValidLat(saved.lat) && isValidLng(saved.lng)) {
-    // A device-provided location is always trusted. A city_centroid fallback is
-    // only reused when it still matches the user's current city/state (stale
+    // A device-provided location is always trusted. City-derived fallbacks are
+    // only reused when they still match the user's current city/state (stale
     // detection). Otherwise we recompute below.
     const fresh =
       saved.source === "device" ||
@@ -238,27 +242,32 @@ export async function resolveMemberLocation(
   if (!userCity || !userState) return null;
 
   const centroid = await deriveCityCentroid(db, userCity, userState);
-  if (!centroid) return null;
+  const cityGeocode = centroid
+    ? null
+    : await resolvePrivateCityGeocode(userCity, userState, { db });
+  const resolved = centroid ?? cityGeocode;
+  if (!resolved) return null;
+  const source = centroid ? "city_centroid" : "city_geocode";
 
   // Persist as a server-private city-level location (upsert on unique userId).
   await db
     .insert(memberLocationsTable)
     .values({
       userId: user.id,
-      lat: centroid.lat,
-      lng: centroid.lng,
-      timezone: centroid.timezone ?? null,
-      source: "city_centroid",
+      lat: resolved.lat,
+      lng: resolved.lng,
+      timezone: centroid?.timezone ?? null,
+      source,
       cityKey: userCity,
       stateKey: userState,
     })
     .onConflictDoUpdate({
       target: memberLocationsTable.userId,
       set: {
-        lat: centroid.lat,
-        lng: centroid.lng,
-        timezone: centroid.timezone ?? null,
-        source: "city_centroid",
+        lat: resolved.lat,
+        lng: resolved.lng,
+        timezone: centroid?.timezone ?? null,
+        source,
         cityKey: userCity,
         stateKey: userState,
         updatedAt: new Date(),
@@ -266,9 +275,9 @@ export async function resolveMemberLocation(
     });
 
   return {
-    lat: centroid.lat,
-    lng: centroid.lng,
-    timezone: centroid.timezone ?? null,
+    lat: resolved.lat,
+    lng: resolved.lng,
+    timezone: centroid?.timezone ?? null,
     city: user.city,
     state: user.state,
     label: locationLabel(user.city, user.state),
@@ -293,19 +302,32 @@ async function deriveCityCentroid(
 ): Promise<Centroid | null> {
   const points: { lat: number; lng: number; timezone: string | null }[] = [];
 
+  const privateOrLegacyBusinessLat =
+    sql<number | null>`coalesce(${businessSpotlightLocationsTable.lat}, ${businessesTable.lat})`;
+  const privateOrLegacyBusinessLng =
+    sql<number | null>`coalesce(${businessSpotlightLocationsTable.lng}, ${businessesTable.lng})`;
   const bizRows = await db
     .select({
-      lat: businessesTable.lat,
-      lng: businessesTable.lng,
+      lat: privateOrLegacyBusinessLat.as("spotlight_lat"),
+      lng: privateOrLegacyBusinessLng.as("spotlight_lng"),
       timezone: businessesTable.timezone,
     })
     .from(businessesTable)
+    .leftJoin(
+      businessSpotlightLocationsTable,
+      eq(businessSpotlightLocationsTable.businessId, businessesTable.id),
+    )
     .where(
       and(
         eq(businessesTable.status, "active"),
         eq(businessesTable.isPublished, true),
-        isNotNull(businessesTable.lat),
-        isNotNull(businessesTable.lng),
+        or(
+          and(
+            isNotNull(businessSpotlightLocationsTable.lat),
+            isNotNull(businessSpotlightLocationsTable.lng),
+          ),
+          and(isNotNull(businessesTable.lat), isNotNull(businessesTable.lng)),
+        ),
         sql`upper(trim(${businessesTable.city})) = ${cityKey}`,
         sql`upper(trim(${businessesTable.state})) = ${stateKey}`,
       ),
@@ -722,8 +744,12 @@ const CANDIDATE_COLUMNS = {
   state: businessesTable.state,
   tagline: businessesTable.tagline,
   description: businessesTable.description,
-  lat: businessesTable.lat,
-  lng: businessesTable.lng,
+  lat: sql<number | null>`coalesce(${businessSpotlightLocationsTable.lat}, ${businessesTable.lat})`.as(
+    "spotlight_lat",
+  ),
+  lng: sql<number | null>`coalesce(${businessSpotlightLocationsTable.lng}, ${businessesTable.lng})`.as(
+    "spotlight_lng",
+  ),
   averageRating: businessesTable.averageRating,
   reviewCount: businessesTable.reviewCount,
   verificationStatus: businessesTable.verificationStatus,
@@ -743,6 +769,10 @@ async function loadCandidates(db: Db): Promise<CandidateBusiness[]> {
   const rows = await db
     .select(CANDIDATE_COLUMNS)
     .from(businessesTable)
+    .leftJoin(
+      businessSpotlightLocationsTable,
+      eq(businessSpotlightLocationsTable.businessId, businessesTable.id),
+    )
     .where(
       and(
         eq(businessesTable.status, "active"),
@@ -754,8 +784,13 @@ async function loadCandidates(db: Db): Promise<CandidateBusiness[]> {
         sql`${businessesTable.verificationStatus} <> 'rejected'`,
         isNotNull(businessesTable.averageRating),
         sql`${businessesTable.reviewCount} > 0`,
-        isNotNull(businessesTable.lat),
-        isNotNull(businessesTable.lng),
+        or(
+          and(
+            isNotNull(businessSpotlightLocationsTable.lat),
+            isNotNull(businessSpotlightLocationsTable.lng),
+          ),
+          and(isNotNull(businessesTable.lat), isNotNull(businessesTable.lng)),
+        ),
       ),
     );
   return rows as CandidateBusiness[];
