@@ -28,4 +28,6 @@ export const BusinessModerationInputAction = {
   request_verification_changes: 'request_verification_changes',
   set_category: 'set_category',
   transfer_owner: 'transfer_owner',
+  spotlight_enable: 'spotlight_enable',
+  spotlight_disable: 'spotlight_disable',
 } as const;

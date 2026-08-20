@@ -723,6 +723,57 @@ export const ListLoungesResponse = zod.array(ListLoungesResponseItem)
 
 
 /**
+ * Session-aware Local Lounge Spotlight. The origin is derived entirely from the session (private saved location, or the member's city/state fallback) — no lat/lng/city override query params are accepted. The response and its cards never contain coordinates, the coarse location key, or any user coordinates.
+
+ * @summary Today's best local lounges for the signed-in member
+ */
+export const GetLocalLoungeSpotlightResponse = zod.object({
+  "date": zod.string(),
+  "radiusMiles": zod.number(),
+  "locationLabel": zod.string().nullish(),
+  "state": zod.enum(['login_required', 'location_required', 'ready', 'partial', 'empty']),
+  "message": zod.string(),
+  "businesses": zod.array(zod.object({
+  "id": zod.number(),
+  "handle": zod.string(),
+  "name": zod.string(),
+  "logoUrl": zod.string().nullish(),
+  "coverUrl": zod.string().nullish(),
+  "businessType": zod.string(),
+  "category": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "tagline": zod.string().nullish(),
+  "distanceMiles": zod.number(),
+  "averageRating": zod.number().nullish(),
+  "reviewCount": zod.number(),
+  "weightedRating": zod.number(),
+  "verified": zod.boolean(),
+  "featured": zod.boolean(),
+  "openNow": zod.boolean().nullish(),
+  "followed": zod.boolean().describe('Whether the authenticated viewer already follows this Business Page. Viewer-specific; false when not followed. Never exposes any user id.\n'),
+  "legacyLoungeId": zod.number().nullish().describe('The legacy lounges.id of the SAME physical venue as this Business Page, when there is exactly one unambiguous cross-source match (normalized name+city+state and public coordinates within a tight threshold). Null when there is no match or the match is ambiguous. Lets clients suppress a duplicate legacy directory entry safely. Derived from public business coordinates only — never member coordinates — and does not affect ranking or caching.\n')
+}).describe('Narrow, privacy-safe spotlight card. Never contains owner ids, user coordinates, exact origin, or a raw location key.\n'))
+})
+
+
+/**
+ * Persist the authenticated member's SERVER-PRIVATE device location used to power the Local Lounge Spotlight. Location is provided ONLY in the JSON request body (never as query params), so it never becomes part of any cache key or URL. Requires authentication. The response NEVER echoes coordinates or the timezone — it returns only { saved: true }.
+
+ * @summary Save the signed-in member's private device location
+ */
+export const SaveLoungeSpotlightLocationBody = zod.object({
+  "latitude": zod.number().describe('Finite latitude in [-90, 90].'),
+  "longitude": zod.number().describe('Finite longitude in [-180, 180].'),
+  "timezone": zod.string().nullish().describe('Optional IANA time zone (e.g. \"America\/New_York\"). Validated via Intl; rejected if not a recognized zone.\n')
+})
+
+export const SaveLoungeSpotlightLocationResponse = zod.object({
+  "saved": zod.boolean().describe('Always true on success. The response intentionally never echoes the saved coordinates or timezone.\n')
+})
+
+
+/**
  * @summary Upcoming hookah events
  */
 export const ListEventsQueryParams = zod.object({
@@ -5288,7 +5339,12 @@ export const ListAdminBusinessesResponseItem = zod.object({
   "status": zod.string(),
   "isPublished": zod.boolean(),
   "createdAt": zod.string().optional()
-})
+}).and(zod.object({
+  "eligibleForLoungeSpotlight": zod.boolean(),
+  "hasUsableSpotlightLocation": zod.boolean(),
+  "hasUsableSpotlightRating": zod.boolean(),
+  "spotlightWeightedRating": zod.number()
+})).describe('Admin list view: the public business summary augmented with Local Lounge Spotlight diagnostics. Only surfaced to platform admins.\n')
 export const ListAdminBusinessesResponse = zod.array(ListAdminBusinessesResponseItem)
 
 
@@ -5300,7 +5356,7 @@ export const ModerateBusinessParams = zod.object({
 })
 
 export const ModerateBusinessBody = zod.object({
-  "action": zod.enum(['suspend', 'reinstate', 'remove_review', 'restore_review', 'hide_post', 'restore_post', 'warn', 'badge_grant', 'badge_revoke', 'feature', 'unfeature', 'sponsor', 'unsponsor', 'verify', 'reject_verification', 'request_verification_changes', 'set_category', 'transfer_owner']),
+  "action": zod.enum(['suspend', 'reinstate', 'remove_review', 'restore_review', 'hide_post', 'restore_post', 'warn', 'badge_grant', 'badge_revoke', 'feature', 'unfeature', 'sponsor', 'unsponsor', 'verify', 'reject_verification', 'request_verification_changes', 'set_category', 'transfer_owner', 'spotlight_enable', 'spotlight_disable']),
   "targetEntityType": zod.string().optional(),
   "targetEntityId": zod.number().optional(),
   "reason": zod.string().optional(),

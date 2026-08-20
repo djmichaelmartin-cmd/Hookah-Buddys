@@ -60,6 +60,12 @@ import {
 } from "@workspace/db";
 import { requireAuth, getSessionUser } from "../lib/auth";
 import {
+  weightedRating as spotlightWeightedRating,
+  isValidLat as spotlightIsValidLat,
+  isValidLng as spotlightIsValidLng,
+  invalidateDailyCachesForBusiness,
+} from "../lib/loungeSpotlight";
+import {
   finalizeUploadedImage,
   finalizeMediaUrlWithVideoTranscode,
   toObjectEntityPath,
@@ -748,6 +754,30 @@ function serializeBusinessSummary(biz: typeof businessesTable.$inferSelect) {
     status: biz.status,
     isPublished: biz.isPublished,
     createdAt: biz.createdAt.toISOString(),
+  };
+}
+
+/**
+ * Admin business summary — the public summary augmented with Local Lounge
+ * Spotlight diagnostics for the admin list. Only surfaced to platform admins.
+ *   - eligibleForLoungeSpotlight: the admin-controlled suitability flag.
+ *   - hasUsableSpotlightLocation: valid mappable business coordinates present.
+ *   - hasUsableSpotlightRating: averageRating present AND reviewCount > 0.
+ *   - spotlightWeightedRating: the exact weighted rating used for ranking.
+ */
+function serializeAdminBusinessSummary(biz: typeof businessesTable.$inferSelect) {
+  const hasUsableSpotlightLocation =
+    spotlightIsValidLat(biz.lat) && spotlightIsValidLng(biz.lng);
+  const hasUsableSpotlightRating =
+    biz.averageRating != null && biz.reviewCount > 0;
+  return {
+    ...serializeBusinessSummary(biz),
+    eligibleForLoungeSpotlight: biz.eligibleForLoungeSpotlight,
+    hasUsableSpotlightLocation,
+    hasUsableSpotlightRating,
+    spotlightWeightedRating:
+      Math.round(spotlightWeightedRating(biz.averageRating, biz.reviewCount) * 1000) /
+      1000,
   };
 }
 
@@ -4825,7 +4855,7 @@ router.get("/admin/businesses", requireAuth("admin"), async (req, res): Promise<
     .limit(limit)
     .offset(offset);
 
-  res.json(businesses.map(serializeBusinessSummary));
+  res.json(businesses.map(serializeAdminBusinessSummary));
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -5879,6 +5909,8 @@ router.post(
       "request_verification_changes",
       "set_category",
       "transfer_owner",
+      "spotlight_enable",
+      "spotlight_disable",
     ];
     if (!action || !ALLOWED_ACTIONS.includes(action)) {
       res.status(400).json({ error: `action must be one of: ${ALLOWED_ACTIONS.join(", ")}` });
@@ -6163,6 +6195,17 @@ router.post(
         .set({ category: req.body.category })
         .where(eq(businessesTable.id, biz.id))
         .returning();
+    } else if (action === "spotlight_enable" || action === "spotlight_disable") {
+      // Toggle the Local Lounge Spotlight eligibility flag. Disabling must not
+      // leak stale picks: invalidate affected durable daily caches so a disabled
+      // page drops out immediately. Never log coordinates or the location key.
+      const enable = action === "spotlight_enable";
+      [updated] = await db
+        .update(businessesTable)
+        .set({ eligibleForLoungeSpotlight: enable })
+        .where(eq(businessesTable.id, biz.id))
+        .returning();
+      await invalidateDailyCachesForBusiness(biz.id);
     } else if (action === "transfer_owner" && typeof req.body?.newOwnerUserId === "number") {
       const newOwnerUserId = req.body.newOwnerUserId as number;
       const newOwner = await getUserPublic(newOwnerUserId);

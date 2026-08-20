@@ -2247,6 +2247,98 @@ export interface BusinessSummary {
 }
 
 /**
+ * Admin list view: the public business summary augmented with Local Lounge Spotlight diagnostics. Only surfaced to platform admins.
+
+ */
+export type AdminBusinessSummary = BusinessSummary & {
+  eligibleForLoungeSpotlight: boolean;
+  hasUsableSpotlightLocation: boolean;
+  hasUsableSpotlightRating: boolean;
+  spotlightWeightedRating: number;
+};
+
+/**
+ * Narrow, privacy-safe spotlight card. Never contains owner ids, user coordinates, exact origin, or a raw location key.
+
+ */
+export interface LoungeSpotlightCard {
+  id: number;
+  handle: string;
+  name: string;
+  /** @nullable */
+  logoUrl?: string | null;
+  /** @nullable */
+  coverUrl?: string | null;
+  businessType: string;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  /** @nullable */
+  tagline?: string | null;
+  distanceMiles: number;
+  /** @nullable */
+  averageRating?: number | null;
+  reviewCount: number;
+  weightedRating: number;
+  verified: boolean;
+  featured: boolean;
+  /** @nullable */
+  openNow?: boolean | null;
+  /** Whether the authenticated viewer already follows this Business Page. Viewer-specific; false when not followed. Never exposes any user id.
+   */
+  followed: boolean;
+  /**
+     * The legacy lounges.id of the SAME physical venue as this Business Page, when there is exactly one unambiguous cross-source match (normalized name+city+state and public coordinates within a tight threshold). Null when there is no match or the match is ambiguous. Lets clients suppress a duplicate legacy directory entry safely. Derived from public business coordinates only — never member coordinates — and does not affect ranking or caching.
+
+     * @nullable
+     */
+  legacyLoungeId?: number | null;
+}
+
+export type LoungeSpotlightResponseState = typeof LoungeSpotlightResponseState[keyof typeof LoungeSpotlightResponseState];
+
+
+export const LoungeSpotlightResponseState = {
+  login_required: 'login_required',
+  location_required: 'location_required',
+  ready: 'ready',
+  partial: 'partial',
+  empty: 'empty',
+} as const;
+
+export interface LoungeSpotlightResponse {
+  date: string;
+  radiusMiles: number;
+  /** @nullable */
+  locationLabel?: string | null;
+  state: LoungeSpotlightResponseState;
+  message: string;
+  businesses: LoungeSpotlightCard[];
+}
+
+export interface SaveLoungeSpotlightLocationInput {
+  /** Finite latitude in [-90, 90]. */
+  latitude: number;
+  /** Finite longitude in [-180, 180]. */
+  longitude: number;
+  /**
+     * Optional IANA time zone (e.g. "America/New_York"). Validated via Intl; rejected if not a recognized zone.
+
+     * @nullable
+     */
+  timezone?: string | null;
+}
+
+export interface SaveLoungeSpotlightLocationResponse {
+  /** Always true on success. The response intentionally never echoes the saved coordinates or timezone.
+   */
+  saved: boolean;
+}
+
+/**
  * @nullable
  */
 export type BusinessDetailSocials = { [key: string]: unknown } | null;
@@ -3073,6 +3165,8 @@ export const BusinessModerationInputAction = {
   request_verification_changes: 'request_verification_changes',
   set_category: 'set_category',
   transfer_owner: 'transfer_owner',
+  spotlight_enable: 'spotlight_enable',
+  spotlight_disable: 'spotlight_disable',
 } as const;
 
 export interface BusinessModerationInput {

@@ -26,3 +26,5 @@
 - [Buddy naming convention](buddy-naming-convention.md) — public copy says Buddy/Buddies and HookahBuddys; stable internal role, route, schema, and API identifiers remain doll/dolls.
 - [Community room request resets](community-room-request-resets.md) — reset room-scoped feed filters before the destination query begins; effect-based resets briefly fetch stale filters.
 - [Group file and asset privacy](group-file-upload-ownership.md) — owner-bind bytes at upload; private-Group assets need Group-aware serving, not universal public storage.
+- [Local ranking cache isolation](local-ranking-cache-isolation.md) — coarse location caches for radius rankings must be member-scoped or boundary candidates can cross-contaminate results.
+- [Cross-source venue deduplication](cross-source-venue-deduplication.md) — never hide directory venues by name+city alone; suppress only an unambiguous cross-source match.

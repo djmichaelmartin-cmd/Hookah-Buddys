@@ -21,6 +21,7 @@ import type {
 
 import type {
   AdminBlock,
+  AdminBusinessSummary,
   AdminCreditTransaction,
   AdminCreditTransactionPage,
   AdminEventCreate,
@@ -223,6 +224,7 @@ import type {
   ListUsersParams,
   LoginInput,
   Lounge,
+  LoungeSpotlightResponse,
   Media,
   MediaInput,
   MemberProfile,
@@ -258,6 +260,8 @@ import type {
   ReviewBusinessReportBody,
   ReviewGroupJoinRequestBody,
   ReviewGroupReportBody,
+  SaveLoungeSpotlightLocationInput,
+  SaveLoungeSpotlightLocationResponse,
   SaveStatus,
   SetGroupQuestionsBody,
   Subscription,
@@ -2564,6 +2568,158 @@ export function useListLounges<TData = Awaited<ReturnType<typeof listLounges>>, 
 
 
 
+
+export const getGetLocalLoungeSpotlightUrl = () => {
+
+
+
+
+  return `/api/lounge-spotlight/local`
+}
+
+/**
+ * Session-aware Local Lounge Spotlight. The origin is derived entirely from the session (private saved location, or the member's city/state fallback) — no lat/lng/city override query params are accepted. The response and its cards never contain coordinates, the coarse location key, or any user coordinates.
+
+ * @summary Today's best local lounges for the signed-in member
+ */
+export const getLocalLoungeSpotlight = async ( options?: RequestInit): Promise<LoungeSpotlightResponse> => {
+
+  return customFetch<LoungeSpotlightResponse>(getGetLocalLoungeSpotlightUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLocalLoungeSpotlightQueryKey = () => {
+    return [
+    `/api/lounge-spotlight/local`
+    ] as const;
+    }
+
+
+export const getGetLocalLoungeSpotlightQueryOptions = <TData = Awaited<ReturnType<typeof getLocalLoungeSpotlight>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLocalLoungeSpotlight>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLocalLoungeSpotlightQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLocalLoungeSpotlight>>> = ({ signal }) => getLocalLoungeSpotlight({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLocalLoungeSpotlight>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLocalLoungeSpotlightQueryResult = NonNullable<Awaited<ReturnType<typeof getLocalLoungeSpotlight>>>
+export type GetLocalLoungeSpotlightQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Today's best local lounges for the signed-in member
+ */
+
+export function useGetLocalLoungeSpotlight<TData = Awaited<ReturnType<typeof getLocalLoungeSpotlight>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLocalLoungeSpotlight>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLocalLoungeSpotlightQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveLoungeSpotlightLocationUrl = () => {
+
+
+
+
+  return `/api/lounge-spotlight/location`
+}
+
+/**
+ * Persist the authenticated member's SERVER-PRIVATE device location used to power the Local Lounge Spotlight. Location is provided ONLY in the JSON request body (never as query params), so it never becomes part of any cache key or URL. Requires authentication. The response NEVER echoes coordinates or the timezone — it returns only { saved: true }.
+
+ * @summary Save the signed-in member's private device location
+ */
+export const saveLoungeSpotlightLocation = async (saveLoungeSpotlightLocationInput: SaveLoungeSpotlightLocationInput, options?: RequestInit): Promise<SaveLoungeSpotlightLocationResponse> => {
+
+  return customFetch<SaveLoungeSpotlightLocationResponse>(getSaveLoungeSpotlightLocationUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      saveLoungeSpotlightLocationInput,)
+  }
+);}
+
+
+
+
+export const getSaveLoungeSpotlightLocationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveLoungeSpotlightLocation>>, TError,{data: BodyType<SaveLoungeSpotlightLocationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveLoungeSpotlightLocation>>, TError,{data: BodyType<SaveLoungeSpotlightLocationInput>}, TContext> => {
+
+const mutationKey = ['saveLoungeSpotlightLocation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveLoungeSpotlightLocation>>, {data: BodyType<SaveLoungeSpotlightLocationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveLoungeSpotlightLocation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveLoungeSpotlightLocationMutationResult = NonNullable<Awaited<ReturnType<typeof saveLoungeSpotlightLocation>>>
+    export type SaveLoungeSpotlightLocationMutationBody = BodyType<SaveLoungeSpotlightLocationInput>
+    export type SaveLoungeSpotlightLocationMutationError = ErrorType<void>
+
+    /**
+ * @summary Save the signed-in member's private device location
+ */
+export const useSaveLoungeSpotlightLocation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveLoungeSpotlightLocation>>, TError,{data: BodyType<SaveLoungeSpotlightLocationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveLoungeSpotlightLocation>>,
+        TError,
+        {data: BodyType<SaveLoungeSpotlightLocationInput>},
+        TContext
+      > => {
+      return useMutation(getSaveLoungeSpotlightLocationMutationOptions(options));
+    }
 
 export const getListEventsUrl = (params?: ListEventsParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -16615,9 +16771,9 @@ export const getListAdminBusinessesUrl = (params?: ListAdminBusinessesParams,) =
 /**
  * @summary Admin list of all business pages
  */
-export const listAdminBusinesses = async (params?: ListAdminBusinessesParams, options?: RequestInit): Promise<BusinessSummary[]> => {
+export const listAdminBusinesses = async (params?: ListAdminBusinessesParams, options?: RequestInit): Promise<AdminBusinessSummary[]> => {
 
-  return customFetch<BusinessSummary[]>(getListAdminBusinessesUrl(params),
+  return customFetch<AdminBusinessSummary[]>(getListAdminBusinessesUrl(params),
   {
     ...options,
     method: 'GET'

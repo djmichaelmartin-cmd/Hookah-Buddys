@@ -76,6 +76,13 @@ export const businessesTable = pgTable("businesses", {
   // Promotion flags (admin-controlled; see admin actions feature/sponsor).
   isFeatured: boolean("is_featured").notNull().default(false),
   isSponsored: boolean("is_sponsored").notNull().default(false),
+  // Admin-controlled suitability flag for the Local Lounge Spotlight feature.
+  // Public concept: when true (default) the page may be selected as a nearby
+  // spotlight card if it also satisfies the ranking/candidate rules. Admins may
+  // disable an individual page without touching status/publish state.
+  eligibleForLoungeSpotlight: boolean("eligible_for_lounge_spotlight")
+    .notNull()
+    .default(true),
   featuredUntil: timestamp("featured_until", { withTimezone: true }),
   sponsoredUntil: timestamp("sponsored_until", { withTimezone: true }),
   // Verification status: unverified | pending | verified | rejected

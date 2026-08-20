@@ -24,6 +24,8 @@ tags:
     description: Member favorites
   - name: plans
     description: Pricing plans
+  - name: lounges
+    description: Hookah lounge directory and Local Lounge Spotlight
   - name: subscriptions
     description: Member and Doll subscriptions
   - name: credits
@@ -674,6 +676,54 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Lounge"
+
+  /lounge-spotlight/local:
+    get:
+      operationId: getLocalLoungeSpotlight
+      tags: [lounges]
+      summary: Today's best local lounges for the signed-in member
+      description: >
+        Session-aware Local Lounge Spotlight. The origin is derived entirely
+        from the session (private saved location, or the member's city/state
+        fallback) — no lat/lng/city override query params are accepted. The
+        response and its cards never contain coordinates, the coarse location
+        key, or any user coordinates.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoungeSpotlightResponse"
+
+  /lounge-spotlight/location:
+    put:
+      operationId: saveLoungeSpotlightLocation
+      tags: [lounges]
+      summary: Save the signed-in member's private device location
+      description: >
+        Persist the authenticated member's SERVER-PRIVATE device location used
+        to power the Local Lounge Spotlight. Location is provided ONLY in the
+        JSON request body (never as query params), so it never becomes part of
+        any cache key or URL. Requires authentication. The response NEVER echoes
+        coordinates or the timezone — it returns only { saved: true }.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveLoungeSpotlightLocationInput"
+      responses:
+        "200":
+          description: Location saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaveLoungeSpotlightLocationResponse"
+        "400":
+          description: Invalid coordinates or timezone
+        "401":
+          description: Authentication required
 
   /events:
     get:
@@ -3987,7 +4037,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/BusinessSummary"
+                  $ref: "#/components/schemas/AdminBusinessSummary"
 
   /admin/businesses/{handle}/moderate:
     post:
@@ -7064,6 +7114,120 @@ components:
         isPublished: { type: boolean }
         createdAt: { type: string }
 
+    AdminBusinessSummary:
+      description: >
+        Admin list view: the public business summary augmented with Local Lounge
+        Spotlight diagnostics. Only surfaced to platform admins.
+      allOf:
+        - $ref: "#/components/schemas/BusinessSummary"
+        - type: object
+          required:
+            [
+              eligibleForLoungeSpotlight,
+              hasUsableSpotlightLocation,
+              hasUsableSpotlightRating,
+              spotlightWeightedRating,
+            ]
+          properties:
+            eligibleForLoungeSpotlight: { type: boolean }
+            hasUsableSpotlightLocation: { type: boolean }
+            hasUsableSpotlightRating: { type: boolean }
+            spotlightWeightedRating: { type: number }
+
+    LoungeSpotlightCard:
+      description: >
+        Narrow, privacy-safe spotlight card. Never contains owner ids, user
+        coordinates, exact origin, or a raw location key.
+      type: object
+      required:
+        [
+          id,
+          handle,
+          name,
+          businessType,
+          distanceMiles,
+          reviewCount,
+          weightedRating,
+          verified,
+          featured,
+          followed,
+        ]
+      properties:
+        id: { type: integer }
+        handle: { type: string }
+        name: { type: string }
+        logoUrl: { type: ["string", "null"] }
+        coverUrl: { type: ["string", "null"] }
+        businessType: { type: string }
+        category: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        tagline: { type: ["string", "null"] }
+        distanceMiles: { type: number }
+        averageRating: { type: ["number", "null"] }
+        reviewCount: { type: integer }
+        weightedRating: { type: number }
+        verified: { type: boolean }
+        featured: { type: boolean }
+        openNow: { type: ["boolean", "null"] }
+        followed:
+          type: boolean
+          description: >
+            Whether the authenticated viewer already follows this Business Page.
+            Viewer-specific; false when not followed. Never exposes any user id.
+        legacyLoungeId:
+          type: ["integer", "null"]
+          description: >
+            The legacy lounges.id of the SAME physical venue as this Business
+            Page, when there is exactly one unambiguous cross-source match
+            (normalized name+city+state and public coordinates within a tight
+            threshold). Null when there is no match or the match is ambiguous.
+            Lets clients suppress a duplicate legacy directory entry safely.
+            Derived from public business coordinates only — never member
+            coordinates — and does not affect ranking or caching.
+
+    LoungeSpotlightResponse:
+      type: object
+      required: [date, radiusMiles, state, message, businesses]
+      properties:
+        date: { type: string }
+        radiusMiles: { type: number }
+        locationLabel: { type: ["string", "null"] }
+        state:
+          type: string
+          enum: [login_required, location_required, ready, partial, empty]
+        message: { type: string }
+        businesses:
+          type: array
+          items:
+            $ref: "#/components/schemas/LoungeSpotlightCard"
+
+    SaveLoungeSpotlightLocationInput:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          description: Finite latitude in [-90, 90].
+        longitude:
+          type: number
+          description: Finite longitude in [-180, 180].
+        timezone:
+          type: ["string", "null"]
+          description: >
+            Optional IANA time zone (e.g. "America/New_York"). Validated via
+            Intl; rejected if not a recognized zone.
+
+    SaveLoungeSpotlightLocationResponse:
+      type: object
+      required: [saved]
+      properties:
+        saved:
+          type: boolean
+          description: >
+            Always true on success. The response intentionally never echoes the
+            saved coordinates or timezone.
+
     BusinessDetail:
       type: object
       required: [id, handle, name, businessType, status, isPublished]
@@ -7666,6 +7830,8 @@ components:
               request_verification_changes,
               set_category,
               transfer_owner,
+              spotlight_enable,
+              spotlight_disable,
             ]
         targetEntityType: { type: string }
         targetEntityId: { type: integer }

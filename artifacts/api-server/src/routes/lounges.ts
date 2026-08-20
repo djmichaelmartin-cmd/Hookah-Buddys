@@ -2,8 +2,52 @@ import { Router, type IRouter } from "express";
 import { and, eq, ilike, or } from "drizzle-orm";
 import { db, loungesTable } from "@workspace/db";
 import { ListLoungesQueryParams } from "@workspace/api-zod";
+import { getSessionUser } from "../lib/auth";
+import { getLocalSpotlight, saveMemberLocation } from "../lib/loungeSpotlight";
 
 const router: IRouter = Router();
+
+// Session-aware Local Lounge Spotlight. Location is derived ENTIRELY from the
+// session (private saved location or the user's city/state) — no lat/lng/city
+// override query params are accepted from the browser. The response and its
+// cards never contain coordinates, the coarse location key, or user coords.
+router.get("/lounge-spotlight/local", async (req, res): Promise<void> => {
+  const user = await getSessionUser(req);
+  const result = await getLocalSpotlight(
+    user ? { id: user.id, city: user.city, state: user.state } : null,
+  );
+  res.json(result);
+});
+
+// Save the authenticated member's SERVER-PRIVATE device location. Location comes
+// ONLY from the JSON request body — never query params — so it is never part of
+// any cache key or URL. The response NEVER echoes coordinates or timezone; it
+// returns only { saved: true }. No coordinate/tz values are logged.
+router.put("/lounge-spotlight/location", async (req, res): Promise<void> => {
+  const user = await getSessionUser(req);
+  if (!user) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const result = await saveMemberLocation(user.id, {
+    latitude: body.latitude,
+    longitude: body.longitude,
+    timezone: body.timezone,
+  });
+
+  if (!result.ok) {
+    const message =
+      result.error === "invalid_timezone"
+        ? "timezone must be a valid IANA time zone"
+        : "latitude and longitude must be finite numbers in valid ranges";
+    res.status(400).json({ error: message });
+    return;
+  }
+
+  res.json({ saved: true });
+});
 
 function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const toRad = (d: number) => (d * Math.PI) / 180;

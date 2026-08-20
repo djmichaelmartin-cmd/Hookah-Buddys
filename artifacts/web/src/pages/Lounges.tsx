@@ -2,6 +2,9 @@ import { useMemo, useRef, useState } from "react";
 import { Layout } from "@/components/Layout";
 import {
   useListLounges,
+  useGetLocalLoungeSpotlight,
+  useSaveLoungeSpotlightLocation,
+  getGetLocalLoungeSpotlightQueryKey,
   type ListLoungesParams,
   type Lounge,
 } from "@workspace/api-client-react";
@@ -15,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CommunityTopicsNav } from "@/components/lounge/CommunityTopicsNav";
+import { LoungeSpotlightSection } from "@/components/lounge/LoungeSpotlightSection";
 import {
   MapPin,
   Search,
@@ -29,6 +33,9 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 // Custom brand-gold map pin rendered as an inline SVG, so we avoid Leaflet's
 // default PNG marker (whose asset paths break under bundlers like Vite).
@@ -88,6 +95,8 @@ function priceLabel(level: number): string {
 }
 
 export default function Lounges() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const initialQuery = (() => {
     const q = new URLSearchParams(window.location.search).get("q");
     return q ? q : "";
@@ -114,15 +123,45 @@ export default function Lounges() {
   }, [submittedQuery, stateFilter, origin, radius]);
 
   const { data, isLoading, isError } = useListLounges(params);
+  const { data: spotlight } = useGetLocalLoungeSpotlight();
   const lounges = data ?? [];
-  const orderedLounges = useMemo(() => {
-    if (selectedLoungeId === null) return lounges;
 
-    const selectedLounge = lounges.find((lounge) => lounge.id === selectedLoungeId);
-    return selectedLounge
-      ? [selectedLounge, ...lounges.filter((lounge) => lounge.id !== selectedLoungeId)]
-      : lounges;
-  }, [lounges, selectedLoungeId]);
+  const spotlightLegacyIds = useMemo(() => {
+    if (!spotlight?.businesses) return new Set<number>();
+    return new Set(
+      spotlight.businesses.flatMap((business) =>
+        business.legacyLoungeId == null ? [] : [business.legacyLoungeId],
+      ),
+    );
+  }, [spotlight]);
+
+  const orderedLounges = useMemo(() => {
+    // Keep map markers intact. Only suppress a directory card when the server
+    // has established one unambiguous cross-source Lounge match.
+    const filteredLounges = lounges.filter((lounge) => !spotlightLegacyIds.has(lounge.id));
+
+    if (selectedLoungeId === null) return filteredLounges;
+
+    // Make sure selected lounge is always at the top of the list if clicked on map
+    const selectedLounge = lounges.find((l) => l.id === selectedLoungeId);
+    if (!selectedLounge) return filteredLounges;
+
+    return [
+      selectedLounge,
+      ...filteredLounges.filter(l => l.id !== selectedLoungeId)
+    ];
+  }, [lounges, selectedLoungeId, spotlightLegacyIds]);
+
+  const saveLocation = useSaveLoungeSpotlightLocation({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetLocalLoungeSpotlightQueryKey() });
+      },
+      onError: () => {
+        toast({ title: "Spotlight update delayed", description: "Your location was found, but local spotlights might take a moment to update.", variant: "default" });
+      }
+    }
+  });
 
   const useMyLocation = () => {
     if (!("geolocation" in navigator)) {
@@ -136,6 +175,17 @@ export default function Lounges() {
         setOrigin({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setStateFilter("all");
         setGeoLoading(false);
+
+        // Save the location for local spotlight results if the user is authenticated (not login_required)
+        if (spotlight?.state !== "login_required") {
+          saveLocation.mutate({
+            data: {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || undefined
+            }
+          });
+        }
       },
       () => {
         setGeoError("Could not get your location. Please allow location access.");
@@ -184,6 +234,8 @@ export default function Lounges() {
         </div>
 
         <div className="container mx-auto px-4 pb-10">
+          <LoungeSpotlightSection />
+
           {/* Search controls */}
           <div className="rounded-2xl border border-white/10 bg-card/40 p-4 md:p-6 backdrop-blur">
             <form
@@ -253,9 +305,9 @@ export default function Lounges() {
                   type="button"
                   variant="outline"
                   onClick={useMyLocation}
-                  disabled={geoLoading}
+                  disabled={geoLoading || saveLocation.isPending}
                 >
-                  {geoLoading ? (
+                  {geoLoading || saveLocation.isPending ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Navigation className="mr-2 h-4 w-4" />
@@ -310,7 +362,7 @@ export default function Lounges() {
             </div>
 
             {/* Results list */}
-            <div className="lg:col-span-2 order-2 lg:order-1">
+            <div className="lg:col-span-2 order-2 lg:order-1" id="all-lounges" data-testid="legacy-lounge-directory">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-serif text-xl text-foreground">
                   {isLoading

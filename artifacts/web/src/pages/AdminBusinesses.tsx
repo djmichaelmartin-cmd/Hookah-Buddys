@@ -7,6 +7,7 @@ import {
   BusinessModerationInputAction,
   BusinessModerationInput,
   BusinessSummary,
+  AdminBusinessSummary,
   ListAdminBusinessesVerificationStatus
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,6 +30,7 @@ export default function AdminBusinesses() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
   const [featuredFilter, setFeaturedFilter] = useState<string>("all");
+  const [spotlightFilter, setSpotlightFilter] = useState<string>("all");
   const [sponsoredFilter, setSponsoredFilter] = useState<string>("all");
 
   const queryParams = {
@@ -43,7 +45,7 @@ export default function AdminBusinesses() {
     query: { queryKey: getListAdminBusinessesQueryKey(queryParams) }
   });
 
-  const [selectedBusiness, setSelectedBusiness] = useState<BusinessSummary | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<AdminBusinessSummary | null>(null);
   const [modAction, setModAction] = useState<BusinessModerationInputAction | null>(null);
   const [modReason, setModReason] = useState("");
   const [modExtra, setModExtra] = useState("");
@@ -86,14 +88,18 @@ export default function AdminBusinesses() {
     });
   };
 
-  const openModDialog = (business: BusinessSummary, action: BusinessModerationInputAction) => {
+  const openModDialog = (business: AdminBusinessSummary, action: BusinessModerationInputAction | 'spotlight_enable' | 'spotlight_disable') => {
     setSelectedBusiness(business);
-    setModAction(action);
+    setModAction(action as BusinessModerationInputAction);
     setModReason("");
     setModExtra("");
   };
 
-  const businessList = businessesResponse || [];
+  const businessList = (businessesResponse || []).filter((b) => {
+    if (spotlightFilter === 'eligible' && !b.eligibleForLoungeSpotlight) return false;
+    if (spotlightFilter === 'ineligible' && b.eligibleForLoungeSpotlight) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -136,6 +142,16 @@ export default function AdminBusinesses() {
                 <SelectItem value="unverified">Unverified</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={spotlightFilter} onValueChange={setSpotlightFilter}>
+              <SelectTrigger className="bg-background border-white/10 w-[140px]" data-testid="filter-spotlight">
+                <SelectValue placeholder="Spotlight" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Spotlight</SelectItem>
+                <SelectItem value="eligible">Eligible</SelectItem>
+                <SelectItem value="ineligible">Ineligible</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={featuredFilter} onValueChange={setFeaturedFilter}>
               <SelectTrigger className="bg-background border-white/10 w-[140px]">
                 <SelectValue placeholder="Featured" />
@@ -148,18 +164,19 @@ export default function AdminBusinesses() {
             </Select>
           </div>
 
-          <div className="bg-card border border-white/10 rounded-2xl overflow-hidden">
-            <table className="w-full text-left text-sm">
+          <div className="bg-card border border-white/10 rounded-2xl overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
               <thead className="bg-background/50 text-white/50 uppercase text-xs">
                 <tr>
                   <th className="px-6 py-4 font-medium">Business</th>
                   <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium">Spotlight</th>
                   <th className="px-6 py-4 font-medium">Badges/Flags</th>
                   <th className="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {businessList.map((business: BusinessSummary) => (
+                {businessList.map((business: AdminBusinessSummary) => (
                   <tr key={business.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -180,6 +197,29 @@ export default function AdminBusinesses() {
                       }`}>
                         {business.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          {business.eligibleForLoungeSpotlight ? (
+                            <span className="text-green-400 flex items-center gap-1"><CheckCircle className="w-3 h-3"/> Eligible</span>
+                          ) : (
+                            <span className="text-muted-foreground flex items-center gap-1"><XCircle className="w-3 h-3"/> Ineligible</span>
+                          )}
+                        </div>
+                        <div className="text-muted-foreground flex items-center gap-2">
+                          <span className={business.hasUsableSpotlightLocation ? "text-white/80" : "text-red-400"}>
+                            Location
+                          </span>
+                          <span className={business.hasUsableSpotlightRating ? "text-white/80" : "text-red-400"}>
+                            Rating
+                          </span>
+                        </div>
+                        <div className="text-muted-foreground">
+                          Avg: {business.averageRating?.toFixed(1) || '0.0'} ({business.reviewCount})
+                          • Wt: {business.spotlightWeightedRating?.toFixed(1) || '0.0'}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
@@ -212,9 +252,14 @@ export default function AdminBusinesses() {
                           
                           <DropdownMenuSeparator />
                           <DropdownMenuLabel>Promotion</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => openModDialog(business, 'feature')}><Star className="w-4 h-4 mr-2 text-[#D6B56D]"/> Feature</DropdownMenuItem>
+                          {business.eligibleForLoungeSpotlight ? (
+                            <DropdownMenuItem onClick={() => openModDialog(business, 'spotlight_disable')} data-testid={`menu-spotlight-disable-${business.handle}`}>Disable Spotlight</DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={() => openModDialog(business, 'spotlight_enable')} className="text-[#D6B56D]" data-testid={`menu-spotlight-enable-${business.handle}`}><Star className="w-4 h-4 mr-2"/> Enable Spotlight</DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => openModDialog(business, 'feature')}><Award className="w-4 h-4 mr-2 text-blue-400"/> Feature</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openModDialog(business, 'unfeature')}>Un-feature</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openModDialog(business, 'sponsor')}><Award className="w-4 h-4 mr-2 text-blue-400"/> Sponsor</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openModDialog(business, 'sponsor')}><Award className="w-4 h-4 mr-2 text-purple-400"/> Sponsor</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openModDialog(business, 'unsponsor')}>Un-sponsor</DropdownMenuItem>
                           
                           <DropdownMenuSeparator />
@@ -230,7 +275,7 @@ export default function AdminBusinesses() {
                 ))}
                 {businessList.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-white/50">
+                    <td colSpan={5} className="px-6 py-12 text-center text-white/50">
                       No businesses match the current filters.
                     </td>
                   </tr>

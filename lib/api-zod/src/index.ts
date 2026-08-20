@@ -40,4 +40,6 @@ export {
   // New schemas added in architect review pass
   JoinGroupBody,
   ModerateGroupPostCommentBody,
+  // Lounge Spotlight save-location response (value vs type disambiguation)
+  SaveLoungeSpotlightLocationResponse,
 } from "./generated/api";

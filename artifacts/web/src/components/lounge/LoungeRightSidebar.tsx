@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListDolls,
-  useListLounges,
+  useGetLocalLoungeSpotlight,
   useGetCurrentUser,
   useListEvents,
   useToggleEventRsvp,
@@ -18,7 +18,7 @@ import {
   getListSubscriptionsQueryKey,
   useListGroups,
 } from "@workspace/api-client-react";
-import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check, Users, Lock } from "lucide-react";
+import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check, Users, Lock, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type Props = {
@@ -233,7 +233,7 @@ export default function LoungeRightSidebar({ onSelectHashtag, activeHashtag }: P
     .sort((a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier))[0];
 
   const { data: featuredDolls } = useListDolls({ featured: true });
-  const { data: lounges } = useListLounges({ limit: 3 });
+  const { data: spotlight, isLoading: isSpotlightLoading, isError: isSpotlightError } = useGetLocalLoungeSpotlight();
   const { data: events } = useListEvents({ limit: 4 });
   const { data: trendingHashtags } = useListTrendingHashtags({ limit: 6 });
   const { data: featuredGroups } = useListGroups({ featured: true, limit: 3 });
@@ -346,27 +346,94 @@ export default function LoungeRightSidebar({ onSelectHashtag, activeHashtag }: P
         </SectionCard>
       )}
 
-      {(lounges?.length ?? 0) > 0 && (
-        <SectionCard title="Lounge Spotlight">
-          {lounges!.slice(0, 3).map((lounge) => (
-            <div key={lounge.id} className="py-1.5">
-              <p className="text-sm text-white flex items-center gap-1.5">
-                {lounge.name}
-                {typeof lounge.rating === "number" && lounge.rating > 0 && (
-                  <span className="inline-flex items-center gap-0.5 text-xs text-primary">
-                    <Star className="h-3 w-3 fill-primary" />
-                    {lounge.rating.toFixed(1)}
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {lounge.city}, {lounge.state}
-              </p>
+      <Link
+        href="/lounges?spotlight=local"
+        aria-label="View today’s local Lounge Spotlight businesses"
+        data-testid="link-lounge-spotlight"
+        className="block rounded-2xl bg-card/30 border border-white/5 backdrop-blur-md p-4 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary group/spotlight"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-white">Lounge Spotlight</h3>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Top-rated spots near you</p>
+          </div>
+          <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium shrink-0">Updated daily</span>
+        </div>
+
+        {isSpotlightLoading ? (
+          <div className="space-y-3 py-2" data-testid="sidebar-spotlight-loading">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex gap-3 animate-pulse">
+                <div className="w-10 h-10 rounded bg-white/10 shrink-0"></div>
+                <div className="flex-1 space-y-2 py-1">
+                  <div className="h-3 w-3/4 bg-white/10 rounded"></div>
+                  <div className="h-2 w-1/2 bg-white/10 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : isSpotlightError ? (
+          <div className="py-4 text-center" data-testid="sidebar-spotlight-error">
+            <AlertCircle className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground">Unable to load local spotlights.</p>
+            <p className="text-xs text-primary mt-1 group-hover/spotlight:underline">Try browsing all lounges →</p>
+          </div>
+        ) : spotlight?.state === "login_required" || spotlight?.state === "location_required" || spotlight?.state === "empty" ? (
+          <div className="py-4 text-center" data-testid={`sidebar-spotlight-${spotlight.state}`}>
+            <MapPin className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">{spotlight.message}</p>
+            <p className="text-xs text-primary font-medium mt-2 group-hover/spotlight:underline">
+              {spotlight.state === "empty" ? "Browse All Lounges →" : "Update to view →"}
+            </p>
+          </div>
+        ) : spotlight?.businesses ? (
+          <>
+            <div className="space-y-3" data-testid="sidebar-spotlight-cards">
+              {spotlight.businesses.slice(0, 3).map((lounge) => (
+                <div key={lounge.id} className="flex gap-3 group/card">
+                  <div className="w-10 h-10 rounded overflow-hidden bg-white/5 border border-white/10 shrink-0">
+                    {lounge.logoUrl || lounge.coverUrl ? (
+                      <img src={lounge.logoUrl || lounge.coverUrl || ''} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-primary/20 flex items-center justify-center text-xs font-serif text-primary">
+                        {lounge.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 py-0.5">
+                    <p className="text-sm text-white flex items-center gap-1.5 leading-none mb-1 group-hover/card:text-primary transition-colors">
+                      <span className="truncate">{lounge.name}</span>
+                      {lounge.verified && <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0" />}
+                    </p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {typeof lounge.averageRating === "number" && lounge.averageRating > 0 && (
+                        <span className="shrink-0 flex items-center gap-0.5 text-primary">
+                          <Star className="h-3 w-3 fill-primary" />
+                          {lounge.averageRating.toFixed(1)} <span className="text-muted-foreground ml-0.5">({lounge.reviewCount})</span>
+                        </span>
+                      )}
+                      <span className="truncate">{lounge.city}, {lounge.state}</span>
+                      <span className="shrink-0 ml-auto">{lounge.distanceMiles.toFixed(1)}mi</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </SectionCard>
-      )}
+
+            {spotlight.state === "partial" && (
+              <p className="text-[10px] text-muted-foreground mt-4 text-center italic" data-testid="sidebar-spotlight-partial">
+                More local Lounge Spotlights coming soon.
+              </p>
+            )}
+
+            <div className="mt-4 pt-3 border-t border-white/10 text-center">
+              <span className="text-xs text-primary font-medium group-hover/spotlight:underline">
+                View Today's Local Spotlights →
+              </span>
+            </div>
+          </>
+        ) : null}
+      </Link>
 
       {/* Sponsored / upgrade promo — shows the viewer's next upgradable level */}
       {session?.user?.role !== "doll" && upgradePlan && (
