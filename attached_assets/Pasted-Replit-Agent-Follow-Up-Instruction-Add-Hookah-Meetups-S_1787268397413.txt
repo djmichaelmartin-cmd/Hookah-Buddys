@@ -1,0 +1,1067 @@
+Replit Agent Follow-Up Instruction: Add Hookah Meetups Similar to Meetup.com
+
+Do not rebuild the platform. Only add a new Meetups feature to the existing HookahBuddys platform.
+
+We are adding Meetup-style functionality where members can create local hookah-focused Meetups, organize Events inside those Meetups, and have those Events automatically appear on the global Events page.
+
+Use the platform name HookahBuddys, not HookahDolls.
+
+Do not remove or replace:
+
+The Lounge
+Groups
+Business Pages
+Member profiles
+Doll/Bro profiles
+Credits
+Pricing
+Messaging
+Premium content
+Video chat
+Admin dashboard
+Existing Events functionality
+
+This is an additive feature.
+
+Feature Concept
+
+Members should be able to create Meetups similar to Meetup.com.
+
+A Meetup is a local or interest-based gathering hub centered around hookah culture.
+
+Examples:
+
+Las Vegas Hookah Meetup
+Blueberry Mint Hookah Lovers
+Hookah Lounge Night Crew
+Friday Night Smoke Sessions
+Hookah Business Networking
+Hookah Beginners Meetup
+Vegas Smoke Tricks Meetup
+Hookah & Foodies Meetup
+HookahBuddys Social Night
+
+Each Meetup can have:
+
+Meetup name
+Organizer
+Description
+Interest/topic
+City/state
+Members
+Events
+Photos
+Discussions/posts
+Rules
+Hosts/co-hosts
+Public or private visibility
+RSVP and attendance tracking
+Important Logic
+
+On Meetup.com, events are tied to groups rather than existing as isolated standalone items. For HookahBuddys, use the same structure:
+
+A Meetup can create Events.
+
+When a member creates an Event from inside a Meetup:
+
+The Event should appear inside that Meetup.
+The Event should also appear on the global /events page.
+The Event should be searchable and filterable by location, date, category, and interest.
+The Event should show which Meetup is hosting it.
+Main Routes
+
+Add these routes:
+
+/meetups
+/meetups/create
+/meetups/:id
+/meetups/:id/about
+/meetups/:id/events
+/meetups/:id/members
+/meetups/:id/photos
+/meetups/:id/discussions
+/meetups/:id/settings
+/meetups/:id/admin
+/meetups/:id/create-event
+/events
+/events/:id
+/dashboard/meetups
+/admin/meetups
+Meetups Discovery Page
+
+Route:
+
+/meetups
+
+Page title:
+
+“Hookah Meetups”
+
+Subtitle:
+
+“Find local hookah gatherings, lounge nights, smoke sessions, events, and people who share your interests.”
+
+Features:
+
+Search Meetups
+Browse by city/state
+Browse by distance
+Browse by date of next event
+Browse by number of members
+Browse by trending
+Browse by newest
+Browse by most active
+Browse by public/private
+Browse by topic
+Browse by category
+Suggested Meetups near you
+Meetups your friends joined
+Meetups hosted by businesses
+Meetups hosted by Dolls
+Meetups hosted by members
+Create Meetup button
+
+Filters:
+
+Location
+Distance: 5, 10, 25, 50, 100 miles
+Upcoming events
+Online
+In-person
+Hybrid
+Most active
+Newest
+Popular
+Public
+Private
+Free events
+Paid events
+Business-hosted
+Member-hosted
+
+Each Meetup card should show:
+
+Cover image
+Meetup name
+City/state
+Distance from user
+Member count
+Upcoming event count
+Next event date
+Organizer name/profile
+Main interest: Hookah
+Tags
+Public/private badge
+Join button
+View Meetup button
+Create Meetup Page
+
+Route:
+
+/meetups/create
+
+Page title:
+
+“Create a Hookah Meetup”
+
+Subtitle:
+
+“Start a local hookah meetup, invite members, host events, and bring people together around hookah culture.”
+
+Required fields:
+
+Meetup name
+City
+State
+Description
+Main interest
+Tags
+Cover photo
+Privacy
+Organizer agreement
+
+Default main interest:
+
+“Hookah”
+
+Additional optional interests/tags:
+
+Hookah Lounges
+Hookah Flavors
+Smoke Sessions
+Lounge Nights
+Hookah Events
+Smoke Tricks
+Hookah Beginners
+Hookah Business
+Nightlife
+Food & Hookah
+Music & Hookah
+Social Meetup
+Local Networking
+Private Events
+Custom
+
+Privacy options:
+
+Public Meetup
+Anyone can find the Meetup, view public details, see upcoming events, and request to join or join.
+Private Meetup
+People can find the Meetup, but only approved members can see full discussions, members, photos, and private events.
+Hidden Meetup
+Only invited members can find and join.
+Meetup Profile Page
+
+Route:
+
+/meetups/:id
+
+The Meetup page should look similar to a Meetup.com group page but styled for HookahBuddys.
+
+Header should show:
+
+Cover photo
+Meetup name
+City/state
+Main interest: Hookah
+Member count
+Upcoming event count
+Organizer
+Public/private badge
+Join button
+Invite button
+Share button
+Create Event button, if organizer/admin
+More menu
+
+Tabs:
+
+About
+Events
+Discussions
+Members
+Photos
+Rules
+Meetup About Tab
+
+Show:
+
+Meetup description
+What this Meetup is about
+Who should join
+What members can expect
+City/state
+Main interest
+Tags
+Organizer
+Co-hosts
+Rules
+Created date
+Member count
+Upcoming events
+Past events
+
+Add suggested copy field:
+
+“What we do”
+
+Example:
+
+“We meet at local lounges, try new flavors, share hookah setups, attend events, and connect with other hookah lovers.”
+
+Meetup Events Tab
+
+Route:
+
+/meetups/:id/events
+
+Show:
+
+Upcoming events
+Past events
+Draft events, organizer only
+Cancelled events, organizer only
+Create Event button
+
+Event cards should show:
+
+Event title
+Event image
+Date/time
+Location
+Online/in-person/hybrid badge
+RSVP count
+Attendee limit
+Price/free badge
+Hosted by
+RSVP button
+Save event button
+Share event button
+Create Meetup Event
+
+Route:
+
+/meetups/:id/create-event
+
+Use Meetup-style event creation.
+
+Event form fields:
+
+Event title
+Featured photo
+Event description
+Date
+Start time
+End time
+Duration
+Event type:
+In-person
+Online
+Hybrid
+Venue/location
+Address
+City/state
+Map/location placeholder
+How to find us
+Online meeting link, if online/hybrid
+Hosts/co-hosts
+Speaker/guest host, optional
+Topics/tags
+Event fee:
+Free
+Paid
+Ticket price, if paid
+Refund policy, if paid
+Attendee limit
+Waitlist on/off
+Allow guests on/off
+Number of guests allowed
+RSVP start date/time
+RSVP end date/time
+Registration questions
+Repeat event:
+None
+Daily
+Weekly
+Monthly
+Custom
+Draft or publish
+
+Default topic:
+
+“Hookah”
+
+Suggested event categories:
+
+Hookah Lounge Night
+Smoke Session
+Flavor Tasting
+Hookah Meetup
+Hookah Class
+Smoke Tricks
+Business Networking
+Hookah & Food
+Hookah & Music
+Hookah Event
+Private Gathering
+Online Hookah Chat
+Custom
+Event Publishing Logic
+
+When a Meetup organizer publishes an event:
+
+Create the Event under the Meetup.
+Add the Event to the Meetup’s Events tab.
+Add the Event to the global /events page.
+Add the Event to the organizer’s profile activity.
+Notify Meetup members.
+Notify followers if allowed.
+Add the Event to location-based discovery.
+Add the Event to The Lounge feed if public.
+Global Events Page
+
+Route:
+
+/events
+
+Page title:
+
+“Hookah Events”
+
+Subtitle:
+
+“Discover hookah meetups, lounge nights, smoke sessions, and local events near you.”
+
+Events page should include:
+
+Search events
+Event calendar
+Upcoming events
+Events near you
+Events from Meetups you joined
+Events your friends are attending
+Business-hosted events
+Doll-hosted events
+Online events
+In-person events
+Hybrid events
+Saved events
+Past events
+
+Filters:
+
+Date range
+Today
+Tomorrow
+This weekend
+This week
+This month
+Distance
+City/state
+Online
+In-person
+Hybrid
+Free
+Paid
+Category
+Topic
+RSVP count
+Most popular
+Newest
+Hosted by Meetup
+Hosted by business
+Hosted by member
+
+Event card should show:
+
+Event image
+Event title
+Date/time
+Meetup name
+Host/organizer
+Location
+Distance
+RSVP count
+Attendee limit
+Price/free badge
+Public/private badge
+RSVP button
+Save button
+Share button
+Event Detail Page
+
+Route:
+
+/events/:id
+
+Show:
+
+Event title
+Event image
+Date/time
+Duration
+Location/map placeholder
+Online meeting link, visible only to approved attendees if private
+Hosted by Meetup
+Organizer profile
+Co-hosts
+Description
+Agenda
+What to bring
+Tags/topics
+Attendee count
+Attendee list, based on privacy settings
+RSVP button
+Join waitlist button, if full
+Save event
+Share event
+Report event
+Comments/discussion
+Event photos after event
+Similar events
+
+RSVP options:
+
+Going
+Interested
+Not going
+Cancel RSVP
+
+For paid events:
+
+Show ticket price
+Require checkout before RSVP is confirmed
+Use Stripe-ready payment placeholder
+Show refund policy
+RSVP and Attendee Management
+
+For organizers, add attendee management similar to Meetup.
+
+Organizer can:
+
+View attendee list
+Search attendees
+Remove attendee
+Move waitlisted attendee to attending
+Edit guest count
+Mark checked in
+Mark no-show
+Mark not coming
+Message attendees
+Add event host
+Remove event host
+Download attendee list, placeholder
+Scan/check-in QR code, future placeholder
+
+Attendee statuses:
+
+interested
+going
+waitlisted
+checked_in
+no_show
+not_coming
+cancelled
+
+If attendee limit is reached:
+
+New RSVPs go to waitlist if waitlist is enabled.
+If waitlist is disabled, show “Event Full.”
+Location Logic
+
+Use the same location system already planned for local businesses and Lounge Spotlight.
+
+Location priority:
+
+User-selected search location
+User profile city/state
+Browser/device location, only with permission
+IP/general city fallback, if available
+Prompt user to add city
+
+For Event and Meetup discovery:
+
+Default radius: 25 miles
+Allow filters up to 100 miles
+Online events can appear outside the radius
+Hookah Interest Rule
+
+The default interest for Meetups should be:
+
+“Hookah”
+
+Every Meetup should have at least one interest/topic, and the default should be Hookah.
+
+Do not require every single Meetup post to include a hookah image, but Meetups should be hookah-related by default.
+
+Meetup Events should be related to hookah culture, lounge culture, social connection, nightlife, business networking, or local community.
+
+Add a required checkbox when creating a Hookah Meetup:
+
+“I confirm this Meetup is related to hookah culture or the HookahBuddys community.”
+
+Add a required checkbox when creating a Meetup Event:
+
+“I confirm this Event is appropriate for the HookahBuddys community.”
+
+Meetup Membership
+
+Members can:
+
+Join public Meetups
+Request to join private Meetups
+Leave Meetups
+Invite friends
+View upcoming events
+RSVP to events
+Post in discussions, if allowed
+Upload photos, if allowed
+Comment on events
+Save events
+Follow organizer
+Report Meetup or Event
+
+Meetup organizers can:
+
+Edit Meetup
+Create events
+Edit events
+Cancel events
+Message members
+Approve member requests
+Remove members
+Assign co-hosts
+Moderate discussions
+Manage event RSVPs
+Track attendance
+View Meetup insights
+Meetup Roles
+
+Roles:
+
+Owner / Organizer:
+
+Full control
+Edit Meetup
+Delete/deactivate Meetup
+Create events
+Manage events
+Approve members
+Remove members
+Assign co-hosts
+View insights
+
+Co-host:
+
+Create/edit events
+Manage RSVPs
+Check in attendees
+Moderate discussions
+
+Assistant Organizer:
+
+Help manage members
+Help moderate posts
+Help with check-ins
+
+Member:
+
+RSVP
+Post/comment if allowed
+Upload photos if allowed
+Invite friends if allowed
+Meetup Discussions
+
+Add a Discussions tab.
+
+Discussion features:
+
+Create post
+Text
+Photo
+Video
+Tag people
+Feeling/activity
+Add location
+Like
+Comment
+Reply
+Save
+Report
+Pin post, organizer only
+Delete own post
+Organizer can remove posts
+Meetup Photos
+
+Add Photos tab.
+
+Features:
+
+Upload event photos
+Upload Meetup photos
+Albums
+Captions
+Tag people
+Like/comment/share/report
+Organizer moderation
+
+Albums:
+
+Meetup Photos
+Event Photos
+Lounge Nights
+Smoke Sessions
+Member Uploads
+Meetup Notifications
+
+Send notifications for:
+
+New Meetup invite
+Join request approved
+Join request declined
+New event created
+Event updated
+Event cancelled
+Event reminder
+RSVP confirmation
+Waitlist spot opened
+New discussion post
+New comment
+Tagged in Meetup post
+Tagged in event photo
+Co-host invitation
+Organizer announcement
+Meetup Dashboard
+
+Route:
+
+/dashboard/meetups
+
+Show:
+
+Meetups I organize
+Meetups I joined
+Meetup invitations
+Pending join requests
+Events I’m attending
+Events I’m hosting
+Saved events
+Past events
+Create Meetup button
+Create Event button
+Admin Dashboard
+
+Route:
+
+/admin/meetups
+
+Admin can:
+
+View all Meetups
+Search Meetups
+Filter by city/state
+Filter by status
+Filter by public/private
+Review reported Meetups
+Review reported events
+Review reported discussions
+Suspend Meetups
+Hide Meetups
+Delete Meetups
+Approve/reject flagged Meetups
+Approve/reject flagged Events
+Manage event categories
+Manage Meetup topics
+Feature Meetups
+Feature Events
+View RSVP activity
+View attendance/check-in data
+View event payment data, if paid
+View Meetup growth analytics
+
+Admin statuses:
+
+active
+pending_review
+hidden
+suspended
+removed
+Database Models
+
+Add or update models:
+
+Meetup:
+
+id
+organizerUserId
+name
+slug
+handle
+description
+city
+state
+latitude
+longitude
+mainInterest
+topics
+tags
+privacy
+public
+private
+hidden
+coverPhotoUrl
+iconUrl
+status
+active
+pending_review
+hidden
+suspended
+removed
+memberCount
+eventCount
+upcomingEventCount
+requiresMemberApproval
+allowMemberPosts
+allowMemberPhotos
+allowMemberInvites
+createdAt
+updatedAt
+
+MeetupMember:
+
+id
+meetupId
+userId
+role
+organizer
+co_host
+assistant_organizer
+member
+status
+active
+pending
+declined
+removed
+banned
+joinedAt
+invitedByUserId
+approvedByUserId
+createdAt
+updatedAt
+
+MeetupInvite:
+
+id
+meetupId
+invitedByUserId
+invitedUserId
+inviteEmail
+inviteToken
+status
+pending
+accepted
+declined
+expired
+createdAt
+updatedAt
+
+MeetupEvent:
+
+id
+meetupId
+organizerUserId
+title
+slug
+description
+featuredPhotoUrl
+eventType
+in_person
+online
+hybrid
+category
+topics
+tags
+startDateTime
+endDateTime
+durationMinutes
+venueName
+address
+city
+state
+latitude
+longitude
+howToFindUs
+onlineUrl
+attendeeLimit
+waitlistEnabled
+allowGuests
+maxGuestsPerAttendee
+rsvpStartDateTime
+rsvpEndDateTime
+isPaid
+ticketPrice
+refundPolicy
+repeatRule
+status
+draft
+published
+cancelled
+completed
+hidden
+removed
+attendeeCount
+waitlistCount
+saveCount
+createdAt
+updatedAt
+
+GlobalEvent:
+
+id
+sourceType
+meetup
+business
+group
+user
+sourceId
+meetupEventId
+businessEventId
+groupEventId
+title
+description
+eventDateTime
+city
+state
+latitude
+longitude
+category
+topics
+status
+createdAt
+updatedAt
+
+EventRSVP:
+
+id
+eventId
+eventType
+meetup
+business
+group
+user
+userId
+status
+interested
+going
+waitlisted
+checked_in
+no_show
+not_coming
+cancelled
+guestCount
+checkedInAt
+createdAt
+updatedAt
+
+MeetupDiscussionPost:
+
+id
+meetupId
+userId
+text
+mediaUrl
+mediaType
+feeling
+activity
+location
+status
+likeCount
+commentCount
+reportCount
+createdAt
+updatedAt
+
+MeetupDiscussionComment:
+
+id
+postId
+userId
+commentText
+parentCommentId
+status
+createdAt
+updatedAt
+
+MeetupPhoto:
+
+id
+meetupId
+eventId
+uploadedByUserId
+imageUrl
+caption
+status
+createdAt
+updatedAt
+
+MeetupReport:
+
+id
+meetupId
+eventId
+reporterUserId
+relatedType
+meetup
+event
+post
+comment
+photo
+member
+relatedId
+reason
+notes
+status
+pending
+reviewed
+dismissed
+action_taken
+reviewedByAdminId
+reviewedAt
+createdAt
+
+MeetupInsight:
+
+id
+meetupId
+metricName
+metricValue
+metricDate
+metadata
+createdAt
+Global Event Sync
+
+When a Meetup Event is created, updated, cancelled, or deleted, sync it to the global Events system.
+
+Rules:
+
+Published Meetup Events appear on /events.
+Draft Meetup Events do not appear on /events.
+Cancelled Meetup Events remain visible only if admin/organizer setting allows.
+Private Meetup Events appear only to approved Meetup members.
+Public Meetup Events appear in global Events discovery.
+Online Meetup Events may appear outside local radius.
+In-person Meetup Events should use local radius search.
+The Lounge Integration
+
+Add Meetup content to The Lounge.
+
+Left sidebar:
+
+Meetups
+Create Meetup
+My Meetups
+Events
+Saved Events
+Meetups Near Me
+
+Right sidebar:
+
+Suggested Meetups
+Upcoming Hookah Events
+Events Near You
+Meetups Friends Joined
+Popular Hookah Meetups
+
+Feed cards:
+
+New Meetup created
+New event posted
+Friend RSVP’d to event
+Meetup discussion post
+Event reminder
+UI Design
+
+Use HookahBuddys theme:
+
+Dark charcoal background
+Blue social action buttons
+Gold premium/featured buttons
+Green for RSVP/confirmed
+Red only for alerts or cancelled events
+Card-based layout
+Mobile responsive
+Meetup-style event cards
+Local discovery feel
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove Groups.
+
+Do not remove Business Pages.
+
+Do not replace /events.
+
+Only add Meetups and connect Meetup-created events into the existing Events system.
+
+The final result should allow a HookahBuddys member to create a Hookah Meetup, invite members, host events, manage RSVPs, track attendance, and have each Meetup Event automatically appear on the main Events page for discovery.
