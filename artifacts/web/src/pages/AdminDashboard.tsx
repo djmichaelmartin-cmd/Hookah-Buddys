@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { getErrorMessage } from "@/lib/error";
 import { Layout } from "@/components/Layout";
-import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey } from "@workspace/api-client-react";
+import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey, useGetCurrentUser } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,41 @@ import { Briefcase } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function AdminDashboard() {
+  const { data: session, isLoading } = useGetCurrentUser();
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex-1 flex items-center justify-center p-8 text-muted-foreground">
+          Checking admin access...
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!session?.authenticated || session.user?.role !== "admin") {
+    return (
+      <Layout>
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-card/60 p-8 text-center">
+            <ShieldCheck className="mx-auto mb-4 h-10 w-10 text-primary" />
+            <h1 className="mb-2 text-2xl font-serif text-white">Admin access required</h1>
+            <p className="mb-6 text-sm text-muted-foreground">
+              Sign in with an administrator account to open this workspace.
+            </p>
+            <Button asChild>
+              <a href="/login">Go to login</a>
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return <AdminDashboardContent />;
+}
+
+function AdminDashboardContent() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [location] = useLocation();

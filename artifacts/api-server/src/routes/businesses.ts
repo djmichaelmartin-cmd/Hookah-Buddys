@@ -77,6 +77,20 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
 import { logger } from "../lib/logger";
 import { createBusinessMentions } from "../lib/businessMentions";
+import {
+  ALL_ASSIGNABLE_BUSINESS_ROLES,
+  getBufferedAppointmentInterval,
+  hasBusinessCapability,
+  isAnyBusinessTeamRole,
+  isBusinessPubliclyVisible,
+  isBusinessWriteBlocked,
+  isValidAssignableBusinessRole,
+  parseAppointmentDuration,
+  resolveAppointmentDuration,
+  selectPublicOwnerIdentity,
+  type AssignableBusinessRole,
+  type BusinessTeamRole,
+} from "../lib/businessPolicies";
 
 const router: IRouter = Router();
 
@@ -85,52 +99,52 @@ const router: IRouter = Router();
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** All recognized team roles. */
-const ALL_ASSIGNABLE_ROLES = ["admin", "editor", "moderator", "advertiser", "analyst", "support_agent"] as const;
-type AssignableRole = (typeof ALL_ASSIGNABLE_ROLES)[number];
-type TeamRole = "owner" | AssignableRole;
+const ALL_ASSIGNABLE_ROLES = ALL_ASSIGNABLE_BUSINESS_ROLES;
+type AssignableRole = AssignableBusinessRole;
+type TeamRole = BusinessTeamRole;
 
 function isValidAssignableRole(r: unknown): r is AssignableRole {
-  return ALL_ASSIGNABLE_ROLES.includes(r as AssignableRole);
+  return isValidAssignableBusinessRole(r);
 }
 
 /** Can read private management views (dashboard, insights, notifications). */
 function canReadManagement(role: TeamRole | null): boolean {
-  return role === "owner" || role === "admin" || role === "analyst";
+  return hasBusinessCapability(role, "management");
 }
 
 /** Can manage business settings and team. */
 function canManageSettings(role: TeamRole | null): boolean {
-  return role === "owner" || role === "admin";
+  return hasBusinessCapability(role, "settings");
 }
 
 /** Can publish/unpublish. Owner-only plus platform admin. */
 function canPublish(role: TeamRole | null): boolean {
-  return role === "owner";
+  return hasBusinessCapability(role, "publish");
 }
 
 /** Can create/edit/delete posts, services, products. */
 function canEditContent(role: TeamRole | null): boolean {
-  return role === "owner" || role === "admin" || role === "editor";
+  return hasBusinessCapability(role, "content");
 }
 
 /** Can manage offers specifically. */
 function canManageOffers(role: TeamRole | null): boolean {
-  return role === "owner" || role === "admin" || role === "editor" || role === "advertiser";
+  return hasBusinessCapability(role, "offers");
 }
 
 /** Can reply to reviews and hide/unhide reviews (moderator action). */
 function canModerateContent(role: TeamRole | null): boolean {
-  return role === "owner" || role === "admin" || role === "moderator";
+  return hasBusinessCapability(role, "moderation");
 }
 
 /** Can read and send messages in business inbox. */
 function canAccessInbox(role: TeamRole | null): boolean {
-  return role === "owner" || role === "admin" || role === "support_agent";
+  return hasBusinessCapability(role, "inbox");
 }
 
 /** Returns true for any recognized team role (including read-only). */
 function isAnyTeamRole(role: TeamRole | null): boolean {
-  return role !== null;
+  return isAnyBusinessTeamRole(role);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -138,15 +152,8 @@ function isAnyTeamRole(role: TeamRole | null): boolean {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Statuses where writes (other than admin platform actions) are blocked. */
-const BLOCKED_WRITE_STATUSES = new Set(["suspended", "closed"]);
-
-/**
- * Returns 409 and true if the business is in a state that blocks mutations.
- * Platform admins bypass this guard (pass isAdmin=true to skip).
- */
 function isWriteBlocked(biz: { status: string }, isAdmin: boolean): boolean {
-  if (isAdmin) return false;
-  return BLOCKED_WRITE_STATUSES.has(biz.status);
+  return isBusinessWriteBlocked(biz, isAdmin);
 }
 
 /**
@@ -165,7 +172,7 @@ async function resolveChildReadAccess(
   const isAdmin = viewer?.role === "admin";
   const isManagementView = isAnyTeamRole(viewerRole) || isAdmin;
   if (isManagementView) return { allowed: true, isManagementView: true };
-  const publicVisible = biz.isPublished && biz.status === "active";
+  const publicVisible = isBusinessPubliclyVisible(biz);
   return { allowed: publicVisible, isManagementView: false };
 }
 
@@ -581,19 +588,20 @@ async function hasAppointmentConflict(
     startsAt: Date;
     durationMinutes: number;
     bufferMinutes: number;
+    existingDefaultDurationMinutes: number;
     excludeId?: number;
   },
 ): Promise<boolean> {
-  const bufferMs = opts.bufferMinutes * 60 * 1000;
-  const reqStart = new Date(opts.startsAt.getTime() - bufferMs);
-  const reqEnd = new Date(opts.startsAt.getTime() + opts.durationMinutes * 60 * 1000 + bufferMs);
+  const requestedInterval = getBufferedAppointmentInterval(opts);
+  const reqStart = requestedInterval.startsAt;
+  const reqEnd = requestedInterval.endsAt;
   // Overlap when existing.start < reqEnd AND existing.end > reqStart. Existing
   // end is scheduled_at + coalesce(duration, 0). We compare in SQL for accuracy.
   const conditions = [
     eq(businessAppointmentsTable.businessId, opts.businessId),
     inArray(businessAppointmentsTable.status, ["pending", "confirmed"]),
     sql`${businessAppointmentsTable.scheduledAt} < ${reqEnd}`,
-    sql`(${businessAppointmentsTable.scheduledAt} + make_interval(mins => coalesce(${businessAppointmentsTable.durationMinutes}, 0))) > ${reqStart}`,
+    sql`(${businessAppointmentsTable.scheduledAt} + make_interval(mins => CASE WHEN ${businessAppointmentsTable.durationMinutes} IS NULL OR ${businessAppointmentsTable.durationMinutes} <= 0 THEN ${opts.existingDefaultDurationMinutes} ELSE ${businessAppointmentsTable.durationMinutes} END)) > ${reqStart}`,
   ];
   if (opts.excludeId != null) {
     conditions.push(sql`${businessAppointmentsTable.id} <> ${opts.excludeId}`);
@@ -790,11 +798,12 @@ async function serializeBusinessDetail(
   viewerId: number | null,
 ) {
   // Owner display — only if the page has opted in
-  let owner: { name: string; photoUrl: string | null } | null = null;
+  let ownerCandidate: { name: string; photoUrl: string | null } | null = null;
   if (biz.showOwner) {
     const u = await getUserPublic(biz.ownerUserId);
-    if (u) owner = { name: u.name, photoUrl: u.profilePhotoUrl ?? null };
+    if (u) ownerCandidate = { name: u.name, photoUrl: u.profilePhotoUrl ?? null };
   }
+  const owner = selectPublicOwnerIdentity(biz.showOwner, ownerCandidate);
 
   // Viewer engagement
   let viewerFollows = false;
@@ -1368,7 +1377,7 @@ router.get("/businesses/:handle", async (req, res): Promise<void> => {
 
   // Public can only see active+published pages
   if (!isAnyTeamRole(viewerRole) && !isAdmin) {
-    if (!biz.isPublished || biz.status !== "active") {
+    if (!isBusinessPubliclyVisible(biz)) {
       res.status(404).json({ error: "Business not found" });
       return;
     }
@@ -3750,7 +3759,7 @@ router.post(
     const handle = parseHandle(req.params.handle);
     const biz = await getBusinessByHandle(handle);
 
-    if (!biz || !biz.isPublished || biz.status !== "active") {
+    if (!biz || !isBusinessPubliclyVisible(biz)) {
       res.status(404).json({ error: "Business not found" });
       return;
     }
@@ -3797,11 +3806,15 @@ router.post(
       resolvedServiceId = svc.id;
     }
 
-    const durationMinutes =
-      typeof req.body?.durationMinutes === "number" ? req.body.durationMinutes : null;
+    const parsedDuration = parseAppointmentDuration(req.body?.durationMinutes);
+    if (!parsedDuration.valid) {
+      res.status(400).json({ error: "durationMinutes must be a whole number between 1 and 1440" });
+      return;
+    }
+    const durationMinutes = parsedDuration.value;
     const notes = typeof req.body?.notes === "string" ? req.body.notes.trim() || null : null;
-    const effectiveDuration =
-      durationMinutes ?? biz.bookingDefaultDurationMinutes ?? 60;
+    const defaultDuration = resolveAppointmentDuration(biz.bookingDefaultDurationMinutes);
+    const effectiveDuration = durationMinutes ?? defaultDuration;
     const buffer = biz.bookingBufferMinutes ?? 0;
 
     // Serialize concurrent bookings for THIS business via a transaction-scoped
@@ -3817,6 +3830,7 @@ router.post(
           startsAt: scheduledAt,
           durationMinutes: effectiveDuration,
           bufferMinutes: buffer,
+          existingDefaultDurationMinutes: defaultDuration,
         });
         if (conflict) {
           throw new ValidationError("That time slot overlaps an existing appointment");
@@ -3828,7 +3842,7 @@ router.post(
             serviceId: resolvedServiceId ?? undefined,
             userId: user.id,
             scheduledAt,
-            durationMinutes: durationMinutes ?? undefined,
+            durationMinutes,
             notes,
             status: "pending",
           })
@@ -4024,10 +4038,16 @@ router.patch(
       return;
     }
 
-    const durationMinutes =
-      typeof req.body?.durationMinutes === "number" ? req.body.durationMinutes : undefined;
+    const parsedDuration = parseAppointmentDuration(req.body?.durationMinutes);
+    if (!parsedDuration.valid) {
+      res.status(400).json({ error: "durationMinutes must be a whole number between 1 and 1440" });
+      return;
+    }
+    const durationMinutes = parsedDuration.value;
+    const defaultDuration = resolveAppointmentDuration(biz.bookingDefaultDurationMinutes);
     const effectiveDuration =
-      durationMinutes ?? appt.durationMinutes ?? biz.bookingDefaultDurationMinutes ?? 60;
+      durationMinutes ??
+      resolveAppointmentDuration(appt.durationMinutes ?? undefined, defaultDuration);
     const buffer = biz.bookingBufferMinutes ?? 0;
 
     // Same advisory-lock + overlap guard as create, excluding this appointment.
@@ -4040,6 +4060,7 @@ router.patch(
           startsAt: scheduledAt,
           durationMinutes: effectiveDuration,
           bufferMinutes: buffer,
+          existingDefaultDurationMinutes: defaultDuration,
           excludeId: appointmentId,
         });
         if (conflict) {
