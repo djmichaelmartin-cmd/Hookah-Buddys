@@ -414,7 +414,18 @@ export default function MeetupDetail() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            {activeMainTab === "events" && <GroupEvents groupId={groupId} isAdmin={isAdmin} isMeetup={true} />}
+            {activeMainTab === "events" && (
+              <GroupEvents
+                groupId={groupId}
+                isAdmin={isAdmin}
+                isMeetup={true}
+                canMessageAttendees={
+                  group.viewerMemberRole === "owner" ||
+                  group.viewerMemberRole === "admin" ||
+                  group.viewerMemberRole === "moderator"
+                }
+              />
+            )}
             {activeMainTab === "posts" && <GroupPosts groupId={groupId} isMember={isMember} isAdmin={isAdmin} group={group} />}
             {activeMainTab === "about" && (
               <div className="bg-card border border-orange-500/10 rounded-2xl p-6">

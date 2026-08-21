@@ -37,7 +37,7 @@
  */
 
 import { Router, type IRouter } from "express";
-import { eq, and, desc, sql, inArray, ilike, or, asc, not } from "drizzle-orm";
+import { eq, and, desc, sql, inArray, ilike, or, asc, not, gte } from "drizzle-orm";
 import {
   db,
   usersTable,
@@ -62,6 +62,7 @@ import {
   groupActivityLogTable,
   groupInsightEventsTable,
   groupFeaturedContentTable,
+  notificationsTable,
   blocksTable,
   businessesTable,
   businessPageRolesTable,
@@ -94,6 +95,7 @@ import {
   JoinGroupBody,
   AdminTransferGroupOwnerBody,
   ManageGroupEventAttendeeBody,
+  BroadcastGroupEventBody,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
 import {
@@ -116,6 +118,11 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
 import { streamValidatedObject } from "./storage";
 import { logger } from "../lib/logger";
+import {
+  eligibleEventBroadcastRecipientIds,
+  evaluateEventBroadcastRateLimit,
+  summarizeEventBroadcastDeliveries,
+} from "../lib/eventBroadcastPolicy";
 
 const router: IRouter = Router();
 
@@ -269,6 +276,141 @@ async function getBlockedUserIds(viewerId: number, candidateIds: number[]): Prom
     );
 
   return blockedUserIdsPure(viewerId, rows);
+}
+
+async function getEligibleEventBroadcastRecipientIds(
+  groupId: number,
+  eventId: number,
+  senderUserId: number,
+): Promise<number[]> {
+  const candidates = await db
+    .select({
+      userId: groupEventRsvpsTable.userId,
+      rsvpStatus: groupEventRsvpsTable.rsvpStatus,
+      isPrivate: groupEventRsvpsTable.isPrivate,
+      accountStatus: usersTable.accountStatus,
+      memberStatus: groupMembersTable.status,
+    })
+    .from(groupEventRsvpsTable)
+    .innerJoin(
+      usersTable,
+      eq(usersTable.id, groupEventRsvpsTable.userId),
+    )
+    .innerJoin(
+      groupMembersTable,
+      and(
+        eq(groupMembersTable.groupId, groupId),
+        eq(groupMembersTable.userId, groupEventRsvpsTable.userId),
+      ),
+    )
+    .where(
+      and(
+        eq(groupEventRsvpsTable.groupId, groupId),
+        eq(groupEventRsvpsTable.eventId, eventId),
+        eq(groupEventRsvpsTable.rsvpStatus, "going"),
+        eq(groupEventRsvpsTable.isPrivate, false),
+        eq(usersTable.accountStatus, "active"),
+        eq(groupMembersTable.status, "active"),
+        not(eq(groupEventRsvpsTable.userId, senderUserId)),
+      ),
+    );
+
+  const candidateIds = candidates.map((candidate) => candidate.userId);
+  const blockedIds = await getBlockedUserIds(senderUserId, candidateIds);
+  return eligibleEventBroadcastRecipientIds(candidates, senderUserId, blockedIds);
+}
+
+async function loadAuthorizedEventBroadcaster(
+  groupId: number,
+  eventId: number,
+  actor: { id: number; role: string },
+): Promise<
+  | {
+      ok: true;
+      group: typeof groupsTable.$inferSelect;
+      event: typeof groupEventsTable.$inferSelect;
+    }
+  | { ok: false; status: number; error: string }
+> {
+  const guard = await loadGroupForLifecycle(groupId, "write");
+  if (!guard.ok) return guard;
+  if (guard.group.groupType !== "meetup") {
+    return { ok: false, status: 404, error: "Meetup not found" };
+  }
+
+  const [event] = await db
+    .select()
+    .from(groupEventsTable)
+    .where(and(eq(groupEventsTable.id, eventId), eq(groupEventsTable.groupId, groupId)));
+  if (!event) {
+    return { ok: false, status: 404, error: "Event not found" };
+  }
+  if (event.status !== "active") {
+    return { ok: false, status: 409, error: "Updates cannot be sent for this event" };
+  }
+
+  const memberRole = await getGroupMemberRole(groupId, actor.id);
+  if (!canModerateContent(memberRole)) {
+    return { ok: false, status: 403, error: "Only Meetup organizers can message attendees" };
+  }
+
+  return { ok: true, group: guard.group, event };
+}
+
+async function deliverEventBroadcastNotification(input: {
+  groupId: number;
+  eventId: number;
+  senderUserId: number;
+  recipientUserId: number;
+  title: string;
+  message: string;
+}): Promise<"delivered" | "skipped"> {
+  const result = await db.execute(sql`
+    insert into ${notificationsTable} (
+      user_id,
+      type,
+      title,
+      message,
+      related_user_id,
+      related_event_id,
+      related_group_id
+    )
+    select
+      ${groupEventRsvpsTable.userId},
+      'event_update',
+      ${input.title},
+      ${input.message},
+      ${input.senderUserId},
+      ${-input.eventId},
+      ${input.groupId}
+    from ${groupEventRsvpsTable}
+    inner join ${usersTable}
+      on ${usersTable.id} = ${groupEventRsvpsTable.userId}
+    inner join ${groupMembersTable}
+      on ${groupMembersTable.groupId} = ${input.groupId}
+      and ${groupMembersTable.userId} = ${groupEventRsvpsTable.userId}
+    where ${groupEventRsvpsTable.groupId} = ${input.groupId}
+      and ${groupEventRsvpsTable.eventId} = ${input.eventId}
+      and ${groupEventRsvpsTable.userId} = ${input.recipientUserId}
+      and ${groupEventRsvpsTable.rsvpStatus} = 'going'
+      and ${groupEventRsvpsTable.isPrivate} = false
+      and ${usersTable.accountStatus} = 'active'
+      and ${groupMembersTable.status} = 'active'
+      and not exists (
+        select 1
+        from ${blocksTable}
+        where (
+          ${blocksTable.blockerId} = ${input.senderUserId}
+          and ${blocksTable.blockedUserId} = ${groupEventRsvpsTable.userId}
+        ) or (
+          ${blocksTable.blockerId} = ${groupEventRsvpsTable.userId}
+          and ${blocksTable.blockedUserId} = ${input.senderUserId}
+        )
+      )
+    returning id
+  `);
+
+  return result.rows.length > 0 ? "delivered" : "skipped";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -4990,6 +5132,164 @@ router.get("/groups/:groupId/events/:eventId/attendees", async (req, res): Promi
     }),
   );
 });
+
+router.get(
+  "/groups/:groupId/events/:eventId/broadcast-audience",
+  requireAuth(),
+  async (req, res): Promise<void> => {
+    const actor = req.currentUser!;
+    const groupId = parseId(req.params.groupId);
+    const eventId = parseId(req.params.eventId);
+    const authorization = await loadAuthorizedEventBroadcaster(groupId, eventId, actor);
+    if (!authorization.ok) {
+      res.status(authorization.status).json({ error: authorization.error });
+      return;
+    }
+
+    const recipientIds = await getEligibleEventBroadcastRecipientIds(groupId, eventId, actor.id);
+    res.json({ recipientCount: recipientIds.length });
+  },
+);
+
+router.post(
+  "/groups/:groupId/events/:eventId/broadcast",
+  requireAuth(),
+  async (req, res): Promise<void> => {
+    const actor = req.currentUser!;
+    const groupId = parseId(req.params.groupId);
+    const eventId = parseId(req.params.eventId);
+    const parsed = BroadcastGroupEventBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+
+    const message = parsed.data.message.trim();
+    if (!message) {
+      res.status(400).json({ error: "Message cannot be blank" });
+      return;
+    }
+
+    const authorization = await loadAuthorizedEventBroadcaster(groupId, eventId, actor);
+    if (!authorization.ok) {
+      res.status(authorization.status).json({ error: authorization.error });
+      return;
+    }
+
+    const keywordAction = await checkKeywordAlerts(groupId, message);
+    if (keywordAction !== null) {
+      res.status(422).json({ error: "This update conflicts with the Meetup's moderation rules" });
+      return;
+    }
+
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - 60 * 60 * 1000);
+    const rateReservation = await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(93217, ${eventId})`);
+      const [attempts] = await tx
+        .select({
+          count: sql<number>`cast(count(*) as int)`,
+          oldestAt: sql<Date | null>`min(${groupActivityLogTable.createdAt})`,
+          latestAt: sql<Date | null>`max(${groupActivityLogTable.createdAt})`,
+        })
+        .from(groupActivityLogTable)
+        .where(
+          and(
+            eq(groupActivityLogTable.groupId, groupId),
+            eq(groupActivityLogTable.action, "broadcast_event_update"),
+            eq(groupActivityLogTable.targetType, "event"),
+            eq(groupActivityLogTable.targetId, eventId),
+            gte(groupActivityLogTable.createdAt, windowStart),
+          ),
+        );
+      const decision = evaluateEventBroadcastRateLimit(
+        attempts?.count ?? 0,
+        attempts?.oldestAt ? new Date(attempts.oldestAt) : null,
+        attempts?.latestAt ? new Date(attempts.latestAt) : null,
+        now,
+      );
+      if (!decision.allowed) return decision;
+
+      const [activity] = await tx
+        .insert(groupActivityLogTable)
+        .values({
+          groupId,
+          actorUserId: actor.id,
+          action: "broadcast_event_update",
+          targetType: "event",
+          targetId: eventId,
+          note: null,
+          metadata: { status: "sending" },
+        })
+        .returning({ id: groupActivityLogTable.id });
+      return { allowed: true as const, activityId: activity.id };
+    });
+
+    if (!rateReservation.allowed) {
+      res.setHeader("Retry-After", String(rateReservation.retryAfterSeconds));
+      res.status(429).json({
+        error: "Please wait before sending another attendee update",
+        retryAfterSeconds: rateReservation.retryAfterSeconds,
+      });
+      return;
+    }
+
+    const recipientIds = await getEligibleEventBroadcastRecipientIds(groupId, eventId, actor.id);
+    const notificationTitle = `Update for “${authorization.event.title}”`;
+    const CHUNK_SIZE = 50;
+    const deliveryOutcomes: Array<"delivered" | "skipped" | "failed"> = [];
+
+    for (let i = 0; i < recipientIds.length; i += CHUNK_SIZE) {
+      const chunk = recipientIds.slice(i, i + CHUNK_SIZE);
+      const results = await Promise.allSettled(
+        chunk.map((recipientUserId) =>
+          deliverEventBroadcastNotification({
+            groupId,
+            eventId,
+            senderUserId: actor.id,
+            recipientUserId,
+            title: notificationTitle,
+            message,
+          }),
+        ),
+      );
+      for (const result of results) {
+        deliveryOutcomes.push(result.status === "fulfilled" ? result.value : "failed");
+      }
+    }
+
+    const delivery = summarizeEventBroadcastDeliveries(deliveryOutcomes);
+
+    try {
+      await db
+        .update(groupActivityLogTable)
+        .set({
+          metadata: {
+            status: delivery.status,
+            recipientCount: delivery.recipientCount,
+            deliveredCount: delivery.deliveredCount,
+            failedCount: delivery.failedCount,
+            skippedCount: delivery.skippedCount,
+          },
+        })
+        .where(eq(groupActivityLogTable.id, rateReservation.activityId));
+    } catch (err) {
+      req.log.error(
+        { err, groupId, eventId, activityId: rateReservation.activityId },
+        "Failed to finalize Meetup attendee update activity",
+      );
+    }
+
+    if (delivery.failedCount > 0) {
+      req.log.warn(
+        { groupId, eventId, ...delivery },
+        "Meetup attendee update had delivery failures",
+      );
+    }
+
+    res.json(delivery);
+  },
+);
 
 // POST /groups/:groupId/events/:eventId/save
 router.post(

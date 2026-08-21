@@ -1497,6 +1497,8 @@ export interface Notification {
   relatedCommentId?: number | null;
   /** @nullable */
   relatedEventId?: number | null;
+  /** @nullable */
+  relatedGroupId?: number | null;
   isRead: boolean;
   createdAt: string;
 }
@@ -4695,6 +4697,50 @@ export interface ManageGroupEventAttendeeBody {
   action: ManageGroupEventAttendeeBodyAction;
   /** @minimum 0 */
   guestCount?: number;
+}
+
+export interface GroupEventBroadcastInput {
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  message: string;
+}
+
+export interface GroupEventBroadcastAudience {
+  /** @minimum 0 */
+  recipientCount: number;
+}
+
+export type GroupEventBroadcastResultStatus = typeof GroupEventBroadcastResultStatus[keyof typeof GroupEventBroadcastResultStatus];
+
+
+export const GroupEventBroadcastResultStatus = {
+  sent: 'sent',
+  partial: 'partial',
+  failed: 'failed',
+  no_recipients: 'no_recipients',
+} as const;
+
+export interface GroupEventBroadcastResult {
+  status: GroupEventBroadcastResultStatus;
+  /** @minimum 0 */
+  recipientCount: number;
+  /** @minimum 0 */
+  deliveredCount: number;
+  /** @minimum 0 */
+  failedCount: number;
+  /**
+     * Members excluded by a final send-time eligibility check
+     * @minimum 0
+     */
+  skippedCount: number;
+}
+
+export interface GroupEventBroadcastRateLimitError {
+  error: string;
+  /** @minimum 1 */
+  retryAfterSeconds: number;
 }
 
 export interface GroupEventSaveResult {

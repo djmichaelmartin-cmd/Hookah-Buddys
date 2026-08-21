@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, CheckCheck, Heart, MessageCircle, UserPlus, Info, Circle, CalendarClock, CalendarX } from "lucide-react";
+import { Bell, CheckCheck, Heart, MessageCircle, UserPlus, Info, Circle, CalendarClock, CalendarX, Megaphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Notifications() {
@@ -50,11 +50,13 @@ export default function Notifications() {
       case "follow": return <UserPlus className="w-5 h-5 text-green-400" />;
       case "event_reminder": return <CalendarClock className="w-5 h-5 text-primary" />;
       case "event_cancelled": return <CalendarX className="w-5 h-5 text-destructive" />;
+      case "event_update": return <Megaphone className="w-5 h-5 text-orange-400" />;
       default: return <Info className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
   const getLink = (n: any) => {
+    if (n.type === "event_update" && n.relatedGroupId) return `/meetups/${n.relatedGroupId}`;
     if (n.relatedEventId) return `/events/${n.relatedEventId}`;
     if (n.relatedPostId) return `/feed?post=${n.relatedPostId}`;
     if (n.relatedUserId) return `/bros/${n.relatedUserId}`;

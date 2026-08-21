@@ -152,6 +152,10 @@ import type {
   GroupDetail,
   GroupEvent,
   GroupEventAttendee,
+  GroupEventBroadcastAudience,
+  GroupEventBroadcastInput,
+  GroupEventBroadcastRateLimitError,
+  GroupEventBroadcastResult,
   GroupEventRsvpInput,
   GroupEventRsvpResult,
   GroupEventSaveResult,
@@ -21870,6 +21874,162 @@ export function useListGroupEventAttendees<TData = Awaited<ReturnType<typeof lis
 
 
 
+
+export const getGetGroupEventBroadcastAudienceUrl = (groupId: number,
+    eventId: number,) => {
+
+
+
+
+  return `/api/groups/${groupId}/events/${eventId}/broadcast-audience`
+}
+
+/**
+ * @summary Count confirmed attendees eligible for an organizer update
+ */
+export const getGroupEventBroadcastAudience = async (groupId: number,
+    eventId: number, options?: RequestInit): Promise<GroupEventBroadcastAudience> => {
+
+  return customFetch<GroupEventBroadcastAudience>(getGetGroupEventBroadcastAudienceUrl(groupId,eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGroupEventBroadcastAudienceQueryKey = (groupId: number,
+    eventId: number,) => {
+    return [
+    `/api/groups/${groupId}/events/${eventId}/broadcast-audience`
+    ] as const;
+    }
+
+
+export const getGetGroupEventBroadcastAudienceQueryOptions = <TData = Awaited<ReturnType<typeof getGroupEventBroadcastAudience>>, TError = ErrorType<unknown>>(groupId: number,
+    eventId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGroupEventBroadcastAudience>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGroupEventBroadcastAudienceQueryKey(groupId,eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGroupEventBroadcastAudience>>> = ({ signal }) => getGroupEventBroadcastAudience(groupId,eventId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(groupId && eventId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGroupEventBroadcastAudience>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGroupEventBroadcastAudienceQueryResult = NonNullable<Awaited<ReturnType<typeof getGroupEventBroadcastAudience>>>
+export type GetGroupEventBroadcastAudienceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Count confirmed attendees eligible for an organizer update
+ */
+
+export function useGetGroupEventBroadcastAudience<TData = Awaited<ReturnType<typeof getGroupEventBroadcastAudience>>, TError = ErrorType<unknown>>(
+ groupId: number,
+    eventId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGroupEventBroadcastAudience>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGroupEventBroadcastAudienceQueryOptions(groupId,eventId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getBroadcastGroupEventUrl = (groupId: number,
+    eventId: number,) => {
+
+
+
+
+  return `/api/groups/${groupId}/events/${eventId}/broadcast`
+}
+
+/**
+ * @summary Send an organizer update to eligible confirmed attendees
+ */
+export const broadcastGroupEvent = async (groupId: number,
+    eventId: number,
+    groupEventBroadcastInput: GroupEventBroadcastInput, options?: RequestInit): Promise<GroupEventBroadcastResult> => {
+
+  return customFetch<GroupEventBroadcastResult>(getBroadcastGroupEventUrl(groupId,eventId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      groupEventBroadcastInput,)
+  }
+);}
+
+
+
+
+export const getBroadcastGroupEventMutationOptions = <TError = ErrorType<GroupEventBroadcastRateLimitError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof broadcastGroupEvent>>, TError,{groupId: number;eventId: number;data: BodyType<GroupEventBroadcastInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof broadcastGroupEvent>>, TError,{groupId: number;eventId: number;data: BodyType<GroupEventBroadcastInput>}, TContext> => {
+
+const mutationKey = ['broadcastGroupEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof broadcastGroupEvent>>, {groupId: number;eventId: number;data: BodyType<GroupEventBroadcastInput>}> = (props) => {
+          const {groupId,eventId,data} = props ?? {};
+
+          return  broadcastGroupEvent(groupId,eventId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BroadcastGroupEventMutationResult = NonNullable<Awaited<ReturnType<typeof broadcastGroupEvent>>>
+    export type BroadcastGroupEventMutationBody = BodyType<GroupEventBroadcastInput>
+    export type BroadcastGroupEventMutationError = ErrorType<GroupEventBroadcastRateLimitError>
+
+    /**
+ * @summary Send an organizer update to eligible confirmed attendees
+ */
+export const useBroadcastGroupEvent = <TError = ErrorType<GroupEventBroadcastRateLimitError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof broadcastGroupEvent>>, TError,{groupId: number;eventId: number;data: BodyType<GroupEventBroadcastInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof broadcastGroupEvent>>,
+        TError,
+        {groupId: number;eventId: number;data: BodyType<GroupEventBroadcastInput>},
+        TContext
+      > => {
+      return useMutation(getBroadcastGroupEventMutationOptions(options));
+    }
 
 export const getManageGroupEventAttendeeUrl = (groupId: number,
     eventId: number,

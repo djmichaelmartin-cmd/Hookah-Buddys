@@ -7,21 +7,37 @@ import {
   useDeleteGroupEvent,
   useListGroupEventAttendees,
   useManageGroupEventAttendee,
+  useGetGroupEventBroadcastAudience,
+  useBroadcastGroupEvent,
   getListGroupEventsQueryKey,
   getListGroupEventAttendeesQueryKey,
+  getGetGroupEventBroadcastAudienceQueryKey,
   type GroupEvent,
+  type GroupEventBroadcastResult,
+  ApiError,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, MapPin, Plus, Trash2, Edit2, Users, Users2, Link as LinkIcon, DollarSign, Clock, Search, MoreHorizontal, Check, X, ShieldAlert, Video } from "lucide-react";
+import { CalendarDays, MapPin, Plus, Trash2, Edit2, Users, Users2, Link as LinkIcon, DollarSign, Clock, Search, MoreHorizontal, Check, X, ShieldAlert, Video, Megaphone, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "wouter";
 
-export function GroupEvents({ groupId, isAdmin, isMeetup = false }: { groupId: number, isAdmin: boolean, isMeetup?: boolean }) {
+export function GroupEvents({
+  groupId,
+  isAdmin,
+  isMeetup = false,
+  canMessageAttendees = isAdmin,
+}: {
+  groupId: number;
+  isAdmin: boolean;
+  isMeetup?: boolean;
+  canMessageAttendees?: boolean;
+}) {
   const { data: events, isLoading } = useListGroupEvents(groupId, { limit: 20 });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -136,6 +152,7 @@ export function GroupEvents({ groupId, isAdmin, isMeetup = false }: { groupId: n
               groupId={groupId}
               isAdmin={isAdmin}
               isMeetup={isMeetup}
+              canMessageAttendees={canMessageAttendees}
               onDelete={() => deleteEvent.mutate({ groupId, eventId: event.id })}
               onEdit={() => {
                 setEditingId(event.id);
@@ -153,7 +170,7 @@ export function GroupEvents({ groupId, isAdmin, isMeetup = false }: { groupId: n
   );
 }
 
-function EventCard({ event, groupId, isAdmin, isMeetup, onDelete, onEdit }: { event: GroupEvent, groupId: number, isAdmin: boolean, isMeetup?: boolean, onDelete: () => void, onEdit?: () => void }) {
+function EventCard({ event, groupId, isAdmin, isMeetup, canMessageAttendees, onDelete, onEdit }: { event: GroupEvent, groupId: number, isAdmin: boolean, isMeetup?: boolean, canMessageAttendees: boolean, onDelete: () => void, onEdit?: () => void }) {
   const [viewingAttendees, setViewingAttendees] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
   const queryClient = useQueryClient();
@@ -201,8 +218,11 @@ function EventCard({ event, groupId, isAdmin, isMeetup, onDelete, onEdit }: { ev
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <h4 className="font-bold text-white text-lg line-clamp-1">{event.title}</h4>
-            {isAdmin && (
+            {(isAdmin || (isMeetup && canMessageAttendees)) && (
               <div className="flex gap-1 shrink-0 ml-2">
+                {isMeetup && canMessageAttendees && (
+                  <BroadcastAttendeesDialog groupId={groupId} event={event} />
+                )}
                 {!isMeetup && onEdit && (
                   <Button size="icon" variant="ghost" className="h-8 w-8 text-primary hover:text-primary/80" onClick={onEdit}>
                     <Edit2 className="w-4 h-4" />
@@ -310,6 +330,213 @@ function EventCard({ event, groupId, isAdmin, isMeetup, onDelete, onEdit }: { ev
         <AttendeesView groupId={groupId} eventId={event.id} isAdmin={isAdmin} />
       )}
     </div>
+  );
+}
+
+function getBroadcastErrorMessage(error: unknown): string {
+  if (
+    error instanceof ApiError &&
+    error.data &&
+    typeof error.data === "object" &&
+    "error" in error.data &&
+    typeof error.data.error === "string"
+  ) {
+    const retryAfterSeconds =
+      "retryAfterSeconds" in error.data && typeof error.data.retryAfterSeconds === "number"
+        ? error.data.retryAfterSeconds
+        : null;
+    if (retryAfterSeconds) {
+      const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+      return `${error.data.error}. Try again in about ${minutes} ${minutes === 1 ? "minute" : "minutes"}.`;
+    }
+    return error.data.error;
+  }
+  return "The attendee update could not be sent. Please try again.";
+}
+
+function BroadcastAttendeesDialog({ groupId, event }: { groupId: number; event: GroupEvent }) {
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [result, setResult] = useState<GroupEventBroadcastResult | null>(null);
+  const { toast } = useToast();
+  const audienceQueryKey = getGetGroupEventBroadcastAudienceQueryKey(groupId, event.id);
+  const audience = useGetGroupEventBroadcastAudience(groupId, event.id, {
+    query: {
+      queryKey: audienceQueryKey,
+      enabled: open,
+      staleTime: 0,
+    },
+  });
+  const broadcast = useBroadcastGroupEvent({
+    mutation: {
+      onSuccess: (deliveryResult) => {
+        setResult(deliveryResult);
+        if (deliveryResult.status === "sent") {
+          toast({
+            title: "Update delivered",
+            description: `Sent to ${deliveryResult.deliveredCount} confirmed ${deliveryResult.deliveredCount === 1 ? "attendee" : "attendees"}.`,
+          });
+        } else if (deliveryResult.status === "partial") {
+          toast({
+            title: "Update partially delivered",
+            description: `${deliveryResult.deliveredCount} delivered, ${deliveryResult.failedCount} failed.`,
+            variant: "destructive",
+          });
+        } else if (deliveryResult.status === "failed") {
+          toast({
+            title: "Delivery failed",
+            description: `The update could not be delivered to ${deliveryResult.failedCount} ${deliveryResult.failedCount === 1 ? "attendee" : "attendees"}.`,
+            variant: "destructive",
+          });
+        }
+      },
+      onError: (error) => {
+        toast({
+          title: "Update not sent",
+          description: getBroadcastErrorMessage(error),
+          variant: "destructive",
+        });
+      },
+    },
+  });
+
+  const recipientCount = audience.data?.recipientCount ?? 0;
+  const canSend =
+    message.trim().length > 0 &&
+    message.length <= 500 &&
+    recipientCount > 0 &&
+    !audience.isLoading &&
+    !broadcast.isPending;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setMessage("");
+      setResult(null);
+      broadcast.reset();
+    }
+  };
+
+  const handleSend = () => {
+    if (!canSend) return;
+    setResult(null);
+    broadcast.mutate({
+      groupId,
+      eventId: event.id,
+      data: { message: message.trim() },
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 text-orange-400 hover:text-orange-300"
+          aria-label={`Message confirmed attendees for ${event.title}`}
+          data-testid={`message-attendees-${event.id}`}
+        >
+          <Megaphone className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="border-white/10 bg-card text-white">
+        <DialogHeader>
+          <DialogTitle>Message confirmed attendees</DialogTitle>
+          <DialogDescription>
+            Send one in-app update to eligible members currently marked Going for “{event.title}”.
+            Waitlisted, private, blocked, removed, and cancelled members are excluded.
+          </DialogDescription>
+        </DialogHeader>
+
+        {result ? (
+          <div
+            className={`rounded-xl border p-4 ${
+              result.status === "sent"
+                ? "border-emerald-500/30 bg-emerald-500/10"
+                : result.status === "partial"
+                  ? "border-amber-500/30 bg-amber-500/10"
+                  : "border-red-500/30 bg-red-500/10"
+            }`}
+            data-testid="broadcast-result"
+          >
+            <div className="flex items-start gap-3">
+              {result.status === "sent" ? (
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+              ) : (
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+              )}
+              <div>
+                <p className="font-medium">
+                  {result.status === "sent"
+                    ? "Update delivered"
+                    : result.status === "partial"
+                      ? "Some deliveries failed"
+                      : result.status === "no_recipients"
+                        ? "No eligible attendees"
+                        : "Delivery failed"}
+                </p>
+                <p className="mt-1 text-sm text-white/70">
+                  {result.deliveredCount} of {result.recipientCount} delivered
+                  {result.failedCount > 0 ? ` · ${result.failedCount} failed` : ""}
+                  {result.skippedCount > 0 ? ` · ${result.skippedCount} no longer eligible` : ""}.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="rounded-lg border border-orange-500/20 bg-orange-500/10 px-3 py-2 text-sm text-orange-100">
+              {audience.isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Checking the current audience…
+                </span>
+              ) : audience.isError ? (
+                "Recipient count is unavailable. Close and try again."
+              ) : (
+                `${recipientCount} confirmed ${recipientCount === 1 ? "attendee" : "attendees"} will receive this update.`
+              )}
+            </div>
+            <div className="space-y-2">
+              <Textarea
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                maxLength={500}
+                rows={6}
+                placeholder="Share a reminder, venue detail, or last-minute update…"
+                className="resize-none border-white/10 bg-background/60"
+                data-testid="broadcast-message"
+              />
+              <p className="text-right text-xs text-white/40">{message.length}/500</p>
+            </div>
+          </>
+        )}
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => handleOpenChange(false)}>
+            Close
+          </Button>
+          {!result && (
+            <Button
+              onClick={handleSend}
+              disabled={!canSend}
+              className="bg-orange-600 text-white hover:bg-orange-500"
+              data-testid="send-broadcast"
+            >
+              {broadcast.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending…
+                </>
+              ) : (
+                <>
+                  <Megaphone className="mr-2 h-4 w-4" /> Send update
+                </>
+              )}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

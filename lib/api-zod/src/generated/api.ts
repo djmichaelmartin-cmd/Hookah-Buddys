@@ -2352,6 +2352,7 @@ export const ListNotificationsResponseItem = zod.object({
   "relatedPostId": zod.number().nullish(),
   "relatedCommentId": zod.number().nullish(),
   "relatedEventId": zod.number().nullish(),
+  "relatedGroupId": zod.number().nullish(),
   "isRead": zod.boolean(),
   "createdAt": zod.string()
 })
@@ -2383,6 +2384,7 @@ export const MarkNotificationReadResponse = zod.object({
   "relatedPostId": zod.number().nullish(),
   "relatedCommentId": zod.number().nullish(),
   "relatedEventId": zod.number().nullish(),
+  "relatedGroupId": zod.number().nullish(),
   "isRead": zod.boolean(),
   "createdAt": zod.string()
 })
@@ -7328,6 +7330,58 @@ export const ListGroupEventAttendeesResponseItem = zod.object({
   "rsvpAt": zod.string().optional()
 })
 export const ListGroupEventAttendeesResponse = zod.array(ListGroupEventAttendeesResponseItem)
+
+
+/**
+ * @summary Count confirmed attendees eligible for an organizer update
+ */
+export const GetGroupEventBroadcastAudienceParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number()
+})
+
+export const getGroupEventBroadcastAudienceResponseRecipientCountMin = 0;
+
+
+
+export const GetGroupEventBroadcastAudienceResponse = zod.object({
+  "recipientCount": zod.number().min(getGroupEventBroadcastAudienceResponseRecipientCountMin)
+})
+
+
+/**
+ * @summary Send an organizer update to eligible confirmed attendees
+ */
+export const BroadcastGroupEventParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number()
+})
+
+export const broadcastGroupEventBodyMessageMax = 500;
+
+
+
+export const BroadcastGroupEventBody = zod.object({
+  "message": zod.string().min(1).max(broadcastGroupEventBodyMessageMax)
+})
+
+export const broadcastGroupEventResponseRecipientCountMin = 0;
+
+export const broadcastGroupEventResponseDeliveredCountMin = 0;
+
+export const broadcastGroupEventResponseFailedCountMin = 0;
+
+export const broadcastGroupEventResponseSkippedCountMin = 0;
+
+
+
+export const BroadcastGroupEventResponse = zod.object({
+  "status": zod.enum(['sent', 'partial', 'failed', 'no_recipients']),
+  "recipientCount": zod.number().min(broadcastGroupEventResponseRecipientCountMin),
+  "deliveredCount": zod.number().min(broadcastGroupEventResponseDeliveredCountMin),
+  "failedCount": zod.number().min(broadcastGroupEventResponseFailedCountMin),
+  "skippedCount": zod.number().min(broadcastGroupEventResponseSkippedCountMin).describe('Members excluded by a final send-time eligibility check')
+})
 
 
 /**

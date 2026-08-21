@@ -5322,6 +5322,54 @@ paths:
                 items:
                   $ref: "#/components/schemas/GroupEventAttendee"
 
+  /groups/{groupId}/events/{eventId}/broadcast-audience:
+    get:
+      operationId: getGroupEventBroadcastAudience
+      tags: [groups]
+      summary: Count confirmed attendees eligible for an organizer update
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Eligible audience
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEventBroadcastAudience"
+
+  /groups/{groupId}/events/{eventId}/broadcast:
+    post:
+      operationId: broadcastGroupEvent
+      tags: [groups]
+      summary: Send an organizer update to eligible confirmed attendees
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupEventBroadcastInput"
+      responses:
+        "200":
+          description: Delivery result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEventBroadcastResult"
+        "429":
+          description: Event update rate limit exceeded
+          headers:
+            Retry-After:
+              description: Seconds until another update may be attempted
+              schema: { type: integer }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEventBroadcastRateLimitError"
+
   /groups/{groupId}/events/{eventId}/attendees/{userId}:
     patch:
       operationId: manageGroupEventAttendee
@@ -6778,6 +6826,7 @@ components:
         relatedPostId: { type: ["integer", "null"] }
         relatedCommentId: { type: ["integer", "null"] }
         relatedEventId: { type: ["integer", "null"] }
+        relatedGroupId: { type: ["integer", "null"] }
         isRead: { type: boolean }
         createdAt: { type: string }
 
@@ -8856,6 +8905,38 @@ components:
           type: string
           enum: [set_going, set_waitlisted, check_in, mark_no_show, mark_not_coming, cancel, set_guest_count]
         guestCount: { type: integer, minimum: 0 }
+
+    GroupEventBroadcastInput:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string, minLength: 1, maxLength: 500 }
+
+    GroupEventBroadcastAudience:
+      type: object
+      required: [recipientCount]
+      properties:
+        recipientCount: { type: integer, minimum: 0 }
+
+    GroupEventBroadcastResult:
+      type: object
+      required: [status, recipientCount, deliveredCount, failedCount, skippedCount]
+      properties:
+        status: { type: string, enum: [sent, partial, failed, no_recipients] }
+        recipientCount: { type: integer, minimum: 0 }
+        deliveredCount: { type: integer, minimum: 0 }
+        failedCount: { type: integer, minimum: 0 }
+        skippedCount:
+          type: integer
+          minimum: 0
+          description: Members excluded by a final send-time eligibility check
+
+    GroupEventBroadcastRateLimitError:
+      type: object
+      required: [error, retryAfterSeconds]
+      properties:
+        error: { type: string }
+        retryAfterSeconds: { type: integer, minimum: 1 }
 
     GroupEventSaveResult:
       type: object

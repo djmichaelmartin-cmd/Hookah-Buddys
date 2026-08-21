@@ -16,6 +16,7 @@ function toNotificationResponse(n: typeof notificationsTable.$inferSelect) {
     relatedPostId: n.relatedPostId ?? null,
     relatedCommentId: n.relatedCommentId ?? null,
     relatedEventId: n.relatedEventId ?? null,
+    relatedGroupId: n.relatedGroupId ?? null,
     isRead: n.isRead,
     createdAt: n.createdAt.toISOString(),
   };
