@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useGetCredits, useListFavorites, type CreditTransaction, useListMyFeedPosts, useListSavedFeedPosts, useListLikedFeedPosts, useListFollows, getListFollowsQueryKey, useGetCurrentUser, useListSubscriptions, getListSubscriptionsQueryKey } from "@workspace/api-client-react";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { BuyCreditsDialog } from "@/components/BuyCreditsDialog";
 import { Coins, ArrowDownCircle, ArrowUpCircle, Settings2, RefreshCw, CalendarClock, UserPlus, Users, Crown } from "lucide-react";
@@ -40,6 +40,8 @@ function TransactionRow({ tx }: { tx: CreditTransaction }) {
 }
 
 export default function DashboardMember() {
+  const searchString = useSearch();
+  const opensSavedPosts = new URLSearchParams(searchString).get("tab") === "saved";
   const { data: session } = useGetCurrentUser();
   const userId = session?.user?.id ?? 0;
 
@@ -87,7 +89,11 @@ export default function DashboardMember() {
           )}
         </div>
 
-        <Tabs defaultValue="credits" className="w-full">
+        <Tabs
+          key={opensSavedPosts ? "saved-posts" : "credits"}
+          defaultValue={opensSavedPosts ? "feed" : "credits"}
+          className="w-full"
+        >
           <TabsList className="bg-card/50 border border-white/10 mb-8 overflow-x-auto flex flex-nowrap w-full md:w-auto h-auto p-1 sticky top-[100px] z-20 backdrop-blur-xl">
             <TabsTrigger value="credits" className="px-6 py-2.5 rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white whitespace-nowrap">Credits & Billing</TabsTrigger>
             <TabsTrigger value="feed" className="px-6 py-2.5 rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white whitespace-nowrap">My Posts & Activity</TabsTrigger>
@@ -205,7 +211,11 @@ export default function DashboardMember() {
                 </div>
               </div>
               <div className="lg:col-span-3">
-                <Tabs defaultValue="myposts" className="w-full bg-card/50 border border-white/10 rounded-xl p-6 min-h-[600px]">
+                <Tabs
+                  key={opensSavedPosts ? "saved" : "my-posts"}
+                  defaultValue={opensSavedPosts ? "saved" : "myposts"}
+                  className="w-full bg-card/50 border border-white/10 rounded-xl p-6 min-h-[600px]"
+                >
                   <TabsList className="bg-background/50 border border-white/10 mb-6">
                     <TabsTrigger value="myposts" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">My Posts</TabsTrigger>
                     <TabsTrigger value="saved" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Saved</TabsTrigger>

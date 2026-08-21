@@ -27,6 +27,7 @@ import {
   X,
   Bell,
   Briefcase,
+  Bookmark,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -246,6 +247,7 @@ export function Navbar() {
                 <Button
                   variant="ghost"
                   className="relative h-10 w-10 rounded-full border border-primary/30 p-0 hover:bg-white/5 transition-all"
+                  aria-label={`${session.user.name} account menu`}
                 >
                   <Avatar className="h-9 w-9">
                     <AvatarImage src="" alt={session.user.name} />
@@ -345,6 +347,12 @@ export function Navbar() {
                       <Link href="/dashboard/member" className="flex items-center w-full">
                         <DollarSign className="mr-2 h-4 w-4" />
                         <span>Credits & Billing</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                      <Link href="/dashboard/member?tab=saved" className="flex items-center w-full">
+                        <Bookmark className="mr-2 h-4 w-4" />
+                        <span>Saved Posts</span>
                       </Link>
                     </DropdownMenuItem>
                   </>
