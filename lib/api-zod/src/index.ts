@@ -42,4 +42,7 @@ export {
   ModerateGroupPostCommentBody,
   // Lounge Spotlight save-location response (value vs type disambiguation)
   SaveLoungeSpotlightLocationResponse,
+  // Meetup additions — disambiguate value (Zod schema) vs type (TS interface)
+  ManageGroupEventAttendeeBody,
+  RsvpGroupEventBody,
 } from "./generated/api";

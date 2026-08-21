@@ -5,10 +5,13 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { GroupInviteGroupSummaryGroupType } from './groupInviteGroupSummaryGroupType';
 
 export interface GroupInviteGroupSummary {
   id: number;
   name: string;
   /** @nullable */
   iconUrl?: string | null;
+  /** Discriminator so the frontend can filter Meetup invites from Group invites */
+  groupType?: GroupInviteGroupSummaryGroupType;
 }

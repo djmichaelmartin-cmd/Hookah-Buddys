@@ -774,13 +774,24 @@ export const SaveLoungeSpotlightLocationResponse = zod.object({
 
 
 /**
- * @summary Upcoming hookah events
+ * Returns native events and public Meetup group events merged and sorted by startsAt. Optional filters narrow the combined result. Existing callers with no filters are unaffected.
+
+ * @summary Upcoming hookah events (native + Meetup-projected)
  */
 export const ListEventsQueryParams = zod.object({
   "limit": zod.coerce.number().optional(),
   "offset": zod.coerce.number().optional(),
   "filter": zod.enum(['going', 'saved']).optional(),
-  "scope": zod.enum(['upcoming', 'past']).optional()
+  "scope": zod.enum(['upcoming', 'past']).optional(),
+  "city": zod.coerce.string().optional().describe('Filter by city (case-insensitive substring)'),
+  "state": zod.coerce.string().optional().describe('Filter by 2-letter state code'),
+  "eventFormat": zod.enum(['in_person', 'online', 'hybrid']).optional().describe('Meetup-projected events only'),
+  "eventCategory": zod.coerce.string().optional().describe('Meetup-projected events only'),
+  "topic": zod.coerce.string().optional().describe('Meetup-projected events only — matches any topic in the topics array'),
+  "sourceType": zod.enum(['native', 'meetup']).optional().describe('Limit to native events or Meetup projections'),
+  "priceType": zod.enum(['free', 'paid']).optional().describe('Meetup-projected events only'),
+  "startsAfter": zod.coerce.string().optional().describe('ISO-8601 datetime — only events starting after this time'),
+  "startsBefore": zod.coerce.string().optional().describe('ISO-8601 datetime — only events starting before this time')
 })
 
 export const ListEventsResponseItem = zod.object({
@@ -803,7 +814,23 @@ export const ListEventsResponseItem = zod.object({
   "name": zod.string(),
   "profilePhotoUrl": zod.string().nullish()
 })).optional().describe('Preview of RSVP\'d members (detail route only)'),
-  "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)')
+  "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)'),
+  "sourceType": zod.string().nullish().describe('meetup_event when projected from a Meetup group'),
+  "sourceId": zod.number().nullish().describe('group_event.id (original source record)'),
+  "meetupId": zod.number().nullish().describe('groups.id (Meetup group)'),
+  "meetupName": zod.string().nullish().describe('Meetup group name'),
+  "eventFormat": zod.string().nullish().describe('in_person | online | hybrid (meetup projected only)'),
+  "eventCategory": zod.string().nullish().describe('Meetup event category'),
+  "topics": zod.array(zod.string()).nullish().describe('Meetup event topics'),
+  "eventTags": zod.array(zod.string()).nullish().describe('Meetup event tags'),
+  "isPaid": zod.boolean().nullish().describe('True when event requires payment (meetup projected only)'),
+  "paidMetadata": zod.object({
+
+}).passthrough().nullish().describe('Provider-neutral payment metadata (meetup projected only)'),
+  "attendeeLimit": zod.number().nullish().describe('Capacity cap (meetup projected only)'),
+  "waitlistEnabled": zod.boolean().nullish().describe('Whether waitlist is active (meetup projected only)'),
+  "waitlistCount": zod.number().nullish().describe('Current waitlist size (meetup projected only)'),
+  "viewerWaitlistPosition": zod.number().nullish().describe('Authenticated viewer\'s waitlist position when waitlisted')
 })
 export const ListEventsResponse = zod.array(ListEventsResponseItem)
 
@@ -835,7 +862,23 @@ export const GetEventResponse = zod.object({
   "name": zod.string(),
   "profilePhotoUrl": zod.string().nullish()
 })).optional().describe('Preview of RSVP\'d members (detail route only)'),
-  "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)')
+  "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)'),
+  "sourceType": zod.string().nullish().describe('meetup_event when projected from a Meetup group'),
+  "sourceId": zod.number().nullish().describe('group_event.id (original source record)'),
+  "meetupId": zod.number().nullish().describe('groups.id (Meetup group)'),
+  "meetupName": zod.string().nullish().describe('Meetup group name'),
+  "eventFormat": zod.string().nullish().describe('in_person | online | hybrid (meetup projected only)'),
+  "eventCategory": zod.string().nullish().describe('Meetup event category'),
+  "topics": zod.array(zod.string()).nullish().describe('Meetup event topics'),
+  "eventTags": zod.array(zod.string()).nullish().describe('Meetup event tags'),
+  "isPaid": zod.boolean().nullish().describe('True when event requires payment (meetup projected only)'),
+  "paidMetadata": zod.object({
+
+}).passthrough().nullish().describe('Provider-neutral payment metadata (meetup projected only)'),
+  "attendeeLimit": zod.number().nullish().describe('Capacity cap (meetup projected only)'),
+  "waitlistEnabled": zod.boolean().nullish().describe('Whether waitlist is active (meetup projected only)'),
+  "waitlistCount": zod.number().nullish().describe('Current waitlist size (meetup projected only)'),
+  "viewerWaitlistPosition": zod.number().nullish().describe('Authenticated viewer\'s waitlist position when waitlisted')
 })
 
 
@@ -848,7 +891,10 @@ export const ToggleEventRsvpParams = zod.object({
 
 export const ToggleEventRsvpResponse = zod.object({
   "rsvped": zod.boolean(),
-  "rsvpCount": zod.number()
+  "rsvpCount": zod.number(),
+  "rsvpStatus": zod.string().nullish().describe('Authoritative post-mutation RSVP status for projected Meetup Events'),
+  "waitlisted": zod.boolean().optional().describe('Whether the viewer is now waitlisted for a projected Meetup Event'),
+  "waitlistPosition": zod.number().nullish().describe('The viewer\'s current projected Meetup Event waitlist position')
 })
 
 
@@ -887,7 +933,23 @@ export const ListAdminEventsResponseItem = zod.object({
   "name": zod.string(),
   "profilePhotoUrl": zod.string().nullish()
 })).optional().describe('Preview of RSVP\'d members (detail route only)'),
-  "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)')
+  "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)'),
+  "sourceType": zod.string().nullish().describe('meetup_event when projected from a Meetup group'),
+  "sourceId": zod.number().nullish().describe('group_event.id (original source record)'),
+  "meetupId": zod.number().nullish().describe('groups.id (Meetup group)'),
+  "meetupName": zod.string().nullish().describe('Meetup group name'),
+  "eventFormat": zod.string().nullish().describe('in_person | online | hybrid (meetup projected only)'),
+  "eventCategory": zod.string().nullish().describe('Meetup event category'),
+  "topics": zod.array(zod.string()).nullish().describe('Meetup event topics'),
+  "eventTags": zod.array(zod.string()).nullish().describe('Meetup event tags'),
+  "isPaid": zod.boolean().nullish().describe('True when event requires payment (meetup projected only)'),
+  "paidMetadata": zod.object({
+
+}).passthrough().nullish().describe('Provider-neutral payment metadata (meetup projected only)'),
+  "attendeeLimit": zod.number().nullish().describe('Capacity cap (meetup projected only)'),
+  "waitlistEnabled": zod.boolean().nullish().describe('Whether waitlist is active (meetup projected only)'),
+  "waitlistCount": zod.number().nullish().describe('Current waitlist size (meetup projected only)'),
+  "viewerWaitlistPosition": zod.number().nullish().describe('Authenticated viewer\'s waitlist position when waitlisted')
 })
 export const ListAdminEventsResponse = zod.array(ListAdminEventsResponseItem)
 
@@ -970,7 +1032,23 @@ export const UpdateAdminEventResponse = zod.object({
   "name": zod.string(),
   "profilePhotoUrl": zod.string().nullish()
 })).optional().describe('Preview of RSVP\'d members (detail route only)'),
-  "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)')
+  "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)'),
+  "sourceType": zod.string().nullish().describe('meetup_event when projected from a Meetup group'),
+  "sourceId": zod.number().nullish().describe('group_event.id (original source record)'),
+  "meetupId": zod.number().nullish().describe('groups.id (Meetup group)'),
+  "meetupName": zod.string().nullish().describe('Meetup group name'),
+  "eventFormat": zod.string().nullish().describe('in_person | online | hybrid (meetup projected only)'),
+  "eventCategory": zod.string().nullish().describe('Meetup event category'),
+  "topics": zod.array(zod.string()).nullish().describe('Meetup event topics'),
+  "eventTags": zod.array(zod.string()).nullish().describe('Meetup event tags'),
+  "isPaid": zod.boolean().nullish().describe('True when event requires payment (meetup projected only)'),
+  "paidMetadata": zod.object({
+
+}).passthrough().nullish().describe('Provider-neutral payment metadata (meetup projected only)'),
+  "attendeeLimit": zod.number().nullish().describe('Capacity cap (meetup projected only)'),
+  "waitlistEnabled": zod.boolean().nullish().describe('Whether waitlist is active (meetup projected only)'),
+  "waitlistCount": zod.number().nullish().describe('Current waitlist size (meetup projected only)'),
+  "viewerWaitlistPosition": zod.number().nullish().describe('Authenticated viewer\'s waitlist position when waitlisted')
 })
 
 
@@ -5712,6 +5790,8 @@ export const ReviewBusinessReportResponse = zod.object({
 
 
 /**
+ * By default excludes Meetup groups (groupType="meetup") so the Groups discovery page stays distinct from /meetups. Pass groupType=meetup to explicitly request only meetup groups, or groupType=all to include both.
+
  * @summary Discover/search Groups
  */
 export const ListGroupsQueryParams = zod.object({
@@ -5719,6 +5799,7 @@ export const ListGroupsQueryParams = zod.object({
   "category": zod.coerce.string().optional(),
   "privacy": zod.enum(['public', 'private']).optional(),
   "featured": zod.coerce.boolean().optional(),
+  "groupType": zod.enum(['group', 'meetup', 'all']).optional().describe('Filter by group type. Omitting or passing \"group\" returns only regular groups (excludes meetups). Pass \"meetup\" for meetups only. Pass \"all\" to include both.\n'),
   "limit": zod.coerce.number().optional(),
   "offset": zod.coerce.number().optional()
 })
@@ -5746,7 +5827,12 @@ export const ListGroupsResponse = zod.object({
   "eventCount": zod.number().optional(),
   "viewerMemberRole": zod.string().nullish(),
   "viewerHasPendingRequest": zod.boolean().optional(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).nullish(),
+  "meetupCity": zod.string().nullish(),
+  "meetupState": zod.string().nullish(),
+  "meetupCountry": zod.string().nullish()
 })),
   "total": zod.number()
 })
@@ -5772,7 +5858,12 @@ export const CreateGroupBody = zod.object({
   "iconUrl": zod.string().optional().describe('Finalized internal storage image object path'),
   "location": zod.string().optional(),
   "postingPermission": zod.enum(['all_members', 'admins_only', 'approved_members']).optional(),
-  "postApproval": zod.boolean().optional()
+  "postApproval": zod.boolean().optional(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).optional(),
+  "meetupCity": zod.string().optional(),
+  "meetupState": zod.string().optional(),
+  "meetupCountry": zod.string().optional()
 })
 
 
@@ -5801,7 +5892,12 @@ export const ListMyGroupsResponseItem = zod.object({
   "eventCount": zod.number().optional(),
   "viewerMemberRole": zod.string().nullish(),
   "viewerHasPendingRequest": zod.boolean().optional(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).nullish(),
+  "meetupCity": zod.string().nullish(),
+  "meetupState": zod.string().nullish(),
+  "meetupCountry": zod.string().nullish()
 })
 export const ListMyGroupsResponse = zod.array(ListMyGroupsResponseItem)
 
@@ -5823,7 +5919,8 @@ export const ListMyGroupInvitesResponseItem = zod.object({
   "group": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "iconUrl": zod.string().nullish()
+  "iconUrl": zod.string().nullish(),
+  "groupType": zod.enum(['group', 'meetup']).optional().describe('Discriminator so the frontend can filter Meetup invites from Group invites')
 })]).optional(),
   "inviterId": zod.number().optional(),
   "inviterName": zod.string().optional(),
@@ -5863,7 +5960,12 @@ export const GetGroupResponse = zod.object({
   "eventCount": zod.number().optional(),
   "viewerMemberRole": zod.string().nullish(),
   "viewerHasPendingRequest": zod.boolean().optional(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).nullish(),
+  "meetupCity": zod.string().nullish(),
+  "meetupState": zod.string().nullish(),
+  "meetupCountry": zod.string().nullish()
 }).and(zod.object({
   "creatorUserId": zod.number().optional(),
   "updatedAt": zod.string().optional(),
@@ -5895,7 +5997,12 @@ export const UpdateGroupBody = zod.object({
   "iconUrl": zod.string().nullish().describe('Finalized internal storage image object; null clears'),
   "location": zod.string().optional(),
   "postingPermission": zod.enum(['all_members', 'admins_only', 'approved_members']).optional(),
-  "postApproval": zod.boolean().optional()
+  "postApproval": zod.boolean().optional(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).optional(),
+  "meetupCity": zod.string().optional(),
+  "meetupState": zod.string().optional(),
+  "meetupCountry": zod.string().optional()
 })
 
 export const UpdateGroupResponse = zod.object({
@@ -5920,7 +6027,12 @@ export const UpdateGroupResponse = zod.object({
   "eventCount": zod.number().optional(),
   "viewerMemberRole": zod.string().nullish(),
   "viewerHasPendingRequest": zod.boolean().optional(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).nullish(),
+  "meetupCity": zod.string().nullish(),
+  "meetupState": zod.string().nullish(),
+  "meetupCountry": zod.string().nullish()
 }).and(zod.object({
   "creatorUserId": zod.number().optional(),
   "updatedAt": zod.string().optional(),
@@ -6054,7 +6166,8 @@ export const ListGroupInvitesResponseItem = zod.object({
   "group": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "iconUrl": zod.string().nullish()
+  "iconUrl": zod.string().nullish(),
+  "groupType": zod.enum(['group', 'meetup']).optional().describe('Discriminator so the frontend can filter Meetup invites from Group invites')
 })]).optional(),
   "inviterId": zod.number().optional(),
   "inviterName": zod.string().optional(),
@@ -6101,7 +6214,8 @@ export const RespondToGroupInviteResponse = zod.object({
   "group": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "iconUrl": zod.string().nullish()
+  "iconUrl": zod.string().nullish(),
+  "groupType": zod.enum(['group', 'meetup']).optional().describe('Discriminator so the frontend can filter Meetup invites from Group invites')
 })]).optional(),
   "inviterId": zod.number().optional(),
   "inviterName": zod.string().optional(),
@@ -6828,6 +6942,57 @@ export const DeleteGroupMediaParams = zod.object({
 
 
 /**
+ * Returns groups where groupType="meetup". Hidden private meetups are never surfaced in discovery — only public and visible-private meetups appear. Authenticated viewers also see meetups they are members of.
+
+ * @summary Discover Meetup groups (public and visible-private only)
+ */
+export const ListMeetupsQueryParams = zod.object({
+  "search": zod.coerce.string().optional(),
+  "city": zod.coerce.string().optional(),
+  "state": zod.coerce.string().optional(),
+  "interests": zod.coerce.string().optional(),
+  "privacy": zod.enum(['public', 'private']).optional().describe('Limit to public or private meetups'),
+  "hasUpcomingEvent": zod.coerce.boolean().optional().describe('When true, only return meetups that have at least one active upcoming event (startsAt in the future). Implemented as a subquery; may be slower on large datasets — use with a reasonable limit.\n'),
+  "sort": zod.enum(['newest', 'most_members', 'most_active']).optional().describe('Sort order. newest = createdAt DESC, most_members = memberCount DESC (default), most_active = eventCount DESC. Featured meetups always float to the top regardless of sort.\n'),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const ListMeetupsResponse = zod.object({
+  "groups": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "customCategory": zod.string().nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']),
+  "coverUrl": zod.string().nullish(),
+  "iconUrl": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "postingPermission": zod.string().optional(),
+  "postApproval": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'suspended', 'deleted']).optional(),
+  "isFeatured": zod.boolean().optional(),
+  "memberCount": zod.number(),
+  "postCount": zod.number().optional(),
+  "eventCount": zod.number().optional(),
+  "viewerMemberRole": zod.string().nullish(),
+  "viewerHasPendingRequest": zod.boolean().optional(),
+  "createdAt": zod.string(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).nullish(),
+  "meetupCity": zod.string().nullish(),
+  "meetupState": zod.string().nullish(),
+  "meetupCountry": zod.string().nullish()
+})),
+  "total": zod.number()
+})
+
+
+/**
  * @summary List group events (private group requires membership)
  */
 export const ListGroupEventsParams = zod.object({
@@ -6856,7 +7021,38 @@ export const ListGroupEventsResponseItem = zod.object({
   "hideAttendees": zod.boolean().optional(),
   "viewerRsvpStatus": zod.string().nullish(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string().optional()
+  "updatedAt": zod.string().optional(),
+  "eventFormat": zod.string().nullish().describe('in_person | online | hybrid'),
+  "venueName": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "eventCategory": zod.string().nullish(),
+  "topics": zod.array(zod.string()).nullish(),
+  "eventTags": zod.array(zod.string()).nullish(),
+  "howToFind": zod.string().nullish(),
+  "onlineUrlProtected": zod.boolean().optional(),
+  "attendeeLimit": zod.number().nullish(),
+  "waitlistEnabled": zod.boolean().optional(),
+  "waitlistCount": zod.number().optional(),
+  "allowGuests": zod.boolean().optional(),
+  "maxGuestsPerRsvp": zod.number().nullish(),
+  "rsvpOpensAt": zod.string().nullish(),
+  "rsvpClosesAt": zod.string().nullish(),
+  "isPaid": zod.boolean().optional(),
+  "paidMetadata": zod.object({
+
+}).passthrough().nullish().describe('Provider-neutral payment metadata; present when isPaid=true'),
+  "recurrenceRule": zod.string().nullish(),
+  "recurrenceParentId": zod.number().nullish(),
+  "viewerGuestCount": zod.number().optional(),
+  "viewerAttendanceStatus": zod.string().nullish(),
+  "viewerWaitlistPosition": zod.number().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "sourceType": zod.string().nullish().describe('meetup_event when projected'),
+  "sourceId": zod.number().nullish().describe('group_event id'),
+  "meetupId": zod.number().nullish().describe('group id'),
+  "meetupName": zod.string().nullish().describe('group name')
 })
 export const ListGroupEventsResponse = zod.array(ListGroupEventsResponseItem)
 
@@ -6870,6 +7066,9 @@ export const CreateGroupEventParams = zod.object({
 
 
 
+export const createGroupEventBodyMaxGuestsPerRsvpMin = 0;
+
+
 
 export const CreateGroupEventBody = zod.object({
   "title": zod.string().min(1),
@@ -6880,7 +7079,28 @@ export const CreateGroupEventBody = zod.object({
   "startsAt": zod.string(),
   "endsAt": zod.string().optional(),
   "visibility": zod.enum(['public', 'private']).optional(),
-  "hideAttendees": zod.boolean().optional()
+  "hideAttendees": zod.boolean().optional(),
+  "eventFormat": zod.enum(['in_person', 'online', 'hybrid']).optional(),
+  "venueName": zod.string().optional(),
+  "address": zod.string().optional(),
+  "city": zod.string().optional(),
+  "state": zod.string().optional(),
+  "eventCategory": zod.string().optional(),
+  "topics": zod.array(zod.string()).optional(),
+  "eventTags": zod.array(zod.string()).optional(),
+  "howToFind": zod.string().optional(),
+  "onlineUrlProtected": zod.boolean().optional(),
+  "attendeeLimit": zod.number().min(1).optional(),
+  "waitlistEnabled": zod.boolean().optional(),
+  "allowGuests": zod.boolean().optional(),
+  "maxGuestsPerRsvp": zod.number().min(createGroupEventBodyMaxGuestsPerRsvpMin).optional(),
+  "rsvpOpensAt": zod.string().optional(),
+  "rsvpClosesAt": zod.string().optional(),
+  "isPaid": zod.boolean().optional(),
+  "paidMetadata": zod.object({
+
+}).passthrough().optional(),
+  "recurrenceRule": zod.string().optional()
 })
 
 
@@ -6909,7 +7129,38 @@ export const GetGroupEventResponse = zod.object({
   "hideAttendees": zod.boolean().optional(),
   "viewerRsvpStatus": zod.string().nullish(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string().optional()
+  "updatedAt": zod.string().optional(),
+  "eventFormat": zod.string().nullish().describe('in_person | online | hybrid'),
+  "venueName": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "eventCategory": zod.string().nullish(),
+  "topics": zod.array(zod.string()).nullish(),
+  "eventTags": zod.array(zod.string()).nullish(),
+  "howToFind": zod.string().nullish(),
+  "onlineUrlProtected": zod.boolean().optional(),
+  "attendeeLimit": zod.number().nullish(),
+  "waitlistEnabled": zod.boolean().optional(),
+  "waitlistCount": zod.number().optional(),
+  "allowGuests": zod.boolean().optional(),
+  "maxGuestsPerRsvp": zod.number().nullish(),
+  "rsvpOpensAt": zod.string().nullish(),
+  "rsvpClosesAt": zod.string().nullish(),
+  "isPaid": zod.boolean().optional(),
+  "paidMetadata": zod.object({
+
+}).passthrough().nullish().describe('Provider-neutral payment metadata; present when isPaid=true'),
+  "recurrenceRule": zod.string().nullish(),
+  "recurrenceParentId": zod.number().nullish(),
+  "viewerGuestCount": zod.number().optional(),
+  "viewerAttendanceStatus": zod.string().nullish(),
+  "viewerWaitlistPosition": zod.number().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "sourceType": zod.string().nullish().describe('meetup_event when projected'),
+  "sourceId": zod.number().nullish().describe('group_event id'),
+  "meetupId": zod.number().nullish().describe('group id'),
+  "meetupName": zod.string().nullish().describe('group name')
 })
 
 
@@ -6934,7 +7185,28 @@ export const UpdateGroupEventBody = zod.object({
   "endsAt": zod.string().optional(),
   "status": zod.enum(['active', 'cancelled', 'completed', 'hidden']).optional(),
   "visibility": zod.enum(['public', 'private']).optional(),
-  "hideAttendees": zod.boolean().optional()
+  "hideAttendees": zod.boolean().optional(),
+  "eventFormat": zod.enum(['in_person', 'online', 'hybrid']).optional(),
+  "venueName": zod.string().optional(),
+  "address": zod.string().optional(),
+  "city": zod.string().optional(),
+  "state": zod.string().optional(),
+  "eventCategory": zod.string().optional(),
+  "topics": zod.array(zod.string()).optional(),
+  "eventTags": zod.array(zod.string()).optional(),
+  "howToFind": zod.string().optional(),
+  "onlineUrlProtected": zod.boolean().optional(),
+  "attendeeLimit": zod.number().nullish(),
+  "waitlistEnabled": zod.boolean().optional(),
+  "allowGuests": zod.boolean().optional(),
+  "maxGuestsPerRsvp": zod.number().nullish(),
+  "rsvpOpensAt": zod.string().nullish(),
+  "rsvpClosesAt": zod.string().nullish(),
+  "isPaid": zod.boolean().optional(),
+  "paidMetadata": zod.object({
+
+}).passthrough().nullish(),
+  "recurrenceRule": zod.string().nullish()
 })
 
 export const UpdateGroupEventResponse = zod.object({
@@ -6954,7 +7226,38 @@ export const UpdateGroupEventResponse = zod.object({
   "hideAttendees": zod.boolean().optional(),
   "viewerRsvpStatus": zod.string().nullish(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string().optional()
+  "updatedAt": zod.string().optional(),
+  "eventFormat": zod.string().nullish().describe('in_person | online | hybrid'),
+  "venueName": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "eventCategory": zod.string().nullish(),
+  "topics": zod.array(zod.string()).nullish(),
+  "eventTags": zod.array(zod.string()).nullish(),
+  "howToFind": zod.string().nullish(),
+  "onlineUrlProtected": zod.boolean().optional(),
+  "attendeeLimit": zod.number().nullish(),
+  "waitlistEnabled": zod.boolean().optional(),
+  "waitlistCount": zod.number().optional(),
+  "allowGuests": zod.boolean().optional(),
+  "maxGuestsPerRsvp": zod.number().nullish(),
+  "rsvpOpensAt": zod.string().nullish(),
+  "rsvpClosesAt": zod.string().nullish(),
+  "isPaid": zod.boolean().optional(),
+  "paidMetadata": zod.object({
+
+}).passthrough().nullish().describe('Provider-neutral payment metadata; present when isPaid=true'),
+  "recurrenceRule": zod.string().nullish(),
+  "recurrenceParentId": zod.number().nullish(),
+  "viewerGuestCount": zod.number().optional(),
+  "viewerAttendanceStatus": zod.string().nullish(),
+  "viewerWaitlistPosition": zod.number().nullish(),
+  "viewerSaved": zod.boolean().optional(),
+  "sourceType": zod.string().nullish().describe('meetup_event when projected'),
+  "sourceId": zod.number().nullish().describe('group_event id'),
+  "meetupId": zod.number().nullish().describe('group id'),
+  "meetupName": zod.string().nullish().describe('group name')
 })
 
 
@@ -6975,14 +7278,34 @@ export const RsvpGroupEventParams = zod.object({
   "eventId": zod.coerce.number()
 })
 
+export const rsvpGroupEventBodyGuestCountMin = 0;
+
+
+
 export const RsvpGroupEventBody = zod.object({
-  "rsvpStatus": zod.enum(['going', 'interested', 'not_going']),
-  "isPrivate": zod.boolean().optional()
+  "rsvpStatus": zod.enum(['going', 'interested', 'not_going', 'cancelled']),
+  "isPrivate": zod.boolean().optional(),
+  "guestCount": zod.number().min(rsvpGroupEventBodyGuestCountMin).optional()
 })
 
 export const RsvpGroupEventResponse = zod.object({
   "rsvpStatus": zod.string().nullable(),
-  "rsvpCount": zod.number()
+  "rsvpCount": zod.number(),
+  "waitlisted": zod.boolean().optional(),
+  "waitlistPosition": zod.number().nullish()
+})
+
+
+/**
+ * @summary Toggle save on a group event (authenticated)
+ */
+export const ToggleGroupEventSaveParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number()
+})
+
+export const ToggleGroupEventSaveResponse = zod.object({
+  "saved": zod.boolean()
 })
 
 
@@ -6999,9 +7322,43 @@ export const ListGroupEventAttendeesResponseItem = zod.object({
   "userName": zod.string().optional(),
   "userPhotoUrl": zod.string().nullish(),
   "rsvpStatus": zod.string(),
+  "attendanceStatus": zod.string().nullish(),
+  "guestCount": zod.number().optional(),
+  "waitlistPosition": zod.number().nullish(),
   "rsvpAt": zod.string().optional()
 })
 export const ListGroupEventAttendeesResponse = zod.array(ListGroupEventAttendeesResponseItem)
+
+
+/**
+ * @summary Organizer/admin attendee management — set going, waitlisted, checked-in, no-show, not-coming, cancelled, or update guest count for a specific attendee.
+
+ */
+export const ManageGroupEventAttendeeParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "eventId": zod.coerce.number(),
+  "userId": zod.coerce.number()
+})
+
+export const manageGroupEventAttendeeBodyGuestCountMin = 0;
+
+
+
+export const ManageGroupEventAttendeeBody = zod.object({
+  "action": zod.enum(['set_going', 'set_waitlisted', 'check_in', 'mark_no_show', 'mark_not_coming', 'cancel', 'set_guest_count']),
+  "guestCount": zod.number().min(manageGroupEventAttendeeBodyGuestCountMin).optional()
+})
+
+export const ManageGroupEventAttendeeResponse = zod.object({
+  "userId": zod.number(),
+  "userName": zod.string().optional(),
+  "userPhotoUrl": zod.string().nullish(),
+  "rsvpStatus": zod.string(),
+  "attendanceStatus": zod.string().nullish(),
+  "guestCount": zod.number().optional(),
+  "waitlistPosition": zod.number().nullish(),
+  "rsvpAt": zod.string().optional()
+})
 
 
 /**
@@ -7254,7 +7611,12 @@ export const AdminListGroupsResponse = zod.object({
   "eventCount": zod.number().optional(),
   "viewerMemberRole": zod.string().nullish(),
   "viewerHasPendingRequest": zod.boolean().optional(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).nullish(),
+  "meetupCity": zod.string().nullish(),
+  "meetupState": zod.string().nullish(),
+  "meetupCountry": zod.string().nullish()
 }).and(zod.object({
   "creatorUserId": zod.number().optional(),
   "reportCount": zod.number().optional()
@@ -7291,7 +7653,12 @@ export const AdminGetGroupResponse = zod.object({
   "eventCount": zod.number().optional(),
   "viewerMemberRole": zod.string().nullish(),
   "viewerHasPendingRequest": zod.boolean().optional(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).nullish(),
+  "meetupCity": zod.string().nullish(),
+  "meetupState": zod.string().nullish(),
+  "meetupCountry": zod.string().nullish()
 }).and(zod.object({
   "creatorUserId": zod.number().optional(),
   "updatedAt": zod.string().optional(),
@@ -7347,7 +7714,12 @@ export const AdminUpdateGroupStatusResponse = zod.object({
   "eventCount": zod.number().optional(),
   "viewerMemberRole": zod.string().nullish(),
   "viewerHasPendingRequest": zod.boolean().optional(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "groupType": zod.enum(['group', 'meetup']).optional(),
+  "meetupInterests": zod.array(zod.string()).nullish(),
+  "meetupCity": zod.string().nullish(),
+  "meetupState": zod.string().nullish(),
+  "meetupCountry": zod.string().nullish()
 }).and(zod.object({
   "creatorUserId": zod.number().optional(),
   "updatedAt": zod.string().optional(),

@@ -496,7 +496,7 @@ export default function GroupDetail() {
             {activeMainTab === "posts" && <GroupPosts groupId={groupId} isMember={isMember} isAdmin={isAdmin} group={group} />}
             {activeMainTab === "about" && <GroupAbout group={group} />}
             {activeMainTab === "members" && <GroupMembers groupId={groupId} isAdmin={isAdmin} />}
-            {activeMainTab === "events" && <GroupEvents groupId={groupId} isAdmin={isAdmin} />}
+            {activeMainTab === "events" && <GroupEvents groupId={groupId} isAdmin={isAdmin} isMeetup={false} />}
             {activeMainTab === "media" && (
               <GroupMedia
                 groupId={groupId}

@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { CreateGroupBodyGroupType } from './createGroupBodyGroupType';
 import type { CreateGroupBodyPostingPermission } from './createGroupBodyPostingPermission';
 import type { CreateGroupBodyPrivacy } from './createGroupBodyPrivacy';
 import type { CreateGroupBodyVisibility } from './createGroupBodyVisibility';
@@ -29,4 +30,9 @@ export interface CreateGroupBody {
   location?: string;
   postingPermission?: CreateGroupBodyPostingPermission;
   postApproval?: boolean;
+  groupType?: CreateGroupBodyGroupType;
+  meetupInterests?: string[];
+  meetupCity?: string;
+  meetupState?: string;
+  meetupCountry?: string;
 }

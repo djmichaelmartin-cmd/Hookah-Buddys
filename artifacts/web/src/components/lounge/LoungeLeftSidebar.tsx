@@ -16,12 +16,14 @@ import {
   Search,
   Coins,
   Crown,
+  CalendarDays,
 } from "lucide-react";
 import { COMMUNITY_SHORTCUTS } from "@/lib/communityTopics";
 
 const NAV_LINKS = [
   { to: "/feed", label: "The Lounge", icon: Home },
   { to: "/groups", label: "Groups", icon: Users },
+  { to: "/meetups", label: "Meetups", icon: CalendarDays },
   { to: "/friends", label: "Friends", icon: Users },
   { to: "/messages", label: "Messages", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Bell },
@@ -107,7 +109,7 @@ export default function LoungeLeftSidebar() {
 
       {/* Navigation */}
       <nav className="rounded-2xl bg-card/30 border border-white/5 backdrop-blur-md p-2">
-        {(authenticated ? NAV_LINKS : NAV_LINKS.filter((l) => ["/feed", "/reels", "/groups", "/browse", "/pricing"].includes(l.to))).map(
+        {(authenticated ? NAV_LINKS : NAV_LINKS.filter((l) => ["/feed", "/reels", "/groups", "/meetups", "/browse", "/pricing"].includes(l.to))).map(
           ({ to, label, icon: Icon }) => {
             const isActive = location === to || (to !== "/" && location.startsWith(to) && to !== "/feed");
             return (

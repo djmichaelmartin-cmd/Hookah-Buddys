@@ -12,5 +12,10 @@ export interface GroupEventAttendee {
   /** @nullable */
   userPhotoUrl?: string | null;
   rsvpStatus: string;
+  /** @nullable */
+  attendanceStatus?: string | null;
+  guestCount?: number;
+  /** @nullable */
+  waitlistPosition?: number | null;
   rsvpAt?: string;
 }

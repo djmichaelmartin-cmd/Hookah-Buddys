@@ -5,6 +5,8 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { UpdateGroupEventBodyEventFormat } from './updateGroupEventBodyEventFormat';
+import type { UpdateGroupEventBodyPaidMetadata } from './updateGroupEventBodyPaidMetadata';
 import type { UpdateGroupEventBodyStatus } from './updateGroupEventBodyStatus';
 import type { UpdateGroupEventBodyVisibility } from './updateGroupEventBodyVisibility';
 
@@ -21,4 +23,29 @@ export interface UpdateGroupEventBody {
   status?: UpdateGroupEventBodyStatus;
   visibility?: UpdateGroupEventBodyVisibility;
   hideAttendees?: boolean;
+  eventFormat?: UpdateGroupEventBodyEventFormat;
+  venueName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  eventCategory?: string;
+  topics?: string[];
+  eventTags?: string[];
+  howToFind?: string;
+  onlineUrlProtected?: boolean;
+  /** @nullable */
+  attendeeLimit?: number | null;
+  waitlistEnabled?: boolean;
+  allowGuests?: boolean;
+  /** @nullable */
+  maxGuestsPerRsvp?: number | null;
+  /** @nullable */
+  rsvpOpensAt?: string | null;
+  /** @nullable */
+  rsvpClosesAt?: string | null;
+  isPaid?: boolean;
+  /** @nullable */
+  paidMetadata?: UpdateGroupEventBodyPaidMetadata;
+  /** @nullable */
+  recurrenceRule?: string | null;
 }

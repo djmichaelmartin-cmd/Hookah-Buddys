@@ -21,6 +21,13 @@
  * Business Page attribution:
  *   Group posts may be authored as a Business Page (businessId set).
  *   The ownerUserId of the business is NEVER surfaced in group post serializers.
+ *
+ * Meetup subtype (additive discriminator, backward-compatible):
+ *   groupType: "group" (default) | "meetup"
+ *   When groupType="meetup" the additional interest/location metadata fields are
+ *   meaningful. All existing rows default to "group" and are unaffected.
+ *   Meetup events project into the global /events feed with negative collision-safe
+ *   IDs. group_events remains the source of truth.
  */
 
 import {
@@ -78,6 +85,16 @@ export const groupsTable = pgTable("groups", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
+  // ── Meetup subtype discriminator (additive, safe default = "group") ────────
+  // Existing rows will be NULL at the DB level; route/serializer layer coerces
+  // NULL → "group" so all existing behavior is preserved.
+  // group | meetup
+  groupType: text("group_type").default("group"),
+  // Meetup-specific interest and location metadata (nullable on existing rows)
+  meetupInterests: text("meetup_interests").array(),       // e.g. ["hookah", "lounge", "shisha"]
+  meetupCity: text("meetup_city"),
+  meetupState: text("meetup_state"),
+  meetupCountry: text("meetup_country").default("US"),
 });
 
 export type Group = typeof groupsTable.$inferSelect;
@@ -430,6 +447,38 @@ export const groupEventsTable = pgTable("group_events", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
+  // ── Meetup-enriched event fields (additive, all nullable for backward compat) ─
+  // Event format: in_person | online | hybrid (null = legacy/unset, treated as in_person)
+  eventFormat: text("event_format"),
+  // Structured venue/address (in addition to freeform `location`)
+  venueName: text("venue_name"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  // Topic / category classification
+  eventCategory: text("event_category"),   // e.g. "hookah_session" | "competition" | "social" | "educational"
+  topics: text("topics").array(),
+  eventTags: text("event_tags").array(),
+  // How-to-find / directions note for in-person events
+  howToFind: text("how_to_find"),
+  // Online URL is protected — only visible to confirmed attendees
+  onlineUrlProtected: boolean("online_url_protected").notNull().default(false),
+  // Capacity management
+  attendeeLimit: integer("attendee_limit"),          // null = unlimited
+  waitlistEnabled: boolean("waitlist_enabled").notNull().default(false),
+  waitlistCount: integer("waitlist_count").notNull().default(0),
+  // Allow guests: max additional guests per RSVP (null = no guests allowed)
+  allowGuests: boolean("allow_guests").notNull().default(false),
+  maxGuestsPerRsvp: integer("max_guests_per_rsvp"),
+  // RSVP window
+  rsvpOpensAt: timestamp("rsvp_opens_at", { withTimezone: true }),
+  rsvpClosesAt: timestamp("rsvp_closes_at", { withTimezone: true }),
+  // Paid event metadata placeholder (no live checkout)
+  isPaid: boolean("is_paid").notNull().default(false),
+  paidMetadata: jsonb("paid_metadata").$type<Record<string, unknown>>(),
+  // Recurrence
+  recurrenceRule: text("recurrence_rule"),           // iCal RRULE string or null
+  recurrenceParentId: integer("recurrence_parent_id"),// parent event if this is an occurrence
 });
 
 export type GroupEvent = typeof groupEventsTable.$inferSelect;
@@ -442,10 +491,17 @@ export const groupEventRsvpsTable = pgTable(
     eventId: integer("event_id").notNull(),
     groupId: integer("group_id").notNull(),
     userId: integer("user_id").notNull(),
-    // going | interested | not_going
+    // going | interested | not_going | waitlisted | cancelled
     rsvpStatus: text("rsvp_status").notNull().default("going"),
     // Whether the user prefers not to appear in attendee lists
     isPrivate: boolean("is_private").notNull().default(false),
+    // Additional guests (0 = just the member)
+    guestCount: integer("guest_count").notNull().default(0),
+    // Organizer-managed attendance lifecycle
+    // null (default) | checked_in | no_show | not_coming
+    attendanceStatus: text("attendance_status"),
+    // Waitlist position (1-based; null when not waitlisted)
+    waitlistPosition: integer("waitlist_position"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
@@ -456,6 +512,25 @@ export const groupEventRsvpsTable = pgTable(
 );
 
 export type GroupEventRsvp = typeof groupEventRsvpsTable.$inferSelect;
+export type InsertGroupEventRsvp = typeof groupEventRsvpsTable.$inferInsert;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Group Event Saves
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const groupEventSavesTable = pgTable(
+  "group_event_saves",
+  {
+    id: serial("id").primaryKey(),
+    eventId: integer("event_id").notNull(),
+    groupId: integer("group_id").notNull(),
+    userId: integer("user_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("group_event_saves_event_user_idx").on(t.eventId, t.userId)],
+);
+
+export type GroupEventSave = typeof groupEventSavesTable.$inferSelect;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reports

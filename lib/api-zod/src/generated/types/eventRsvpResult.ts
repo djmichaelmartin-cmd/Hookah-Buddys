@@ -9,4 +9,16 @@
 export interface EventRsvpResult {
   rsvped: boolean;
   rsvpCount: number;
+  /**
+     * Authoritative post-mutation RSVP status for projected Meetup Events
+     * @nullable
+     */
+  rsvpStatus?: string | null;
+  /** Whether the viewer is now waitlisted for a projected Meetup Event */
+  waitlisted?: boolean;
+  /**
+     * The viewer's current projected Meetup Event waitlist position
+     * @nullable
+     */
+  waitlistPosition?: number | null;
 }

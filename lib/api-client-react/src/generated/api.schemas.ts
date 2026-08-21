@@ -386,6 +386,12 @@ export const EventStatus = {
   cancelled: 'cancelled',
 } as const;
 
+/**
+ * Provider-neutral payment metadata (meetup projected only)
+ * @nullable
+ */
+export type EventPaidMetadata = { [key: string]: unknown } | null;
+
 export interface EventAttendee {
   id: number;
   name: string;
@@ -417,11 +423,87 @@ export interface Event {
   attendees?: EventAttendee[];
   /** Total visible attendees under the same eligibility filters as the preview (detail route only) */
   attendeeCount?: number;
+  /**
+     * meetup_event when projected from a Meetup group
+     * @nullable
+     */
+  sourceType?: string | null;
+  /**
+     * group_event.id (original source record)
+     * @nullable
+     */
+  sourceId?: number | null;
+  /**
+     * groups.id (Meetup group)
+     * @nullable
+     */
+  meetupId?: number | null;
+  /**
+     * Meetup group name
+     * @nullable
+     */
+  meetupName?: string | null;
+  /**
+     * in_person | online | hybrid (meetup projected only)
+     * @nullable
+     */
+  eventFormat?: string | null;
+  /**
+     * Meetup event category
+     * @nullable
+     */
+  eventCategory?: string | null;
+  /** Meetup event topics */
+  topics?: string[] | null;
+  /** Meetup event tags */
+  eventTags?: string[] | null;
+  /**
+     * True when event requires payment (meetup projected only)
+     * @nullable
+     */
+  isPaid?: boolean | null;
+  /**
+     * Provider-neutral payment metadata (meetup projected only)
+     * @nullable
+     */
+  paidMetadata?: EventPaidMetadata;
+  /**
+     * Capacity cap (meetup projected only)
+     * @nullable
+     */
+  attendeeLimit?: number | null;
+  /**
+     * Whether waitlist is active (meetup projected only)
+     * @nullable
+     */
+  waitlistEnabled?: boolean | null;
+  /**
+     * Current waitlist size (meetup projected only)
+     * @nullable
+     */
+  waitlistCount?: number | null;
+  /**
+     * Authenticated viewer's waitlist position when waitlisted
+     * @nullable
+     */
+  viewerWaitlistPosition?: number | null;
 }
 
 export interface EventRsvpResult {
   rsvped: boolean;
   rsvpCount: number;
+  /**
+     * Authoritative post-mutation RSVP status for projected Meetup Events
+     * @nullable
+     */
+  rsvpStatus?: string | null;
+  /** Whether the viewer is now waitlisted for a projected Meetup Event */
+  waitlisted?: boolean;
+  /**
+     * The viewer's current projected Meetup Event waitlist position
+     * @nullable
+     */
+  waitlistPosition?: number | null;
 }
 
 export interface EventSaveResult {
@@ -3638,6 +3720,14 @@ export const GroupSummaryStatus = {
   deleted: 'deleted',
 } as const;
 
+export type GroupSummaryGroupType = typeof GroupSummaryGroupType[keyof typeof GroupSummaryGroupType];
+
+
+export const GroupSummaryGroupType = {
+  group: 'group',
+  meetup: 'meetup',
+} as const;
+
 export interface GroupSummary {
   id: number;
   name: string;
@@ -3669,6 +3759,14 @@ export interface GroupSummary {
   viewerMemberRole?: string | null;
   viewerHasPendingRequest?: boolean;
   createdAt: string;
+  groupType?: GroupSummaryGroupType;
+  meetupInterests?: string[] | null;
+  /** @nullable */
+  meetupCity?: string | null;
+  /** @nullable */
+  meetupState?: string | null;
+  /** @nullable */
+  meetupCountry?: string | null;
 }
 
 export type GroupDetail = GroupSummary & {
@@ -3707,6 +3805,14 @@ export const CreateGroupBodyPostingPermission = {
   approved_members: 'approved_members',
 } as const;
 
+export type CreateGroupBodyGroupType = typeof CreateGroupBodyGroupType[keyof typeof CreateGroupBodyGroupType];
+
+
+export const CreateGroupBodyGroupType = {
+  group: 'group',
+  meetup: 'meetup',
+} as const;
+
 export interface CreateGroupBody {
   /**
      * @minLength 1
@@ -3727,6 +3833,11 @@ export interface CreateGroupBody {
   location?: string;
   postingPermission?: CreateGroupBodyPostingPermission;
   postApproval?: boolean;
+  groupType?: CreateGroupBodyGroupType;
+  meetupInterests?: string[];
+  meetupCity?: string;
+  meetupState?: string;
+  meetupCountry?: string;
 }
 
 export type UpdateGroupBodyPrivacy = typeof UpdateGroupBodyPrivacy[keyof typeof UpdateGroupBodyPrivacy];
@@ -3752,6 +3863,14 @@ export const UpdateGroupBodyPostingPermission = {
   all_members: 'all_members',
   admins_only: 'admins_only',
   approved_members: 'approved_members',
+} as const;
+
+export type UpdateGroupBodyGroupType = typeof UpdateGroupBodyGroupType[keyof typeof UpdateGroupBodyGroupType];
+
+
+export const UpdateGroupBodyGroupType = {
+  group: 'group',
+  meetup: 'meetup',
 } as const;
 
 export interface UpdateGroupBody {
@@ -3780,6 +3899,11 @@ export interface UpdateGroupBody {
   location?: string;
   postingPermission?: UpdateGroupBodyPostingPermission;
   postApproval?: boolean;
+  groupType?: UpdateGroupBodyGroupType;
+  meetupInterests?: string[];
+  meetupCity?: string;
+  meetupState?: string;
+  meetupCountry?: string;
 }
 
 export type JoinGroupBodyAnswersItem = {
@@ -3870,11 +3994,24 @@ export const GroupInviteStatus = {
   cancelled: 'cancelled',
 } as const;
 
+/**
+ * Discriminator so the frontend can filter Meetup invites from Group invites
+ */
+export type GroupInviteGroupSummaryGroupType = typeof GroupInviteGroupSummaryGroupType[keyof typeof GroupInviteGroupSummaryGroupType];
+
+
+export const GroupInviteGroupSummaryGroupType = {
+  group: 'group',
+  meetup: 'meetup',
+} as const;
+
 export interface GroupInviteGroupSummary {
   id: number;
   name: string;
   /** @nullable */
   iconUrl?: string | null;
+  /** Discriminator so the frontend can filter Meetup invites from Group invites */
+  groupType?: GroupInviteGroupSummaryGroupType;
 }
 
 export interface GroupInvite {
@@ -4276,6 +4413,12 @@ export const GroupEventVisibility = {
   private: 'private',
 } as const;
 
+/**
+ * Provider-neutral payment metadata; present when isPaid=true
+ * @nullable
+ */
+export type GroupEventPaidMetadata = { [key: string]: unknown } | null;
+
 export interface GroupEvent {
   id: number;
   groupId: number;
@@ -4300,6 +4443,73 @@ export interface GroupEvent {
   viewerRsvpStatus?: string | null;
   createdAt: string;
   updatedAt?: string;
+  /**
+     * in_person | online | hybrid
+     * @nullable
+     */
+  eventFormat?: string | null;
+  /** @nullable */
+  venueName?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  /** @nullable */
+  eventCategory?: string | null;
+  topics?: string[] | null;
+  eventTags?: string[] | null;
+  /** @nullable */
+  howToFind?: string | null;
+  onlineUrlProtected?: boolean;
+  /** @nullable */
+  attendeeLimit?: number | null;
+  waitlistEnabled?: boolean;
+  waitlistCount?: number;
+  allowGuests?: boolean;
+  /** @nullable */
+  maxGuestsPerRsvp?: number | null;
+  /** @nullable */
+  rsvpOpensAt?: string | null;
+  /** @nullable */
+  rsvpClosesAt?: string | null;
+  isPaid?: boolean;
+  /**
+     * Provider-neutral payment metadata; present when isPaid=true
+     * @nullable
+     */
+  paidMetadata?: GroupEventPaidMetadata;
+  /** @nullable */
+  recurrenceRule?: string | null;
+  /** @nullable */
+  recurrenceParentId?: number | null;
+  viewerGuestCount?: number;
+  /** @nullable */
+  viewerAttendanceStatus?: string | null;
+  /** @nullable */
+  viewerWaitlistPosition?: number | null;
+  viewerSaved?: boolean;
+  /**
+     * meetup_event when projected
+     * @nullable
+     */
+  sourceType?: string | null;
+  /**
+     * group_event id
+     * @nullable
+     */
+  sourceId?: number | null;
+  /**
+     * group id
+     * @nullable
+     */
+  meetupId?: number | null;
+  /**
+     * group name
+     * @nullable
+     */
+  meetupName?: string | null;
 }
 
 export type CreateGroupEventBodyVisibility = typeof CreateGroupEventBodyVisibility[keyof typeof CreateGroupEventBodyVisibility];
@@ -4309,6 +4519,17 @@ export const CreateGroupEventBodyVisibility = {
   public: 'public',
   private: 'private',
 } as const;
+
+export type CreateGroupEventBodyEventFormat = typeof CreateGroupEventBodyEventFormat[keyof typeof CreateGroupEventBodyEventFormat];
+
+
+export const CreateGroupEventBodyEventFormat = {
+  in_person: 'in_person',
+  online: 'online',
+  hybrid: 'hybrid',
+} as const;
+
+export type CreateGroupEventBodyPaidMetadata = { [key: string]: unknown };
 
 export interface CreateGroupEventBody {
   /** @minLength 1 */
@@ -4322,6 +4543,27 @@ export interface CreateGroupEventBody {
   endsAt?: string;
   visibility?: CreateGroupEventBodyVisibility;
   hideAttendees?: boolean;
+  eventFormat?: CreateGroupEventBodyEventFormat;
+  venueName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  eventCategory?: string;
+  topics?: string[];
+  eventTags?: string[];
+  howToFind?: string;
+  onlineUrlProtected?: boolean;
+  /** @minimum 1 */
+  attendeeLimit?: number;
+  waitlistEnabled?: boolean;
+  allowGuests?: boolean;
+  /** @minimum 0 */
+  maxGuestsPerRsvp?: number;
+  rsvpOpensAt?: string;
+  rsvpClosesAt?: string;
+  isPaid?: boolean;
+  paidMetadata?: CreateGroupEventBodyPaidMetadata;
+  recurrenceRule?: string;
 }
 
 export type UpdateGroupEventBodyStatus = typeof UpdateGroupEventBodyStatus[keyof typeof UpdateGroupEventBodyStatus];
@@ -4342,6 +4584,20 @@ export const UpdateGroupEventBodyVisibility = {
   private: 'private',
 } as const;
 
+export type UpdateGroupEventBodyEventFormat = typeof UpdateGroupEventBodyEventFormat[keyof typeof UpdateGroupEventBodyEventFormat];
+
+
+export const UpdateGroupEventBodyEventFormat = {
+  in_person: 'in_person',
+  online: 'online',
+  hybrid: 'hybrid',
+} as const;
+
+/**
+ * @nullable
+ */
+export type UpdateGroupEventBodyPaidMetadata = { [key: string]: unknown } | null;
+
 export interface UpdateGroupEventBody {
   /** @minLength 1 */
   title?: string;
@@ -4355,6 +4611,31 @@ export interface UpdateGroupEventBody {
   status?: UpdateGroupEventBodyStatus;
   visibility?: UpdateGroupEventBodyVisibility;
   hideAttendees?: boolean;
+  eventFormat?: UpdateGroupEventBodyEventFormat;
+  venueName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  eventCategory?: string;
+  topics?: string[];
+  eventTags?: string[];
+  howToFind?: string;
+  onlineUrlProtected?: boolean;
+  /** @nullable */
+  attendeeLimit?: number | null;
+  waitlistEnabled?: boolean;
+  allowGuests?: boolean;
+  /** @nullable */
+  maxGuestsPerRsvp?: number | null;
+  /** @nullable */
+  rsvpOpensAt?: string | null;
+  /** @nullable */
+  rsvpClosesAt?: string | null;
+  isPaid?: boolean;
+  /** @nullable */
+  paidMetadata?: UpdateGroupEventBodyPaidMetadata;
+  /** @nullable */
+  recurrenceRule?: string | null;
 }
 
 export type GroupEventRsvpInputRsvpStatus = typeof GroupEventRsvpInputRsvpStatus[keyof typeof GroupEventRsvpInputRsvpStatus];
@@ -4364,17 +4645,23 @@ export const GroupEventRsvpInputRsvpStatus = {
   going: 'going',
   interested: 'interested',
   not_going: 'not_going',
+  cancelled: 'cancelled',
 } as const;
 
 export interface GroupEventRsvpInput {
   rsvpStatus: GroupEventRsvpInputRsvpStatus;
   isPrivate?: boolean;
+  /** @minimum 0 */
+  guestCount?: number;
 }
 
 export interface GroupEventRsvpResult {
   /** @nullable */
   rsvpStatus: string | null;
   rsvpCount: number;
+  waitlisted?: boolean;
+  /** @nullable */
+  waitlistPosition?: number | null;
 }
 
 export interface GroupEventAttendee {
@@ -4383,7 +4670,35 @@ export interface GroupEventAttendee {
   /** @nullable */
   userPhotoUrl?: string | null;
   rsvpStatus: string;
+  /** @nullable */
+  attendanceStatus?: string | null;
+  guestCount?: number;
+  /** @nullable */
+  waitlistPosition?: number | null;
   rsvpAt?: string;
+}
+
+export type ManageGroupEventAttendeeBodyAction = typeof ManageGroupEventAttendeeBodyAction[keyof typeof ManageGroupEventAttendeeBodyAction];
+
+
+export const ManageGroupEventAttendeeBodyAction = {
+  set_going: 'set_going',
+  set_waitlisted: 'set_waitlisted',
+  check_in: 'check_in',
+  mark_no_show: 'mark_no_show',
+  mark_not_coming: 'mark_not_coming',
+  cancel: 'cancel',
+  set_guest_count: 'set_guest_count',
+} as const;
+
+export interface ManageGroupEventAttendeeBody {
+  action: ManageGroupEventAttendeeBodyAction;
+  /** @minimum 0 */
+  guestCount?: number;
+}
+
+export interface GroupEventSaveResult {
+  saved: boolean;
 }
 
 export type GroupReportTargetType = typeof GroupReportTargetType[keyof typeof GroupReportTargetType];
@@ -4625,6 +4940,42 @@ limit?: number;
 offset?: number;
 filter?: ListEventsFilter;
 scope?: ListEventsScope;
+/**
+ * Filter by city (case-insensitive substring)
+ */
+city?: string;
+/**
+ * Filter by 2-letter state code
+ */
+state?: string;
+/**
+ * Meetup-projected events only
+ */
+eventFormat?: ListEventsEventFormat;
+/**
+ * Meetup-projected events only
+ */
+eventCategory?: string;
+/**
+ * Meetup-projected events only — matches any topic in the topics array
+ */
+topic?: string;
+/**
+ * Limit to native events or Meetup projections
+ */
+sourceType?: ListEventsSourceType;
+/**
+ * Meetup-projected events only
+ */
+priceType?: ListEventsPriceType;
+/**
+ * ISO-8601 datetime — only events starting after this time
+ */
+startsAfter?: string;
+/**
+ * ISO-8601 datetime — only events starting before this time
+ */
+startsBefore?: string;
 };
 
 export type ListEventsFilter = typeof ListEventsFilter[keyof typeof ListEventsFilter];
@@ -4641,6 +4992,31 @@ export type ListEventsScope = typeof ListEventsScope[keyof typeof ListEventsScop
 export const ListEventsScope = {
   upcoming: 'upcoming',
   past: 'past',
+} as const;
+
+export type ListEventsEventFormat = typeof ListEventsEventFormat[keyof typeof ListEventsEventFormat];
+
+
+export const ListEventsEventFormat = {
+  in_person: 'in_person',
+  online: 'online',
+  hybrid: 'hybrid',
+} as const;
+
+export type ListEventsSourceType = typeof ListEventsSourceType[keyof typeof ListEventsSourceType];
+
+
+export const ListEventsSourceType = {
+  native: 'native',
+  meetup: 'meetup',
+} as const;
+
+export type ListEventsPriceType = typeof ListEventsPriceType[keyof typeof ListEventsPriceType];
+
+
+export const ListEventsPriceType = {
+  free: 'free',
+  paid: 'paid',
 } as const;
 
 export type EstimateVideoChatParams = {
@@ -4976,6 +5352,11 @@ search?: string;
 category?: string;
 privacy?: ListGroupsPrivacy;
 featured?: boolean;
+/**
+ * Filter by group type. Omitting or passing "group" returns only regular groups (excludes meetups). Pass "meetup" for meetups only. Pass "all" to include both.
+
+ */
+groupType?: ListGroupsGroupType;
 limit?: number;
 offset?: number;
 };
@@ -4986,6 +5367,15 @@ export type ListGroupsPrivacy = typeof ListGroupsPrivacy[keyof typeof ListGroups
 export const ListGroupsPrivacy = {
   public: 'public',
   private: 'private',
+} as const;
+
+export type ListGroupsGroupType = typeof ListGroupsGroupType[keyof typeof ListGroupsGroupType];
+
+
+export const ListGroupsGroupType = {
+  group: 'group',
+  meetup: 'meetup',
+  all: 'all',
 } as const;
 
 export type ListGroupMembersParams = {
@@ -5017,6 +5407,49 @@ kind?: string;
 limit?: number;
 offset?: number;
 };
+
+export type ListMeetupsParams = {
+search?: string;
+city?: string;
+state?: string;
+/**
+ * Comma-separated interest tags
+ */
+interests?: string;
+/**
+ * Limit to public or private meetups
+ */
+privacy?: ListMeetupsPrivacy;
+/**
+ * When true, only return meetups that have at least one active upcoming event (startsAt in the future). Implemented as a subquery; may be slower on large datasets — use with a reasonable limit.
+
+ */
+hasUpcomingEvent?: boolean;
+/**
+ * Sort order. newest = createdAt DESC, most_members = memberCount DESC (default), most_active = eventCount DESC. Featured meetups always float to the top regardless of sort.
+
+ */
+sort?: ListMeetupsSort;
+limit?: number;
+offset?: number;
+};
+
+export type ListMeetupsPrivacy = typeof ListMeetupsPrivacy[keyof typeof ListMeetupsPrivacy];
+
+
+export const ListMeetupsPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type ListMeetupsSort = typeof ListMeetupsSort[keyof typeof ListMeetupsSort];
+
+
+export const ListMeetupsSort = {
+  newest: 'newest',
+  most_members: 'most_members',
+  most_active: 'most_active',
+} as const;
 
 export type ListGroupEventsParams = {
 scope?: ListGroupEventsScope;

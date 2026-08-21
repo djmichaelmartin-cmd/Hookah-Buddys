@@ -154,6 +154,7 @@ import type {
   GroupEventAttendee,
   GroupEventRsvpInput,
   GroupEventRsvpResult,
+  GroupEventSaveResult,
   GroupFeaturedContentInput,
   GroupFeaturedContentItem,
   GroupFileUploadResponse,
@@ -214,6 +215,7 @@ import type {
   ListGroupReportsParams,
   ListGroupsParams,
   ListLoungesParams,
+  ListMeetupsParams,
   ListMembersParams,
   ListPlansParams,
   ListReelsParams,
@@ -225,6 +227,7 @@ import type {
   LoginInput,
   Lounge,
   LoungeSpotlightResponse,
+  ManageGroupEventAttendeeBody,
   Media,
   MediaInput,
   MemberProfile,
@@ -2737,7 +2740,9 @@ export const getListEventsUrl = (params?: ListEventsParams,) => {
 }
 
 /**
- * @summary Upcoming hookah events
+ * Returns native events and public Meetup group events merged and sorted by startsAt. Optional filters narrow the combined result. Existing callers with no filters are unaffected.
+
+ * @summary Upcoming hookah events (native + Meetup-projected)
  */
 export const listEvents = async (params?: ListEventsParams, options?: RequestInit): Promise<Event[]> => {
 
@@ -2784,7 +2789,7 @@ export type ListEventsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary Upcoming hookah events
+ * @summary Upcoming hookah events (native + Meetup-projected)
  */
 
 export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<unknown>>(
@@ -17925,6 +17930,8 @@ export const getListGroupsUrl = (params?: ListGroupsParams,) => {
 }
 
 /**
+ * By default excludes Meetup groups (groupType="meetup") so the Groups discovery page stays distinct from /meetups. Pass groupType=meetup to explicitly request only meetup groups, or groupType=all to include both.
+
  * @summary Discover/search Groups
  */
 export const listGroups = async (params?: ListGroupsParams, options?: RequestInit): Promise<GroupList> => {
@@ -21161,6 +21168,92 @@ export const useDeleteGroupMedia = <TError = ErrorType<unknown>,
       return useMutation(getDeleteGroupMediaMutationOptions(options));
     }
 
+export const getListMeetupsUrl = (params?: ListMeetupsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/meetups?${stringifiedParams}` : `/api/meetups`
+}
+
+/**
+ * Returns groups where groupType="meetup". Hidden private meetups are never surfaced in discovery — only public and visible-private meetups appear. Authenticated viewers also see meetups they are members of.
+
+ * @summary Discover Meetup groups (public and visible-private only)
+ */
+export const listMeetups = async (params?: ListMeetupsParams, options?: RequestInit): Promise<GroupList> => {
+
+  return customFetch<GroupList>(getListMeetupsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMeetupsQueryKey = (params?: ListMeetupsParams,) => {
+    return [
+    `/api/meetups`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListMeetupsQueryOptions = <TData = Awaited<ReturnType<typeof listMeetups>>, TError = ErrorType<unknown>>(params?: ListMeetupsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMeetups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMeetupsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMeetups>>> = ({ signal }) => listMeetups(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMeetups>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMeetupsQueryResult = NonNullable<Awaited<ReturnType<typeof listMeetups>>>
+export type ListMeetupsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Discover Meetup groups (public and visible-private only)
+ */
+
+export function useListMeetups<TData = Awaited<ReturnType<typeof listMeetups>>, TError = ErrorType<unknown>>(
+ params?: ListMeetupsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMeetups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMeetupsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListGroupEventsUrl = (groupId: number,
     params?: ListGroupEventsParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -21624,6 +21717,78 @@ export const useRsvpGroupEvent = <TError = ErrorType<unknown>,
       return useMutation(getRsvpGroupEventMutationOptions(options));
     }
 
+export const getToggleGroupEventSaveUrl = (groupId: number,
+    eventId: number,) => {
+
+
+
+
+  return `/api/groups/${groupId}/events/${eventId}/save`
+}
+
+/**
+ * @summary Toggle save on a group event (authenticated)
+ */
+export const toggleGroupEventSave = async (groupId: number,
+    eventId: number, options?: RequestInit): Promise<GroupEventSaveResult> => {
+
+  return customFetch<GroupEventSaveResult>(getToggleGroupEventSaveUrl(groupId,eventId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getToggleGroupEventSaveMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleGroupEventSave>>, TError,{groupId: number;eventId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof toggleGroupEventSave>>, TError,{groupId: number;eventId: number}, TContext> => {
+
+const mutationKey = ['toggleGroupEventSave'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleGroupEventSave>>, {groupId: number;eventId: number}> = (props) => {
+          const {groupId,eventId} = props ?? {};
+
+          return  toggleGroupEventSave(groupId,eventId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ToggleGroupEventSaveMutationResult = NonNullable<Awaited<ReturnType<typeof toggleGroupEventSave>>>
+
+    export type ToggleGroupEventSaveMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Toggle save on a group event (authenticated)
+ */
+export const useToggleGroupEventSave = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleGroupEventSave>>, TError,{groupId: number;eventId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof toggleGroupEventSave>>,
+        TError,
+        {groupId: number;eventId: number},
+        TContext
+      > => {
+      return useMutation(getToggleGroupEventSaveMutationOptions(options));
+    }
+
 export const getListGroupEventAttendeesUrl = (groupId: number,
     eventId: number,) => {
 
@@ -21705,6 +21870,84 @@ export function useListGroupEventAttendees<TData = Awaited<ReturnType<typeof lis
 
 
 
+
+export const getManageGroupEventAttendeeUrl = (groupId: number,
+    eventId: number,
+    userId: number,) => {
+
+
+
+
+  return `/api/groups/${groupId}/events/${eventId}/attendees/${userId}`
+}
+
+/**
+ * @summary Organizer/admin attendee management — set going, waitlisted, checked-in, no-show, not-coming, cancelled, or update guest count for a specific attendee.
+
+ */
+export const manageGroupEventAttendee = async (groupId: number,
+    eventId: number,
+    userId: number,
+    manageGroupEventAttendeeBody: ManageGroupEventAttendeeBody, options?: RequestInit): Promise<GroupEventAttendee> => {
+
+  return customFetch<GroupEventAttendee>(getManageGroupEventAttendeeUrl(groupId,eventId,userId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      manageGroupEventAttendeeBody,)
+  }
+);}
+
+
+
+
+export const getManageGroupEventAttendeeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof manageGroupEventAttendee>>, TError,{groupId: number;eventId: number;userId: number;data: BodyType<ManageGroupEventAttendeeBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof manageGroupEventAttendee>>, TError,{groupId: number;eventId: number;userId: number;data: BodyType<ManageGroupEventAttendeeBody>}, TContext> => {
+
+const mutationKey = ['manageGroupEventAttendee'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof manageGroupEventAttendee>>, {groupId: number;eventId: number;userId: number;data: BodyType<ManageGroupEventAttendeeBody>}> = (props) => {
+          const {groupId,eventId,userId,data} = props ?? {};
+
+          return  manageGroupEventAttendee(groupId,eventId,userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ManageGroupEventAttendeeMutationResult = NonNullable<Awaited<ReturnType<typeof manageGroupEventAttendee>>>
+    export type ManageGroupEventAttendeeMutationBody = BodyType<ManageGroupEventAttendeeBody>
+    export type ManageGroupEventAttendeeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Organizer/admin attendee management — set going, waitlisted, checked-in, no-show, not-coming, cancelled, or update guest count for a specific attendee.
+
+ */
+export const useManageGroupEventAttendee = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof manageGroupEventAttendee>>, TError,{groupId: number;eventId: number;userId: number;data: BodyType<ManageGroupEventAttendeeBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof manageGroupEventAttendee>>,
+        TError,
+        {groupId: number;eventId: number;userId: number;data: BodyType<ManageGroupEventAttendeeBody>},
+        TContext
+      > => {
+      return useMutation(getManageGroupEventAttendeeMutationOptions(options));
+    }
 
 export const getListGroupReportsUrl = (groupId: number,
     params?: ListGroupReportsParams,) => {

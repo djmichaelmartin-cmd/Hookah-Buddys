@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ListGroupsGroupType } from './listGroupsGroupType';
 import type { ListGroupsPrivacy } from './listGroupsPrivacy';
 
 export type ListGroupsParams = {
@@ -12,6 +13,11 @@ search?: string;
 category?: string;
 privacy?: ListGroupsPrivacy;
 featured?: boolean;
+/**
+ * Filter by group type. Omitting or passing "group" returns only regular groups (excludes meetups). Pass "meetup" for meetups only. Pass "all" to include both.
+
+ */
+groupType?: ListGroupsGroupType;
 limit?: number;
 offset?: number;
 };

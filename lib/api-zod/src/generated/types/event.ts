@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { EventAttendee } from './eventAttendee';
+import type { EventPaidMetadata } from './eventPaidMetadata';
 import type { EventStatus } from './eventStatus';
 
 export interface Event {
@@ -32,4 +33,68 @@ export interface Event {
   attendees?: EventAttendee[];
   /** Total visible attendees under the same eligibility filters as the preview (detail route only) */
   attendeeCount?: number;
+  /**
+     * meetup_event when projected from a Meetup group
+     * @nullable
+     */
+  sourceType?: string | null;
+  /**
+     * group_event.id (original source record)
+     * @nullable
+     */
+  sourceId?: number | null;
+  /**
+     * groups.id (Meetup group)
+     * @nullable
+     */
+  meetupId?: number | null;
+  /**
+     * Meetup group name
+     * @nullable
+     */
+  meetupName?: string | null;
+  /**
+     * in_person | online | hybrid (meetup projected only)
+     * @nullable
+     */
+  eventFormat?: string | null;
+  /**
+     * Meetup event category
+     * @nullable
+     */
+  eventCategory?: string | null;
+  /** Meetup event topics */
+  topics?: string[] | null;
+  /** Meetup event tags */
+  eventTags?: string[] | null;
+  /**
+     * True when event requires payment (meetup projected only)
+     * @nullable
+     */
+  isPaid?: boolean | null;
+  /**
+     * Provider-neutral payment metadata (meetup projected only)
+     * @nullable
+     */
+  paidMetadata?: EventPaidMetadata;
+  /**
+     * Capacity cap (meetup projected only)
+     * @nullable
+     */
+  attendeeLimit?: number | null;
+  /**
+     * Whether waitlist is active (meetup projected only)
+     * @nullable
+     */
+  waitlistEnabled?: boolean | null;
+  /**
+     * Current waitlist size (meetup projected only)
+     * @nullable
+     */
+  waitlistCount?: number | null;
+  /**
+     * Authenticated viewer's waitlist position when waitlisted
+     * @nullable
+     */
+  viewerWaitlistPosition?: number | null;
 }

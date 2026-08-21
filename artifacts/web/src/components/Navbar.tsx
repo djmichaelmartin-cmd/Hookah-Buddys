@@ -32,6 +32,7 @@ import {
 const NAV_LINKS = [
   { label: "Feed", href: "/feed" },
   { label: "Groups", href: "/groups" },
+  { label: "Meetups", href: "/meetups" },
   { label: "Reels", href: "/reels" },
   { label: "Buddys", href: "/browse" },
   { label: "Businesses", href: "/businesses" },
@@ -291,6 +292,12 @@ export function Navbar() {
                   <Link href="/dashboard/groups" className="flex items-center w-full">
                     <Users className="mr-2 h-4 w-4" />
                     <span>My Groups</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                  <Link href="/dashboard/meetups" className="flex items-center w-full">
+                    <Users className="mr-2 h-4 w-4 text-orange-500" />
+                    <span>My Meetups</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">

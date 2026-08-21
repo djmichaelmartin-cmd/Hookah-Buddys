@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { GroupEventPaidMetadata } from './groupEventPaidMetadata';
 import type { GroupEventStatus } from './groupEventStatus';
 import type { GroupEventVisibility } from './groupEventVisibility';
 
@@ -32,4 +33,71 @@ export interface GroupEvent {
   viewerRsvpStatus?: string | null;
   createdAt: string;
   updatedAt?: string;
+  /**
+     * in_person | online | hybrid
+     * @nullable
+     */
+  eventFormat?: string | null;
+  /** @nullable */
+  venueName?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  /** @nullable */
+  eventCategory?: string | null;
+  topics?: string[] | null;
+  eventTags?: string[] | null;
+  /** @nullable */
+  howToFind?: string | null;
+  onlineUrlProtected?: boolean;
+  /** @nullable */
+  attendeeLimit?: number | null;
+  waitlistEnabled?: boolean;
+  waitlistCount?: number;
+  allowGuests?: boolean;
+  /** @nullable */
+  maxGuestsPerRsvp?: number | null;
+  /** @nullable */
+  rsvpOpensAt?: string | null;
+  /** @nullable */
+  rsvpClosesAt?: string | null;
+  isPaid?: boolean;
+  /**
+     * Provider-neutral payment metadata; present when isPaid=true
+     * @nullable
+     */
+  paidMetadata?: GroupEventPaidMetadata;
+  /** @nullable */
+  recurrenceRule?: string | null;
+  /** @nullable */
+  recurrenceParentId?: number | null;
+  viewerGuestCount?: number;
+  /** @nullable */
+  viewerAttendanceStatus?: string | null;
+  /** @nullable */
+  viewerWaitlistPosition?: number | null;
+  viewerSaved?: boolean;
+  /**
+     * meetup_event when projected
+     * @nullable
+     */
+  sourceType?: string | null;
+  /**
+     * group_event id
+     * @nullable
+     */
+  sourceId?: number | null;
+  /**
+     * group id
+     * @nullable
+     */
+  meetupId?: number | null;
+  /**
+     * group name
+     * @nullable
+     */
+  meetupName?: string | null;
 }

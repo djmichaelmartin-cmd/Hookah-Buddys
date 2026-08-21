@@ -13,4 +13,5 @@ export const GroupEventRsvpInputRsvpStatus = {
   going: 'going',
   interested: 'interested',
   not_going: 'not_going',
+  cancelled: 'cancelled',
 } as const;

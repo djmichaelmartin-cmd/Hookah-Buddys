@@ -5,12 +5,51 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ListEventsEventFormat } from './listEventsEventFormat';
 import type { ListEventsFilter } from './listEventsFilter';
+import type { ListEventsPriceType } from './listEventsPriceType';
 import type { ListEventsScope } from './listEventsScope';
+import type { ListEventsSourceType } from './listEventsSourceType';
 
 export type ListEventsParams = {
 limit?: number;
 offset?: number;
 filter?: ListEventsFilter;
 scope?: ListEventsScope;
+/**
+ * Filter by city (case-insensitive substring)
+ */
+city?: string;
+/**
+ * Filter by 2-letter state code
+ */
+state?: string;
+/**
+ * Meetup-projected events only
+ */
+eventFormat?: ListEventsEventFormat;
+/**
+ * Meetup-projected events only
+ */
+eventCategory?: string;
+/**
+ * Meetup-projected events only — matches any topic in the topics array
+ */
+topic?: string;
+/**
+ * Limit to native events or Meetup projections
+ */
+sourceType?: ListEventsSourceType;
+/**
+ * Meetup-projected events only
+ */
+priceType?: ListEventsPriceType;
+/**
+ * ISO-8601 datetime — only events starting after this time
+ */
+startsAfter?: string;
+/**
+ * ISO-8601 datetime — only events starting before this time
+ */
+startsBefore?: string;
 };

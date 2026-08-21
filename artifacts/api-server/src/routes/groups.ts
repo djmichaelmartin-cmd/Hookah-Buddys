@@ -55,6 +55,8 @@ import {
   groupMediaTable,
   groupEventsTable,
   groupEventRsvpsTable,
+  groupEventSavesTable,
+  groupNotificationsTable,
   groupReportsTable,
   groupKeywordAlertsTable,
   groupActivityLogTable,
@@ -91,8 +93,14 @@ import {
   AdminModerateGroupPostBody,
   JoinGroupBody,
   AdminTransferGroupOwnerBody,
+  ManageGroupEventAttendeeBody,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import {
+  executeGroupEventRsvp,
+  executeOrganizerAttendeeAction,
+  occupiedGoingSeats,
+} from "../lib/groupEventRsvpService";
 import {
   finalizeUploadedImage,
   finalizeMediaUrlWithVideoTranscode,
@@ -336,6 +344,42 @@ async function resolveGroupAccess(
 }
 
 /**
+ * Event-level private-visibility gate.
+ *
+ * group_events.visibility="private" means ACTIVE MEMBERS ONLY, independent of the
+ * parent group's privacy. A private event inside a PUBLIC group/Meetup is still
+ * members-only. Authorized:
+ *   - any active member (owner/admin/moderator/member), OR
+ *   - a platform admin, OR
+ *   - the event creator/organizer (group_events.created_by_user_id) — retained
+ *     even if they are no longer an active group member (reviewer requirement).
+ * Public events are visible to anyone who already passed the group-level gate.
+ *
+ * Pure so tests exercise the exact decision without a database. Callers pass the
+ * already-resolved group access (memberRole + isAdmin from resolveGroupAccess)
+ * and the viewer id so creator access can be evaluated.
+ */
+export function canViewGroupEventPure(
+  event: { visibility: string | null; createdByUserId?: number | null },
+  access: { memberRole: GroupRole | null; isAdmin: boolean; viewerId: number | null },
+): boolean {
+  if (event.visibility === "private") {
+    if (access.isAdmin) return true;
+    if (access.memberRole !== null) return true;
+    // Creator/organizer retains access without an active membership.
+    if (
+      access.viewerId !== null &&
+      event.createdByUserId != null &&
+      event.createdByUserId === access.viewerId
+    ) {
+      return true;
+    }
+    return false;
+  }
+  return true;
+}
+
+/**
  * Returns true when the group accepts write operations via ordinary routes.
  * Deleted, suspended, AND hidden groups block ALL ordinary writes for everyone
  * (including platform admins — admin lifecycle actions go through admin routes).
@@ -404,6 +448,63 @@ async function loadGroupForLifecycle(
 // ─────────────────────────────────────────────────────────────────────────────
 // Activity log
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Notify all active members of a group about a Meetup event lifecycle change.
+ * Notification types: new_event | event_cancelled | event_updated
+ * Excludes the actor (organizer) from notifications.
+ * Fire-and-forget: errors are logged but do not fail the request.
+ */
+async function notifyGroupMembersForEvent(
+  groupId: number,
+  eventId: number,
+  type: "new_event" | "event_cancelled" | "event_updated",
+  eventTitle: string,
+  actorUserId: number,
+): Promise<void> {
+  try {
+    const members = await db
+      .select({ userId: groupMembersTable.userId })
+      .from(groupMembersTable)
+      .where(
+        and(
+          eq(groupMembersTable.groupId, groupId),
+          eq(groupMembersTable.status, "active"),
+          not(eq(groupMembersTable.userId, actorUserId)),
+        ),
+      );
+    if (!members.length) return;
+
+    const titles: Record<string, string> = {
+      new_event: "New Event",
+      event_cancelled: "Event Cancelled",
+      event_updated: "Event Updated",
+    };
+    const messages: Record<string, string> = {
+      new_event: `A new event has been posted: "${eventTitle}"`,
+      event_cancelled: `An event has been cancelled: "${eventTitle}"`,
+      event_updated: `An event has been updated: "${eventTitle}"`,
+    };
+
+    const notifValues = members.map((m) => ({
+      groupId,
+      recipientUserId: m.userId,
+      type,
+      title: titles[type] ?? type,
+      message: messages[type] ?? eventTitle,
+      relatedEntityId: eventId,
+      relatedEntityType: "event",
+    }));
+
+    // Batch insert (chunk to avoid huge parameter lists)
+    const CHUNK = 100;
+    for (let i = 0; i < notifValues.length; i += CHUNK) {
+      await db.insert(groupNotificationsTable).values(notifValues.slice(i, i + CHUNK));
+    }
+  } catch (err) {
+    logger.error({ err, groupId, eventId, type }, "Failed to send group event notifications");
+  }
+}
 
 async function logGroupActivity(
   groupId: number,
@@ -480,6 +581,12 @@ function serializeGroup(
     viewerHasPendingRequest: opts.viewerHasPendingRequest ?? false,
     createdAt: group.createdAt.toISOString(),
     updatedAt: group.updatedAt.toISOString(),
+    // Meetup discriminator — null DB rows coerce to "group" for backward compat
+    groupType: (group.groupType ?? "group") as "group" | "meetup",
+    meetupInterests: group.meetupInterests ?? null,
+    meetupCity: group.meetupCity ?? null,
+    meetupState: group.meetupState ?? null,
+    meetupCountry: group.meetupCountry ?? null,
   };
 }
 
@@ -517,6 +624,12 @@ function serializeGroupPreview(
     viewerHasPendingRequest: opts.viewerHasPendingRequest ?? false,
     createdAt: group.createdAt.toISOString(),
     isPreview: true as const,
+    // Meetup discriminator in preview (useful for the join request UI)
+    groupType: (group.groupType ?? "group") as "group" | "meetup",
+    meetupInterests: group.meetupInterests ?? null,
+    meetupCity: group.meetupCity ?? null,
+    meetupState: group.meetupState ?? null,
+    meetupCountry: group.meetupCountry ?? null,
   };
 }
 
@@ -668,11 +781,26 @@ async function serializeMediaItem(
  * Serialize a Group event. For PRIVATE groups the event image is served through
  * the access-controlled Group asset route so the universal storage route cannot
  * leak it; public-Group event images remain universal.
+ *
+ * The online URL is protected behind the `onlineUrlProtected` flag: only
+ * confirmed attendees (going / checked_in) see it.
  */
 function serializeGroupEvent(
   event: typeof groupEventsTable.$inferSelect,
-  opts: { viewerRsvpStatus?: string | null; groupIsPrivate?: boolean } = {},
+  opts: {
+    viewerRsvpStatus?: string | null;
+    groupIsPrivate?: boolean;
+    viewerRsvp?: typeof groupEventRsvpsTable.$inferSelect | null;
+    viewerSaved?: boolean;
+  } = {},
 ) {
+  // Protect the online URL: only reveal it to confirmed attendees
+  const viewerIsConfirmed =
+    opts.viewerRsvp?.rsvpStatus === "going" ||
+    opts.viewerRsvp?.attendanceStatus === "checked_in";
+  const onlineUrl =
+    event.onlineUrlProtected && !viewerIsConfirmed ? null : event.onlineUrl;
+
   return {
     id: event.id,
     groupId: event.groupId,
@@ -680,7 +808,7 @@ function serializeGroupEvent(
     title: event.title,
     description: event.description,
     location: event.location,
-    onlineUrl: event.onlineUrl,
+    onlineUrl,
     imageUrl: opts.groupIsPrivate
       ? toProtectedGroupAssetUrl(event.groupId, event.imageUrl)
       : event.imageUrl,
@@ -693,6 +821,33 @@ function serializeGroupEvent(
     viewerRsvpStatus: opts.viewerRsvpStatus ?? null,
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
+    // Meetup-enriched fields
+    eventFormat: event.eventFormat ?? null,
+    venueName: event.venueName ?? null,
+    address: event.address ?? null,
+    city: event.city ?? null,
+    state: event.state ?? null,
+    eventCategory: event.eventCategory ?? null,
+    topics: event.topics ?? null,
+    eventTags: event.eventTags ?? null,
+    howToFind: event.howToFind ?? null,
+    onlineUrlProtected: event.onlineUrlProtected,
+    attendeeLimit: event.attendeeLimit ?? null,
+    waitlistEnabled: event.waitlistEnabled,
+    waitlistCount: event.waitlistCount,
+    allowGuests: event.allowGuests,
+    maxGuestsPerRsvp: event.maxGuestsPerRsvp ?? null,
+    rsvpOpensAt: event.rsvpOpensAt?.toISOString() ?? null,
+    rsvpClosesAt: event.rsvpClosesAt?.toISOString() ?? null,
+    isPaid: event.isPaid,
+    paidMetadata: (event.paidMetadata as Record<string, unknown> | null) ?? null,
+    recurrenceRule: event.recurrenceRule ?? null,
+    recurrenceParentId: event.recurrenceParentId ?? null,
+    // Viewer-specific RSVP enrichment
+    viewerGuestCount: opts.viewerRsvp?.guestCount ?? 0,
+    viewerAttendanceStatus: opts.viewerRsvp?.attendanceStatus ?? null,
+    viewerWaitlistPosition: opts.viewerRsvp?.waitlistPosition ?? null,
+    viewerSaved: opts.viewerSaved ?? false,
   };
 }
 
@@ -762,6 +917,8 @@ router.get("/groups", async (req, res): Promise<void> => {
   const category = typeof req.query.category === "string" ? req.query.category : undefined;
   const privacy = typeof req.query.privacy === "string" ? req.query.privacy : undefined;
   const featured = req.query.featured === "true";
+  // groupType filter: "group" (default) excludes meetups; "meetup" = meetups only; "all" = both
+  const groupTypeParam = typeof req.query.groupType === "string" ? req.query.groupType : "group";
   const limit = Math.min(
     typeof req.query.limit === "string" ? parseInt(req.query.limit, 10) || 30 : 30,
     100,
@@ -769,6 +926,23 @@ router.get("/groups", async (req, res): Promise<void> => {
   const offset = typeof req.query.offset === "string" ? parseInt(req.query.offset, 10) || 0 : 0;
 
   const conditions = [eq(groupsTable.status, "active")] as Parameters<typeof and>;
+
+  // Enforce group/meetup separation by default.
+  // "group" (default): exclude rows where groupType='meetup'; include NULL (legacy rows = regular groups)
+  // "meetup": include only rows where groupType='meetup'
+  // "all": no groupType filter — include everything
+  if (groupTypeParam === "group") {
+    // Exclude meetups: groupType IS NULL OR groupType = 'group'
+    conditions.push(
+      or(
+        sql`${groupsTable.groupType} IS NULL`,
+        eq(groupsTable.groupType, "group"),
+      )!,
+    );
+  } else if (groupTypeParam === "meetup") {
+    conditions.push(eq(groupsTable.groupType, "meetup"));
+  }
+  // "all" → no additional filter
 
   if (search) {
     conditions.push(
@@ -809,6 +983,107 @@ router.get("/groups", async (req, res): Promise<void> => {
 
   const groups = await Promise.all(
     filtered.map(async (g) => {
+      const viewerRole = viewer ? await getGroupMemberRole(g.id, viewer.id) : null;
+      let hasPending = false;
+      if (viewer && !viewerRole) {
+        const [jr] = await db
+          .select({ id: groupJoinRequestsTable.id })
+          .from(groupJoinRequestsTable)
+          .where(
+            and(
+              eq(groupJoinRequestsTable.groupId, g.id),
+              eq(groupJoinRequestsTable.userId, viewer.id),
+              eq(groupJoinRequestsTable.status, "pending"),
+            ),
+          );
+        hasPending = !!jr;
+      }
+      return serializeGroup(g, { viewerMemberRole: viewerRole, viewerHasPendingRequest: hasPending });
+    }),
+  );
+
+  res.json({ groups, total: filtered.length });
+});
+
+// GET /meetups — Meetup group discovery (public + visible-private only)
+router.get("/meetups", async (req, res): Promise<void> => {
+  const viewer = await getSessionUser(req);
+  const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined;
+  const city = typeof req.query.city === "string" ? req.query.city.trim() : undefined;
+  const state = typeof req.query.state === "string" ? req.query.state.trim() : undefined;
+  const privacyParam = typeof req.query.privacy === "string" ? req.query.privacy : undefined;
+  const hasUpcomingEventParam = req.query.hasUpcomingEvent === "true";
+  const sortParam = typeof req.query.sort === "string" ? req.query.sort : "most_members";
+  const interestsRaw = typeof req.query.interests === "string" ? req.query.interests : undefined;
+  const interests = interestsRaw ? interestsRaw.split(",").map((s) => s.trim()).filter(Boolean) : undefined;
+  const limit = Math.min(
+    typeof req.query.limit === "string" ? parseInt(req.query.limit, 10) || 30 : 30,
+    100,
+  );
+  const offset = typeof req.query.offset === "string" ? parseInt(req.query.offset, 10) || 0 : 0;
+
+  const meetupConditions: Parameters<typeof and> = [
+    eq(groupsTable.status, "active"),
+    eq(groupsTable.groupType, "meetup"),
+  ];
+
+  if (search) {
+    meetupConditions.push(
+      or(
+        ilike(groupsTable.name, `%${search}%`),
+        ilike(groupsTable.description, `%${search}%`),
+      )!,
+    );
+  }
+  if (city) meetupConditions.push(ilike(groupsTable.meetupCity, `%${city}%`));
+  if (state) meetupConditions.push(eq(groupsTable.meetupState, state));
+  if (privacyParam === "public" || privacyParam === "private") {
+    meetupConditions.push(eq(groupsTable.privacy, privacyParam));
+  }
+  if (hasUpcomingEventParam) {
+    // Only meetups with at least one active upcoming event (cheap EXISTS subquery)
+    meetupConditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM group_events ge
+        WHERE ge.group_id = ${groupsTable.id}
+          AND ge.status = 'active'
+          AND ge.starts_at > NOW()
+      )`,
+    );
+  }
+
+  // Sort: featured always floats first; secondary sort per param
+  const sortOrder =
+    sortParam === "newest"
+      ? [desc(groupsTable.isFeatured), desc(groupsTable.createdAt)]
+      : sortParam === "most_active"
+        ? [desc(groupsTable.isFeatured), desc(groupsTable.eventCount)]
+        : [desc(groupsTable.isFeatured), desc(groupsTable.memberCount)]; // most_members (default)
+
+  const rows = await db
+    .select()
+    .from(groupsTable)
+    .where(and(...meetupConditions))
+    .orderBy(...sortOrder)
+    .limit(limit + 100)
+    .offset(offset);
+
+  // Filter: hidden private meetups only visible to their members (same as groups)
+  const filtered: typeof rows = [];
+  for (const g of rows) {
+    if (g.privacy === "private" && g.visibility === "hidden") {
+      if (viewer) {
+        const role = await getGroupMemberRole(g.id, viewer.id);
+        if (role) filtered.push(g);
+      }
+      continue;
+    }
+    filtered.push(g);
+    if (filtered.length >= limit) break;
+  }
+
+  const groups = await Promise.all(
+    filtered.slice(0, limit).map(async (g) => {
       const viewerRole = viewer ? await getGroupMemberRole(g.id, viewer.id) : null;
       let hasPending = false;
       if (viewer && !viewerRole) {
@@ -919,6 +1194,8 @@ router.get("/groups/invites", requireAuth(), async (req, res): Promise<void> => 
           // universal storage now denies them.
           privacy: groupsTable.privacy,
           visibility: groupsTable.visibility,
+          // Discriminator so the frontend can filter Meetup invites from Group invites
+          groupType: groupsTable.groupType,
         })
         .from(groupsTable)
         .where(inArray(groupsTable.id, inviteGroupIds))
@@ -959,6 +1236,7 @@ router.get("/groups/invites", requireAuth(), async (req, res): Promise<void> => 
             id: group.id,
             name: group.name,
             iconUrl: brandingUrl(group, group.iconUrl ?? null),
+            groupType: (group.groupType ?? "group") as "group" | "meetup",
           }
         : null,
       inviterId: inv.invitedByUserId,
@@ -1030,6 +1308,12 @@ router.post("/groups", requireAuth(), async (req, res): Promise<void> => {
         postApproval: data.postApproval ?? false,
         status: "active",
         memberCount: 1,
+        // Meetup subtype — server enforces creatorUserId; clients cannot forge ownership
+        groupType: (data.groupType ?? "group") as "group" | "meetup",
+        meetupInterests: data.meetupInterests ?? null,
+        meetupCity: data.meetupCity ?? null,
+        meetupState: data.meetupState ?? null,
+        meetupCountry: data.meetupCountry ?? null,
       })
       .returning();
 
@@ -1234,6 +1518,12 @@ router.patch("/groups/:groupId", requireAuth(), async (req, res): Promise<void> 
       location: data.location !== undefined ? (data.location ?? null) : group.location,
       postingPermission: data.postingPermission ?? group.postingPermission,
       postApproval: data.postApproval !== undefined ? data.postApproval : group.postApproval,
+      // Meetup subtype fields
+      groupType: data.groupType !== undefined ? ((data.groupType ?? "group") as "group" | "meetup") : (group.groupType as "group" | "meetup") ?? "group",
+      meetupInterests: data.meetupInterests !== undefined ? (data.meetupInterests ?? null) : group.meetupInterests,
+      meetupCity: data.meetupCity !== undefined ? (data.meetupCity ?? null) : group.meetupCity,
+      meetupState: data.meetupState !== undefined ? (data.meetupState ?? null) : group.meetupState,
+      meetupCountry: data.meetupCountry !== undefined ? (data.meetupCountry ?? null) : group.meetupCountry,
     })
     .where(eq(groupsTable.id, groupId))
     .returning();
@@ -4111,20 +4401,42 @@ router.get("/groups/:groupId/events", async (req, res): Promise<void> => {
     .limit(limit);
 
   const viewerId = viewer?.id ?? null;
+
+  // Event-level private visibility: omit private events for anyone who is not an
+  // active member / platform admin / the event creator, even when the parent
+  // group is public. Public events keep their group-level visibility behavior.
+  const visibleEvents = events.filter((e) =>
+    canViewGroupEventPure(e, {
+      memberRole: access.memberRole,
+      isAdmin: access.isAdmin,
+      viewerId,
+    }),
+  );
+
   const result = await Promise.all(
-    events.map(async (e) => {
-      let viewerRsvpStatus: string | null = null;
+    visibleEvents.map(async (e) => {
+      let viewerRsvp: typeof groupEventRsvpsTable.$inferSelect | null = null;
+      let viewerSaved = false;
       if (viewerId) {
-        const [rsvp] = await db
-          .select({ rsvpStatus: groupEventRsvpsTable.rsvpStatus })
+        const [rsvpRow] = await db
+          .select()
           .from(groupEventRsvpsTable)
           .where(
             and(eq(groupEventRsvpsTable.eventId, e.id), eq(groupEventRsvpsTable.userId, viewerId)),
           );
-        viewerRsvpStatus = rsvp?.rsvpStatus ?? null;
+        viewerRsvp = rsvpRow ?? null;
+        const [saveRow] = await db
+          .select({ id: groupEventSavesTable.id })
+          .from(groupEventSavesTable)
+          .where(
+            and(eq(groupEventSavesTable.eventId, e.id), eq(groupEventSavesTable.userId, viewerId)),
+          );
+        viewerSaved = !!saveRow;
       }
       return serializeGroupEvent(e, {
-        viewerRsvpStatus,
+        viewerRsvpStatus: viewerRsvp?.rsvpStatus ?? null,
+        viewerRsvp,
+        viewerSaved,
         groupIsPrivate: group.privacy === "private",
       });
     }),
@@ -4189,6 +4501,26 @@ router.post("/groups/:groupId/events", requireAuth(), async (req, res): Promise<
         status: "active",
         visibility: data.visibility ?? "public",
         hideAttendees: data.hideAttendees ?? false,
+        // Meetup-enriched fields
+        eventFormat: data.eventFormat ?? null,
+        venueName: data.venueName ?? null,
+        address: data.address ?? null,
+        city: data.city ?? null,
+        state: data.state ?? null,
+        eventCategory: data.eventCategory ?? null,
+        topics: data.topics ?? null,
+        eventTags: data.eventTags ?? null,
+        howToFind: data.howToFind ?? null,
+        onlineUrlProtected: data.onlineUrlProtected ?? false,
+        attendeeLimit: data.attendeeLimit ?? null,
+        waitlistEnabled: data.waitlistEnabled ?? false,
+        allowGuests: data.allowGuests ?? false,
+        maxGuestsPerRsvp: data.maxGuestsPerRsvp ?? null,
+        rsvpOpensAt: data.rsvpOpensAt ? new Date(data.rsvpOpensAt) : null,
+        rsvpClosesAt: data.rsvpClosesAt ? new Date(data.rsvpClosesAt) : null,
+        isPaid: data.isPaid ?? false,
+        paidMetadata: (data.paidMetadata as Record<string, unknown>) ?? null,
+        recurrenceRule: data.recurrenceRule ?? null,
       })
       .returning();
     await tx
@@ -4202,6 +4534,9 @@ router.post("/groups/:groupId/events", requireAuth(), async (req, res): Promise<
     targetType: "event",
     targetId: event.id,
   });
+
+  // Notify group members of new event
+  await notifyGroupMembersForEvent(groupId, event.id, "new_event", event.title, user.id);
 
   res.status(201).json(
     serializeGroupEvent(event, {
@@ -4239,20 +4574,44 @@ router.get("/groups/:groupId/events/:eventId", async (req, res): Promise<void> =
     return;
   }
 
-  let viewerRsvpStatus: string | null = null;
+  // Event-level private visibility: a private event must 404 for anyone who is
+  // not an active member / platform admin / the event creator, even in a public
+  // group. This mirrors "not found" so we never disclose the event's existence.
+  if (
+    !canViewGroupEventPure(event, {
+      memberRole: access.memberRole,
+      isAdmin: access.isAdmin,
+      viewerId: viewer?.id ?? null,
+    })
+  ) {
+    res.status(404).json({ error: "Event not found" });
+    return;
+  }
+
+  let viewerRsvp: typeof groupEventRsvpsTable.$inferSelect | null = null;
+  let viewerSaved = false;
   if (viewer) {
-    const [rsvp] = await db
-      .select({ rsvpStatus: groupEventRsvpsTable.rsvpStatus })
+    const [rsvpRow] = await db
+      .select()
       .from(groupEventRsvpsTable)
       .where(
         and(eq(groupEventRsvpsTable.eventId, eventId), eq(groupEventRsvpsTable.userId, viewer.id)),
       );
-    viewerRsvpStatus = rsvp?.rsvpStatus ?? null;
+    viewerRsvp = rsvpRow ?? null;
+    const [saveRow] = await db
+      .select({ id: groupEventSavesTable.id })
+      .from(groupEventSavesTable)
+      .where(
+        and(eq(groupEventSavesTable.eventId, eventId), eq(groupEventSavesTable.userId, viewer.id)),
+      );
+    viewerSaved = !!saveRow;
   }
 
   res.json(
     serializeGroupEvent(event, {
-      viewerRsvpStatus,
+      viewerRsvpStatus: viewerRsvp?.rsvpStatus ?? null,
+      viewerRsvp,
+      viewerSaved,
       groupIsPrivate: group.privacy === "private",
     }),
   );
@@ -4310,31 +4669,127 @@ router.patch("/groups/:groupId/events/:eventId", requireAuth(), async (req, res)
     }
   }
 
-  const [updated] = await db
-    .update(groupEventsTable)
-    .set({
-      title: data.title ?? event.title,
-      description:
-        data.description !== undefined ? (data.description ?? null) : event.description,
-      location: data.location !== undefined ? (data.location ?? null) : event.location,
-      onlineUrl: data.onlineUrl !== undefined ? (data.onlineUrl ?? null) : event.onlineUrl,
-      imageUrl,
-      startsAt: data.startsAt ? new Date(data.startsAt) : event.startsAt,
-      endsAt:
-        data.endsAt !== undefined ? (data.endsAt ? new Date(data.endsAt) : null) : event.endsAt,
-      status: data.status ?? event.status,
-      visibility: data.visibility ?? event.visibility,
-      hideAttendees:
-        data.hideAttendees !== undefined ? data.hideAttendees : event.hideAttendees,
-    })
-    .where(eq(groupEventsTable.id, eventId))
-    .returning();
+  const prevStatus = event.status;
+
+  // The new attendeeLimit (if the caller is changing it). A change to a NON-null
+  // limit must be validated against currently-occupied seats to avoid stranding
+  // seated attendees below the capacity line.
+  const changingLimit = data.attendeeLimit !== undefined;
+  const nextAttendeeLimit = changingLimit
+    ? (data.attendeeLimit ?? null)
+    : event.attendeeLimit;
+
+  // Build the full patch once so the transactional and non-transactional paths
+  // apply identical field semantics (only whitelisted fields; undefined → keep).
+  const patch = {
+    title: data.title ?? event.title,
+    description:
+      data.description !== undefined ? (data.description ?? null) : event.description,
+    location: data.location !== undefined ? (data.location ?? null) : event.location,
+    onlineUrl: data.onlineUrl !== undefined ? (data.onlineUrl ?? null) : event.onlineUrl,
+    imageUrl,
+    startsAt: data.startsAt ? new Date(data.startsAt) : event.startsAt,
+    endsAt:
+      data.endsAt !== undefined ? (data.endsAt ? new Date(data.endsAt) : null) : event.endsAt,
+    status: data.status ?? event.status,
+    visibility: data.visibility ?? event.visibility,
+    hideAttendees:
+      data.hideAttendees !== undefined ? data.hideAttendees : event.hideAttendees,
+    // Meetup-enriched fields
+    eventFormat: data.eventFormat !== undefined ? (data.eventFormat ?? null) : event.eventFormat,
+    venueName: data.venueName !== undefined ? (data.venueName ?? null) : event.venueName,
+    address: data.address !== undefined ? (data.address ?? null) : event.address,
+    city: data.city !== undefined ? (data.city ?? null) : event.city,
+    state: data.state !== undefined ? (data.state ?? null) : event.state,
+    eventCategory: data.eventCategory !== undefined ? (data.eventCategory ?? null) : event.eventCategory,
+    topics: data.topics !== undefined ? (data.topics ?? null) : event.topics,
+    eventTags: data.eventTags !== undefined ? (data.eventTags ?? null) : event.eventTags,
+    howToFind: data.howToFind !== undefined ? (data.howToFind ?? null) : event.howToFind,
+    onlineUrlProtected: data.onlineUrlProtected !== undefined ? data.onlineUrlProtected : event.onlineUrlProtected,
+    attendeeLimit: nextAttendeeLimit,
+    waitlistEnabled: data.waitlistEnabled !== undefined ? data.waitlistEnabled : event.waitlistEnabled,
+    allowGuests: data.allowGuests !== undefined ? data.allowGuests : event.allowGuests,
+    maxGuestsPerRsvp: data.maxGuestsPerRsvp !== undefined ? (data.maxGuestsPerRsvp ?? null) : event.maxGuestsPerRsvp,
+    rsvpOpensAt: data.rsvpOpensAt !== undefined ? (data.rsvpOpensAt ? new Date(data.rsvpOpensAt) : null) : event.rsvpOpensAt,
+    rsvpClosesAt: data.rsvpClosesAt !== undefined ? (data.rsvpClosesAt ? new Date(data.rsvpClosesAt) : null) : event.rsvpClosesAt,
+    isPaid: data.isPaid !== undefined ? data.isPaid : event.isPaid,
+    paidMetadata: data.paidMetadata !== undefined ? ((data.paidMetadata as Record<string, unknown>) ?? null) : event.paidMetadata,
+    recurrenceRule: data.recurrenceRule !== undefined ? (data.recurrenceRule ?? null) : event.recurrenceRule,
+  };
+
+  // ── Capacity-safe attendeeLimit change ────────────────────────────────────
+  // When lowering / setting a NON-null attendeeLimit, run the update inside a
+  // transaction that locks the SAME event row RSVPs serialize on (SELECT ...
+  // FOR UPDATE), then computes occupied seats as sum(1 + guestCount) over all
+  // "going" RSVPs. A new limit BELOW occupied seats is rejected (409) with a
+  // stable code — and NO field is mutated. Equal-to-occupied, higher, and
+  // null/unlimited limits are allowed. Sharing the RSVP row lock serializes
+  // concurrent RSVPs against the limit change so neither can overshoot.
+  let updated: typeof groupEventsTable.$inferSelect;
+  if (changingLimit && nextAttendeeLimit !== null) {
+    const txResult = await db.transaction(async (tx) => {
+      // Lock the event row — the identical serialization point used by RSVP.
+      const [locked] = await tx
+        .select()
+        .from(groupEventsTable)
+        .where(eq(groupEventsTable.id, eventId))
+        .for("update");
+      if (!locked) {
+        return { ok: false as const, status: 404, error: "Event not found" };
+      }
+
+      const occupied = await occupiedGoingSeats(tx, eventId);
+      if (nextAttendeeLimit < occupied) {
+        // Reject WITHOUT mutating any field.
+        return {
+          ok: false as const,
+          status: 409,
+          code: "ATTENDEE_LIMIT_BELOW_OCCUPIED",
+          error: `Cannot set attendee limit to ${nextAttendeeLimit}: ${occupied} seat(s) are already taken by going attendees (including guests). Remove attendees first or choose a limit of at least ${occupied}.`,
+        };
+      }
+
+      const [row] = await tx
+        .update(groupEventsTable)
+        .set(patch)
+        .where(eq(groupEventsTable.id, eventId))
+        .returning();
+      return { ok: true as const, row };
+    });
+
+    if (!txResult.ok) {
+      res.status(txResult.status).json({
+        error: txResult.error,
+        ...(txResult.code ? { code: txResult.code } : {}),
+      });
+      return;
+    }
+    updated = txResult.row;
+  } else {
+    // No non-null limit change → no capacity serialization needed.
+    const [row] = await db
+      .update(groupEventsTable)
+      .set(patch)
+      .where(eq(groupEventsTable.id, eventId))
+      .returning();
+    updated = row;
+  }
 
   if (data.status === "cancelled") {
     await logGroupActivity(groupId, user.id, "cancel_event", {
       targetType: "event",
       targetId: eventId,
     });
+    // Notify members of cancellation
+    if (prevStatus !== "cancelled") {
+      await notifyGroupMembersForEvent(groupId, eventId, "event_cancelled", updated.title, user.id);
+    }
+  } else if (
+    (data.startsAt && data.startsAt !== event.startsAt.toISOString()) ||
+    (data.location !== undefined && data.location !== event.location)
+  ) {
+    // Notify members of time/venue change
+    await notifyGroupMembersForEvent(groupId, eventId, "event_updated", updated.title, user.id);
   }
 
   res.json(
@@ -4386,7 +4841,9 @@ router.delete(
   },
 );
 
-// POST /groups/:groupId/events/:eventId/rsvp — idempotent
+// POST /groups/:groupId/events/:eventId/rsvp — delegates to centralized RSVP service
+// Enforces: lifecycle, visibility/membership, RSVP window, block, paid guard,
+// guest rules, capacity/waitlist with FOR UPDATE lock, counter repair, promotion.
 router.post(
   "/groups/:groupId/events/:eventId/rsvp",
   requireAuth(),
@@ -4395,44 +4852,9 @@ router.post(
     const groupId = parseId(req.params.groupId);
     const eventId = parseId(req.params.eventId);
 
-    const [group] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
-    if (!group || group.status === "deleted") {
-      res.status(404).json({ error: "Group not found" });
+    if (!Number.isFinite(groupId) || !Number.isFinite(eventId)) {
+      res.status(400).json({ error: "Invalid group or event ID" });
       return;
-    }
-    if (!groupAllowsWrites(group, user.role === "admin")) {
-      res.status(403).json({ error: "This group is not accepting RSVPs at this time" });
-      return;
-    }
-
-    const memberRole = await getGroupMemberRole(groupId, user.id);
-    if (!memberRole && group.privacy === "private" && user.role !== "admin") {
-      res.status(403).json({ error: "Join this group to RSVP to events" });
-      return;
-    }
-
-    const [event] = await db
-      .select()
-      .from(groupEventsTable)
-      .where(
-        and(
-          eq(groupEventsTable.id, eventId),
-          eq(groupEventsTable.groupId, groupId),
-          eq(groupEventsTable.status, "active"),
-        ),
-      );
-    if (!event) {
-      res.status(404).json({ error: "Event not found" });
-      return;
-    }
-
-    // Block check against event creator
-    if (event.createdByUserId !== user.id) {
-      const blocked = await isBlocked(user.id, event.createdByUserId);
-      if (blocked) {
-        res.status(403).json({ error: "Cannot RSVP to this event" });
-        return;
-      }
     }
 
     const parsed = RsvpGroupEventBody.safeParse(req.body);
@@ -4441,82 +4863,26 @@ router.post(
       return;
     }
 
-    const [existing] = await db
-      .select()
-      .from(groupEventRsvpsTable)
-      .where(
-        and(
-          eq(groupEventRsvpsTable.eventId, eventId),
-          eq(groupEventRsvpsTable.userId, user.id),
-        ),
-      );
-
-    const { rsvpStatus, rsvpCount } = await db.transaction(async (tx) => {
-      if (existing) {
-        if (parsed.data.rsvpStatus === "not_going") {
-          const deleted = await tx
-            .delete(groupEventRsvpsTable)
-            .where(eq(groupEventRsvpsTable.id, existing.id))
-            .returning();
-          if (deleted.length) {
-            await tx
-              .update(groupEventsTable)
-              .set({ rsvpCount: sql`greatest(${groupEventsTable.rsvpCount} - 1, 0)` })
-              .where(eq(groupEventsTable.id, eventId));
-          }
-          const [updated] = await tx
-            .select()
-            .from(groupEventsTable)
-            .where(eq(groupEventsTable.id, eventId));
-          return { rsvpStatus: null, rsvpCount: updated.rsvpCount };
-        } else {
-          await tx
-            .update(groupEventRsvpsTable)
-            .set({
-              rsvpStatus: parsed.data.rsvpStatus,
-              isPrivate: parsed.data.isPrivate ?? existing.isPrivate,
-            })
-            .where(eq(groupEventRsvpsTable.id, existing.id));
-          const [updated] = await tx
-            .select()
-            .from(groupEventsTable)
-            .where(eq(groupEventsTable.id, eventId));
-          return { rsvpStatus: parsed.data.rsvpStatus, rsvpCount: updated.rsvpCount };
-        }
-      } else {
-        if (parsed.data.rsvpStatus === "not_going") {
-          const [updated] = await tx
-            .select()
-            .from(groupEventsTable)
-            .where(eq(groupEventsTable.id, eventId));
-          return { rsvpStatus: null as string | null, rsvpCount: updated.rsvpCount };
-        }
-        const inserted = await tx
-          .insert(groupEventRsvpsTable)
-          .values({
-            eventId,
-            groupId,
-            userId: user.id,
-            rsvpStatus: parsed.data.rsvpStatus,
-            isPrivate: parsed.data.isPrivate ?? false,
-          })
-          .onConflictDoNothing()
-          .returning();
-        if (inserted.length) {
-          await tx
-            .update(groupEventsTable)
-            .set({ rsvpCount: sql`${groupEventsTable.rsvpCount} + 1` })
-            .where(eq(groupEventsTable.id, eventId));
-        }
-        const [updated] = await tx
-          .select()
-          .from(groupEventsTable)
-          .where(eq(groupEventsTable.id, eventId));
-        return { rsvpStatus: inserted.length ? parsed.data.rsvpStatus : null, rsvpCount: updated.rsvpCount };
-      }
+    const result = await executeGroupEventRsvp({
+      user,
+      groupId,
+      eventId,
+      requestedStatus: parsed.data.rsvpStatus,
+      guestCount: parsed.data.guestCount ?? 0,
+      isPrivate: parsed.data.isPrivate ?? false,
+      allowPublicRsvp: false, // direct group route always enforces membership for private groups
     });
 
-    if (rsvpStatus && !existing) {
+    if (!result.ok) {
+      res.status(result.status).json({
+        error: result.error,
+        ...(result.code ? { code: result.code } : {}),
+      });
+      return;
+    }
+
+    // Log insight for new RSVPs (first-time going/waitlisted only)
+    if (result.rsvpStatus) {
       await db.insert(groupInsightEventsTable).values({
         groupId,
         eventType: "event_rsvp",
@@ -4525,7 +4891,12 @@ router.post(
       });
     }
 
-    res.json({ rsvpStatus, rsvpCount });
+    res.json({
+      rsvpStatus: result.rsvpStatus,
+      rsvpCount: result.rsvpCount,
+      waitlisted: result.waitlisted,
+      waitlistPosition: result.waitlistPosition,
+    });
   },
 );
 
@@ -4552,6 +4923,20 @@ router.get("/groups/:groupId/events/:eventId/attendees", async (req, res): Promi
     .from(groupEventsTable)
     .where(and(eq(groupEventsTable.id, eventId), eq(groupEventsTable.groupId, groupId)));
   if (!event) {
+    res.status(404).json({ error: "Event not found" });
+    return;
+  }
+
+  // Event-level private visibility: 404 a private event for non-members (creator/
+  // admin/active members exempt) before exposing any attendee identities/counts,
+  // even in a public group.
+  if (
+    !canViewGroupEventPure(event, {
+      memberRole: access.memberRole,
+      isAdmin: access.isAdmin,
+      viewerId: viewer?.id ?? null,
+    })
+  ) {
     res.status(404).json({ error: "Event not found" });
     return;
   }
@@ -4597,11 +4982,143 @@ router.get("/groups/:groupId/events/:eventId/attendees", async (req, res): Promi
         userName: u?.name ?? "Unknown",
         userPhotoUrl: u?.profilePhotoUrl ?? null,
         rsvpStatus: r.rsvpStatus,
+        attendanceStatus: r.attendanceStatus ?? null,
+        guestCount: r.guestCount,
+        waitlistPosition: r.waitlistPosition ?? null,
         rsvpAt: r.createdAt.toISOString(),
       };
     }),
   );
 });
+
+// POST /groups/:groupId/events/:eventId/save
+router.post(
+  "/groups/:groupId/events/:eventId/save",
+  requireAuth(),
+  async (req, res): Promise<void> => {
+    const user = req.currentUser!;
+    const groupId = parseId(req.params.groupId);
+    const eventId = parseId(req.params.eventId);
+
+    const [group] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
+    if (!group || group.status === "deleted") {
+      res.status(404).json({ error: "Group not found" });
+      return;
+    }
+
+    const access = await resolveGroupAccess(group, user);
+    if (!access.allowed) {
+      res.status(403).json({ error: "Join this group to save events" });
+      return;
+    }
+
+    const [event] = await db
+      .select({
+        id: groupEventsTable.id,
+        visibility: groupEventsTable.visibility,
+        createdByUserId: groupEventsTable.createdByUserId,
+      })
+      .from(groupEventsTable)
+      .where(and(eq(groupEventsTable.id, eventId), eq(groupEventsTable.groupId, groupId)));
+    if (!event) {
+      res.status(404).json({ error: "Event not found" });
+      return;
+    }
+
+    // Event-level private visibility: deny (404) saving a private event for a
+    // non-member/non-admin (creator/admin/active members exempt), even when the
+    // parent group is public.
+    if (
+      !canViewGroupEventPure(event, {
+        memberRole: access.memberRole,
+        isAdmin: access.isAdmin,
+        viewerId: user.id,
+      })
+    ) {
+      res.status(404).json({ error: "Event not found" });
+      return;
+    }
+
+    const [existing] = await db
+      .select()
+      .from(groupEventSavesTable)
+      .where(and(eq(groupEventSavesTable.eventId, eventId), eq(groupEventSavesTable.userId, user.id)));
+
+    let saved: boolean;
+    if (existing) {
+      await db.delete(groupEventSavesTable).where(eq(groupEventSavesTable.id, existing.id));
+      saved = false;
+    } else {
+      await db
+        .insert(groupEventSavesTable)
+        .values({ eventId, groupId, userId: user.id })
+        .onConflictDoNothing();
+      saved = true;
+    }
+    res.json({ saved });
+  },
+);
+
+// PATCH /groups/:groupId/events/:eventId/attendees/:userId — organizer attendee management
+// Routes through transactional counter-safe service: enforces capacity, promotion, counters.
+router.patch(
+  "/groups/:groupId/events/:eventId/attendees/:userId",
+  requireAuth(),
+  async (req, res): Promise<void> => {
+    const actor = req.currentUser!;
+    const groupId = parseId(req.params.groupId);
+    const eventId = parseId(req.params.eventId);
+    const targetUserId = parseId(req.params.userId);
+
+    const guard = await loadGroupForLifecycle(groupId, "write");
+    if (!guard.ok) {
+      res.status(guard.status).json({ error: guard.error });
+      return;
+    }
+
+    const memberRole =
+      actor.role === "admin" ? ("admin" as GroupRole) : await getGroupMemberRole(groupId, actor.id);
+    if (!canModerateContent(memberRole)) {
+      res.status(403).json({ error: "Only admins/mods/owners can manage attendees" });
+      return;
+    }
+
+    const parsed = ManageGroupEventAttendeeBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const { action, guestCount } = parsed.data;
+
+    const result = await executeOrganizerAttendeeAction({
+      eventId,
+      groupId,
+      targetUserId,
+      action,
+      guestCount,
+    });
+
+    if (!result.ok) {
+      res.status(result.status).json({ error: result.error });
+      return;
+    }
+
+    const [u] = await db
+      .select({ name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl })
+      .from(usersTable)
+      .where(eq(usersTable.id, targetUserId));
+
+    res.json({
+      userId: targetUserId,
+      userName: u?.name ?? "Unknown",
+      userPhotoUrl: u?.profilePhotoUrl ?? null,
+      rsvpStatus: result.rsvp.rsvpStatus,
+      attendanceStatus: result.rsvp.attendanceStatus,
+      guestCount: result.rsvp.guestCount,
+      waitlistPosition: result.rsvp.waitlistPosition,
+    });
+  },
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reports

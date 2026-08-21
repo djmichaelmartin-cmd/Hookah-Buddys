@@ -48,6 +48,12 @@ import BusinessCreate from "@/pages/BusinessCreate";
 import BusinessProfile from "@/pages/BusinessProfile";
 import BusinessDashboard from "@/pages/BusinessDashboard";
 
+import MeetupsDiscover from "@/pages/meetups/MeetupsDiscover";
+import MeetupCreate from "@/pages/meetups/MeetupCreate";
+import MeetupDetail from "@/pages/meetups/MeetupDetail";
+import MeetupCreateEvent from "@/pages/meetups/MeetupCreateEvent";
+import DashboardMeetups from "@/pages/dashboard/DashboardMeetups";
+
 const queryClient = new QueryClient();
 
 function PresenceHeartbeat() {
@@ -101,6 +107,15 @@ function Router() {
       <Route path="/groups/:id/:tab" component={GroupDetail} />
       <Route path="/dashboard/groups" component={DashboardGroups} />
       <Route path="/admin/groups" component={AdminDashboard} />
+
+      {/* Meetups Routes */}
+      <Route path="/meetups" component={MeetupsDiscover} />
+      <Route path="/meetups/create" component={MeetupCreate} />
+      <Route path="/meetups/:id/create-event" component={MeetupCreateEvent} />
+      <Route path="/meetups/:id" component={MeetupDetail} />
+      <Route path="/meetups/:id/:tab" component={MeetupDetail} />
+      <Route path="/dashboard/meetups" component={DashboardMeetups} />
+      <Route path="/admin/meetups" component={AdminDashboard} />
 
       {/* Legacy topic routes and backward-compatible redirects */}
       <Route path="/communities"><Redirect to="/groups" /></Route>

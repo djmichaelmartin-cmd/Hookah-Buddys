@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { GroupSummaryGroupType } from './groupSummaryGroupType';
 import type { GroupSummaryPrivacy } from './groupSummaryPrivacy';
 import type { GroupSummaryStatus } from './groupSummaryStatus';
 import type { GroupSummaryVisibility } from './groupSummaryVisibility';
@@ -40,4 +41,12 @@ export interface GroupSummary {
   viewerMemberRole?: string | null;
   viewerHasPendingRequest?: boolean;
   createdAt: string;
+  groupType?: GroupSummaryGroupType;
+  meetupInterests?: string[] | null;
+  /** @nullable */
+  meetupCity?: string | null;
+  /** @nullable */
+  meetupState?: string | null;
+  /** @nullable */
+  meetupCountry?: string | null;
 }

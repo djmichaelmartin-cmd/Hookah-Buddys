@@ -20,6 +20,9 @@ import {
   MapPin,
   Share2,
   Users,
+  Tent,
+  DollarSign,
+  Info
 } from "lucide-react";
 
 function formatEventDate(iso: string): string {
@@ -65,9 +68,16 @@ export default function EventDetail() {
       onSuccess: (result) => {
         invalidate();
         toast({
-          title: result.rsvped ? "You're going!" : "RSVP removed",
-          description:
-            result.rsvped && event ? `See you at ${event.title}.` : undefined,
+          title: result.waitlisted
+            ? `You're waitlisted${result.waitlistPosition != null ? ` #${result.waitlistPosition}` : ""}`
+            : result.rsvped
+              ? "You're going!"
+              : "RSVP removed",
+          description: result.waitlisted
+            ? "We'll let you know if a spot opens up."
+            : result.rsvped && event
+              ? `See you at ${event.title}.`
+              : undefined,
         });
       },
       onError: () =>
@@ -102,7 +112,7 @@ export default function EventDetail() {
         return;
       }
     } catch {
-      return; // user cancelled the share sheet
+      return;
     }
     try {
       await navigator.clipboard.writeText(url);
@@ -119,6 +129,10 @@ export default function EventDetail() {
   const notFound = isError || (!isLoading && !event);
   const isPast = event ? new Date(event.startsAt).getTime() < Date.now() : false;
   const cancelled = event?.status === "cancelled";
+
+  const isMeetup = event?.sourceType === 'meetup_event';
+  const isWaitlisted = event?.viewerWaitlistPosition != null;
+  const isPaidDisabled = isMeetup && event?.isPaid && !event?.rsvped && !isWaitlisted;
 
   return (
     <Layout>
@@ -165,42 +179,84 @@ export default function EventDetail() {
                   This event has been cancelled.
                 </div>
               )}
-              <div className="flex items-start gap-2">
-                <h1 className="font-serif text-3xl text-white font-bold leading-snug flex-1 min-w-0">
-                  {event.title}
-                </h1>
-                {isPast && !cancelled && (
-                  <span className="shrink-0 px-2.5 py-1 rounded-full text-xs bg-white/5 text-muted-foreground border border-white/10">
-                    Past
-                  </span>
+
+              <div className="flex flex-col gap-3 mb-4">
+                <div className="flex items-start gap-2">
+                  <h1 className="font-serif text-3xl text-white font-bold leading-snug flex-1 min-w-0">
+                    {event.title}
+                  </h1>
+                  <div className="flex gap-1.5 shrink-0">
+                    {isPast && !cancelled && (
+                      <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 text-muted-foreground border border-white/10">
+                        Past
+                      </span>
+                    )}
+                    {isWaitlisted && (
+                      <span className="px-2.5 py-1 rounded-full text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20" data-testid="detail-waitlisted-badge">
+                        Waitlisted #{event?.viewerWaitlistPosition}
+                      </span>
+                    )}
+                    {event.isPaid && (
+                      <span className="px-2.5 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-0.5">
+                        <DollarSign className="w-3 h-3" /> Paid
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {isMeetup && event.meetupName && (
+                  <div>
+                    <Link href={`/meetups/${event.meetupId}`} className="inline-flex items-center gap-2 text-sm text-orange-400 hover:text-orange-300 bg-orange-500/10 px-3 py-1.5 rounded-lg transition-colors border border-orange-500/20">
+                      <Tent className="w-4 h-4" /> Hosted by <span className="font-bold">{event.meetupName}</span>
+                    </Link>
+                  </div>
                 )}
               </div>
 
-              <div className="mt-4 flex flex-col gap-2">
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <div className="mt-6 flex flex-col gap-3 p-4 bg-background/30 rounded-xl border border-white/5">
+                <p className="text-sm text-white/80 flex items-center gap-3">
                   <CalendarDays className="h-4 w-4 shrink-0 text-primary/70" />
                   {formatEventDate(event.startsAt)}
                 </p>
                 {event.endsAt && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <p className="text-sm text-white/80 flex items-center gap-3">
                     <Clock className="h-4 w-4 shrink-0 text-primary/70" />
                     Ends {formatEventDate(event.endsAt)}
                   </p>
                 )}
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <MapPin className="h-4 w-4 shrink-0 text-primary/70" />
-                  {event.venueName ? `${event.venueName} · ` : ""}
-                  {event.city}, {event.state}
+                <p className="text-sm text-white/80 flex items-start gap-3">
+                  <MapPin className="h-4 w-4 shrink-0 text-primary/70 mt-0.5" />
+                  <span>
+                    {event.eventFormat === 'online' ? "Online Event" : (
+                      <>{event.venueName ? <span className="font-bold block">{event.venueName}</span> : ""}
+                      <span className="text-white/70">{event.city}, {event.state}</span></>
+                    )}
+                  </span>
                 </p>
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Users className="h-4 w-4 shrink-0 text-primary/70" />
-                  {event.rsvpCount} going
-                </p>
+                <div className="flex items-center justify-between mt-2 pt-3 border-t border-white/5">
+                  <p className="text-sm text-white/80 flex items-center gap-2">
+                    <Users className="h-4 w-4 shrink-0 text-primary/70" />
+                    <span><strong className="text-white" data-testid="detail-attendee-count">{event.attendeeCount ?? event.rsvpCount}</strong> going {event.attendeeLimit ? `(Limit ${event.attendeeLimit})` : ''}</span>
+                  </p>
+
+                  {event.eventFormat && (
+                    <span className="text-xs uppercase tracking-wider text-white/50 font-bold">
+                      {event.eventFormat.replace('_', ' ')}
+                    </span>
+                  )}
+                </div>
               </div>
 
+              {event.eventCategory && (
+                <div className="mt-4 flex gap-2">
+                  <span className="px-2 py-1 bg-white/5 rounded text-xs text-white/60 border border-white/10 uppercase tracking-wider font-medium">{event.eventCategory}</span>
+                  {event.topics?.map(t => <span key={t} className="px-2 py-1 bg-white/5 rounded text-xs text-white/60 border border-white/10">{t}</span>)}
+                </div>
+              )}
+
               {event.attendees && event.attendees.length > 0 && (
-                <div className="mt-5" data-testid="attendee-preview">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground/70 mb-2.5">
+                <div className="mt-6 pt-6 border-t border-white/5" data-testid="attendee-preview">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground/70 mb-3">
                     Who's going
                   </p>
                   <div className="flex items-center">
@@ -212,13 +268,13 @@ export default function EventDetail() {
                             src={a.profilePhotoUrl}
                             alt={a.name}
                             title={a.name}
-                            className="h-9 w-9 rounded-full object-cover ring-2 ring-background bg-card"
+                            className="h-10 w-10 rounded-full object-cover ring-2 ring-background bg-card"
                           />
                         ) : (
                           <div
                             key={a.id}
                             title={a.name}
-                            className="h-9 w-9 rounded-full ring-2 ring-background bg-primary/20 text-primary flex items-center justify-center text-xs font-semibold uppercase"
+                            className="h-10 w-10 rounded-full ring-2 ring-background bg-primary/20 text-primary flex items-center justify-center text-xs font-semibold uppercase"
                           >
                             {a.name.slice(0, 1)}
                           </div>
@@ -226,12 +282,12 @@ export default function EventDetail() {
                       )}
                     </div>
                     {(event.attendeeCount ?? 0) > event.attendees.length && (
-                      <span className="ml-3 text-sm text-muted-foreground">
+                      <span className="ml-4 text-sm text-muted-foreground">
                         +{(event.attendeeCount ?? 0) - event.attendees.length} more
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground/90 truncate">
+                  <p className="mt-3 text-sm text-muted-foreground/90 truncate">
                     {event.attendees
                       .slice(0, 3)
                       .map((a) => a.name)
@@ -242,26 +298,40 @@ export default function EventDetail() {
               )}
 
               {event.description && (
-                <p className="text-sm text-muted-foreground/90 mt-6 whitespace-pre-line leading-relaxed">
-                  {event.description}
-                </p>
+                <div className="mt-6 pt-6 border-t border-white/5">
+                  <h3 className="text-lg font-serif text-white mb-3">About</h3>
+                  <p className="text-sm text-muted-foreground/90 whitespace-pre-line leading-relaxed">
+                    {event.description}
+                  </p>
+                </div>
               )}
 
-              <div className="flex items-center gap-2 mt-8">
-                <button
-                  onClick={() =>
-                    loggedIn ? rsvp.mutate({ id: event.id }) : requireLogin()
-                  }
-                  disabled={rsvp.isPending || isPast || cancelled}
-                  className={
-                    event.rsvped
-                      ? "inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm bg-primary text-primary-foreground font-medium disabled:opacity-60"
-                      : "inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-60"
-                  }
-                >
-                  {event.rsvped && <Check className="h-3.5 w-3.5" />}
-                  {event.rsvped ? "Going" : "RSVP"}
-                </button>
+              <div className="flex flex-wrap items-center gap-3 mt-8 pt-6 border-t border-white/5">
+                {isPaidDisabled ? (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/20 rounded-full">
+                    <Info className="w-5 h-5 text-orange-400" />
+                    <span className="text-sm text-orange-400 font-medium">Checkout not yet available</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() =>
+                      loggedIn ? rsvp.mutate({ id: event.id }) : requireLogin()
+                    }
+                    disabled={rsvp.isPending || isPast || cancelled}
+                    data-testid={isWaitlisted ? "leave-waitlist-btn" : "rsvp-btn"}
+                    className={
+                      event.rsvped
+                        ? `inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-sm font-bold disabled:opacity-60 transition-all ${isMeetup ? 'bg-orange-600 text-white hover:bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`
+                        : isWaitlisted
+                        ? "inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-sm font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all disabled:opacity-60"
+                        : "inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-sm font-bold bg-white/10 text-white border border-white/20 hover:bg-white/20 transition-all disabled:opacity-60"
+                    }
+                  >
+                    {event.rsvped && <Check className="h-4 w-4" />}
+                    {event.rsvped ? "Going" : isWaitlisted ? "Leave Waitlist" : "RSVP Now"}
+                  </button>
+                )}
+
                 <button
                   onClick={() =>
                     loggedIn ? save.mutate({ id: event.id }) : requireLogin()
@@ -270,17 +340,19 @@ export default function EventDetail() {
                   aria-label={event.saved ? "Unsave event" : "Save event"}
                   className={
                     event.saved
-                      ? "inline-flex items-center px-3 py-2 rounded-full text-sm text-primary disabled:opacity-60"
-                      : "inline-flex items-center px-3 py-2 rounded-full text-sm text-muted-foreground hover:text-white transition-colors disabled:opacity-60"
+                      ? "inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium border border-primary/30 bg-primary/10 text-primary disabled:opacity-60"
+                      : "inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium text-white/70 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors disabled:opacity-60"
                   }
                 >
                   <Bookmark
                     className={event.saved ? "h-4 w-4 fill-primary" : "h-4 w-4"}
                   />
+                  {event.saved ? "Saved" : "Save"}
                 </button>
+
                 <button
                   onClick={shareEvent}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm text-muted-foreground hover:text-white transition-colors ml-auto"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium text-white/70 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors ml-auto"
                 >
                   <Share2 className="h-4 w-4" /> Share
                 </button>

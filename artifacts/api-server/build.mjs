@@ -15,11 +15,21 @@ async function buildAll() {
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
-    entryPoints: [
-      path.resolve(artifactDir, "src/index.ts"),
-      path.resolve(artifactDir, "src/scripts/migrateImagesToStorage.ts"),
-      path.resolve(artifactDir, "src/scripts/cleanupOrphanedUploads.ts"),
-    ],
+    entryPoints: {
+      index: path.resolve(artifactDir, "src/index.ts"),
+      "scripts/migrateImagesToStorage": path.resolve(
+        artifactDir,
+        "src/scripts/migrateImagesToStorage.ts",
+      ),
+      "scripts/cleanupOrphanedUploads": path.resolve(
+        artifactDir,
+        "src/scripts/cleanupOrphanedUploads.ts",
+      ),
+      "scripts/verify-rsvp-concurrency": path.resolve(
+        artifactDir,
+        "scripts/verify-rsvp-concurrency.mjs",
+      ),
+    },
     platform: "node",
     bundle: true,
     format: "esm",

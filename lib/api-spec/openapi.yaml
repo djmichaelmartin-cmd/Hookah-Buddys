@@ -729,12 +729,25 @@ paths:
     get:
       operationId: listEvents
       tags: [events]
-      summary: Upcoming hookah events
+      summary: Upcoming hookah events (native + Meetup-projected)
+      description: >
+        Returns native events and public Meetup group events merged and sorted by
+        startsAt. Optional filters narrow the combined result. Existing callers
+        with no filters are unaffected.
       parameters:
         - { name: limit, in: query, required: false, schema: { type: integer } }
         - { name: offset, in: query, required: false, schema: { type: integer } }
         - { name: filter, in: query, required: false, schema: { type: string, enum: [going, saved] } }
         - { name: scope, in: query, required: false, schema: { type: string, enum: [upcoming, past] } }
+        - { name: city, in: query, required: false, schema: { type: string }, description: "Filter by city (case-insensitive substring)" }
+        - { name: state, in: query, required: false, schema: { type: string }, description: "Filter by 2-letter state code" }
+        - { name: eventFormat, in: query, required: false, schema: { type: string, enum: [in_person, online, hybrid] }, description: "Meetup-projected events only" }
+        - { name: eventCategory, in: query, required: false, schema: { type: string }, description: "Meetup-projected events only" }
+        - { name: topic, in: query, required: false, schema: { type: string }, description: "Meetup-projected events only — matches any topic in the topics array" }
+        - { name: sourceType, in: query, required: false, schema: { type: string, enum: [native, meetup] }, description: "Limit to native events or Meetup projections" }
+        - { name: priceType, in: query, required: false, schema: { type: string, enum: [free, paid] }, description: "Meetup-projected events only" }
+        - { name: startsAfter, in: query, required: false, schema: { type: string }, description: "ISO-8601 datetime — only events starting after this time" }
+        - { name: startsBefore, in: query, required: false, schema: { type: string }, description: "ISO-8601 datetime — only events starting before this time" }
       responses:
         "200":
           description: OK
@@ -4329,11 +4342,23 @@ paths:
       operationId: listGroups
       tags: [groups]
       summary: Discover/search Groups
+      description: >
+        By default excludes Meetup groups (groupType="meetup") so the Groups
+        discovery page stays distinct from /meetups. Pass groupType=meetup to
+        explicitly request only meetup groups, or groupType=all to include both.
       parameters:
         - { name: search, in: query, required: false, schema: { type: string } }
         - { name: category, in: query, required: false, schema: { type: string } }
         - { name: privacy, in: query, required: false, schema: { type: string, enum: [public, private] } }
         - { name: featured, in: query, required: false, schema: { type: boolean } }
+        - name: groupType
+          in: query
+          required: false
+          description: >
+            Filter by group type. Omitting or passing "group" returns only regular
+            groups (excludes meetups). Pass "meetup" for meetups only. Pass "all"
+            to include both.
+          schema: { type: string, enum: [group, meetup, all] }
         - { name: limit, in: query, required: false, schema: { type: integer } }
         - { name: offset, in: query, required: false, schema: { type: integer } }
       responses:
@@ -5116,6 +5141,47 @@ paths:
         "204":
           description: Deleted
 
+  /meetups:
+    get:
+      operationId: listMeetups
+      tags: [groups]
+      summary: Discover Meetup groups (public and visible-private only)
+      description: >
+        Returns groups where groupType="meetup". Hidden private meetups are never
+        surfaced in discovery — only public and visible-private meetups appear.
+        Authenticated viewers also see meetups they are members of.
+      parameters:
+        - { name: search, in: query, required: false, schema: { type: string } }
+        - { name: city, in: query, required: false, schema: { type: string } }
+        - { name: state, in: query, required: false, schema: { type: string } }
+        - { name: interests, in: query, required: false, schema: { type: string, description: "Comma-separated interest tags" } }
+        - { name: privacy, in: query, required: false, schema: { type: string, enum: [public, private] }, description: "Limit to public or private meetups" }
+        - name: hasUpcomingEvent
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: >
+            When true, only return meetups that have at least one active upcoming
+            event (startsAt in the future). Implemented as a subquery; may be
+            slower on large datasets — use with a reasonable limit.
+        - name: sort
+          in: query
+          required: false
+          schema: { type: string, enum: [newest, most_members, most_active] }
+          description: >
+            Sort order. newest = createdAt DESC, most_members = memberCount DESC
+            (default), most_active = eventCount DESC. Featured meetups always
+            float to the top regardless of sort.
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupList"
+
   /groups/{groupId}/events:
     get:
       operationId: listGroupEvents
@@ -5222,6 +5288,22 @@ paths:
               schema:
                 $ref: "#/components/schemas/GroupEventRsvpResult"
 
+  /groups/{groupId}/events/{eventId}/save:
+    post:
+      operationId: toggleGroupEventSave
+      tags: [groups]
+      summary: Toggle save on a group event (authenticated)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEventSaveResult"
+
   /groups/{groupId}/events/{eventId}/attendees:
     get:
       operationId: listGroupEventAttendees
@@ -5239,6 +5321,31 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/GroupEventAttendee"
+
+  /groups/{groupId}/events/{eventId}/attendees/{userId}:
+    patch:
+      operationId: manageGroupEventAttendee
+      tags: [groups]
+      summary: >
+        Organizer/admin attendee management — set going, waitlisted, checked-in,
+        no-show, not-coming, cancelled, or update guest count for a specific attendee.
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: eventId, in: path, required: true, schema: { type: integer } }
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManageGroupEventAttendeeBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupEventAttendee"
 
   /groups/{groupId}/reports:
     get:
@@ -5891,6 +5998,30 @@ components:
         attendeeCount:
           type: integer
           description: Total visible attendees under the same eligibility filters as the preview (detail route only)
+        # Meetup-projected events carry source attribution fields
+        sourceType: { type: ["string", "null"], description: "meetup_event when projected from a Meetup group" }
+        sourceId: { type: ["integer", "null"], description: "group_event.id (original source record)" }
+        meetupId: { type: ["integer", "null"], description: "groups.id (Meetup group)" }
+        meetupName: { type: ["string", "null"], description: "Meetup group name" }
+        # Additional Meetup-projected fields (null on native events, never includes protected onlineUrl)
+        eventFormat: { type: ["string", "null"], description: "in_person | online | hybrid (meetup projected only)" }
+        eventCategory: { type: ["string", "null"], description: "Meetup event category" }
+        topics:
+          type: array
+          nullable: true
+          items: { type: string }
+          description: "Meetup event topics"
+        eventTags:
+          type: array
+          nullable: true
+          items: { type: string }
+          description: "Meetup event tags"
+        isPaid: { type: ["boolean", "null"], description: "True when event requires payment (meetup projected only)" }
+        paidMetadata: { type: ["object", "null"], description: "Provider-neutral payment metadata (meetup projected only)" }
+        attendeeLimit: { type: ["integer", "null"], description: "Capacity cap (meetup projected only)" }
+        waitlistEnabled: { type: ["boolean", "null"], description: "Whether waitlist is active (meetup projected only)" }
+        waitlistCount: { type: ["integer", "null"], description: "Current waitlist size (meetup projected only)" }
+        viewerWaitlistPosition: { type: ["integer", "null"], description: "Authenticated viewer's waitlist position when waitlisted" }
 
     EventAttendee:
       type: object
@@ -5906,6 +6037,9 @@ components:
       properties:
         rsvped: { type: boolean }
         rsvpCount: { type: integer }
+        rsvpStatus: { type: ["string", "null"], description: "Authoritative post-mutation RSVP status for projected Meetup Events" }
+        waitlisted: { type: boolean, description: "Whether the viewer is now waitlisted for a projected Meetup Event" }
+        waitlistPosition: { type: ["integer", "null"], description: "The viewer's current projected Meetup Event waitlist position" }
 
     EventSaveResult:
       type: object
@@ -8170,6 +8304,13 @@ components:
         viewerMemberRole: { type: ["string", "null"] }
         viewerHasPendingRequest: { type: boolean }
         createdAt: { type: string }
+        # Meetup discriminator (group | meetup). Defaults to "group" for all existing records.
+        groupType: { type: string, enum: [group, meetup] }
+        # Meetup-specific interest/location metadata (null on non-meetup groups)
+        meetupInterests: { type: array, items: { type: string }, nullable: true }
+        meetupCity: { type: ["string", "null"] }
+        meetupState: { type: ["string", "null"] }
+        meetupCountry: { type: ["string", "null"] }
 
     GroupDetail:
       allOf:
@@ -8216,6 +8357,12 @@ components:
         location: { type: string }
         postingPermission: { type: string, enum: [all_members, admins_only, approved_members] }
         postApproval: { type: boolean }
+        # Meetup subtype fields (optional — omit for a regular group)
+        groupType: { type: string, enum: [group, meetup] }
+        meetupInterests: { type: array, items: { type: string } }
+        meetupCity: { type: string }
+        meetupState: { type: string }
+        meetupCountry: { type: string }
 
     UpdateGroupBody:
       type: object
@@ -8233,6 +8380,12 @@ components:
         location: { type: string }
         postingPermission: { type: string, enum: [all_members, admins_only, approved_members] }
         postApproval: { type: boolean }
+        # Meetup subtype fields
+        groupType: { type: string, enum: [group, meetup] }
+        meetupInterests: { type: array, items: { type: string } }
+        meetupCity: { type: string }
+        meetupState: { type: string }
+        meetupCountry: { type: string }
 
     JoinGroupBody:
       type: object
@@ -8304,6 +8457,7 @@ components:
         id: { type: integer }
         name: { type: string }
         iconUrl: { type: ["string", "null"] }
+        groupType: { type: string, enum: [group, meetup], description: "Discriminator so the frontend can filter Meetup invites from Group invites" }
 
     GroupInviteInput:
       type: object
@@ -8560,6 +8714,37 @@ components:
         viewerRsvpStatus: { type: ["string", "null"] }
         createdAt: { type: string }
         updatedAt: { type: string }
+        # Meetup-enriched fields (null on non-meetup group events)
+        eventFormat: { type: ["string", "null"], description: "in_person | online | hybrid" }
+        venueName: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        eventCategory: { type: ["string", "null"] }
+        topics: { type: array, items: { type: string }, nullable: true }
+        eventTags: { type: array, items: { type: string }, nullable: true }
+        howToFind: { type: ["string", "null"] }
+        onlineUrlProtected: { type: boolean }
+        attendeeLimit: { type: ["integer", "null"] }
+        waitlistEnabled: { type: boolean }
+        waitlistCount: { type: integer }
+        allowGuests: { type: boolean }
+        maxGuestsPerRsvp: { type: ["integer", "null"] }
+        rsvpOpensAt: { type: ["string", "null"] }
+        rsvpClosesAt: { type: ["string", "null"] }
+        isPaid: { type: boolean }
+        paidMetadata: { type: ["object", "null"], description: "Provider-neutral payment metadata; present when isPaid=true" }
+        recurrenceRule: { type: ["string", "null"] }
+        recurrenceParentId: { type: ["integer", "null"] }
+        viewerGuestCount: { type: integer }
+        viewerAttendanceStatus: { type: ["string", "null"] }
+        viewerWaitlistPosition: { type: ["integer", "null"] }
+        viewerSaved: { type: boolean }
+        # Global event projection fields (set when the event projects into /events)
+        sourceType: { type: ["string", "null"], description: "meetup_event when projected" }
+        sourceId: { type: ["integer", "null"], description: "group_event id" }
+        meetupId: { type: ["integer", "null"], description: "group id" }
+        meetupName: { type: ["string", "null"], description: "group name" }
 
     CreateGroupEventBody:
       type: object
@@ -8574,6 +8759,26 @@ components:
         endsAt: { type: string }
         visibility: { type: string, enum: [public, private] }
         hideAttendees: { type: boolean }
+        # Meetup-enriched fields (optional)
+        eventFormat: { type: string, enum: [in_person, online, hybrid] }
+        venueName: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        eventCategory: { type: string }
+        topics: { type: array, items: { type: string } }
+        eventTags: { type: array, items: { type: string } }
+        howToFind: { type: string }
+        onlineUrlProtected: { type: boolean }
+        attendeeLimit: { type: integer, minimum: 1 }
+        waitlistEnabled: { type: boolean }
+        allowGuests: { type: boolean }
+        maxGuestsPerRsvp: { type: integer, minimum: 0 }
+        rsvpOpensAt: { type: string }
+        rsvpClosesAt: { type: string }
+        isPaid: { type: boolean }
+        paidMetadata: { type: object }
+        recurrenceRule: { type: string }
 
     UpdateGroupEventBody:
       type: object
@@ -8588,13 +8793,38 @@ components:
         status: { type: string, enum: [active, cancelled, completed, hidden] }
         visibility: { type: string, enum: [public, private] }
         hideAttendees: { type: boolean }
+        # Meetup-enriched fields
+        eventFormat: { type: string, enum: [in_person, online, hybrid] }
+        venueName: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        eventCategory: { type: string }
+        topics: { type: array, items: { type: string } }
+        eventTags: { type: array, items: { type: string } }
+        howToFind: { type: string }
+        onlineUrlProtected: { type: boolean }
+        attendeeLimit: { type: ["integer", "null"] }
+        waitlistEnabled: { type: boolean }
+        allowGuests: { type: boolean }
+        maxGuestsPerRsvp: { type: ["integer", "null"] }
+        rsvpOpensAt: { type: ["string", "null"] }
+        rsvpClosesAt: { type: ["string", "null"] }
+        isPaid: { type: boolean }
+        paidMetadata: { type: ["object", "null"] }
+        recurrenceRule: { type: ["string", "null"] }
 
     GroupEventRsvpInput:
       type: object
       required: [rsvpStatus]
       properties:
-        rsvpStatus: { type: string, enum: [going, interested, not_going] }
+        # Waitlisting is an automatic, capacity-driven outcome — never a member/
+        # public intent. Members may only express going/interested/not_going/
+        # cancelled. Organizer-driven waitlisting uses set_waitlisted on the
+        # separate attendee-management endpoint.
+        rsvpStatus: { type: string, enum: [going, interested, not_going, cancelled] }
         isPrivate: { type: boolean }
+        guestCount: { type: integer, minimum: 0 }
 
     GroupEventRsvpResult:
       type: object
@@ -8602,6 +8832,8 @@ components:
       properties:
         rsvpStatus: { type: ["string", "null"] }
         rsvpCount: { type: integer }
+        waitlisted: { type: boolean }
+        waitlistPosition: { type: ["integer", "null"] }
 
     GroupEventAttendee:
       type: object
@@ -8611,7 +8843,25 @@ components:
         userName: { type: string }
         userPhotoUrl: { type: ["string", "null"] }
         rsvpStatus: { type: string }
+        attendanceStatus: { type: ["string", "null"] }
+        guestCount: { type: integer }
+        waitlistPosition: { type: ["integer", "null"] }
         rsvpAt: { type: string }
+
+    ManageGroupEventAttendeeBody:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [set_going, set_waitlisted, check_in, mark_no_show, mark_not_coming, cancel, set_guest_count]
+        guestCount: { type: integer, minimum: 0 }
+
+    GroupEventSaveResult:
+      type: object
+      required: [saved]
+      properties:
+        saved: { type: boolean }
 
     GroupReport:
       type: object

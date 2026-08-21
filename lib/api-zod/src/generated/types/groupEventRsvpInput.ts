@@ -10,4 +10,6 @@ import type { GroupEventRsvpInputRsvpStatus } from './groupEventRsvpInputRsvpSta
 export interface GroupEventRsvpInput {
   rsvpStatus: GroupEventRsvpInputRsvpStatus;
   isPrivate?: boolean;
+  /** @minimum 0 */
+  guestCount?: number;
 }

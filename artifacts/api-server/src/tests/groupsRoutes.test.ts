@@ -593,10 +593,11 @@ describe("#3 dashboard contract", () => {
     }>;
     expect(body).toHaveLength(1);
     // Visible-private invite icon stays PUBLIC (unmodified).
-    expect(body[0].group).toEqual({
+    expect(body[0].group).toMatchObject({
       id: 1,
       name: "Private Visible",
       iconUrl: "/api/storage/objects/uploads/icon-1",
+      groupType: "group",
     });
     expect(body[0].inviterId).toBe(7);
     expect(body[0].inviterName).toBe("Inviter Jo");
@@ -634,10 +635,11 @@ describe("#3 dashboard contract", () => {
     }>;
     // Hidden-private branding must be served via the access-controlled route,
     // not the universal (now-denied) storage route.
-    expect(body[0].group).toEqual({
+    expect(body[0].group).toMatchObject({
       id: 2,
       name: "Hidden",
       iconUrl: "/api/group-assets/2/objects/uploads/hidden-icon",
+      groupType: "group",
     });
   });
 });

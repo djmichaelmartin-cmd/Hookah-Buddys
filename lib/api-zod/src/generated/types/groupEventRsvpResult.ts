@@ -10,4 +10,7 @@ export interface GroupEventRsvpResult {
   /** @nullable */
   rsvpStatus: string | null;
   rsvpCount: number;
+  waitlisted?: boolean;
+  /** @nullable */
+  waitlistPosition?: number | null;
 }
