@@ -8,9 +8,16 @@ import {
   followsTable,
   feedPostsTable,
   businessesTable,
+  postSharingSettingsTable,
+  sharingSuspensionsTable,
   type FeedPost,
   type User,
 } from "@workspace/db";
+import {
+  buildSharedPostPreview,
+  getEffectiveShareDestinations,
+  type SharerUser,
+} from "./sharingPolicy";
 
 /**
  * Public feed lifecycle gate for BUSINESS-ATTRIBUTED feed rows.
@@ -163,11 +170,115 @@ export async function loadViewerFlags(
   return flags;
 }
 
+export type SharingSettings = {
+  sharingDisabled: boolean;
+  allowPublicShares: boolean;
+  allowFriendsShares: boolean;
+  allowPrivateShares: boolean;
+  allowGroupShares: boolean;
+};
+
+export type ShareFlagsMap = Map<
+  number,
+  {
+    shareCount: number;
+    publicShareCount: number;
+    privateShareCount: number;
+    groupShareCount: number;
+    linkShareCount: number;
+    sharingSettings: SharingSettings;
+    sharedPost: Awaited<ReturnType<typeof buildSharedPostPreview>> | null;
+  }
+>;
+
+export async function loadShareFlags(
+  posts: FeedPost[],
+  viewer: SharerUser | null,
+): Promise<ShareFlagsMap> {
+  const map = new Map<
+    number,
+    {
+      shareCount: number;
+      publicShareCount: number;
+      privateShareCount: number;
+      groupShareCount: number;
+      linkShareCount: number;
+      sharingSettings: SharingSettings;
+      sharedPost: Awaited<ReturnType<typeof buildSharedPostPreview>> | null;
+    }
+  >();
+
+  // Batch load sharing settings
+  const postIds = posts.map((p) => p.id);
+  const settings =
+    postIds.length > 0
+      ? await db
+          .select()
+          .from(postSharingSettingsTable)
+          .where(
+            and(
+              eq(postSharingSettingsTable.sourceType, "feed_post"),
+              inArray(postSharingSettingsTable.sourcePostId, postIds),
+            ),
+          )
+      : [];
+  const settingsByPostId = new Map(settings.map((s) => [s.sourcePostId, s]));
+
+  // Load share wrappers in parallel
+  await Promise.all(
+    posts.map(async (post) => {
+      const setting = settingsByPostId.get(post.id);
+      const sharingSettings: SharingSettings = {
+        sharingDisabled: setting?.sharingDisabled ?? false,
+        allowPublicShares: setting?.allowPublicShares ?? true,
+        allowFriendsShares: setting?.allowFriendsShares ?? true,
+        allowPrivateShares: setting?.allowPrivateShares ?? true,
+        allowGroupShares: setting?.allowGroupShares ?? true,
+      };
+      const isWrapper = !!post.shareSourceType && !!post.shareSourcePostId;
+      let sharedPost = null;
+      if (isWrapper) {
+        sharedPost = await buildSharedPostPreview({
+          sourceType: post.shareSourceType as "feed_post" | "group_post",
+          sourcePostId: post.shareSourcePostId!,
+          sourceGroupId: post.shareSourceGroupId ?? null,
+          viewer,
+        });
+      }
+      map.set(post.id, {
+        shareCount: post.shareCount,
+        publicShareCount: post.publicShareCount,
+        privateShareCount: post.privateShareCount,
+        groupShareCount: post.groupShareCount,
+        linkShareCount: post.linkShareCount,
+        sharingSettings,
+        sharedPost: isWrapper ? sharedPost : null,
+      });
+    }),
+  );
+
+  return map;
+}
+
 export function toFeedPostResponse(
   post: FeedPost,
   author: AuthorInfo | undefined,
   flags: ViewerFlags,
   businessAuthor?: BusinessAuthor,
+  shareFlags?: {
+    shareCount: number;
+    publicShareCount?: number;
+    privateShareCount?: number;   // only exposed to owner/admin
+    groupShareCount?: number;
+    linkShareCount?: number;       // only exposed to owner/admin
+    sharingSettings?: SharingSettings;
+    sharedPost: Awaited<ReturnType<typeof buildSharedPostPreview>> | null;
+    viewerCanShare: boolean;
+    viewerCanShareReason: string | null;
+    allowedShareDestinations: ReturnType<typeof getEffectiveShareDestinations>;
+    viewerCanCopyLink: boolean;
+    isOwnerOrAdmin?: boolean;     // controls private count visibility
+  },
 ) {
   const u = author?.user;
   // Only business_post feed items are AUTHORED by the page (owner identity
@@ -175,6 +286,7 @@ export function toFeedPostResponse(
   // carry a `business` navigation object.
   const isBusiness =
     post.source === "business_post" && post.businessId != null && businessAuthor != null;
+  const isWrapper = !!post.shareSourceType && !!post.shareSourcePostId;
   return {
     id: post.id,
     userId: post.userId,
@@ -214,12 +326,42 @@ export function toFeedPostResponse(
     viewerLiked: flags.liked.has(post.id),
     viewerSaved: flags.saved.has(post.id),
     viewerFollowsAuthor: flags.follows.has(post.userId),
+    // Sharing fields
+    shareCount: shareFlags?.isOwnerOrAdmin
+      ? (shareFlags.shareCount ?? post.shareCount)
+      : (shareFlags?.publicShareCount ?? post.publicShareCount) +
+        (shareFlags?.groupShareCount ?? post.groupShareCount),
+    // Owner/admin see all breakdowns; others see public+group (not private volume)
+    publicShareCount: shareFlags?.publicShareCount ?? post.publicShareCount,
+    groupShareCount: shareFlags?.groupShareCount ?? post.groupShareCount,
+    // Private count only for owner/admin
+    privateShareCount: shareFlags?.isOwnerOrAdmin
+      ? (shareFlags.privateShareCount ?? post.privateShareCount)
+      : undefined,
+    linkShareCount: shareFlags?.isOwnerOrAdmin
+      ? (shareFlags.linkShareCount ?? post.linkShareCount)
+      : undefined,
+    viewerCanShare: shareFlags?.viewerCanShare ?? false,
+    viewerCanShareReason: shareFlags?.viewerCanShareReason ?? null,
+    allowedShareDestinations: shareFlags?.allowedShareDestinations ?? [],
+    viewerCanCopyLink: shareFlags?.viewerCanCopyLink ?? false,
+    sharingDisabled: shareFlags?.sharingSettings?.sharingDisabled ?? false,
+    allowPublicShares: shareFlags?.sharingSettings?.allowPublicShares ?? true,
+    allowFriendsShares: shareFlags?.sharingSettings?.allowFriendsShares ?? true,
+    allowPrivateShares: shareFlags?.sharingSettings?.allowPrivateShares ?? true,
+    allowGroupShares: shareFlags?.sharingSettings?.allowGroupShares ?? true,
+    isShareWrapper: isWrapper,
+    sharedPost: isWrapper ? (shareFlags?.sharedPost ?? null) : null,
     createdAt: post.createdAt.toISOString(),
     updatedAt: post.updatedAt.toISOString(),
   };
 }
 
-export async function hydratePosts(posts: FeedPost[], viewerId: number | null) {
+export async function hydratePosts(
+  posts: FeedPost[],
+  viewerId: number | null,
+  viewerRole?: string,
+) {
   const authorIds = [...new Set(posts.map((p) => p.userId))];
   const authors = await loadAuthors(authorIds);
   const businessIds = [
@@ -231,12 +373,94 @@ export async function hydratePosts(posts: FeedPost[], viewerId: number | null) {
     posts.map((p) => p.id),
     authorIds,
   );
-  return posts.map((p) =>
-    toFeedPostResponse(
+
+  // Load share flags (sharing settings + wrapper previews)
+  const viewer: SharerUser | null = viewerId
+    ? { id: viewerId, role: viewerRole ?? "member", name: "" }
+    : null;
+  const shareMap = await loadShareFlags(posts, viewer);
+
+  // Batch check suspension once
+  let viewerSuspended = false;
+  if (viewerId) {
+    const [suspRow] = await db
+      .select()
+      .from(sharingSuspensionsTable)
+      .where(
+        and(
+          eq(sharingSuspensionsTable.userId, viewerId),
+          eq(sharingSuspensionsTable.status, "active"),
+        ),
+      )
+      .limit(1);
+    viewerSuspended = !!suspRow;
+  }
+
+  const isPlatformAdmin = viewerRole === "admin";
+
+  return posts.map((p) => {
+    const sf = shareMap.get(p.id);
+    const sharingSettings = sf?.sharingSettings ?? {
+      sharingDisabled: false,
+      allowPublicShares: true,
+      allowFriendsShares: true,
+      allowPrivateShares: true,
+      allowGroupShares: true,
+    };
+    // only_me is never shareable
+    const isOnlyMe = p.audience === "only_me";
+    const isWrapper = !!p.shareSourceType && !!p.shareSourcePostId;
+    const allowedShareDestinations = isWrapper
+      ? sf?.sharedPost?.available
+        ? sf.sharedPost.allowedShareDestinations
+        : []
+      : getEffectiveShareDestinations({
+          ...sharingSettings,
+          sourceAudience: p.audience,
+          viewerSuspended,
+        });
+    const viewerCanCopyLink = isWrapper
+      ? (sf?.sharedPost?.available && sf.sharedPost.viewerCanCopyLink) || false
+      : !!viewerId &&
+        !viewerSuspended &&
+        !sharingSettings.sharingDisabled &&
+        (!isOnlyMe || p.userId === viewerId);
+    let viewerCanShare = false;
+    let viewerCanShareReason: string | null = null;
+    if (!viewerId) {
+      viewerCanShareReason = "Login to share posts";
+    } else if (isOnlyMe) {
+      viewerCanShareReason = "only_me posts cannot be shared";
+    } else if (viewerSuspended) {
+      viewerCanShareReason = "Sharing privilege suspended";
+    } else if (sharingSettings.sharingDisabled) {
+      viewerCanShareReason = "Author disabled sharing for this post";
+    } else if (allowedShareDestinations.length > 0) {
+      viewerCanShare = true;
+    } else {
+      viewerCanShareReason = "No sharing destinations are available for this post";
+    }
+    // Owner or platform admin: see all breakdown counts
+    const isOwnerOrAdmin = isPlatformAdmin || (viewerId != null && p.userId === viewerId);
+    return toFeedPostResponse(
       p,
       authors.get(p.userId),
       flags,
       p.businessId != null ? businessAuthors.get(p.businessId) : undefined,
-    ),
-  );
+      {
+        shareCount: sf?.shareCount ?? p.shareCount,
+        publicShareCount: sf?.publicShareCount ?? p.publicShareCount,
+        privateShareCount: sf?.privateShareCount ?? p.privateShareCount,
+        groupShareCount: sf?.groupShareCount ?? p.groupShareCount,
+        linkShareCount: sf?.linkShareCount ?? p.linkShareCount,
+        sharingSettings,
+        sharedPost: sf?.sharedPost ?? null,
+        viewerCanShare,
+        viewerCanShareReason,
+        allowedShareDestinations,
+        viewerCanCopyLink,
+        isOwnerOrAdmin,
+      },
+    );
+  });
 }

@@ -35,6 +35,7 @@ import adminEventsRouter from "./adminEvents";
 import presenceRouter from "./presence";
 import businessesRouter from "./businesses";
 import groupsRouter from "./groups";
+import sharingRouter from "./sharing";
 
 const router: IRouter = Router();
 
@@ -74,5 +75,6 @@ router.use(adminEventsRouter);
 router.use(presenceRouter);
 router.use(businessesRouter);
 router.use(groupsRouter);
+router.use(sharingRouter);
 
 export default router;

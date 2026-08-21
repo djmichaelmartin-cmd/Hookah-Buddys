@@ -1880,6 +1880,40 @@ export const ListFeedPostsResponseItem = zod.object({
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional().describe('Public\/lounge\/friends wrapper shares.'),
+  "groupShareCount": zod.number().optional().describe('Group destination wrapper shares.'),
+  "privateShareCount": zod.number().nullish().describe('Private recipient shares — only returned to the post owner or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Copy-link events — only returned to the post owner or admin.'),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional().describe('True when this post is a share wrapper referencing another post.'),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional().describe('Live-authorized source preview; present only when isShareWrapper=true.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -1962,6 +1996,40 @@ export const GetFeedPostResponse = zod.object({
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional().describe('Public\/lounge\/friends wrapper shares.'),
+  "groupShareCount": zod.number().optional().describe('Group destination wrapper shares.'),
+  "privateShareCount": zod.number().nullish().describe('Private recipient shares — only returned to the post owner or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Copy-link events — only returned to the post owner or admin.'),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional().describe('True when this post is a share wrapper referencing another post.'),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional().describe('Live-authorized source preview; present only when isShareWrapper=true.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -2118,6 +2186,40 @@ export const ListSavedFeedPostsResponseItem = zod.object({
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional().describe('Public\/lounge\/friends wrapper shares.'),
+  "groupShareCount": zod.number().optional().describe('Group destination wrapper shares.'),
+  "privateShareCount": zod.number().nullish().describe('Private recipient shares — only returned to the post owner or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Copy-link events — only returned to the post owner or admin.'),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional().describe('True when this post is a share wrapper referencing another post.'),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional().describe('Live-authorized source preview; present only when isShareWrapper=true.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -2163,6 +2265,40 @@ export const ListLikedFeedPostsResponseItem = zod.object({
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional().describe('Public\/lounge\/friends wrapper shares.'),
+  "groupShareCount": zod.number().optional().describe('Group destination wrapper shares.'),
+  "privateShareCount": zod.number().nullish().describe('Private recipient shares — only returned to the post owner or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Copy-link events — only returned to the post owner or admin.'),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional().describe('True when this post is a share wrapper referencing another post.'),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional().describe('Live-authorized source preview; present only when isShareWrapper=true.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -2208,6 +2344,40 @@ export const ListMyFeedPostsResponseItem = zod.object({
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional().describe('Public\/lounge\/friends wrapper shares.'),
+  "groupShareCount": zod.number().optional().describe('Group destination wrapper shares.'),
+  "privateShareCount": zod.number().nullish().describe('Private recipient shares — only returned to the post owner or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Copy-link events — only returned to the post owner or admin.'),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional().describe('True when this post is a share wrapper referencing another post.'),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional().describe('Live-authorized source preview; present only when isShareWrapper=true.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -2333,6 +2503,40 @@ export const GetBroProfileResponse = zod.object({
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional().describe('Public\/lounge\/friends wrapper shares.'),
+  "groupShareCount": zod.number().optional().describe('Group destination wrapper shares.'),
+  "privateShareCount": zod.number().nullish().describe('Private recipient shares — only returned to the post owner or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Copy-link events — only returned to the post owner or admin.'),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional().describe('True when this post is a share wrapper referencing another post.'),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional().describe('Live-authorized source preview; present only when isShareWrapper=true.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })).optional()
@@ -2441,6 +2645,40 @@ export const ListAdminFeedPostsResponseItem = zod.object({
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional().describe('Public\/lounge\/friends wrapper shares.'),
+  "groupShareCount": zod.number().optional().describe('Group destination wrapper shares.'),
+  "privateShareCount": zod.number().nullish().describe('Private recipient shares — only returned to the post owner or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Copy-link events — only returned to the post owner or admin.'),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional().describe('True when this post is a share wrapper referencing another post.'),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional().describe('Live-authorized source preview; present only when isShareWrapper=true.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -2494,6 +2732,40 @@ export const ModerateFeedPostResponse = zod.object({
   "viewerSaved": zod.boolean().optional(),
   "viewerFollowsAuthor": zod.boolean().optional(),
   "audience": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional().describe('Public\/lounge\/friends wrapper shares.'),
+  "groupShareCount": zod.number().optional().describe('Group destination wrapper shares.'),
+  "privateShareCount": zod.number().nullish().describe('Private recipient shares — only returned to the post owner or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Copy-link events — only returned to the post owner or admin.'),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional().describe('True when this post is a share wrapper referencing another post.'),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional().describe('Live-authorized source preview; present only when isShareWrapper=true.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -2585,6 +2857,336 @@ export const GetFeedAnalyticsResponse = zod.object({
   "category": zod.string(),
   "count": zod.number()
 })).optional()
+})
+
+
+/**
+ * @summary Update sharing settings for own feed post (author only)
+ */
+export const UpdateFeedPostSharingParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateFeedPostSharingBody = zod.object({
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional()
+})
+
+export const UpdateFeedPostSharingResponse = zod.object({
+  "sourceType": zod.enum(['feed_post', 'group_post']),
+  "sourcePostId": zod.number(),
+  "sharingDisabled": zod.boolean().describe('Global kill-switch — disables all sharing.'),
+  "allowPublicShares": zod.boolean().describe('Allow public\/lounge\/friends wrapper shares.'),
+  "allowFriendsShares": zod.boolean(),
+  "allowPrivateShares": zod.boolean(),
+  "allowGroupShares": zod.boolean()
+})
+
+
+/**
+ * @summary Share a feed post to a destination
+ */
+export const ShareFeedPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const shareFeedPostBodyRecipientUserIdsMax = 20;
+
+export const shareFeedPostBodySharerCommentMax = 500;
+
+
+
+export const ShareFeedPostBody = zod.object({
+  "destination": zod.enum(['public', 'lounge', 'friends', 'private', 'group']),
+  "destinationGroupId": zod.number().optional().describe('Required when destination=group; invalid with other destinations'),
+  "recipientUserIds": zod.array(zod.number()).max(shareFeedPostBodyRecipientUserIdsMax).optional().describe('Required when destination=private (1-20 eligible recipients); self excluded automatically'),
+  "sharerComment": zod.string().max(shareFeedPostBodySharerCommentMax).optional().describe('Optional comment from the sharer (never copied from source)')
+})
+
+
+/**
+ * @summary Copy a canonical link for a feed post (records analytics)
+ */
+export const CopyFeedPostLinkParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CopyFeedPostLinkResponse = zod.object({
+  "canonicalUrl": zod.string(),
+  "shareId": zod.number()
+})
+
+
+/**
+ * @summary List eligible recipients for a private share (friends/follows)
+ */
+export const ListFeedShareRecipientsQueryParams = zod.object({
+  "q": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListFeedShareRecipientsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "isFriend": zod.boolean().optional()
+})
+export const ListFeedShareRecipientsResponse = zod.array(ListFeedShareRecipientsResponseItem)
+
+
+/**
+ * @summary List groups the viewer can share to
+ */
+export const ListFeedShareGroupsQueryParams = zod.object({
+  "q": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListFeedShareGroupsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "iconUrl": zod.string().nullish(),
+  "privacy": zod.enum(['public', 'private']).optional(),
+  "memberRole": zod.string()
+})
+export const ListFeedShareGroupsResponse = zod.array(ListFeedShareGroupsResponseItem)
+
+
+/**
+ * @summary List private shares sent or received by the current user
+ */
+export const ListMyPrivateSharesQueryParams = zod.object({
+  "direction": zod.enum(['sent', 'received']).optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListMyPrivateSharesResponseItem = zod.object({
+  "id": zod.number(),
+  "sharerId": zod.number(),
+  "sharerName": zod.string().optional(),
+  "destination": zod.string(),
+  "sourceType": zod.enum(['feed_post', 'group_post']),
+  "sourcePostId": zod.number(),
+  "sourceGroupId": zod.number().nullish(),
+  "sharerComment": zod.string().nullish(),
+  "sharedPost": zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).optional().describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.'),
+  "createdAt": zod.string()
+})
+export const ListMyPrivateSharesResponse = zod.array(ListMyPrivateSharesResponseItem)
+
+
+/**
+ * @summary Update sharing settings for a group post (author only)
+ */
+export const UpdateGroupPostSharingParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const UpdateGroupPostSharingBody = zod.object({
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional()
+})
+
+export const UpdateGroupPostSharingResponse = zod.object({
+  "sourceType": zod.enum(['feed_post', 'group_post']),
+  "sourcePostId": zod.number(),
+  "sharingDisabled": zod.boolean().describe('Global kill-switch — disables all sharing.'),
+  "allowPublicShares": zod.boolean().describe('Allow public\/lounge\/friends wrapper shares.'),
+  "allowFriendsShares": zod.boolean(),
+  "allowPrivateShares": zod.boolean(),
+  "allowGroupShares": zod.boolean()
+})
+
+
+/**
+ * @summary Share a group post to a destination
+ */
+export const ShareGroupPostParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const shareGroupPostBodyRecipientUserIdsMax = 20;
+
+export const shareGroupPostBodySharerCommentMax = 500;
+
+
+
+export const ShareGroupPostBody = zod.object({
+  "destination": zod.enum(['public', 'lounge', 'friends', 'private', 'group']),
+  "destinationGroupId": zod.number().optional().describe('Required when destination=group; invalid with other destinations'),
+  "recipientUserIds": zod.array(zod.number()).max(shareGroupPostBodyRecipientUserIdsMax).optional().describe('Required when destination=private (1-20 eligible recipients); self excluded automatically'),
+  "sharerComment": zod.string().max(shareGroupPostBodySharerCommentMax).optional().describe('Optional comment from the sharer (never copied from source)')
+})
+
+
+/**
+ * @summary Copy a canonical link for a group post (records analytics)
+ */
+export const CopyGroupPostLinkParams = zod.object({
+  "groupId": zod.coerce.number(),
+  "postId": zod.coerce.number()
+})
+
+export const CopyGroupPostLinkResponse = zod.object({
+  "canonicalUrl": zod.string(),
+  "shareId": zod.number()
+})
+
+
+/**
+ * @summary List/filter share records (Admin)
+ */
+export const AdminListSharesQueryParams = zod.object({
+  "sharerId": zod.coerce.number().optional(),
+  "sourceType": zod.enum(['feed_post', 'group_post']).optional(),
+  "destination": zod.enum(['public', 'lounge', 'friends', 'private', 'group']).optional(),
+  "status": zod.enum(['active', 'hidden', 'removed']).optional(),
+  "limit": zod.coerce.number().optional(),
+  "offset": zod.coerce.number().optional()
+})
+
+export const AdminListSharesResponse = zod.object({
+  "total": zod.number(),
+  "shares": zod.array(zod.object({
+  "id": zod.number(),
+  "sharerId": zod.number(),
+  "sharerName": zod.string().nullish(),
+  "destination": zod.enum(['public', 'lounge', 'friends', 'private', 'group']),
+  "sourceType": zod.enum(['feed_post', 'group_post']),
+  "sourcePostId": zod.number(),
+  "sourceGroupId": zod.number().nullish(),
+  "destinationGroupId": zod.number().nullish(),
+  "wrapperFeedPostId": zod.number().nullish(),
+  "destinationGroupPostId": zod.number().nullish(),
+  "sharerComment": zod.string().nullish(),
+  "status": zod.enum(['active', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "createdAt": zod.string()
+}))
+})
+
+
+/**
+ * @summary Hide or remove a share wrapper (Admin)
+ */
+export const AdminModerateShareParams = zod.object({
+  "shareId": zod.coerce.number()
+})
+
+export const AdminModerateShareBody = zod.object({
+  "action": zod.enum(['hide', 'remove', 'restore']),
+  "reason": zod.string().optional()
+})
+
+export const AdminModerateShareResponse = zod.object({
+  "id": zod.number(),
+  "sharerId": zod.number(),
+  "sharerName": zod.string().nullish(),
+  "destination": zod.enum(['public', 'lounge', 'friends', 'private', 'group']),
+  "sourceType": zod.enum(['feed_post', 'group_post']),
+  "sourcePostId": zod.number(),
+  "sourceGroupId": zod.number().nullish(),
+  "destinationGroupId": zod.number().nullish(),
+  "wrapperFeedPostId": zod.number().nullish(),
+  "destinationGroupPostId": zod.number().nullish(),
+  "sharerComment": zod.string().nullish(),
+  "status": zod.enum(['active', 'hidden', 'removed']),
+  "moderationLocked": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List sharing suspensions (Admin)
+ */
+export const AdminListSharingSuspensionsQueryParams = zod.object({
+  "userId": zod.coerce.number().optional(),
+  "status": zod.enum(['active', 'lifted']).optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const AdminListSharingSuspensionsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "status": zod.enum(['active', 'lifted']),
+  "reason": zod.string().nullish(),
+  "suspendedByUserId": zod.number().optional(),
+  "liftedByUserId": zod.number().nullish(),
+  "liftedAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const AdminListSharingSuspensionsResponse = zod.array(AdminListSharingSuspensionsResponseItem)
+
+
+/**
+ * @summary Suspend a member's sharing privilege (Admin)
+ */
+export const AdminSuspendSharingParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+
+
+
+export const AdminSuspendSharingBody = zod.object({
+  "reason": zod.string().min(1)
+})
+
+export const AdminSuspendSharingResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "status": zod.enum(['active', 'lifted']),
+  "reason": zod.string().nullish(),
+  "suspendedByUserId": zod.number().optional(),
+  "liftedByUserId": zod.number().nullish(),
+  "liftedAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Restore a member's sharing privilege (Admin)
+ */
+export const AdminRestoreSharingParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminRestoreSharingResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "status": zod.enum(['active', 'lifted']),
+  "reason": zod.string().nullish(),
+  "suspendedByUserId": zod.number().optional(),
+  "liftedByUserId": zod.number().nullish(),
+  "liftedAt": zod.string().nullish(),
+  "createdAt": zod.string()
 })
 
 
@@ -6477,8 +7079,42 @@ export const ListGroupPostsResponseItem = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -6547,8 +7183,42 @@ export const GetGroupPostResponse = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -6596,8 +7266,42 @@ export const UpdateGroupPostResponse = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -6678,8 +7382,42 @@ export const ApproveGroupPostResponse = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -6722,8 +7460,42 @@ export const RejectGroupPostResponse = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -6762,8 +7534,42 @@ export const ToggleGroupPostPinResponse = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -6898,8 +7704,42 @@ export const ListGroupSavedPostsResponseItem = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -7610,8 +8450,42 @@ export const GetGroupInsightsResponse = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })).optional()
@@ -7852,8 +8726,42 @@ export const AdminListGroupPostsResponseItem = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -7898,8 +8806,42 @@ export const AdminModerateGroupPostResponse = zod.object({
   "likeCount": zod.number(),
   "commentCount": zod.number(),
   "saveCount": zod.number(),
+  "shareCount": zod.number().optional().describe('Total shares (public+lounge+friends+group).'),
+  "publicShareCount": zod.number().optional(),
+  "groupShareCount": zod.number().optional(),
+  "privateShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
+  "linkShareCount": zod.number().nullish().describe('Only returned to the post author or admin.'),
   "viewerReaction": zod.string().nullish(),
   "viewerSaved": zod.boolean().optional(),
+  "viewerCanShare": zod.boolean().optional(),
+  "viewerCanShareReason": zod.string().nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional().describe('Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks.'),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "sharingDisabled": zod.boolean().optional(),
+  "allowPublicShares": zod.boolean().optional(),
+  "allowFriendsShares": zod.boolean().optional(),
+  "allowPrivateShares": zod.boolean().optional(),
+  "allowGroupShares": zod.boolean().optional(),
+  "isShareWrapper": zod.boolean().optional(),
+  "sharedPost": zod.union([zod.null(),zod.object({
+  "available": zod.boolean(),
+  "sourceType": zod.union([zod.literal('feed_post'),zod.literal('group_post'),zod.literal(null)]).nullish(),
+  "sourcePostId": zod.number().nullish(),
+  "sourceGroupId": zod.number().nullish(),
+  "canonicalUrl": zod.string().nullish(),
+  "audience": zod.union([zod.literal('public'),zod.literal('friends'),zod.literal('followers'),zod.literal('only_me'),zod.literal(null)]).nullish(),
+  "groupPrivacy": zod.union([zod.literal('public'),zod.literal('private'),zod.literal(null)]).nullish(),
+  "allowedShareDestinations": zod.array(zod.enum(['public', 'lounge', 'friends', 'private', 'group'])).optional(),
+  "viewerCanCopyLink": zod.boolean().optional(),
+  "text": zod.string().nullish(),
+  "mediaUrl": zod.string().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "mediaType": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "authorPhotoUrl": zod.string().nullish(),
+  "groupName": zod.string().nullish(),
+  "shareCount": zod.number().optional()
+}).describe('Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.')]).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -7947,3 +8889,5 @@ export const AdminTransferGroupOwnerBody = zod.object({
 export const AdminTransferGroupOwnerResponse = zod.object({
   "message": zod.string()
 })
+
+

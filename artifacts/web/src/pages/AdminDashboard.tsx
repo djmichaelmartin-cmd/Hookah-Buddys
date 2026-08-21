@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { getErrorMessage } from "@/lib/error";
 import { Layout } from "@/components/Layout";
-import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey, useGetCurrentUser } from "@workspace/api-client-react";
+import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey, useGetCurrentUser, useAdminListShares, getAdminListSharesQueryKey, useAdminModerateShare, useAdminListSharingSuspensions, getAdminListSharingSuspensionsQueryKey, useAdminSuspendSharing, useAdminRestoreSharing } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { RevenueBreakdownItem, DollRevenueShare } from "@workspace/api-client-react";
-import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye, CalendarDays } from "lucide-react";
+import type { RevenueBreakdownItem, DollRevenueShare, AdminListSharesSourceType, AdminListSharesDestination } from "@workspace/api-client-react";
+import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye, CalendarDays, Share2, Lock, Unlock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
@@ -123,6 +123,53 @@ function AdminDashboardContent() {
     }
   });
 
+  const [shareStatusFilter, setShareStatusFilter] = useState<"active" | "hidden" | "removed">("active");
+  const [shareSourceTypeFilter, setShareSourceTypeFilter] = useState<AdminListSharesSourceType | undefined>(undefined);
+  const [shareDestinationFilter, setShareDestinationFilter] = useState<AdminListSharesDestination | undefined>(undefined);
+
+  const sharesParams = {
+    status: shareStatusFilter,
+    sourceType: shareSourceTypeFilter,
+    destination: shareDestinationFilter,
+  };
+
+  const { data: sharesList } = useAdminListShares(sharesParams, {
+    query: { queryKey: getAdminListSharesQueryKey(sharesParams) },
+  });
+
+  const moderateShare = useAdminModerateShare({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Share moderated" });
+        queryClient.invalidateQueries({ queryKey: getAdminListSharesQueryKey(sharesParams) });
+      },
+      onError: () => toast({ title: "Failed to moderate share", variant: "destructive" }),
+    }
+  });
+
+  const { data: suspensionsList } = useAdminListSharingSuspensions(undefined, { query: { queryKey: getAdminListSharingSuspensionsQueryKey() } });
+  const suspendSharing = useAdminSuspendSharing({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Sharing suspended" });
+        queryClient.invalidateQueries({ queryKey: getAdminListSharingSuspensionsQueryKey() });
+      },
+      onError: () => toast({ title: "Failed to suspend sharing", variant: "destructive" }),
+    }
+  });
+  const restoreSharing = useAdminRestoreSharing({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Sharing restored" });
+        queryClient.invalidateQueries({ queryKey: getAdminListSharingSuspensionsQueryKey() });
+      },
+      onError: () => toast({ title: "Failed to restore sharing", variant: "destructive" }),
+    }
+  });
+
+  const [suspendUserId, setSuspendUserId] = useState("");
+  const [suspendReason, setSuspendReason] = useState("");
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
@@ -161,6 +208,7 @@ function AdminDashboardContent() {
             <TabsTrigger value="media"><ImageIcon className="w-4 h-4 mr-2"/> Media Moderation</TabsTrigger>
             <TabsTrigger value="verifications"><ShieldCheck className="w-4 h-4 mr-2"/> Verifications</TabsTrigger>
             <TabsTrigger value="feed"><MessageSquare className="w-4 h-4 mr-2"/> Feed</TabsTrigger>
+            <TabsTrigger value="shares"><Share2 className="w-4 h-4 mr-2"/> Shares</TabsTrigger>
             <TabsTrigger value="photos"><ImageIcon className="w-4 h-4 mr-2"/> Photos</TabsTrigger>
             <TabsTrigger value="reels"><Video className="w-4 h-4 mr-2"/> Reels</TabsTrigger>
             <TabsTrigger value="blocks"><AlertTriangle className="w-4 h-4 mr-2"/> Blocks</TabsTrigger>
@@ -350,6 +398,168 @@ function AdminDashboardContent() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="shares" className="space-y-6">
+            <h2 className="text-xl font-serif text-white mb-4">Sharing Moderation</h2>
+
+            <div className="bg-card/50 border border-white/10 rounded-xl p-6 mb-6">
+              <h3 className="font-serif text-lg text-white mb-4">Sharing Suspensions</h3>
+              <div className="flex gap-4 mb-6">
+                <div className="flex-1">
+                  <Input
+                    placeholder="User ID to suspend"
+                    value={suspendUserId}
+                    onChange={e => setSuspendUserId(e.target.value)}
+                    className="bg-background/50 border-white/10"
+                  />
+                </div>
+                <div className="flex-[2]">
+                  <Input
+                    placeholder="Reason"
+                    value={suspendReason}
+                    onChange={e => setSuspendReason(e.target.value)}
+                    className="bg-background/50 border-white/10"
+                  />
+                </div>
+                <Button
+                  onClick={() => suspendUserId && suspendReason && suspendSharing.mutate({ userId: parseInt(suspendUserId, 10), data: { reason: suspendReason } })}
+                  disabled={!suspendUserId || !suspendReason || suspendSharing.isPending}
+                  variant="destructive"
+                >
+                  <Lock className="w-4 h-4 mr-2" /> Suspend
+                </Button>
+              </div>
+
+              {suspensionsList && suspensionsList.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-muted-foreground border-b border-white/10">
+                        <th className="py-2 px-2 font-medium">User ID</th>
+                        <th className="py-2 px-2 font-medium">Status</th>
+                        <th className="py-2 px-2 font-medium">Reason</th>
+                        <th className="py-2 px-2 font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {suspensionsList.map(sus => (
+                        <tr key={sus.id} className="border-b border-white/5 hover:bg-white/5">
+                          <td className="py-3 px-2 text-white">{sus.userId}</td>
+                          <td className="py-3 px-2">
+                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${sus.status === 'active' ? 'bg-destructive/20 text-destructive' : 'bg-white/10 text-white/50'}`}>
+                              {sus.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2 text-white/80">{sus.reason}</td>
+                          <td className="py-3 px-2">
+                            {sus.status === 'active' && (
+                              <Button size="sm" variant="outline" onClick={() => restoreSharing.mutate({ userId: sus.userId })} className="h-8">
+                                <Unlock className="w-3 h-3 mr-1" /> Restore
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No active sharing suspensions.</p>
+              )}
+            </div>
+
+            <div className="bg-card/50 border border-white/10 rounded-xl p-6">
+              <div className="mb-6 space-y-4">
+                <h3 className="font-serif text-lg text-white">Share Records</h3>
+
+                {/* Status filter */}
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider mr-1">Status:</span>
+                  <Button size="sm" variant={shareStatusFilter === "active" ? "default" : "outline"} onClick={() => setShareStatusFilter("active")}>Active</Button>
+                  <Button size="sm" variant={shareStatusFilter === "hidden" ? "default" : "outline"} onClick={() => setShareStatusFilter("hidden")}>Hidden</Button>
+                  <Button size="sm" variant={shareStatusFilter === "removed" ? "default" : "outline"} onClick={() => setShareStatusFilter("removed")}>Removed</Button>
+                </div>
+
+                {/* Source type filter */}
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider mr-1">Source:</span>
+                  <Button size="sm" variant={!shareSourceTypeFilter ? "default" : "outline"} onClick={() => setShareSourceTypeFilter(undefined)}>All</Button>
+                  <Button size="sm" variant={shareSourceTypeFilter === "feed_post" ? "default" : "outline"} onClick={() => setShareSourceTypeFilter("feed_post")}>Feed Post</Button>
+                  <Button size="sm" variant={shareSourceTypeFilter === "group_post" ? "default" : "outline"} onClick={() => setShareSourceTypeFilter("group_post")}>Group Post</Button>
+                </div>
+
+                {/* Destination filter */}
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider mr-1">Destination:</span>
+                  <Button size="sm" variant={!shareDestinationFilter ? "default" : "outline"} onClick={() => setShareDestinationFilter(undefined)}>All</Button>
+                  {(["public", "lounge", "friends", "private", "group"] as const).map(dest => (
+                    <Button
+                      key={dest}
+                      size="sm"
+                      variant={shareDestinationFilter === dest ? "default" : "outline"}
+                      onClick={() => setShareDestinationFilter(dest)}
+                      className="capitalize"
+                    >
+                      {dest}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {sharesList?.shares && sharesList.shares.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-muted-foreground border-b border-white/10">
+                        <th className="py-2 px-2 font-medium">Share ID</th>
+                        <th className="py-2 px-2 font-medium">Sharer</th>
+                        <th className="py-2 px-2 font-medium">Destination</th>
+                        <th className="py-2 px-2 font-medium">Source</th>
+                        <th className="py-2 px-2 font-medium">Status</th>
+                        <th className="py-2 px-2 font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sharesList.shares.map(share => (
+                        <tr key={share.id} className="border-b border-white/5 hover:bg-white/5">
+                          <td className="py-3 px-2 text-white/70">#{share.id}</td>
+                          <td className="py-3 px-2 text-white">{share.sharerName || share.sharerId}</td>
+                          <td className="py-3 px-2 text-white/90 capitalize">{share.destination}</td>
+                          <td className="py-3 px-2 text-white/90 capitalize">
+                            {share.sourceType} #{share.sourcePostId}
+                          </td>
+                          <td className="py-3 px-2">
+                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
+                              share.status === 'active' ? 'bg-green-500/20 text-green-500' :
+                              share.status === 'hidden' ? 'bg-orange-500/20 text-orange-500' :
+                              'bg-destructive/20 text-destructive'
+                            }`}>
+                              {share.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex gap-2">
+                              {share.status !== 'hidden' && (
+                                <Button size="sm" variant="outline" onClick={() => moderateShare.mutate({ shareId: share.id, data: { action: 'hide' } })} disabled={moderateShare.isPending} className="h-7 text-xs px-2 text-orange-500">Hide</Button>
+                              )}
+                              {share.status !== 'removed' && (
+                                <Button size="sm" variant="outline" onClick={() => moderateShare.mutate({ shareId: share.id, data: { action: 'remove' } })} disabled={moderateShare.isPending} className="h-7 text-xs px-2 text-destructive">Remove</Button>
+                              )}
+                              {share.status !== 'active' && (
+                                <Button size="sm" variant="outline" onClick={() => moderateShare.mutate({ shareId: share.id, data: { action: 'restore' } })} disabled={moderateShare.isPending} className="h-7 text-xs px-2 text-green-500">Restore</Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-4 text-center border border-white/5 rounded-lg">No shares found for this filter.</p>
+              )}
             </div>
           </TabsContent>
 

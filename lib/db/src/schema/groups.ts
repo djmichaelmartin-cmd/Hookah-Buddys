@@ -274,6 +274,17 @@ export const groupPostsTable = pgTable("group_posts", {
   commentCount: integer("comment_count").notNull().default(0),
   saveCount: integer("save_count").notNull().default(0),
   reportCount: integer("report_count").notNull().default(0),
+  // Denormalized share counters — broken down by destination type
+  shareCount: integer("share_count").notNull().default(0),               // total (public+lounge+friends+group)
+  publicShareCount: integer("public_share_count").notNull().default(0),  // public+lounge wrappers
+  privateShareCount: integer("private_share_count").notNull().default(0), // private recipient shares
+  groupShareCount: integer("group_share_count").notNull().default(0),     // group wrapper shares
+  linkShareCount: integer("link_share_count").notNull().default(0),       // copy-link events
+  // Share wrapper linkage: set when this group post IS a share wrapper
+  // source_type: feed_post | group_post
+  shareSourceType: text("share_source_type"),
+  shareSourcePostId: integer("share_source_post_id"),
+  shareSourceGroupId: integer("share_source_group_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()

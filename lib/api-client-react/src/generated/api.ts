@@ -32,7 +32,12 @@ import type {
   AdminListGroupPostsParams,
   AdminListGroupReportsParams,
   AdminListGroupsParams,
+  AdminListSharesParams,
+  AdminListSharingSuspensionsParams,
   AdminModerateGroupContentBody,
+  AdminModerateShareInput,
+  AdminShareList,
+  AdminShareRecord,
   AdminStats,
   AdminTransferGroupOwnerBody,
   AdminUser,
@@ -108,6 +113,7 @@ import type {
   CollectStatus,
   ContactInput,
   ContentUnlock,
+  CopyLinkResult,
   CreateBusinessChildCommentBody,
   CreateGroupBody,
   CreateGroupEventBody,
@@ -210,6 +216,8 @@ import type {
   ListEventsParams,
   ListFeedPostsParams,
   ListFeedReportsParams,
+  ListFeedShareGroupsParams,
+  ListFeedShareRecipientsParams,
   ListFollowsParams,
   ListFriendsParams,
   ListGroupActivityLogParams,
@@ -223,6 +231,7 @@ import type {
   ListLoungesParams,
   ListMeetupsParams,
   ListMembersParams,
+  ListMyPrivateSharesParams,
   ListPlansParams,
   ListReelsParams,
   ListRejectedLeadsParams,
@@ -253,8 +262,10 @@ import type {
   PhotoInput,
   Plan,
   PlanUpdate,
+  PostSharingSettings,
   PrivacySettings,
   PrivacySettingsInput,
+  PrivateShareRecord,
   ProfileUpdateInput,
   Reel,
   ReelInput,
@@ -273,8 +284,14 @@ import type {
   SaveLoungeSpotlightLocationResponse,
   SaveStatus,
   SetGroupQuestionsBody,
+  ShareGroupOption,
+  SharePostInput,
+  ShareRecipientUser,
+  ShareResult,
+  SharingSuspension,
   Subscription,
   SubscriptionInput,
+  SuspendSharingInput,
   ThreadInput,
   TrendingHashtag,
   UnlockInput,
@@ -283,6 +300,7 @@ import type {
   UpdateGroupEventBody,
   UpdateGroupMemberBody,
   UpdateGroupPostBody,
+  UpdatePostSharingSettingsInput,
   UserStatusInput,
   UserTag,
   UserTagAction,
@@ -8534,6 +8552,1074 @@ export function useGetFeedAnalytics<TData = Awaited<ReturnType<typeof getFeedAna
 
 
 
+
+export const getUpdateFeedPostSharingUrl = (id: number,) => {
+
+
+
+
+  return `/api/feed/posts/${id}/sharing`
+}
+
+/**
+ * @summary Update sharing settings for own feed post (author only)
+ */
+export const updateFeedPostSharing = async (id: number,
+    updatePostSharingSettingsInput: UpdatePostSharingSettingsInput, options?: RequestInit): Promise<PostSharingSettings> => {
+
+  return customFetch<PostSharingSettings>(getUpdateFeedPostSharingUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updatePostSharingSettingsInput,)
+  }
+);}
+
+
+
+
+export const getUpdateFeedPostSharingMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFeedPostSharing>>, TError,{id: number;data: BodyType<UpdatePostSharingSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateFeedPostSharing>>, TError,{id: number;data: BodyType<UpdatePostSharingSettingsInput>}, TContext> => {
+
+const mutationKey = ['updateFeedPostSharing'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFeedPostSharing>>, {id: number;data: BodyType<UpdatePostSharingSettingsInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateFeedPostSharing(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateFeedPostSharingMutationResult = NonNullable<Awaited<ReturnType<typeof updateFeedPostSharing>>>
+    export type UpdateFeedPostSharingMutationBody = BodyType<UpdatePostSharingSettingsInput>
+    export type UpdateFeedPostSharingMutationError = ErrorType<void>
+
+    /**
+ * @summary Update sharing settings for own feed post (author only)
+ */
+export const useUpdateFeedPostSharing = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFeedPostSharing>>, TError,{id: number;data: BodyType<UpdatePostSharingSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateFeedPostSharing>>,
+        TError,
+        {id: number;data: BodyType<UpdatePostSharingSettingsInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateFeedPostSharingMutationOptions(options));
+    }
+
+export const getShareFeedPostUrl = (id: number,) => {
+
+
+
+
+  return `/api/feed/posts/${id}/share`
+}
+
+/**
+ * @summary Share a feed post to a destination
+ */
+export const shareFeedPost = async (id: number,
+    sharePostInput: SharePostInput, options?: RequestInit): Promise<ShareResult> => {
+
+  return customFetch<ShareResult>(getShareFeedPostUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sharePostInput,)
+  }
+);}
+
+
+
+
+export const getShareFeedPostMutationOptions = <TError = ErrorType<MessageResponse | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof shareFeedPost>>, TError,{id: number;data: BodyType<SharePostInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof shareFeedPost>>, TError,{id: number;data: BodyType<SharePostInput>}, TContext> => {
+
+const mutationKey = ['shareFeedPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof shareFeedPost>>, {id: number;data: BodyType<SharePostInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  shareFeedPost(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ShareFeedPostMutationResult = NonNullable<Awaited<ReturnType<typeof shareFeedPost>>>
+    export type ShareFeedPostMutationBody = BodyType<SharePostInput>
+    export type ShareFeedPostMutationError = ErrorType<MessageResponse | void>
+
+    /**
+ * @summary Share a feed post to a destination
+ */
+export const useShareFeedPost = <TError = ErrorType<MessageResponse | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof shareFeedPost>>, TError,{id: number;data: BodyType<SharePostInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof shareFeedPost>>,
+        TError,
+        {id: number;data: BodyType<SharePostInput>},
+        TContext
+      > => {
+      return useMutation(getShareFeedPostMutationOptions(options));
+    }
+
+export const getCopyFeedPostLinkUrl = (id: number,) => {
+
+
+
+
+  return `/api/feed/posts/${id}/copy-link`
+}
+
+/**
+ * @summary Copy a canonical link for a feed post (records analytics)
+ */
+export const copyFeedPostLink = async (id: number, options?: RequestInit): Promise<CopyLinkResult> => {
+
+  return customFetch<CopyLinkResult>(getCopyFeedPostLinkUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCopyFeedPostLinkMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyFeedPostLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof copyFeedPostLink>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['copyFeedPostLink'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof copyFeedPostLink>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  copyFeedPostLink(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CopyFeedPostLinkMutationResult = NonNullable<Awaited<ReturnType<typeof copyFeedPostLink>>>
+
+    export type CopyFeedPostLinkMutationError = ErrorType<void>
+
+    /**
+ * @summary Copy a canonical link for a feed post (records analytics)
+ */
+export const useCopyFeedPostLink = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyFeedPostLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof copyFeedPostLink>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCopyFeedPostLinkMutationOptions(options));
+    }
+
+export const getListFeedShareRecipientsUrl = (params?: ListFeedShareRecipientsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/feed/share-recipients?${stringifiedParams}` : `/api/feed/share-recipients`
+}
+
+/**
+ * @summary List eligible recipients for a private share (friends/follows)
+ */
+export const listFeedShareRecipients = async (params?: ListFeedShareRecipientsParams, options?: RequestInit): Promise<ShareRecipientUser[]> => {
+
+  return customFetch<ShareRecipientUser[]>(getListFeedShareRecipientsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFeedShareRecipientsQueryKey = (params?: ListFeedShareRecipientsParams,) => {
+    return [
+    `/api/feed/share-recipients`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFeedShareRecipientsQueryOptions = <TData = Awaited<ReturnType<typeof listFeedShareRecipients>>, TError = ErrorType<void>>(params?: ListFeedShareRecipientsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFeedShareRecipients>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFeedShareRecipientsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFeedShareRecipients>>> = ({ signal }) => listFeedShareRecipients(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFeedShareRecipients>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFeedShareRecipientsQueryResult = NonNullable<Awaited<ReturnType<typeof listFeedShareRecipients>>>
+export type ListFeedShareRecipientsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List eligible recipients for a private share (friends/follows)
+ */
+
+export function useListFeedShareRecipients<TData = Awaited<ReturnType<typeof listFeedShareRecipients>>, TError = ErrorType<void>>(
+ params?: ListFeedShareRecipientsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFeedShareRecipients>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFeedShareRecipientsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListFeedShareGroupsUrl = (params?: ListFeedShareGroupsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/feed/share-groups?${stringifiedParams}` : `/api/feed/share-groups`
+}
+
+/**
+ * @summary List groups the viewer can share to
+ */
+export const listFeedShareGroups = async (params?: ListFeedShareGroupsParams, options?: RequestInit): Promise<ShareGroupOption[]> => {
+
+  return customFetch<ShareGroupOption[]>(getListFeedShareGroupsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFeedShareGroupsQueryKey = (params?: ListFeedShareGroupsParams,) => {
+    return [
+    `/api/feed/share-groups`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFeedShareGroupsQueryOptions = <TData = Awaited<ReturnType<typeof listFeedShareGroups>>, TError = ErrorType<void>>(params?: ListFeedShareGroupsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFeedShareGroups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFeedShareGroupsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFeedShareGroups>>> = ({ signal }) => listFeedShareGroups(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFeedShareGroups>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFeedShareGroupsQueryResult = NonNullable<Awaited<ReturnType<typeof listFeedShareGroups>>>
+export type ListFeedShareGroupsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List groups the viewer can share to
+ */
+
+export function useListFeedShareGroups<TData = Awaited<ReturnType<typeof listFeedShareGroups>>, TError = ErrorType<void>>(
+ params?: ListFeedShareGroupsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFeedShareGroups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFeedShareGroupsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListMyPrivateSharesUrl = (params?: ListMyPrivateSharesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/feed/shares/private?${stringifiedParams}` : `/api/feed/shares/private`
+}
+
+/**
+ * @summary List private shares sent or received by the current user
+ */
+export const listMyPrivateShares = async (params?: ListMyPrivateSharesParams, options?: RequestInit): Promise<PrivateShareRecord[]> => {
+
+  return customFetch<PrivateShareRecord[]>(getListMyPrivateSharesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyPrivateSharesQueryKey = (params?: ListMyPrivateSharesParams,) => {
+    return [
+    `/api/feed/shares/private`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListMyPrivateSharesQueryOptions = <TData = Awaited<ReturnType<typeof listMyPrivateShares>>, TError = ErrorType<void>>(params?: ListMyPrivateSharesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyPrivateShares>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyPrivateSharesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyPrivateShares>>> = ({ signal }) => listMyPrivateShares(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyPrivateShares>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMyPrivateSharesQueryResult = NonNullable<Awaited<ReturnType<typeof listMyPrivateShares>>>
+export type ListMyPrivateSharesQueryError = ErrorType<void>
+
+
+/**
+ * @summary List private shares sent or received by the current user
+ */
+
+export function useListMyPrivateShares<TData = Awaited<ReturnType<typeof listMyPrivateShares>>, TError = ErrorType<void>>(
+ params?: ListMyPrivateSharesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyPrivateShares>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMyPrivateSharesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateGroupPostSharingUrl = (groupId: number,
+    postId: number,) => {
+
+
+
+
+  return `/api/groups/${groupId}/posts/${postId}/sharing`
+}
+
+/**
+ * @summary Update sharing settings for a group post (author only)
+ */
+export const updateGroupPostSharing = async (groupId: number,
+    postId: number,
+    updatePostSharingSettingsInput: UpdatePostSharingSettingsInput, options?: RequestInit): Promise<PostSharingSettings> => {
+
+  return customFetch<PostSharingSettings>(getUpdateGroupPostSharingUrl(groupId,postId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updatePostSharingSettingsInput,)
+  }
+);}
+
+
+
+
+export const getUpdateGroupPostSharingMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateGroupPostSharing>>, TError,{groupId: number;postId: number;data: BodyType<UpdatePostSharingSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateGroupPostSharing>>, TError,{groupId: number;postId: number;data: BodyType<UpdatePostSharingSettingsInput>}, TContext> => {
+
+const mutationKey = ['updateGroupPostSharing'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateGroupPostSharing>>, {groupId: number;postId: number;data: BodyType<UpdatePostSharingSettingsInput>}> = (props) => {
+          const {groupId,postId,data} = props ?? {};
+
+          return  updateGroupPostSharing(groupId,postId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateGroupPostSharingMutationResult = NonNullable<Awaited<ReturnType<typeof updateGroupPostSharing>>>
+    export type UpdateGroupPostSharingMutationBody = BodyType<UpdatePostSharingSettingsInput>
+    export type UpdateGroupPostSharingMutationError = ErrorType<void>
+
+    /**
+ * @summary Update sharing settings for a group post (author only)
+ */
+export const useUpdateGroupPostSharing = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateGroupPostSharing>>, TError,{groupId: number;postId: number;data: BodyType<UpdatePostSharingSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateGroupPostSharing>>,
+        TError,
+        {groupId: number;postId: number;data: BodyType<UpdatePostSharingSettingsInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateGroupPostSharingMutationOptions(options));
+    }
+
+export const getShareGroupPostUrl = (groupId: number,
+    postId: number,) => {
+
+
+
+
+  return `/api/groups/${groupId}/posts/${postId}/share`
+}
+
+/**
+ * @summary Share a group post to a destination
+ */
+export const shareGroupPost = async (groupId: number,
+    postId: number,
+    sharePostInput: SharePostInput, options?: RequestInit): Promise<ShareResult> => {
+
+  return customFetch<ShareResult>(getShareGroupPostUrl(groupId,postId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sharePostInput,)
+  }
+);}
+
+
+
+
+export const getShareGroupPostMutationOptions = <TError = ErrorType<MessageResponse | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof shareGroupPost>>, TError,{groupId: number;postId: number;data: BodyType<SharePostInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof shareGroupPost>>, TError,{groupId: number;postId: number;data: BodyType<SharePostInput>}, TContext> => {
+
+const mutationKey = ['shareGroupPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof shareGroupPost>>, {groupId: number;postId: number;data: BodyType<SharePostInput>}> = (props) => {
+          const {groupId,postId,data} = props ?? {};
+
+          return  shareGroupPost(groupId,postId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ShareGroupPostMutationResult = NonNullable<Awaited<ReturnType<typeof shareGroupPost>>>
+    export type ShareGroupPostMutationBody = BodyType<SharePostInput>
+    export type ShareGroupPostMutationError = ErrorType<MessageResponse | void>
+
+    /**
+ * @summary Share a group post to a destination
+ */
+export const useShareGroupPost = <TError = ErrorType<MessageResponse | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof shareGroupPost>>, TError,{groupId: number;postId: number;data: BodyType<SharePostInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof shareGroupPost>>,
+        TError,
+        {groupId: number;postId: number;data: BodyType<SharePostInput>},
+        TContext
+      > => {
+      return useMutation(getShareGroupPostMutationOptions(options));
+    }
+
+export const getCopyGroupPostLinkUrl = (groupId: number,
+    postId: number,) => {
+
+
+
+
+  return `/api/groups/${groupId}/posts/${postId}/copy-link`
+}
+
+/**
+ * @summary Copy a canonical link for a group post (records analytics)
+ */
+export const copyGroupPostLink = async (groupId: number,
+    postId: number, options?: RequestInit): Promise<CopyLinkResult> => {
+
+  return customFetch<CopyLinkResult>(getCopyGroupPostLinkUrl(groupId,postId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCopyGroupPostLinkMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyGroupPostLink>>, TError,{groupId: number;postId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof copyGroupPostLink>>, TError,{groupId: number;postId: number}, TContext> => {
+
+const mutationKey = ['copyGroupPostLink'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof copyGroupPostLink>>, {groupId: number;postId: number}> = (props) => {
+          const {groupId,postId} = props ?? {};
+
+          return  copyGroupPostLink(groupId,postId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CopyGroupPostLinkMutationResult = NonNullable<Awaited<ReturnType<typeof copyGroupPostLink>>>
+
+    export type CopyGroupPostLinkMutationError = ErrorType<void>
+
+    /**
+ * @summary Copy a canonical link for a group post (records analytics)
+ */
+export const useCopyGroupPostLink = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyGroupPostLink>>, TError,{groupId: number;postId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof copyGroupPostLink>>,
+        TError,
+        {groupId: number;postId: number},
+        TContext
+      > => {
+      return useMutation(getCopyGroupPostLinkMutationOptions(options));
+    }
+
+export const getAdminListSharesUrl = (params?: AdminListSharesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/shares?${stringifiedParams}` : `/api/admin/shares`
+}
+
+/**
+ * @summary List/filter share records (Admin)
+ */
+export const adminListShares = async (params?: AdminListSharesParams, options?: RequestInit): Promise<AdminShareList> => {
+
+  return customFetch<AdminShareList>(getAdminListSharesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminListSharesQueryKey = (params?: AdminListSharesParams,) => {
+    return [
+    `/api/admin/shares`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAdminListSharesQueryOptions = <TData = Awaited<ReturnType<typeof adminListShares>>, TError = ErrorType<void>>(params?: AdminListSharesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListShares>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminListSharesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListShares>>> = ({ signal }) => adminListShares(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminListShares>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminListSharesQueryResult = NonNullable<Awaited<ReturnType<typeof adminListShares>>>
+export type AdminListSharesQueryError = ErrorType<void>
+
+
+/**
+ * @summary List/filter share records (Admin)
+ */
+
+export function useAdminListShares<TData = Awaited<ReturnType<typeof adminListShares>>, TError = ErrorType<void>>(
+ params?: AdminListSharesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListShares>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminListSharesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAdminModerateShareUrl = (shareId: number,) => {
+
+
+
+
+  return `/api/admin/shares/${shareId}`
+}
+
+/**
+ * @summary Hide or remove a share wrapper (Admin)
+ */
+export const adminModerateShare = async (shareId: number,
+    adminModerateShareInput: AdminModerateShareInput, options?: RequestInit): Promise<AdminShareRecord> => {
+
+  return customFetch<AdminShareRecord>(getAdminModerateShareUrl(shareId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminModerateShareInput,)
+  }
+);}
+
+
+
+
+export const getAdminModerateShareMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminModerateShare>>, TError,{shareId: number;data: BodyType<AdminModerateShareInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminModerateShare>>, TError,{shareId: number;data: BodyType<AdminModerateShareInput>}, TContext> => {
+
+const mutationKey = ['adminModerateShare'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminModerateShare>>, {shareId: number;data: BodyType<AdminModerateShareInput>}> = (props) => {
+          const {shareId,data} = props ?? {};
+
+          return  adminModerateShare(shareId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminModerateShareMutationResult = NonNullable<Awaited<ReturnType<typeof adminModerateShare>>>
+    export type AdminModerateShareMutationBody = BodyType<AdminModerateShareInput>
+    export type AdminModerateShareMutationError = ErrorType<void>
+
+    /**
+ * @summary Hide or remove a share wrapper (Admin)
+ */
+export const useAdminModerateShare = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminModerateShare>>, TError,{shareId: number;data: BodyType<AdminModerateShareInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminModerateShare>>,
+        TError,
+        {shareId: number;data: BodyType<AdminModerateShareInput>},
+        TContext
+      > => {
+      return useMutation(getAdminModerateShareMutationOptions(options));
+    }
+
+export const getAdminListSharingSuspensionsUrl = (params?: AdminListSharingSuspensionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/shares/suspensions?${stringifiedParams}` : `/api/admin/shares/suspensions`
+}
+
+/**
+ * @summary List sharing suspensions (Admin)
+ */
+export const adminListSharingSuspensions = async (params?: AdminListSharingSuspensionsParams, options?: RequestInit): Promise<SharingSuspension[]> => {
+
+  return customFetch<SharingSuspension[]>(getAdminListSharingSuspensionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminListSharingSuspensionsQueryKey = (params?: AdminListSharingSuspensionsParams,) => {
+    return [
+    `/api/admin/shares/suspensions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAdminListSharingSuspensionsQueryOptions = <TData = Awaited<ReturnType<typeof adminListSharingSuspensions>>, TError = ErrorType<void>>(params?: AdminListSharingSuspensionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListSharingSuspensions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminListSharingSuspensionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListSharingSuspensions>>> = ({ signal }) => adminListSharingSuspensions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminListSharingSuspensions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminListSharingSuspensionsQueryResult = NonNullable<Awaited<ReturnType<typeof adminListSharingSuspensions>>>
+export type AdminListSharingSuspensionsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List sharing suspensions (Admin)
+ */
+
+export function useAdminListSharingSuspensions<TData = Awaited<ReturnType<typeof adminListSharingSuspensions>>, TError = ErrorType<void>>(
+ params?: AdminListSharingSuspensionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListSharingSuspensions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminListSharingSuspensionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAdminSuspendSharingUrl = (userId: number,) => {
+
+
+
+
+  return `/api/admin/shares/suspensions/${userId}/suspend`
+}
+
+/**
+ * @summary Suspend a member's sharing privilege (Admin)
+ */
+export const adminSuspendSharing = async (userId: number,
+    suspendSharingInput: SuspendSharingInput, options?: RequestInit): Promise<SharingSuspension> => {
+
+  return customFetch<SharingSuspension>(getAdminSuspendSharingUrl(userId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      suspendSharingInput,)
+  }
+);}
+
+
+
+
+export const getAdminSuspendSharingMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminSuspendSharing>>, TError,{userId: number;data: BodyType<SuspendSharingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminSuspendSharing>>, TError,{userId: number;data: BodyType<SuspendSharingInput>}, TContext> => {
+
+const mutationKey = ['adminSuspendSharing'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminSuspendSharing>>, {userId: number;data: BodyType<SuspendSharingInput>}> = (props) => {
+          const {userId,data} = props ?? {};
+
+          return  adminSuspendSharing(userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminSuspendSharingMutationResult = NonNullable<Awaited<ReturnType<typeof adminSuspendSharing>>>
+    export type AdminSuspendSharingMutationBody = BodyType<SuspendSharingInput>
+    export type AdminSuspendSharingMutationError = ErrorType<void>
+
+    /**
+ * @summary Suspend a member's sharing privilege (Admin)
+ */
+export const useAdminSuspendSharing = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminSuspendSharing>>, TError,{userId: number;data: BodyType<SuspendSharingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminSuspendSharing>>,
+        TError,
+        {userId: number;data: BodyType<SuspendSharingInput>},
+        TContext
+      > => {
+      return useMutation(getAdminSuspendSharingMutationOptions(options));
+    }
+
+export const getAdminRestoreSharingUrl = (userId: number,) => {
+
+
+
+
+  return `/api/admin/shares/suspensions/${userId}/restore`
+}
+
+/**
+ * @summary Restore a member's sharing privilege (Admin)
+ */
+export const adminRestoreSharing = async (userId: number, options?: RequestInit): Promise<SharingSuspension> => {
+
+  return customFetch<SharingSuspension>(getAdminRestoreSharingUrl(userId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAdminRestoreSharingMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRestoreSharing>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminRestoreSharing>>, TError,{userId: number}, TContext> => {
+
+const mutationKey = ['adminRestoreSharing'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminRestoreSharing>>, {userId: number}> = (props) => {
+          const {userId} = props ?? {};
+
+          return  adminRestoreSharing(userId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminRestoreSharingMutationResult = NonNullable<Awaited<ReturnType<typeof adminRestoreSharing>>>
+
+    export type AdminRestoreSharingMutationError = ErrorType<void>
+
+    /**
+ * @summary Restore a member's sharing privilege (Admin)
+ */
+export const useAdminRestoreSharing = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRestoreSharing>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminRestoreSharing>>,
+        TError,
+        {userId: number},
+        TContext
+      > => {
+      return useMutation(getAdminRestoreSharingMutationOptions(options));
+    }
 
 export const getGetEnhancedProfileUrl = (userId: number,) => {
 
@@ -23510,3 +24596,4 @@ export const useAdminTransferGroupOwner = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getAdminTransferGroupOwnerMutationOptions(options));
     }
+

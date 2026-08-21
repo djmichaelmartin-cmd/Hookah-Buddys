@@ -1186,6 +1186,17 @@ export const FeedPostAudience = {
   only_me: 'only_me',
 } as const;
 
+export type FeedPostAllowedShareDestinationsItem = typeof FeedPostAllowedShareDestinationsItem[keyof typeof FeedPostAllowedShareDestinationsItem];
+
+
+export const FeedPostAllowedShareDestinationsItem = {
+  public: 'public',
+  lounge: 'lounge',
+  friends: 'friends',
+  private: 'private',
+  group: 'group',
+} as const;
+
 export interface FeedBusinessAuthor {
   id: number;
   handle: string;
@@ -1195,6 +1206,88 @@ export interface FeedBusinessAuthor {
   verified?: boolean;
   /** Navigation target, e.g. /business/:handle */
   url: string;
+}
+
+/**
+ * @nullable
+ */
+export type SharedPostPreviewSourceType = typeof SharedPostPreviewSourceType[keyof typeof SharedPostPreviewSourceType] | null;
+
+
+export const SharedPostPreviewSourceType = {
+  feed_post: 'feed_post',
+  group_post: 'group_post',
+} as const;
+
+/**
+ * @nullable
+ */
+export type SharedPostPreviewAudience = typeof SharedPostPreviewAudience[keyof typeof SharedPostPreviewAudience] | null;
+
+
+export const SharedPostPreviewAudience = {
+  public: 'public',
+  friends: 'friends',
+  followers: 'followers',
+  only_me: 'only_me',
+} as const;
+
+/**
+ * @nullable
+ */
+export type SharedPostPreviewGroupPrivacy = typeof SharedPostPreviewGroupPrivacy[keyof typeof SharedPostPreviewGroupPrivacy] | null;
+
+
+export const SharedPostPreviewGroupPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type SharedPostPreviewAllowedShareDestinationsItem = typeof SharedPostPreviewAllowedShareDestinationsItem[keyof typeof SharedPostPreviewAllowedShareDestinationsItem];
+
+
+export const SharedPostPreviewAllowedShareDestinationsItem = {
+  public: 'public',
+  lounge: 'lounge',
+  friends: 'friends',
+  private: 'private',
+  group: 'group',
+} as const;
+
+/**
+ * Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.
+ */
+export interface SharedPostPreview {
+  available: boolean;
+  /** @nullable */
+  sourceType?: SharedPostPreviewSourceType;
+  /** @nullable */
+  sourcePostId?: number | null;
+  /** @nullable */
+  sourceGroupId?: number | null;
+  /** @nullable */
+  canonicalUrl?: string | null;
+  /** @nullable */
+  audience?: SharedPostPreviewAudience;
+  /** @nullable */
+  groupPrivacy?: SharedPostPreviewGroupPrivacy;
+  allowedShareDestinations?: SharedPostPreviewAllowedShareDestinationsItem[];
+  viewerCanCopyLink?: boolean;
+  /** @nullable */
+  text?: string | null;
+  /** @nullable */
+  mediaUrl?: string | null;
+  /** @nullable */
+  posterUrl?: string | null;
+  /** @nullable */
+  mediaType?: string | null;
+  /** @nullable */
+  authorName?: string | null;
+  /** @nullable */
+  authorPhotoUrl?: string | null;
+  /** @nullable */
+  groupName?: string | null;
+  shareCount?: number;
 }
 
 export interface FeedPost {
@@ -1243,6 +1336,31 @@ export interface FeedPost {
   viewerSaved?: boolean;
   viewerFollowsAuthor?: boolean;
   audience?: FeedPostAudience;
+  /** Total shares (public+lounge+friends+group). */
+  shareCount?: number;
+  /** Public/lounge/friends wrapper shares. */
+  publicShareCount?: number;
+  /** Group destination wrapper shares. */
+  groupShareCount?: number;
+  /** Private recipient shares — only returned to the post owner or admin. */
+  privateShareCount?: number | null;
+  /** Copy-link events — only returned to the post owner or admin. */
+  linkShareCount?: number | null;
+  viewerCanShare?: boolean;
+  /** @nullable */
+  viewerCanShareReason?: string | null;
+  /** Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks. */
+  allowedShareDestinations?: FeedPostAllowedShareDestinationsItem[];
+  viewerCanCopyLink?: boolean;
+  sharingDisabled?: boolean;
+  allowPublicShares?: boolean;
+  allowFriendsShares?: boolean;
+  allowPrivateShares?: boolean;
+  allowGroupShares?: boolean;
+  /** True when this post is a share wrapper referencing another post. */
+  isShareWrapper?: boolean;
+  /** Live-authorized source preview; present only when isShareWrapper=true. */
+  sharedPost?: null | SharedPostPreview;
   createdAt: string;
   updatedAt?: string;
 }
@@ -1407,6 +1525,237 @@ export const FeedModerationInputStatus = {
 
 export interface FeedModerationInput {
   status: FeedModerationInputStatus;
+}
+
+export type PostSharingSettingsSourceType = typeof PostSharingSettingsSourceType[keyof typeof PostSharingSettingsSourceType];
+
+
+export const PostSharingSettingsSourceType = {
+  feed_post: 'feed_post',
+  group_post: 'group_post',
+} as const;
+
+export interface PostSharingSettings {
+  sourceType: PostSharingSettingsSourceType;
+  sourcePostId: number;
+  /** Global kill-switch — disables all sharing. */
+  sharingDisabled: boolean;
+  /** Allow public/lounge/friends wrapper shares. */
+  allowPublicShares: boolean;
+  allowFriendsShares: boolean;
+  allowPrivateShares: boolean;
+  allowGroupShares: boolean;
+}
+
+export interface UpdatePostSharingSettingsInput {
+  sharingDisabled?: boolean;
+  allowPublicShares?: boolean;
+  allowFriendsShares?: boolean;
+  allowPrivateShares?: boolean;
+  allowGroupShares?: boolean;
+}
+
+export type SharePostInputDestination = typeof SharePostInputDestination[keyof typeof SharePostInputDestination];
+
+
+export const SharePostInputDestination = {
+  public: 'public',
+  lounge: 'lounge',
+  friends: 'friends',
+  private: 'private',
+  group: 'group',
+} as const;
+
+export interface SharePostInput {
+  destination: SharePostInputDestination;
+  /** Required when destination=group; invalid with other destinations */
+  destinationGroupId?: number;
+  /**
+     * Required when destination=private (1-20 eligible recipients); self excluded automatically
+     * @maxItems 20
+     */
+  recipientUserIds?: number[];
+  /**
+     * Optional comment from the sharer (never copied from source)
+     * @maxLength 500
+     */
+  sharerComment?: string;
+}
+
+export type ShareResultDestination = typeof ShareResultDestination[keyof typeof ShareResultDestination];
+
+
+export const ShareResultDestination = {
+  public: 'public',
+  lounge: 'lounge',
+  friends: 'friends',
+  private: 'private',
+  group: 'group',
+} as const;
+
+export interface ShareResult {
+  shareId: number;
+  destination: ShareResultDestination;
+  /** @nullable */
+  wrapperFeedPostId?: number | null;
+  /** @nullable */
+  destinationGroupPostId?: number | null;
+  /** @nullable */
+  recipientCount?: number | null;
+  /** True when the exact same share already existed; counters were not incremented again. */
+  deduplicated: boolean;
+}
+
+export interface CopyLinkResult {
+  canonicalUrl: string;
+  shareId: number;
+}
+
+export interface ShareRecipientUser {
+  id: number;
+  name: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+  isFriend?: boolean;
+}
+
+export type ShareGroupOptionPrivacy = typeof ShareGroupOptionPrivacy[keyof typeof ShareGroupOptionPrivacy];
+
+
+export const ShareGroupOptionPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export interface ShareGroupOption {
+  id: number;
+  name: string;
+  /** @nullable */
+  iconUrl?: string | null;
+  privacy?: ShareGroupOptionPrivacy;
+  memberRole: string;
+}
+
+export type PrivateShareRecordSourceType = typeof PrivateShareRecordSourceType[keyof typeof PrivateShareRecordSourceType];
+
+
+export const PrivateShareRecordSourceType = {
+  feed_post: 'feed_post',
+  group_post: 'group_post',
+} as const;
+
+export interface PrivateShareRecord {
+  id: number;
+  sharerId: number;
+  sharerName?: string;
+  destination: string;
+  sourceType: PrivateShareRecordSourceType;
+  sourcePostId: number;
+  /** @nullable */
+  sourceGroupId?: number | null;
+  /** @nullable */
+  sharerComment?: string | null;
+  sharedPost?: SharedPostPreview;
+  createdAt: string;
+}
+
+export type AdminShareRecordDestination = typeof AdminShareRecordDestination[keyof typeof AdminShareRecordDestination];
+
+
+export const AdminShareRecordDestination = {
+  public: 'public',
+  lounge: 'lounge',
+  friends: 'friends',
+  private: 'private',
+  group: 'group',
+} as const;
+
+export type AdminShareRecordSourceType = typeof AdminShareRecordSourceType[keyof typeof AdminShareRecordSourceType];
+
+
+export const AdminShareRecordSourceType = {
+  feed_post: 'feed_post',
+  group_post: 'group_post',
+} as const;
+
+export type AdminShareRecordStatus = typeof AdminShareRecordStatus[keyof typeof AdminShareRecordStatus];
+
+
+export const AdminShareRecordStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+} as const;
+
+export interface AdminShareRecord {
+  id: number;
+  sharerId: number;
+  /** @nullable */
+  sharerName?: string | null;
+  destination: AdminShareRecordDestination;
+  sourceType: AdminShareRecordSourceType;
+  sourcePostId: number;
+  /** @nullable */
+  sourceGroupId?: number | null;
+  /** @nullable */
+  destinationGroupId?: number | null;
+  /** @nullable */
+  wrapperFeedPostId?: number | null;
+  /** @nullable */
+  destinationGroupPostId?: number | null;
+  /** @nullable */
+  sharerComment?: string | null;
+  status: AdminShareRecordStatus;
+  moderationLocked?: boolean;
+  createdAt: string;
+}
+
+export interface AdminShareList {
+  total: number;
+  shares: AdminShareRecord[];
+}
+
+export type AdminModerateShareInputAction = typeof AdminModerateShareInputAction[keyof typeof AdminModerateShareInputAction];
+
+
+export const AdminModerateShareInputAction = {
+  hide: 'hide',
+  remove: 'remove',
+  restore: 'restore',
+} as const;
+
+export interface AdminModerateShareInput {
+  action: AdminModerateShareInputAction;
+  reason?: string;
+}
+
+export type SharingSuspensionStatus = typeof SharingSuspensionStatus[keyof typeof SharingSuspensionStatus];
+
+
+export const SharingSuspensionStatus = {
+  active: 'active',
+  lifted: 'lifted',
+} as const;
+
+export interface SharingSuspension {
+  id: number;
+  userId: number;
+  status: SharingSuspensionStatus;
+  /** @nullable */
+  reason?: string | null;
+  suspendedByUserId?: number;
+  /** @nullable */
+  liftedByUserId?: number | null;
+  /** @nullable */
+  liftedAt?: string | null;
+  createdAt: string;
+}
+
+export interface SuspendSharingInput {
+  /** @minLength 1 */
+  reason: string;
 }
 
 export interface LikeStatus {
@@ -4172,6 +4521,17 @@ export const GroupPostStatus = {
   removed: 'removed',
 } as const;
 
+export type GroupPostAllowedShareDestinationsItem = typeof GroupPostAllowedShareDestinationsItem[keyof typeof GroupPostAllowedShareDestinationsItem];
+
+
+export const GroupPostAllowedShareDestinationsItem = {
+  public: 'public',
+  lounge: 'lounge',
+  friends: 'friends',
+  private: 'private',
+  group: 'group',
+} as const;
+
 export interface GroupPost {
   id: number;
   groupId: number;
@@ -4204,9 +4564,30 @@ export interface GroupPost {
   likeCount: number;
   commentCount: number;
   saveCount: number;
+  /** Total shares (public+lounge+friends+group). */
+  shareCount?: number;
+  publicShareCount?: number;
+  groupShareCount?: number;
+  /** Only returned to the post author or admin. */
+  privateShareCount?: number | null;
+  /** Only returned to the post author or admin. */
+  linkShareCount?: number | null;
   /** @nullable */
   viewerReaction?: string | null;
   viewerSaved?: boolean;
+  viewerCanShare?: boolean;
+  /** @nullable */
+  viewerCanShareReason?: string | null;
+  /** Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks. */
+  allowedShareDestinations?: GroupPostAllowedShareDestinationsItem[];
+  viewerCanCopyLink?: boolean;
+  sharingDisabled?: boolean;
+  allowPublicShares?: boolean;
+  allowFriendsShares?: boolean;
+  allowPrivateShares?: boolean;
+  allowGroupShares?: boolean;
+  isShareWrapper?: boolean;
+  sharedPost?: null | SharedPostPreview;
   createdAt: string;
   updatedAt?: string;
 }
@@ -5216,6 +5597,80 @@ export const ListFeedReportsStatus = {
   action_taken: 'action_taken',
 } as const;
 
+export type ListFeedShareRecipientsParams = {
+q?: string;
+limit?: number;
+};
+
+export type ListFeedShareGroupsParams = {
+q?: string;
+limit?: number;
+};
+
+export type ListMyPrivateSharesParams = {
+direction?: ListMyPrivateSharesDirection;
+limit?: number;
+};
+
+export type ListMyPrivateSharesDirection = typeof ListMyPrivateSharesDirection[keyof typeof ListMyPrivateSharesDirection];
+
+
+export const ListMyPrivateSharesDirection = {
+  sent: 'sent',
+  received: 'received',
+} as const;
+
+export type AdminListSharesParams = {
+sharerId?: number;
+sourceType?: AdminListSharesSourceType;
+destination?: AdminListSharesDestination;
+status?: AdminListSharesStatus;
+limit?: number;
+offset?: number;
+};
+
+export type AdminListSharesSourceType = typeof AdminListSharesSourceType[keyof typeof AdminListSharesSourceType];
+
+
+export const AdminListSharesSourceType = {
+  feed_post: 'feed_post',
+  group_post: 'group_post',
+} as const;
+
+export type AdminListSharesDestination = typeof AdminListSharesDestination[keyof typeof AdminListSharesDestination];
+
+
+export const AdminListSharesDestination = {
+  public: 'public',
+  lounge: 'lounge',
+  friends: 'friends',
+  private: 'private',
+  group: 'group',
+} as const;
+
+export type AdminListSharesStatus = typeof AdminListSharesStatus[keyof typeof AdminListSharesStatus];
+
+
+export const AdminListSharesStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+} as const;
+
+export type AdminListSharingSuspensionsParams = {
+userId?: number;
+status?: AdminListSharingSuspensionsStatus;
+limit?: number;
+};
+
+export type AdminListSharingSuspensionsStatus = typeof AdminListSharingSuspensionsStatus[keyof typeof AdminListSharingSuspensionsStatus];
+
+
+export const AdminListSharingSuspensionsStatus = {
+  active: 'active',
+  lifted: 'lifted',
+} as const;
+
 export type ListFriendsParams = {
 userId: number;
 };
@@ -5576,3 +6031,4 @@ export type AdminTransferGroupOwnerBody = {
   newOwnerUserId: number;
   reason?: string;
 };
+

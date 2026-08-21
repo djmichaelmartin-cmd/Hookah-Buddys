@@ -29,6 +29,7 @@ import Contact from "@/pages/Contact";
 import Messages from "@/pages/Messages";
 import VideoChat from "@/pages/VideoChat";
 import Feed from "@/pages/Feed";
+import PostDetail from "@/pages/PostDetail";
 import Notifications from "@/pages/Notifications";
 import BroProfile from "@/pages/BroProfile";
 import ProfileEdit from "@/pages/ProfileEdit";
@@ -92,6 +93,7 @@ function Router() {
       <Route path="/video-chat" component={VideoChat} />
       <Route path="/video-chat/:id" component={VideoChat} />
       <Route path="/feed" component={Feed} />
+      <Route path="/posts/:id" component={PostDetail} />
       <Route path="/notifications" component={Notifications} />
       <Route path="/profile/edit" component={ProfileEdit} />
       <Route path="/settings/privacy" component={PrivacySettings} />

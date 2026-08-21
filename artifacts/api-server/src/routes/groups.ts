@@ -130,6 +130,11 @@ import {
   resolveMemberLocation,
 } from "../lib/loungeSpotlight";
 import { resolvePrivateCityGeocode } from "../lib/privateGeocoding";
+import {
+  postSharingSettingsTable,
+  sharingSuspensionsTable,
+} from "@workspace/db";
+import { buildSharedPostPreview, getEffectiveShareDestinations } from "../lib/sharingPolicy";
 
 const router: IRouter = Router();
 
@@ -175,6 +180,7 @@ async function resolveCoarseMeetupCoordinates(
 
   const location = await resolvePrivateCityGeocode(cityKey, stateKey);
   if (!location) return null;
+
   return {
     lat: toCoarseMeetupCoordinate(location.lat),
     lng: toCoarseMeetupCoordinate(location.lng),
@@ -868,7 +874,19 @@ function serializeGroupPreview(
 async function serializePost(
   post: typeof groupPostsTable.$inferSelect,
   viewerId: number | null,
-  opts: { groupIsPrivate?: boolean } = {},
+  opts: {
+    groupIsPrivate?: boolean;
+    viewerSuspended?: boolean;
+    viewerRole?: string;
+    /** Pre-loaded sharing settings (avoids N+1 in lists) */
+    sharingSettingsOverride?: {
+      sharingDisabled: boolean;
+      allowPublicShares: boolean;
+      allowFriendsShares: boolean;
+      allowPrivateShares: boolean;
+      allowGroupShares: boolean;
+    };
+  } = {},
 ) {
   const [author] = await db
     .select({
@@ -924,6 +942,9 @@ async function serializePost(
     viewerSaved = !!save;
   }
 
+  const isPlatformAdmin = opts.viewerRole === "admin";
+  const isOwner = viewerId != null && post.authorUserId === viewerId;
+
   return {
     id: post.id,
     groupId: post.groupId,
@@ -958,8 +979,108 @@ async function serializePost(
     likeCount: post.likeCount,
     commentCount: post.commentCount,
     saveCount: post.saveCount,
+    shareCount:
+      isPlatformAdmin || isOwner
+        ? post.shareCount
+        : post.publicShareCount + post.groupShareCount,
+    publicShareCount: post.publicShareCount,
+    // Private count: only owner/admin see it
+    privateShareCount: (() => {
+      return isPlatformAdmin || isOwner ? post.privateShareCount : undefined;
+    })(),
+    groupShareCount: post.groupShareCount,
+    linkShareCount: (() => {
+      return isPlatformAdmin || isOwner ? post.linkShareCount : undefined;
+    })(),
     viewerReaction,
     viewerSaved,
+    // Sharing enrichment
+    ...(await (async () => {
+      // Load sharing settings (use pre-loaded override to avoid N+1 in lists)
+      let sharingSettings: {
+        sharingDisabled: boolean;
+        allowPublicShares: boolean;
+        allowFriendsShares: boolean;
+        allowPrivateShares: boolean;
+        allowGroupShares: boolean;
+      };
+      if (opts.sharingSettingsOverride !== undefined) {
+        sharingSettings = opts.sharingSettingsOverride;
+      } else {
+        const [settings] = await db
+          .select()
+          .from(postSharingSettingsTable)
+          .where(
+            and(
+              eq(postSharingSettingsTable.sourceType, "group_post"),
+              eq(postSharingSettingsTable.sourcePostId, post.id),
+            ),
+          )
+          .limit(1);
+        sharingSettings = {
+          sharingDisabled: settings?.sharingDisabled ?? false,
+          allowPublicShares: settings?.allowPublicShares ?? true,
+          allowFriendsShares: settings?.allowFriendsShares ?? true,
+          allowPrivateShares: settings?.allowPrivateShares ?? true,
+          allowGroupShares: settings?.allowGroupShares ?? true,
+        };
+      }
+
+      // Build shared post preview for wrappers
+      const isWrapper = !!post.shareSourceType && !!post.shareSourcePostId;
+      let sharedPost = null;
+      if (isWrapper) {
+        const viewer = viewerId
+          ? { id: viewerId, role: opts.viewerRole ?? "member", name: "" }
+          : null;
+        sharedPost = await buildSharedPostPreview({
+          sourceType: post.shareSourceType as "feed_post" | "group_post",
+          sourcePostId: post.shareSourcePostId!,
+          sourceGroupId: post.shareSourceGroupId ?? null,
+          viewer,
+        });
+      }
+
+      const allowedShareDestinations = isWrapper
+        ? sharedPost?.available
+          ? sharedPost.allowedShareDestinations
+          : []
+        : getEffectiveShareDestinations({
+            ...sharingSettings,
+            sourceGroupPrivacy: opts.groupIsPrivate ? "private" : "public",
+            viewerSuspended: opts.viewerSuspended,
+          });
+      const viewerCanCopyLink = isWrapper
+        ? (sharedPost?.available && sharedPost.viewerCanCopyLink) || false
+        : !!viewerId && !opts.viewerSuspended && !sharingSettings.sharingDisabled;
+      let viewerCanShare = false;
+      let viewerCanShareReason: string | null = null;
+      if (!viewerId) {
+        viewerCanShareReason = "Login to share posts";
+      } else if (opts.viewerSuspended) {
+        viewerCanShareReason = "Sharing privilege suspended";
+      } else if (sharingSettings.sharingDisabled) {
+        viewerCanShareReason = "Author disabled sharing for this post";
+      } else if (allowedShareDestinations.length > 0) {
+        viewerCanShare = true;
+      } else {
+        viewerCanShareReason = "No sharing destinations are available for this post";
+      }
+
+      return {
+        sharingDisabled: sharingSettings.sharingDisabled,
+        allowPublicShares: sharingSettings.allowPublicShares,
+        allowFriendsShares: sharingSettings.allowFriendsShares,
+        allowPrivateShares: sharingSettings.allowPrivateShares,
+        allowGroupShares: sharingSettings.allowGroupShares,
+        viewerCanShare,
+        viewerCanShareReason,
+        allowedShareDestinations,
+        viewerCanCopyLink,
+        isShareWrapper: isWrapper,
+        sharedPost: isWrapper ? sharedPost : null,
+      };
+    })()),
     createdAt: post.createdAt.toISOString(),
     updatedAt: post.updatedAt.toISOString(),
   };
@@ -3194,10 +3315,55 @@ router.get("/groups/:groupId/posts", async (req, res): Promise<void> => {
   const blockedAuthors = viewer ? await getBlockedUserIds(viewer.id, authorIds) : new Set<number>();
   const visiblePosts = posts.filter((p) => !blockedAuthors.has(p.authorUserId));
 
+  // Preload sharing settings for all visible posts (avoids N+1)
+  const visiblePostIds = visiblePosts.map((p) => p.id);
+  const sharingSettingsRows = visiblePostIds.length
+    ? await db
+        .select()
+        .from(postSharingSettingsTable)
+        .where(
+          and(
+            eq(postSharingSettingsTable.sourceType, "group_post"),
+            inArray(postSharingSettingsTable.sourcePostId, visiblePostIds),
+          ),
+        )
+    : [];
+  const sharingSettingsByPostId = new Map(sharingSettingsRows.map((s) => [s.sourcePostId, s]));
+
+  // Check viewer suspension once
+  let viewerSuspended = false;
+  if (viewer?.id) {
+    const [suspRow] = await db
+      .select()
+      .from(sharingSuspensionsTable)
+      .where(
+        and(
+          eq(sharingSuspensionsTable.userId, viewer.id),
+          eq(sharingSuspensionsTable.status, "active"),
+        ),
+      )
+      .limit(1);
+    viewerSuspended = !!suspRow;
+  }
+
+  const viewerRole = viewer?.role ?? "member";
+
   const serialized = await Promise.all(
-    visiblePosts.map((p) =>
-      serializePost(p, viewer?.id ?? null, { groupIsPrivate: group.privacy === "private" }),
-    ),
+    visiblePosts.map((p) => {
+      const s = sharingSettingsByPostId.get(p.id);
+      return serializePost(p, viewer?.id ?? null, {
+        groupIsPrivate: group.privacy === "private",
+        viewerSuspended,
+        viewerRole,
+        sharingSettingsOverride: {
+          sharingDisabled: s?.sharingDisabled ?? false,
+          allowPublicShares: s?.allowPublicShares ?? true,
+          allowFriendsShares: s?.allowFriendsShares ?? true,
+          allowPrivateShares: s?.allowPrivateShares ?? true,
+          allowGroupShares: s?.allowGroupShares ?? true,
+        },
+      });
+    }),
   );
   res.json(serialized);
 });

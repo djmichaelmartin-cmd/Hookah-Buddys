@@ -6,9 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { FeedBusinessAuthor } from './feedBusinessAuthor';
+import type { FeedPostAllowedShareDestinationsItem } from './feedPostAllowedShareDestinationsItem';
 import type { FeedPostAudience } from './feedPostAudience';
 import type { FeedPostMediaType } from './feedPostMediaType';
 import type { FeedPostStatus } from './feedPostStatus';
+import type { SharedPostPreview } from './sharedPostPreview';
 
 export interface FeedPost {
   id: number;
@@ -56,6 +58,31 @@ export interface FeedPost {
   viewerSaved?: boolean;
   viewerFollowsAuthor?: boolean;
   audience?: FeedPostAudience;
+  /** Total shares (public+lounge+friends+group). */
+  shareCount?: number;
+  /** Public/lounge/friends wrapper shares. */
+  publicShareCount?: number;
+  /** Group destination wrapper shares. */
+  groupShareCount?: number;
+  /** Private recipient shares — only returned to the post owner or admin. */
+  privateShareCount?: number | null;
+  /** Copy-link events — only returned to the post owner or admin. */
+  linkShareCount?: number | null;
+  viewerCanShare?: boolean;
+  /** @nullable */
+  viewerCanShareReason?: string | null;
+  /** Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks. */
+  allowedShareDestinations?: FeedPostAllowedShareDestinationsItem[];
+  viewerCanCopyLink?: boolean;
+  sharingDisabled?: boolean;
+  allowPublicShares?: boolean;
+  allowFriendsShares?: boolean;
+  allowPrivateShares?: boolean;
+  allowGroupShares?: boolean;
+  /** True when this post is a share wrapper referencing another post. */
+  isShareWrapper?: boolean;
+  /** Live-authorized source preview; present only when isShareWrapper=true. */
+  sharedPost?: null | SharedPostPreview;
   createdAt: string;
   updatedAt?: string;
 }

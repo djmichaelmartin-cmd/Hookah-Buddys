@@ -28,6 +28,7 @@ import {
   Bell,
   Briefcase,
   Bookmark,
+  Share2,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -353,6 +354,12 @@ export function Navbar() {
                       <Link href="/dashboard/member?tab=saved" className="flex items-center w-full">
                         <Bookmark className="mr-2 h-4 w-4" />
                         <span>Saved Posts</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
+                      <Link href="/dashboard/member?tab=shared" className="flex items-center w-full">
+                        <Share2 className="mr-2 h-4 w-4" />
+                        <span>Shared with you</span>
                       </Link>
                     </DropdownMenuItem>
                   </>

@@ -2058,6 +2058,343 @@ paths:
         "403":
           description: Forbidden
 
+  # ── Sharing — feed posts ─────────────────────────────────────────────────────
+
+  /feed/posts/{id}/sharing:
+    patch:
+      operationId: updateFeedPostSharing
+      tags: [feed]
+      summary: Update sharing settings for own feed post (author only)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostSharingSettingsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSharingSettings"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /feed/posts/{id}/share:
+    post:
+      operationId: shareFeedPost
+      tags: [feed]
+      summary: Share a feed post to a destination
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SharePostInput"
+      responses:
+        "201":
+          description: Shared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShareResult"
+        "400":
+          description: Bad request (validation or rate limit)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /feed/posts/{id}/copy-link:
+    post:
+      operationId: copyFeedPostLink
+      tags: [feed]
+      summary: Copy a canonical link for a feed post (records analytics)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CopyLinkResult"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  /feed/share-recipients:
+    get:
+      operationId: listFeedShareRecipients
+      tags: [feed]
+      summary: List eligible recipients for a private share (friends/follows)
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShareRecipientUser"
+        "401":
+          description: Unauthorized
+
+  /feed/share-groups:
+    get:
+      operationId: listFeedShareGroups
+      tags: [feed]
+      summary: List groups the viewer can share to
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShareGroupOption"
+        "401":
+          description: Unauthorized
+
+  /feed/shares/private:
+    get:
+      operationId: listMyPrivateShares
+      tags: [feed]
+      summary: List private shares sent or received by the current user
+      parameters:
+        - { name: direction, in: query, required: false, schema: { type: string, enum: [sent, received] } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrivateShareRecord"
+        "401":
+          description: Unauthorized
+
+  # ── Sharing — group posts ─────────────────────────────────────────────────────
+
+  /groups/{groupId}/posts/{postId}/sharing:
+    patch:
+      operationId: updateGroupPostSharing
+      tags: [groups]
+      summary: Update sharing settings for a group post (author only)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostSharingSettingsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSharingSettings"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /groups/{groupId}/posts/{postId}/share:
+    post:
+      operationId: shareGroupPost
+      tags: [groups]
+      summary: Share a group post to a destination
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SharePostInput"
+      responses:
+        "201":
+          description: Shared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShareResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /groups/{groupId}/posts/{postId}/copy-link:
+    post:
+      operationId: copyGroupPostLink
+      tags: [groups]
+      summary: Copy a canonical link for a group post (records analytics)
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+        - { name: postId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CopyLinkResult"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  # ── Sharing — admin ───────────────────────────────────────────────────────────
+
+  /admin/shares:
+    get:
+      operationId: adminListShares
+      tags: [admin]
+      summary: List/filter share records (Admin)
+      parameters:
+        - { name: sharerId, in: query, required: false, schema: { type: integer } }
+        - { name: sourceType, in: query, required: false, schema: { type: string, enum: [feed_post, group_post] } }
+        - { name: destination, in: query, required: false, schema: { type: string, enum: [public, lounge, friends, private, group] } }
+        - { name: status, in: query, required: false, schema: { type: string, enum: [active, hidden, removed] } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+        - { name: offset, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminShareList"
+        "403":
+          description: Forbidden
+
+  /admin/shares/{shareId}:
+    patch:
+      operationId: adminModerateShare
+      tags: [admin]
+      summary: Hide or remove a share wrapper (Admin)
+      parameters:
+        - { name: shareId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminModerateShareInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminShareRecord"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /admin/shares/suspensions:
+    get:
+      operationId: adminListSharingSuspensions
+      tags: [admin]
+      summary: List sharing suspensions (Admin)
+      parameters:
+        - { name: userId, in: query, required: false, schema: { type: integer } }
+        - { name: status, in: query, required: false, schema: { type: string, enum: [active, lifted] } }
+        - { name: limit, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharingSuspension"
+        "403":
+          description: Forbidden
+
+  /admin/shares/suspensions/{userId}/suspend:
+    post:
+      operationId: adminSuspendSharing
+      tags: [admin]
+      summary: Suspend a member's sharing privilege (Admin)
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuspendSharingInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharingSuspension"
+        "403":
+          description: Forbidden
+
+  /admin/shares/suspensions/{userId}/restore:
+    post:
+      operationId: adminRestoreSharing
+      tags: [admin]
+      summary: Restore a member's sharing privilege (Admin)
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharingSuspension"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
   /profiles/{userId}:
     get:
       operationId: getEnhancedProfile
@@ -6706,6 +7043,35 @@ components:
         viewerSaved: { type: boolean }
         viewerFollowsAuthor: { type: boolean }
         audience: { type: string, enum: [public, friends, followers, only_me] }
+        shareCount: { type: integer, description: "Total shares (public+lounge+friends+group)." }
+        publicShareCount: { type: integer, description: "Public/lounge/friends wrapper shares." }
+        groupShareCount: { type: integer, description: "Group destination wrapper shares." }
+        privateShareCount:
+          type: integer
+          nullable: true
+          description: "Private recipient shares — only returned to the post owner or admin."
+        linkShareCount:
+          type: integer
+          nullable: true
+          description: "Copy-link events — only returned to the post owner or admin."
+        viewerCanShare: { type: boolean }
+        viewerCanShareReason: { type: ["string", "null"] }
+        allowedShareDestinations:
+          type: array
+          items: { type: string, enum: [public, lounge, friends, private, group] }
+          description: "Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks."
+        viewerCanCopyLink: { type: boolean }
+        sharingDisabled: { type: boolean }
+        allowPublicShares: { type: boolean }
+        allowFriendsShares: { type: boolean }
+        allowPrivateShares: { type: boolean }
+        allowGroupShares: { type: boolean }
+        isShareWrapper: { type: boolean, description: "True when this post is a share wrapper referencing another post." }
+        sharedPost:
+          description: "Live-authorized source preview; present only when isShareWrapper=true."
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/SharedPostPreview"
         createdAt: { type: string }
         updatedAt: { type: string }
 
@@ -6799,6 +7165,189 @@ components:
       required: [status]
       properties:
         status: { type: string, enum: [active, hidden, removed, pending_review] }
+
+    # ── Sharing schemas ────────────────────────────────────────────────────────
+
+    SharedPostPreview:
+      type: object
+      required: [available]
+      description: Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.
+      properties:
+        available: { type: boolean }
+        sourceType: { type: ["string", "null"], enum: [feed_post, group_post, null] }
+        sourcePostId: { type: ["integer", "null"] }
+        sourceGroupId: { type: ["integer", "null"] }
+        canonicalUrl: { type: ["string", "null"] }
+        audience:
+          type: ["string", "null"]
+          enum: [public, friends, followers, only_me, null]
+        groupPrivacy:
+          type: ["string", "null"]
+          enum: [public, private, null]
+        allowedShareDestinations:
+          type: array
+          items: { type: string, enum: [public, lounge, friends, private, group] }
+        viewerCanCopyLink: { type: boolean }
+        text: { type: ["string", "null"] }
+        mediaUrl: { type: ["string", "null"] }
+        posterUrl: { type: ["string", "null"] }
+        mediaType: { type: ["string", "null"] }
+        authorName: { type: ["string", "null"] }
+        authorPhotoUrl: { type: ["string", "null"] }
+        groupName: { type: ["string", "null"] }
+        shareCount: { type: integer }
+
+    PostSharingSettings:
+      type: object
+      required: [sourceType, sourcePostId, sharingDisabled, allowPublicShares, allowFriendsShares, allowPrivateShares, allowGroupShares]
+      properties:
+        sourceType: { type: string, enum: [feed_post, group_post] }
+        sourcePostId: { type: integer }
+        sharingDisabled: { type: boolean, description: "Global kill-switch — disables all sharing." }
+        allowPublicShares: { type: boolean, description: "Allow public/lounge/friends wrapper shares." }
+        allowFriendsShares: { type: boolean }
+        allowPrivateShares: { type: boolean }
+        allowGroupShares: { type: boolean }
+
+    UpdatePostSharingSettingsInput:
+      type: object
+      properties:
+        sharingDisabled: { type: boolean }
+        allowPublicShares: { type: boolean }
+        allowFriendsShares: { type: boolean }
+        allowPrivateShares: { type: boolean }
+        allowGroupShares: { type: boolean }
+
+    SharePostInput:
+      type: object
+      required: [destination]
+      properties:
+        destination:
+          type: string
+          enum: [public, lounge, friends, private, group]
+        destinationGroupId:
+          type: integer
+          description: Required when destination=group; invalid with other destinations
+        recipientUserIds:
+          type: array
+          items: { type: integer }
+          maxItems: 20
+          description: Required when destination=private (1-20 eligible recipients); self excluded automatically
+        sharerComment:
+          type: string
+          maxLength: 500
+          description: Optional comment from the sharer (never copied from source)
+
+    ShareResult:
+      type: object
+      required: [shareId, destination, deduplicated]
+      properties:
+        shareId: { type: integer }
+        destination: { type: string, enum: [public, lounge, friends, private, group] }
+        wrapperFeedPostId: { type: ["integer", "null"] }
+        destinationGroupPostId: { type: ["integer", "null"] }
+        recipientCount: { type: ["integer", "null"] }
+        deduplicated: { type: boolean, description: "True when the exact same share already existed; counters were not incremented again." }
+
+    CopyLinkResult:
+      type: object
+      required: [canonicalUrl, shareId]
+      properties:
+        canonicalUrl: { type: string }
+        shareId: { type: integer }
+
+    ShareRecipientUser:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        username: { type: ["string", "null"] }
+        profilePhotoUrl: { type: ["string", "null"] }
+        isFriend: { type: boolean }
+
+    ShareGroupOption:
+      type: object
+      required: [id, name, memberRole]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        iconUrl: { type: ["string", "null"] }
+        privacy: { type: string, enum: [public, private] }
+        memberRole: { type: string }
+
+    PrivateShareRecord:
+      type: object
+      required: [id, sharerId, destination, sourceType, sourcePostId, createdAt]
+      properties:
+        id: { type: integer }
+        sharerId: { type: integer }
+        sharerName: { type: string }
+        destination: { type: string }
+        sourceType: { type: string, enum: [feed_post, group_post] }
+        sourcePostId: { type: integer }
+        sourceGroupId: { type: ["integer", "null"] }
+        sharerComment: { type: ["string", "null"] }
+        sharedPost:
+          $ref: "#/components/schemas/SharedPostPreview"
+        createdAt: { type: string }
+
+    AdminShareRecord:
+      type: object
+      required: [id, sharerId, destination, sourceType, sourcePostId, status, createdAt]
+      properties:
+        id: { type: integer }
+        sharerId: { type: integer }
+        sharerName: { type: ["string", "null"] }
+        destination: { type: string, enum: [public, lounge, friends, private, group] }
+        sourceType: { type: string, enum: [feed_post, group_post] }
+        sourcePostId: { type: integer }
+        sourceGroupId: { type: ["integer", "null"] }
+        destinationGroupId: { type: ["integer", "null"] }
+        wrapperFeedPostId: { type: ["integer", "null"] }
+        destinationGroupPostId: { type: ["integer", "null"] }
+        sharerComment: { type: ["string", "null"] }
+        status: { type: string, enum: [active, hidden, removed] }
+        moderationLocked: { type: boolean }
+        createdAt: { type: string }
+
+    AdminShareList:
+      type: object
+      required: [shares, total]
+      properties:
+        total: { type: integer }
+        shares:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminShareRecord"
+
+    AdminModerateShareInput:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [hide, remove, restore] }
+        reason: { type: string }
+
+    SharingSuspension:
+      type: object
+      required: [id, userId, status, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        status: { type: string, enum: [active, lifted] }
+        reason: { type: ["string", "null"] }
+        suspendedByUserId: { type: integer }
+        liftedByUserId: { type: ["integer", "null"] }
+        liftedAt: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    SuspendSharingInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1 }
+
+    # ── End sharing schemas ────────────────────────────────────────────────────
 
     LikeStatus:
       type: object
@@ -8696,8 +9245,36 @@ components:
         likeCount: { type: integer }
         commentCount: { type: integer }
         saveCount: { type: integer }
+        shareCount: { type: integer, description: "Total shares (public+lounge+friends+group)." }
+        publicShareCount: { type: integer }
+        groupShareCount: { type: integer }
+        privateShareCount:
+          type: integer
+          nullable: true
+          description: "Only returned to the post author or admin."
+        linkShareCount:
+          type: integer
+          nullable: true
+          description: "Only returned to the post author or admin."
         viewerReaction: { type: ["string", "null"] }
         viewerSaved: { type: boolean }
+        viewerCanShare: { type: boolean }
+        viewerCanShareReason: { type: ["string", "null"] }
+        allowedShareDestinations:
+          type: array
+          items: { type: string, enum: [public, lounge, friends, private, group] }
+          description: "Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks."
+        viewerCanCopyLink: { type: boolean }
+        sharingDisabled: { type: boolean }
+        allowPublicShares: { type: boolean }
+        allowFriendsShares: { type: boolean }
+        allowPrivateShares: { type: boolean }
+        allowGroupShares: { type: boolean }
+        isShareWrapper: { type: boolean }
+        sharedPost:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/SharedPostPreview"
         createdAt: { type: string }
         updatedAt: { type: string }
 

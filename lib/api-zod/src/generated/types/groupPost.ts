@@ -5,9 +5,11 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { GroupPostAllowedShareDestinationsItem } from './groupPostAllowedShareDestinationsItem';
 import type { GroupPostMediaType } from './groupPostMediaType';
 import type { GroupPostPollData } from './groupPostPollData';
 import type { GroupPostStatus } from './groupPostStatus';
+import type { SharedPostPreview } from './sharedPostPreview';
 
 export interface GroupPost {
   id: number;
@@ -41,9 +43,30 @@ export interface GroupPost {
   likeCount: number;
   commentCount: number;
   saveCount: number;
+  /** Total shares (public+lounge+friends+group). */
+  shareCount?: number;
+  publicShareCount?: number;
+  groupShareCount?: number;
+  /** Only returned to the post author or admin. */
+  privateShareCount?: number | null;
+  /** Only returned to the post author or admin. */
+  linkShareCount?: number | null;
   /** @nullable */
   viewerReaction?: string | null;
   viewerSaved?: boolean;
+  viewerCanShare?: boolean;
+  /** @nullable */
+  viewerCanShareReason?: string | null;
+  /** Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks. */
+  allowedShareDestinations?: GroupPostAllowedShareDestinationsItem[];
+  viewerCanCopyLink?: boolean;
+  sharingDisabled?: boolean;
+  allowPublicShares?: boolean;
+  allowFriendsShares?: boolean;
+  allowPrivateShares?: boolean;
+  allowGroupShares?: boolean;
+  isShareWrapper?: boolean;
+  sharedPost?: null | SharedPostPreview;
   createdAt: string;
   updatedAt?: string;
 }
