@@ -16,9 +16,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      html,
+      body,
+      #root {
+        min-height: 100%;
+        margin: 0;
+        background: #050506;
+      }
+
+      .app-boot-shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        color: #d8b86a;
+        font: 600 0.875rem/1.5 Inter, system-ui, sans-serif;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="root">
+      <div class="app-boot-shell">Loading HookahBuddys…</div>
+    </div>
+    <script type="module" src="/src/main.tsx?v=preview-recovery-2"></script>
   </body>
 </html>
