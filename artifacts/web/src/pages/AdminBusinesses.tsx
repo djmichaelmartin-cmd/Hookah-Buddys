@@ -3,6 +3,7 @@ import { getErrorMessage } from "@/lib/error";
 import { 
   useListAdminBusinesses, 
   useModerateBusiness,
+  useDeleteAdminBusiness,
   getListAdminBusinessesQueryKey,
   BusinessModerationInputAction,
   BusinessModerationInput,
@@ -16,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle, XCircle, MoreVertical, ShieldAlert, Award, Star, ArrowRightLeft, Tag } from "lucide-react";
+import { CheckCircle, XCircle, MoreVertical, ShieldAlert, Award, Star, ArrowRightLeft, Tag, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -49,12 +50,14 @@ export default function AdminBusinesses() {
   const [modAction, setModAction] = useState<BusinessModerationInputAction | null>(null);
   const [modReason, setModReason] = useState("");
   const [modExtra, setModExtra] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<AdminBusinessSummary | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   const moderateBusiness = useModerateBusiness({
     mutation: {
       onSuccess: () => {
         toast({ title: "Business moderated successfully" });
-        queryClient.invalidateQueries({ queryKey: getListAdminBusinessesQueryKey({}) }); // Invalidate all
+        queryClient.invalidateQueries({ queryKey: getListAdminBusinessesQueryKey() });
         setModAction(null);
         setModReason("");
         setModExtra("");
@@ -64,6 +67,29 @@ export default function AdminBusinesses() {
         toast({ title: "Failed to moderate", description: getErrorMessage(err) || "An error occurred", variant: "destructive" });
       }
     }
+  });
+
+  const deleteBusiness = useDeleteAdminBusiness({
+    mutation: {
+      onSuccess: (result) => {
+        toast({
+          title: "Business permanently deleted",
+          description: result.objectCleanupFailureCount > 0
+            ? `@${result.handle} was deleted and the handle is available. ${result.objectCleanupFailureCount} file could not be cleaned up automatically.`
+            : `@${result.handle} and its owned content were deleted. The handle is now available.`,
+        });
+        queryClient.invalidateQueries({ queryKey: getListAdminBusinessesQueryKey() });
+        setDeleteTarget(null);
+        setDeleteConfirmation("");
+      },
+      onError: (err: unknown) => {
+        toast({
+          title: "Business was not deleted",
+          description: getErrorMessage(err) || "The deletion failed and no changes were committed.",
+          variant: "destructive",
+        });
+      },
+    },
   });
 
   const handleModerate = () => {
@@ -93,6 +119,19 @@ export default function AdminBusinesses() {
     setModAction(action as BusinessModerationInputAction);
     setModReason("");
     setModExtra("");
+  };
+
+  const openDeleteDialog = (business: AdminBusinessSummary) => {
+    setDeleteTarget(business);
+    setDeleteConfirmation("");
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget || deleteConfirmation.trim().toLowerCase() !== deleteTarget.handle.toLowerCase()) return;
+    deleteBusiness.mutate({
+      handle: deleteTarget.handle,
+      data: { confirmHandle: deleteConfirmation.trim() },
+    });
   };
 
   const businessList = (businessesResponse || []).filter((b) => {
@@ -268,6 +307,14 @@ export default function AdminBusinesses() {
                           <DropdownMenuItem onClick={() => openModDialog(business, 'badge_revoke')} className="text-red-400"><XCircle className="w-4 h-4 mr-2"/> Revoke Badge</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openModDialog(business, 'set_category')}><Tag className="w-4 h-4 mr-2"/> Change Category</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openModDialog(business, 'transfer_owner')} className="text-orange-400"><ArrowRightLeft className="w-4 h-4 mr-2"/> Transfer Owner</DropdownMenuItem>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem
+                             onClick={() => openDeleteDialog(business)}
+                             className="text-red-400 focus:bg-red-500/10 focus:text-red-300"
+                             data-testid={`menu-delete-business-${business.handle}`}
+                           >
+                             <Trash2 className="w-4 h-4 mr-2" /> Delete Business
+                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -355,6 +402,79 @@ export default function AdminBusinesses() {
               className={`${['suspend', 'reject_verification', 'badge_revoke'].includes(modAction as string) ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-primary text-primary-foreground'}`}
             >
               {moderateBusiness.isPending ? "Processing..." : "Confirm Action"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open && !deleteBusiness.isPending) {
+            setDeleteTarget(null);
+            setDeleteConfirmation("");
+          }
+        }}
+      >
+        <DialogContent
+          className="bg-card border-red-500/30 text-white sm:max-w-md"
+          data-testid="dialog-delete-business"
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-400">
+              <Trash2 className="h-5 w-5" />
+              Permanently delete {deleteTarget?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="rounded-lg border border-red-500/25 bg-red-500/10 p-4 text-sm text-red-100">
+              This cannot be undone. The Business Page, its posts, media, events,
+              messages, reviews, team access, verification records, and other
+              business-owned activity will be permanently removed. The owner&apos;s
+              member account will not be deleted.
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="delete-business-confirmation" className="text-sm text-white/80">
+                Type <span className="font-mono font-semibold text-white">{deleteTarget?.handle}</span> to confirm
+              </label>
+              <Input
+                id="delete-business-confirmation"
+                value={deleteConfirmation}
+                onChange={(event) => setDeleteConfirmation(event.target.value)}
+                placeholder={deleteTarget?.handle ?? ""}
+                className="bg-background border-red-500/30"
+                autoComplete="off"
+                disabled={deleteBusiness.isPending}
+                data-testid="input-delete-business-confirmation"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDeleteTarget(null);
+                setDeleteConfirmation("");
+              }}
+              disabled={deleteBusiness.isPending}
+              className="text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={
+                deleteBusiness.isPending ||
+                !deleteTarget ||
+                deleteConfirmation.trim().toLowerCase() !== deleteTarget.handle.toLowerCase()
+              }
+              className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
+              data-testid="button-confirm-delete-business"
+            >
+              {deleteBusiness.isPending ? "Deleting..." : "Delete permanently"}
             </Button>
           </DialogFooter>
         </DialogContent>

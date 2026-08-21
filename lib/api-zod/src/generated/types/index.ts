@@ -60,6 +60,8 @@ export * from './businessContentReportItemStatus';
 export * from './businessConversationItem';
 export * from './businessDashboard';
 export * from './businessDashboardRecentActivityItem';
+export * from './businessDeletionInput';
+export * from './businessDeletionResult';
 export * from './businessDetail';
 export * from './businessDetailBookingAvailability';
 export * from './businessDetailCtaConfig';

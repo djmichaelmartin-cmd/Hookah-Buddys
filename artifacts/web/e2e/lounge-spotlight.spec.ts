@@ -255,6 +255,7 @@ async function installApiMocks(page: Page, options: MockApiOptions) {
     locationSaves: [] as { url: URL; body: Record<string, unknown> }[],
     followedHandles: [] as string[],
     moderationActions: [] as { handle: string; body: Record<string, unknown> }[],
+    deletionActions: [] as { handle: string; body: Record<string, unknown> }[],
   };
 
   await page.addInitScript(() => {
@@ -344,6 +345,27 @@ async function installApiMocks(page: Page, options: MockApiOptions) {
       );
       await route.fulfill({
         json: state.adminBusinesses.find((business) => business.handle === handle) ?? {},
+      });
+      return;
+    }
+
+    const deletionMatch = url.pathname.match(/^\/api\/admin\/businesses\/([^/]+)$/);
+    if (deletionMatch && method === "DELETE") {
+      const handle = decodeURIComponent(deletionMatch[1]);
+      const body = request.postDataJSON() as Record<string, unknown>;
+      captured.deletionActions.push({ handle, body });
+      const deleted = state.adminBusinesses.find((business) => business.handle === handle);
+      state.adminBusinesses = state.adminBusinesses.filter(
+        (business) => business.handle !== handle,
+      );
+      await route.fulfill({
+        json: {
+          deleted: true,
+          businessId: Number(deleted?.id ?? 0),
+          handle,
+          deletedObjectCount: 2,
+          objectCleanupFailureCount: 0,
+        },
       });
       return;
     }
@@ -595,6 +617,47 @@ test("admins can enable and disable Spotlight eligibility", async ({ page }) => 
     {
       handle: "admin-smoke-lounge",
       body: { action: "spotlight_disable" },
+    },
+  ]);
+});
+
+test("admins must type the exact handle before permanently deleting a business", async ({
+  page,
+}) => {
+  const { captured } = await installApiMocks(page, {
+    role: "admin",
+    spotlight: spotlightResponse("empty"),
+    adminBusinesses: [adminBusiness(true)],
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  await page.goto("/admin");
+  await page.getByRole("tab", { name: "Businesses", exact: true }).click();
+
+  const row = page.getByRole("row").filter({ hasText: "Admin Smoke Lounge" });
+  await row.getByRole("button").click();
+  await page.getByTestId("menu-delete-business-admin-smoke-lounge").click();
+
+  const dialog = page.getByTestId("dialog-delete-business");
+  await expect(dialog).toBeVisible();
+  await expect(
+    dialog.getByRole("heading", { name: "Permanently delete Admin Smoke Lounge" }),
+  ).toBeVisible();
+  const confirmButton = dialog.getByTestId("button-confirm-delete-business");
+  await expect(confirmButton).toBeDisabled();
+
+  const confirmation = dialog.getByTestId("input-delete-business-confirmation");
+  await confirmation.fill("wrong-handle");
+  await expect(confirmButton).toBeDisabled();
+  await confirmation.fill("admin-smoke-lounge");
+  await expect(confirmButton).toBeEnabled();
+  await confirmButton.click();
+
+  await expect(row).toHaveCount(0);
+  expect(captured.deletionActions).toEqual([
+    {
+      handle: "admin-smoke-lounge",
+      body: { confirmHandle: "admin-smoke-lounge" },
     },
   ]);
 });

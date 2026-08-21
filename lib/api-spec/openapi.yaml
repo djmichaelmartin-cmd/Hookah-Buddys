@@ -4073,6 +4073,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/BusinessDetail"
 
+  /admin/businesses/{handle}:
+    delete:
+      operationId: deleteAdminBusiness
+      tags: [admin]
+      summary: Permanently delete a business page and its owned content
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessDeletionInput"
+      responses:
+        "200":
+          description: Business page permanently deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessDeletionResult"
+        "400":
+          description: Confirmation handle does not match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "403":
+          description: Platform administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: Business page not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
   /businesses/{handle}/{entityType}/{entityId}/like:
     post:
       operationId: toggleBusinessChildLike
@@ -8040,6 +8079,33 @@ components:
         featuredUntil: { type: string }
         sponsoredUntil: { type: string }
         newOwnerUserId: { type: integer }
+
+    BusinessDeletionInput:
+      type: object
+      additionalProperties: false
+      required: [confirmHandle]
+      properties:
+        confirmHandle:
+          type: string
+          minLength: 1
+          maxLength: 64
+
+    BusinessDeletionResult:
+      type: object
+      required:
+        [
+          deleted,
+          businessId,
+          handle,
+          deletedObjectCount,
+          objectCleanupFailureCount,
+        ]
+      properties:
+        deleted: { type: boolean }
+        businessId: { type: integer }
+        handle: { type: string }
+        deletedObjectCount: { type: integer }
+        objectCleanupFailureCount: { type: integer }
 
     # ── Post engagement ──────────────────────────────────────────────────────
     BusinessPostLikeResult:

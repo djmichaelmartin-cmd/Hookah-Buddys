@@ -344,11 +344,17 @@ export async function uploadVerificationDocumentBuffer(
 export async function assertPrivateVerificationDocument(
   ref: string,
   ownerId: number,
+  businessId: number,
 ): Promise<string> {
   const objectPath = toObjectEntityPath(ref);
   if (!objectPath) {
     throw new InvalidUploadError(
       "Verification documents must reference an uploaded storage object.",
+    );
+  }
+  if (!objectPath.startsWith(`/objects/verification/${businessId}/`)) {
+    throw new InvalidUploadError(
+      "Verification document is not scoped to this Business Page.",
     );
   }
   const service = new ObjectStorageService();
@@ -378,6 +384,14 @@ export async function assertPrivateVerificationDocument(
   if (policy.visibility === "public") {
     throw new InvalidUploadError(
       "Verification document must be a private upload (public objects are not allowed).",
+    );
+  }
+  if (
+    String(metadata.metadata?.[VERIFICATION_BUSINESS_METADATA_KEY] ?? "") !==
+    String(businessId)
+  ) {
+    throw new InvalidUploadError(
+      "Verification document ownership metadata does not match this Business Page.",
     );
   }
 

@@ -18,6 +18,11 @@ import {
 const apiRoot = path.resolve(process.cwd(), "src");
 const workspaceRoot = path.resolve(process.cwd(), "../..");
 const businessesRoute = readFileSync(path.join(apiRoot, "routes/businesses.ts"), "utf8");
+const businessDeletion = readFileSync(
+  path.join(apiRoot, "lib/businessDeletion.ts"),
+  "utf8",
+);
+const objectAcl = readFileSync(path.join(apiRoot, "lib/objectAcl.ts"), "utf8");
 const feedRoute = readFileSync(path.join(apiRoot, "routes/feed.ts"), "utf8");
 const feedHelpers = readFileSync(path.join(apiRoot, "lib/feedHelpers.ts"), "utf8");
 const appRoutes = readFileSync(path.join(workspaceRoot, "artifacts/web/src/App.tsx"), "utf8");
@@ -285,7 +290,11 @@ test("appointment durations reject bypass values and default omitted stored dura
 
 test("create and reschedule serialize conflict checks with a per-business transaction lock", () => {
   const lockCalls = businessesRoute.match(/pg_advisory_xact_lock\(\$\{biz\.id\}\)/g) ?? [];
-  assert.equal(lockCalls.length, 2, "create and reschedule must each acquire the advisory lock");
+  assert.equal(
+    lockCalls.length,
+    3,
+    "appointment create, appointment reschedule, and verification submission must lock",
+  );
 
   for (const route of [
     'router.post(\n  "/businesses/:handle/appointments"',
@@ -324,8 +333,38 @@ test("verification documents stay opaque and only the protected admin route can 
     businessesRoute,
     /downloadUrl: `\/api\/admin\/businesses\/verification\/\$\{v\.id\}\/documents\/\$\{i\}`/,
   );
-  assert.match(businessesRoute, /serializeVerification\(submission, false\)/);
-  assert.match(businessesRoute, /assertPrivateVerificationDocument\(d, user\.id\)/);
+  assert.match(
+    businessesRoute,
+    /serializeVerification\(submissionResult\.row, false\)/,
+  );
+  assert.match(
+    businessesRoute,
+    /assertPrivateVerificationDocument\(d, user\.id, biz\.id\)/,
+  );
+  const verificationRouteStart = businessesRoute.indexOf(
+    '"/businesses/:handle/verification"',
+  );
+  const verificationRouteEnd = businessesRoute.indexOf(
+    '"/admin/businesses/verification/:submissionId/documents/:index"',
+    verificationRouteStart,
+  );
+  const verificationRoute = businessesRoute.slice(
+    verificationRouteStart,
+    verificationRouteEnd,
+  );
+  const verificationLock = verificationRoute.indexOf(
+    "pg_advisory_xact_lock(${biz.id})",
+  );
+  const verificationRecheck = verificationRoute.indexOf(".for(\"update\")");
+  const verificationInsert = verificationRoute.indexOf(
+    ".insert(businessVerificationSubmissionsTable)",
+  );
+  assert.ok(
+    verificationLock >= 0 &&
+      verificationRecheck > verificationLock &&
+      verificationInsert > verificationRecheck,
+    "verification creation must lock, revalidate, then insert",
+  );
   assert.match(businessesRoute, /"Cache-Control", "private, no-store"/);
   assert.doesNotMatch(
     businessesRoute.match(/function serializeVerification[\s\S]*?\n}\n/)?.[0] ?? "",
@@ -349,4 +388,124 @@ test("public, dashboard, and admin business browser surfaces remain wired for re
   assert.match(adminDashboardPage, /useGetCurrentUser\(\)/);
   assert.match(adminDashboardPage, /session\.user\?\.role !== "admin"/);
   assert.match(adminDashboardPage, /Admin access required/);
+});
+
+test("permanent business deletion is admin-only and requires exact generated confirmation", () => {
+  assert.match(
+    businessesRoute,
+    /router\.delete\(\s*"\/admin\/businesses\/:handle",\s*requireAuth\("admin"\)/,
+  );
+  assert.match(businessesRoute, /DeleteAdminBusinessBody\.safeParse\(req\.body\)/);
+  assert.match(businessesRoute, /DeleteAdminBusinessResponse\.parse\(result\)/);
+  assert.match(
+    businessDeletion,
+    /SELECT id, handle[\s\S]*?FROM businesses[\s\S]*?FOR UPDATE/,
+    "the target business row must be locked before confirmation and deletion",
+  );
+  const deletionLock = businessDeletion.indexOf(
+    "pg_advisory_xact_lock(${target.id})",
+  );
+  const deletionRowLock = businessDeletion.indexOf("\n      FOR UPDATE");
+  const deletionDependencies = businessDeletion.indexOf(
+    "FROM business_verification_submissions",
+  );
+  assert.ok(
+    deletionLock >= 0 &&
+      deletionRowLock > deletionLock &&
+      deletionDependencies > deletionRowLock,
+    "deletion must take the shared advisory lock before the row lock and dependency scan",
+  );
+  assert.match(
+    businessDeletion,
+    /confirmation !== business\.handle\.toLowerCase\(\)/,
+    "the submitted confirmation must match the locked row, not only the URL",
+  );
+});
+
+test("permanent business deletion removes every owned dependency in one transaction", () => {
+  assert.match(
+    businessDeletion,
+    /db\.transaction\(async \(tx\) =>/,
+    "all database deletion work must share one transaction",
+  );
+
+  for (const table of [
+    "business_engagements",
+    "business_child_comments",
+    "business_content_reports",
+    "business_notifications",
+    "business_insight_events",
+    "business_verification_submissions",
+    "business_media_items",
+    "business_albums",
+    "business_appointments",
+    "business_events",
+    "business_event_rsvps",
+    "business_offers",
+    "business_products",
+    "business_services",
+    "business_reviews",
+    "business_review_replies",
+    "business_posts",
+    "business_post_likes",
+    "business_post_comments",
+    "business_post_saves",
+    "business_post_reports",
+    "business_check_ins",
+    "business_conversations",
+    "business_messages",
+    "business_follows",
+    "business_saves",
+    "business_page_roles",
+    "business_moderation_logs",
+    "business_mentions",
+    "business_spotlight_locations",
+    "daily_lounge_spotlights",
+  ]) {
+    assert.match(businessDeletion, new RegExp(`\\b${table}\\b`), `${table} must be cleaned`);
+  }
+
+  assert.match(businessDeletion, /DELETE FROM feed_posts WHERE business_id/);
+  assert.match(businessDeletion, /DELETE FROM group_posts WHERE business_id/);
+  assert.match(businessDeletion, /DELETE FROM businesses WHERE id/);
+  assert.doesNotMatch(
+    businessDeletion,
+    /DELETE FROM users|\.delete\(usersTable\)/,
+    "the owning member account must never be deleted",
+  );
+});
+
+test("business file cleanup runs after commit and only deletes provably exclusive objects", () => {
+  const transactionEnd = businessDeletion.indexOf(
+    "const cleanup = await deleteExclusivelyBusinessOwnedObjects(",
+  );
+  const deleteBusinessRow = businessDeletion.indexOf(
+    "DELETE FROM businesses WHERE id",
+  );
+  assert.ok(deleteBusinessRow >= 0 && transactionEnd > deleteBusinessRow);
+  assert.match(
+    businessDeletion,
+    /requiredPrefix = `\/objects\/verification\/\$\{businessId\}\/`/,
+    "only immutable Business-scoped verification keys may be deleted",
+  );
+  assert.match(
+    businessDeletion,
+    /metadata\.metadata\?\.verificationBusinessId/,
+    "storage metadata must independently confirm exclusive Business ownership",
+  );
+  assert.match(
+    objectAcl,
+    /\.\.\.\(currentMetadata\.metadata \?\? \{\}\)[\s\S]*?ACL_POLICY_METADATA_KEY/,
+    "writing an ACL must preserve the Business ownership metadata",
+  );
+  assert.match(
+    businessDeletion,
+    /Member-owned upload keys[\s\S]*?deliberately retained/,
+    "shared-capable member uploads must never be physically deleted",
+  );
+  assert.match(
+    businessDeletion,
+    /Business deletion committed but an exclusively owned object could not be removed/,
+    "file cleanup failure must not undo the committed database deletion",
+  );
 });

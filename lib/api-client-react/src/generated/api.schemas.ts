@@ -3268,6 +3268,22 @@ export interface BusinessModerationInput {
   newOwnerUserId?: number;
 }
 
+export interface BusinessDeletionInput {
+  /**
+     * @minLength 1
+     * @maxLength 64
+     */
+  confirmHandle: string;
+}
+
+export interface BusinessDeletionResult {
+  deleted: boolean;
+  businessId: number;
+  handle: string;
+  deletedObjectCount: number;
+  objectCleanupFailureCount: number;
+}
+
 export interface BusinessPostLikeResult {
   active: boolean;
   likeCount: number;
@@ -5496,6 +5512,16 @@ export const ListMeetupsPrivacy = {
 } as const;
 
 export type ListMeetupsRadius = typeof ListMeetupsRadius[keyof typeof ListMeetupsRadius];
+
+
+export const ListMeetupsRadius = {
+  NUMBER_5: 5,
+  NUMBER_10: 10,
+  NUMBER_25: 25,
+  NUMBER_50: 50,
+  NUMBER_100: 100,
+} as const;
+
 export type ListMeetupsSort = typeof ListMeetupsSort[keyof typeof ListMeetupsSort];
 
 
@@ -5550,12 +5576,3 @@ export type AdminTransferGroupOwnerBody = {
   newOwnerUserId: number;
   reason?: string;
 };
-
-
-export const ListMeetupsRadius = {
-  NUMBER_5: 5,
-  NUMBER_10: 10,
-  NUMBER_25: 25,
-  NUMBER_50: 50,
-  NUMBER_100: 100,
-} as const;

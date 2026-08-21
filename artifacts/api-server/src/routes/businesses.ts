@@ -58,6 +58,10 @@ import {
   friendshipsTable,
   profileDetailsTable,
 } from "@workspace/db";
+import {
+  DeleteAdminBusinessBody,
+  DeleteAdminBusinessResponse,
+} from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
 import {
   weightedRating as spotlightWeightedRating,
@@ -81,6 +85,11 @@ import {
   processBusinessSpotlightLocation,
   queueBusinessSpotlightLocation,
 } from "../lib/privateGeocoding";
+import {
+  BusinessDeletionConfirmationError,
+  BusinessDeletionNotFoundError,
+  deleteBusinessPermanently,
+} from "../lib/businessDeletion";
 import {
   ALL_ASSIGNABLE_BUSINESS_ROLES,
   getBufferedAppointmentInterval,
@@ -5818,21 +5827,6 @@ router.post(
       res.status(409).json({ error: `Business is ${biz.status} and cannot be modified` });
       return;
     }
-    // Reject if an active submission is already pending review.
-    const [pending] = await db
-      .select({ id: businessVerificationSubmissionsTable.id })
-      .from(businessVerificationSubmissionsTable)
-      .where(
-        and(
-          eq(businessVerificationSubmissionsTable.businessId, biz.id),
-          eq(businessVerificationSubmissionsTable.status, "pending"),
-        ),
-      );
-    if (pending) {
-      res.status(409).json({ error: "A verification submission is already pending review" });
-      return;
-    }
-
     const body = req.body as Record<string, unknown>;
     // Documents are opaque PRIVATE object refs produced by the upload route
     // above. Each is re-validated against the ACTUAL stored object: it must be
@@ -5850,7 +5844,7 @@ router.post(
     for (const d of rawInput) {
       if (typeof d !== "string" || !d) continue;
       try {
-        const ref = await assertPrivateVerificationDocument(d, user.id);
+        const ref = await assertPrivateVerificationDocument(d, user.id, biz.id);
         documentUrls.push(ref);
       } catch (err) {
         if (err instanceof InvalidUploadError) {
@@ -5867,7 +5861,44 @@ router.post(
       return;
     }
 
-    const submission = await db.transaction(async (tx) => {
+    const submissionResult = await db.transaction(async (tx) => {
+      // Permanent deletion takes this same per-Business lock. Re-read the
+      // Business only after acquiring it so a request that validated documents
+      // before deletion cannot insert an orphaned submission afterward.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${biz.id})`);
+      const [lockedBusiness] = await tx
+        .select()
+        .from(businessesTable)
+        .where(eq(businessesTable.id, biz.id))
+        .for("update");
+      if (!lockedBusiness) {
+        return { ok: false as const, status: 404, error: "Business not found" };
+      }
+      if (isWriteBlocked(lockedBusiness, isAdmin)) {
+        return {
+          ok: false as const,
+          status: 409,
+          error: `Business is ${lockedBusiness.status} and cannot be modified`,
+        };
+      }
+
+      const [pending] = await tx
+        .select({ id: businessVerificationSubmissionsTable.id })
+        .from(businessVerificationSubmissionsTable)
+        .where(
+          and(
+            eq(businessVerificationSubmissionsTable.businessId, biz.id),
+            eq(businessVerificationSubmissionsTable.status, "pending"),
+          ),
+        );
+      if (pending) {
+        return {
+          ok: false as const,
+          status: 409,
+          error: "A verification submission is already pending review",
+        };
+      }
+
       const [row] = await tx
         .insert(businessVerificationSubmissionsTable)
         .values({
@@ -5885,11 +5916,15 @@ router.post(
         .update(businessesTable)
         .set({ verificationStatus: "pending" })
         .where(eq(businessesTable.id, biz.id));
-      return row;
+      return { ok: true as const, row };
     });
+    if (!submissionResult.ok) {
+      res.status(submissionResult.status).json({ error: submissionResult.error });
+      return;
+    }
 
     // Owner sees no raw doc URLs back (only count).
-    res.status(201).json(serializeVerification(submission, false));
+    res.status(201).json(serializeVerification(submissionResult.row, false));
   },
 );
 
@@ -5955,6 +5990,43 @@ router.get(
 // ─────────────────────────────────────────────────────────────────────────────
 // Admin – moderation (platform admin only — bypasses lifecycle blocks)
 // ─────────────────────────────────────────────────────────────────────────────
+
+router.delete(
+  "/admin/businesses/:handle",
+  requireAuth("admin"),
+  async (req, res): Promise<void> => {
+    const handle = parseHandle(req.params.handle);
+    const parsed = DeleteAdminBusinessBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "The exact business handle is required for confirmation" });
+      return;
+    }
+
+    try {
+      const result = await deleteBusinessPermanently(handle, parsed.data.confirmHandle);
+      req.log.warn(
+        {
+          businessId: result.businessId,
+          handle: result.handle,
+          deletedObjectCount: result.deletedObjectCount,
+          objectCleanupFailureCount: result.objectCleanupFailureCount,
+        },
+        "Platform administrator permanently deleted a Business Page",
+      );
+      res.status(200).json(DeleteAdminBusinessResponse.parse(result));
+    } catch (error) {
+      if (error instanceof BusinessDeletionNotFoundError) {
+        res.status(404).json({ error: error.message });
+        return;
+      }
+      if (error instanceof BusinessDeletionConfirmationError) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      throw error;
+    }
+  },
+);
 
 router.post(
   "/admin/businesses/:handle/moderate",
