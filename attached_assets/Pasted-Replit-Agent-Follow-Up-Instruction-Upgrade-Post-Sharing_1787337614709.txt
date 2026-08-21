@@ -1,0 +1,780 @@
+Replit Agent Follow-Up Instruction: Upgrade Post Sharing With Public and Private Sharing Options
+
+Do not rebuild the HookahBuddys platform. Only upgrade the existing post system to support sharing other members’ posts.
+
+Add a Facebook-style Share feature to posts so members can share eligible posts:
+
+* Publicly
+* Privately
+* To The Lounge / Feed
+* To Friends
+* To Groups
+* By copying a link
+
+Use the platform name HookahBuddys.
+
+Do not remove or replace:
+
+* The Lounge
+* Groups
+* Business Pages
+* Meetups
+* Events
+* Member profiles
+* Doll/Bro profiles
+* Credits
+* Pricing
+* Messaging
+* Premium content
+* Video chat
+* Admin dashboard
+* Existing like/comment/save/report features
+
+Only add post sharing.
+
+Core Feature
+
+Add a Share icon/button to all eligible posts.
+
+The Share button should appear in the post action row next to:
+
+* Like
+* Comment
+* Share
+* Save
+
+When a member clicks Share, open a Share modal.
+
+Share Modal
+
+The Share modal should include:
+
+Title:
+
+“Share Post”
+
+Show the original post preview, including:
+
+* Original author profile photo
+* Original author display name
+* Original author badge if applicable
+* Original post text preview
+* Original image/video thumbnail if applicable
+* Original timestamp
+* Original post category
+* Link to original post
+
+Add optional comment field:
+
+“Say something about this post…”
+
+Add sharing options:
+
+1. Share Publicly
+2. Share Privately
+3. Share to The Lounge
+4. Share with Friends
+5. Share to Group
+6. Copy Link
+
+Share Option 1: Share Publicly
+
+When selected:
+
+* Create a shared post with audience set to `public`.
+* The shared post should be visible to all users who can access public content.
+* The shared post should appear on the sharing user’s public profile Posts tab.
+* The shared post may also appear in The Lounge / public feed depending on the feed algorithm.
+* The shared post should show the sharing user’s optional comment above the original shared post preview.
+
+Button label:
+
+“Share Publicly”
+
+Audience badge:
+
+“Public”
+
+Important rule:
+
+Only allow public sharing if the original post is public and the original author allows public sharing.
+
+Do not allow friends-only, private, locked, premium, or private Group content to be shared publicly.
+
+Share Option 2: Share Privately
+
+When selected:
+
+* Allow the member to privately share the post with one or more selected members or friends.
+* Show a searchable recipient selector.
+* User can select:
+
+  * Friends
+  * Followers/following if messaging privacy allows
+  * Specific members by username
+* Create a private share message or private shared post notification.
+* The shared post should not appear in The Lounge.
+* The shared post should not appear publicly on the sharing user’s profile.
+* The shared post should only be visible to the selected recipients.
+* Recipients should receive a notification or private message with the shared post preview.
+
+Button label:
+
+“Share Privately”
+
+Audience badge:
+
+“Private”
+
+Private share message should include:
+
+* Sharing user name
+* Optional comment
+* Original post preview
+* View Post button
+
+If the recipient does not have permission to view the original post, show:
+
+“This post is private or no longer available.”
+
+Important rule:
+
+Private sharing still must respect the original post’s privacy. Private sharing should not allow users to bypass privacy, premium content locks, Group privacy, or blocked-user rules.
+
+Share Option 3: Share to The Lounge
+
+When selected:
+
+* Create a new shared post in The Lounge feed.
+* Audience should be public by default.
+* Show the member’s optional comment above the original shared post preview.
+* Shared post should appear in The Lounge feed.
+* Respect the original post’s sharing permissions.
+
+Button label:
+
+“Share to The Lounge”
+
+Audience badge:
+
+“The Lounge”
+
+Important rule:
+
+Only public posts should be shareable to The Lounge.
+
+Share Option 4: Share with Friends
+
+When selected:
+
+* Create a shared post visible to accepted friends only.
+* Audience should be set to `friends`.
+* The shared post should appear in friends’ feeds and on the sharing user’s profile only for friends.
+* Do not show this shared post to non-friends or the general public.
+
+Button label:
+
+“Share with Friends”
+
+Audience badge:
+
+“Friends”
+
+Important rule:
+
+Friends-only posts can only be shared with friends if the original author allows it.
+
+Share Option 5: Share to Group
+
+When selected:
+
+* Show a dropdown or searchable list of Groups the user belongs to.
+* Only show Groups where the user has permission to post.
+* Allow the user to choose one Group at a time for now.
+* Create a shared Group post inside that Group.
+* Show the member’s optional comment above the original shared post preview.
+
+Button label:
+
+“Share to Group”
+
+Audience badge:
+
+“Group”
+
+Group rules:
+
+* If the Group requires post approval, set shared post status to `pending_review`.
+* If member posting is disabled, do not allow sharing.
+* If the member is muted, limited, or banned, do not allow sharing.
+* If the Group is private, the shared post must stay inside that Group.
+* Private Group posts cannot be shared outside the original private Group.
+
+Share Option 6: Copy Link
+
+When selected:
+
+* Copy a direct post URL to the user’s clipboard.
+* Show confirmation:
+
+“Post link copied.”
+
+If the post is private or restricted, users without permission should see:
+
+“This post is private or no longer available.”
+
+Button label:
+
+“Copy Link”
+
+Privacy and Sharing Rules
+
+Respect all privacy rules.
+
+Do not allow sharing when:
+
+* The original post is deleted
+* The original post is removed
+* The original post is hidden by admin
+* The original post is pending moderation
+* The original post is from a private Group and the user is trying to share it outside that Group
+* The original post is friends-only and the user is trying to share it publicly
+* The original post is private and the user is trying to share it publicly
+* The original post contains premium Doll content
+* The original post contains locked paid content
+* The original post is subscription-only content
+* The original post contains private video chat content
+* The original post contains private messages
+* The original author has disabled sharing
+* The user has blocked the original author
+* The original author has blocked the user
+
+Premium Content Rule
+
+Do not allow members to share locked premium Doll photos, premium videos, paid content, paid messages, subscription-only content, private video chat content, verification content, or admin-only content.
+
+If a post contains premium or restricted content, show:
+
+“This content cannot be shared because it includes premium or restricted content.”
+
+Private Group Rule
+
+Posts from private Groups can only be shared inside the same private Group if allowed by Group settings.
+
+Private Group posts cannot be shared to:
+
+* Public feed
+* The Lounge
+* Friends outside the Group
+* Other Groups
+* Public profiles
+* Copy link access for non-members
+
+Friends-Only Rule
+
+If a post is friends-only, allow resharing only to friends if the original author allows sharing.
+
+Do not allow friends-only posts to be shared publicly.
+
+Private Share Rule
+
+Private sharing should send the post only to selected recipients.
+
+Private sharing should not create a public feed post.
+
+Private sharing should not expose the original post if the recipient does not have permission to view it.
+
+Original Author Sharing Controls
+
+Add post-level sharing settings:
+
+* Allow sharing: on/off
+* Allow public sharing: on/off
+* Allow private sharing: on/off
+* Allow share to The Lounge: on/off
+* Allow share with friends: on/off
+* Allow share to Groups: on/off
+* Allow copy link: on/off
+
+Default sharing settings:
+
+Public posts:
+
+* Sharing allowed
+* Public sharing allowed
+* Private sharing allowed
+* Share to The Lounge allowed
+* Share with Friends allowed
+* Share to Groups allowed
+* Copy Link allowed
+
+Friends-only posts:
+
+* Sharing allowed with Friends only
+* Private sharing allowed only to mutual friends or approved viewers
+* Public sharing disabled
+* Share to The Lounge disabled
+* Copy Link allowed only for permitted viewers
+
+Private posts:
+
+* Sharing disabled by default
+* Private sharing optional only if author allows it
+
+Private Group posts:
+
+* Sharing limited to the same Group only
+* Public sharing disabled
+* Share to The Lounge disabled
+* Share with outside friends disabled
+* Copy link restricted to approved Group members
+
+Premium/locked content:
+
+* Sharing disabled
+
+Shared Post Display
+
+A shared post should display:
+
+* Sharing user’s profile photo
+* Sharing user’s display name
+* Optional comment from sharing user
+* Share timestamp
+* Shared destination/audience badge
+* Embedded original post card
+
+Embedded original post card should show:
+
+* Original author
+* Original author profile image
+* Original post text/media preview
+* Original timestamp
+* Original post link
+* Original post unavailable message if deleted/private
+
+Example display:
+
+“William shared a post”
+
+Then show William’s comment, followed by the original post preview.
+
+If original post is deleted after being shared:
+
+Show the shared post, but replace the original content preview with:
+
+“This original post is no longer available.”
+
+If original post privacy changes after sharing:
+
+Respect the updated privacy.
+
+If the viewer no longer has permission, show:
+
+“This post is private.”
+
+Share Count
+
+Add share count to posts.
+
+Each original post should track:
+
+* Total shares
+* Public shares
+* Private shares
+* Shares to The Lounge
+* Shares to Friends
+* Shares to Groups
+* Copy link count, optional
+
+Display share count near the action row.
+
+Example:
+
+“12 shares”
+
+Clicking share count should show public shares only.
+
+Do not expose private shares to users who do not have permission.
+
+Notifications
+
+Send notifications when a post is shared.
+
+Notify original post author:
+
+“[User] shared your post.”
+
+If shared publicly:
+
+“[User] shared your post publicly.”
+
+If shared privately:
+
+“[User] privately shared your post.”
+
+If shared to The Lounge:
+
+“[User] shared your post to The Lounge.”
+
+If shared with Friends:
+
+“[User] shared your post with friends.”
+
+If shared to Group:
+
+“[User] shared your post in [Group Name].”
+
+Do not send notification if:
+
+* Original author disabled share notifications
+* Sharing user is blocked
+* Original post is private and notification would reveal restricted context
+
+Notify selected private recipients:
+
+“[User] shared a post with you.”
+
+Notify Group admins if shared post requires approval:
+
+“[User] shared a post to [Group Name] and it is awaiting approval.”
+
+Group Share Approval
+
+If a Group requires post approval:
+
+* Shared post status should be `pending_review`
+* Do not display shared post until approved
+* Group admins/moderators can approve or decline
+* If declined, notify the sharing user
+
+Decline message:
+
+“Your shared post was not approved by the Group moderators.”
+
+Admin and Moderation
+
+Update Admin Dashboard to support shared posts.
+
+Admin should be able to:
+
+* View shared posts
+* Search shared posts
+* Filter by destination:
+
+  * Public
+  * Private
+  * Lounge
+  * Friends
+  * Group
+* Remove shared posts
+* Hide shared posts
+* Review reported shared posts
+* View original post reference
+* View sharing user
+* View original author
+* Suspend sharing abuse
+* Disable sharing on a post
+* Disable sharing for a user if needed
+
+Add abuse controls:
+
+* Limit excessive sharing
+* Prevent spam sharing
+* Flag users who share too many posts quickly
+* Allow admin to disable sharing privileges for abusive users
+
+Suggested anti-spam rules:
+
+* Maximum 20 shares per hour
+* Maximum 5 shares to Groups per hour
+* Maximum 10 private shares per hour
+* Maximum 3 shares of the same post per user
+* Do not allow duplicate shares to the same destination
+
+Database Updates
+
+Add or update models as needed.
+
+PostShare:
+
+* id
+* originalPostId
+* sharedByUserId
+* destinationType
+
+  * public
+  * private
+  * lounge
+  * friends
+  * group
+  * link
+* destinationGroupId
+* recipientUserIds
+* sharedPostId
+* shareComment
+* audience
+
+  * public
+  * private
+  * friends
+  * group
+* status
+
+  * active
+  * pending_review
+  * hidden
+  * removed
+  * declined
+* createdAt
+* updatedAt
+
+PostSharingSettings:
+
+* id
+* postId
+* allowSharing
+* allowPublicSharing
+* allowPrivateSharing
+* allowShareToLounge
+* allowShareToFriends
+* allowShareToGroups
+* allowCopyLink
+* createdAt
+* updatedAt
+
+PrivatePostShareRecipient:
+
+* id
+* postShareId
+* recipientUserId
+* hasViewed
+* viewedAt
+* createdAt
+
+Update existing Post model:
+
+* shareCount
+* publicShareCount
+* privateShareCount
+* loungeShareCount
+* friendsShareCount
+* groupShareCount
+* allowSharing
+* originalPostId, nullable
+* isSharedPost, boolean
+* sharedByUserId, nullable
+* shareComment, nullable
+* shareDestinationType, nullable
+* shareDestinationGroupId, nullable
+* audience, nullable
+
+If the platform already has GroupPost, BusinessPost, MeetupPost, or other separate post models, add compatible share support without breaking existing data.
+
+Supported Shared Post Types
+
+Support sharing from:
+
+* Lounge posts
+* Feed posts
+* Public profile posts
+* Business posts
+* Public Group posts
+* Public Meetup discussion posts, if applicable
+* Public Event posts, if applicable
+
+Do not share from:
+
+* Private messages
+* Paid Doll messages
+* Premium locked content
+* Private video chat
+* Verification content
+* Admin-only content
+* Private Group posts outside their original Group
+* Hidden or removed content
+
+UI Requirements
+
+Add a Share icon to post cards.
+
+Use a clean social-media-style share icon.
+
+Desktop:
+
+* Add Share button in the post action row.
+
+Mobile:
+
+* Add Share icon in the compact action row.
+
+Share modal should be mobile responsive.
+
+Use HookahBuddys theme:
+
+* Dark charcoal background
+* Blue for social share actions
+* Gold for premium/featured actions
+* Green for success
+* Red only for errors, reports, or restricted sharing warnings
+
+Button colors:
+
+Share Publicly:
+
+* Blue
+
+Share Privately:
+
+* Blue
+
+Share to The Lounge:
+
+* Blue
+
+Share with Friends:
+
+* Blue
+
+Share to Group:
+
+* Blue
+
+Copy Link:
+
+* Neutral/ghost button
+
+Cancel:
+
+* Neutral/ghost button
+
+The Lounge Integration
+
+Shared posts to The Lounge should appear in the main Lounge feed.
+
+Feed card label:
+
+“Shared a post”
+
+Example display:
+
+“William shared a post to The Lounge”
+
+Public Sharing Integration
+
+Publicly shared posts should appear:
+
+* On the sharing user’s public profile Posts tab
+* In public feeds where appropriate
+* In search/discovery where appropriate
+* To all users who can view public posts
+
+Friends Sharing Integration
+
+Friends-only shared posts should appear:
+
+* On the sharing user’s profile Posts tab for friends only
+* In friends’ feeds
+* Not to non-friends
+* Not to logged-out visitors
+
+Private Sharing Integration
+
+Privately shared posts should appear:
+
+* In a private shared-post notification
+* In a private message/share thread if messaging exists
+* Only to selected recipients
+* Not in The Lounge
+* Not in public feed
+* Not on public profiles
+
+Group Integration
+
+Shared posts to Groups should appear in the Group discussion feed.
+
+Feed card label:
+
+“Shared a post”
+
+Example display:
+
+“William shared a post to Vegas Hookah Lovers”
+
+If post requires approval, show the sharing user:
+
+“Your shared post is pending Group approval.”
+
+Access Control
+
+When rendering a shared post, check:
+
+1. Viewer can see the shared post destination
+2. Viewer can see the original post
+3. Original post is not removed
+4. Original post content is not premium/locked
+5. Original author has not blocked viewer
+6. Viewer has not blocked original author
+7. Group privacy rules are respected
+8. Friend-only privacy rules are respected
+9. Private recipient rules are respected
+
+If the viewer cannot access the original post, show:
+
+“This post is unavailable.”
+
+Do not leak private content through shared previews.
+
+Analytics
+
+Track sharing analytics.
+
+For each post:
+
+* Total shares
+* Public shares
+* Private shares
+* Shares to The Lounge
+* Shares to Friends
+* Shares to Groups
+* Copy link clicks
+
+For users:
+
+* Posts shared by user
+* Posts shared from user
+* Most shared posts
+
+For admin:
+
+* Most shared posts
+* Most shared users
+* Most shared Groups
+* Public share volume
+* Private share volume
+* Reported shared posts
+* Share spam flags
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove existing post features.
+
+Do not remove likes, comments, saves, reports, follows, friends, Groups, Business Pages, Meetups, or Events.
+
+Do not make private content publicly shareable.
+
+Do not make premium Doll content shareable.
+
+Do not expose private Group content outside the Group.
+
+Do not expose friends-only posts publicly.
+
+Do not expose private shares publicly.
+
+Only add sharing capability with a Share icon, Share modal, public/private sharing options, destination selection, privacy controls, shared post display, notifications, analytics, and moderation.
+
+Final Goal
+
+Members should be able to click a Share icon on eligible posts and share that post publicly, privately, to The Lounge/feed, to Friends, or to a Group, with privacy, premium content restrictions, Group rules, and moderation rules fully respected.
