@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useDebounce } from "@/hooks/use-debounce";
 import LoungeLeftSidebar from "@/components/lounge/LoungeLeftSidebar";
 import LoungeRightSidebar from "@/components/lounge/LoungeRightSidebar";
+import { getErrorMessage } from "@/lib/error";
 
 export default function MeetupsDiscover() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,6 +24,7 @@ export default function MeetupsDiscover() {
   const debouncedInterests = useDebounce(interests, 500);
   const [hasUpcomingEvent, setHasUpcomingEvent] = useState(false);
   const [sort, setSort] = useState<string>("most_members");
+  const [radius, setRadius] = useState("any");
 
   const queryParams: ListMeetupsParams = {
     search: debouncedSearch || undefined,
@@ -32,9 +34,13 @@ export default function MeetupsDiscover() {
     privacy: privacy !== "all" ? (privacy as any) : undefined,
     hasUpcomingEvent: hasUpcomingEvent ? true : undefined,
     sort: sort as any,
+    radius:
+      radius === "any"
+        ? undefined
+        : (Number(radius) as NonNullable<ListMeetupsParams["radius"]>),
   };
 
-  const { data: groupsData, isLoading, isError, refetch } = useListMeetups(queryParams);
+  const { data: groupsData, isLoading, isError, error, refetch } = useListMeetups(queryParams);
   const meetups = groupsData?.groups || [];
 
   return (
@@ -87,7 +93,7 @@ export default function MeetupsDiscover() {
                   className="w-full sm:w-[100px] h-11 bg-background/50 border-orange-500/20 focus-visible:ring-orange-500 rounded-xl"
                 />
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 items-start sm:items-center">
                 <Input
                   value={interests}
                   onChange={(e) => setInterests(e.target.value)}
@@ -104,14 +110,34 @@ export default function MeetupsDiscover() {
                     <SelectItem value="private">Private (Invite)</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={sort} onValueChange={setSort}>
+                <Select
+                  value={radius === "any" ? sort : "distance"}
+                  onValueChange={setSort}
+                  disabled={radius !== "any"}
+                >
                   <SelectTrigger className="w-[150px] h-11 bg-background/50 border-orange-500/20 rounded-xl focus:ring-orange-500">
                     <SelectValue placeholder="Sort" />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-orange-500/20">
+                    <SelectItem value="distance" disabled={radius === "any"}>
+                      Nearest First
+                    </SelectItem>
                     <SelectItem value="most_members">Most Members</SelectItem>
                     <SelectItem value="most_active">Most Active</SelectItem>
                     <SelectItem value="newest">Newest</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={radius} onValueChange={setRadius}>
+                  <SelectTrigger className="w-[185px] h-11 bg-background/50 border-orange-500/20 rounded-xl focus:ring-orange-500">
+                    <SelectValue placeholder="Travel distance" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-orange-500/20">
+                    <SelectItem value="any">Any distance (incl. online)</SelectItem>
+                    <SelectItem value="5">Within 5 miles</SelectItem>
+                    <SelectItem value="10">Within 10 miles</SelectItem>
+                    <SelectItem value="25">Within 25 miles</SelectItem>
+                    <SelectItem value="50">Within 50 miles</SelectItem>
+                    <SelectItem value="100">Within 100 miles</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="flex items-center space-x-2 bg-background/50 px-3 h-11 rounded-xl border border-orange-500/20">
@@ -119,15 +145,28 @@ export default function MeetupsDiscover() {
                   <Label htmlFor="upcoming" className="text-sm cursor-pointer whitespace-nowrap">Upcoming Events</Label>
                 </div>
               </div>
+              {radius !== "any" && (
+                <p className="text-xs text-white/55">
+                  Sorted by approximate travel distance from your saved location. Choose “Any distance” to include online meetups.
+                </p>
+              )}
             </div>
 
             {isError ? (
                <div className="py-24 text-center bg-card/30 border border-red-500/20 rounded-3xl backdrop-blur-md">
                  <AlertCircle className="w-16 h-16 mx-auto text-red-500/50 mb-4" />
                  <h3 className="text-xl font-serif text-white mb-2">Failed to load meetups</h3>
+                  <p className="text-sm text-white/60 mb-5 max-w-md mx-auto">
+                    {getErrorMessage(error)}
+                  </p>
                  <Button variant="outline" onClick={() => refetch()} className="rounded-full border-red-500/30 text-red-400 hover:bg-red-500/10">
                    Try Again
                  </Button>
+                  {radius !== "any" && (
+                    <Button variant="ghost" asChild className="ml-2 rounded-full text-orange-300 hover:text-orange-200">
+                      <Link href="/profile/edit">Update Profile City</Link>
+                    </Button>
+                  )}
                </div>
             ) : isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -204,6 +243,11 @@ function MeetupCard({ meetup }: { meetup: GroupSummary }) {
               <p className="text-sm text-white/70 mb-3 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-orange-500/70" />
                 {loc}
+              </p>
+            )}
+            {typeof meetup.distanceMiles === "number" && (
+              <p className="text-xs text-orange-300/80 mb-3 font-medium">
+                About {meetup.distanceMiles.toFixed(1)} miles away
               </p>
             )}
             

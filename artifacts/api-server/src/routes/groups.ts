@@ -123,6 +123,13 @@ import {
   evaluateEventBroadcastRateLimit,
   summarizeEventBroadcastDeliveries,
 } from "../lib/eventBroadcastPolicy";
+import {
+  haversineMiles,
+  isValidLat,
+  isValidLng,
+  resolveMemberLocation,
+} from "../lib/loungeSpotlight";
+import { resolvePrivateCityGeocode } from "../lib/privateGeocoding";
 
 const router: IRouter = Router();
 
@@ -136,6 +143,73 @@ function parseId(raw: string | string[]): number {
 }
 
 type GroupRole = "owner" | "admin" | "moderator" | "member";
+const MEETUP_RADIUS_CHOICES = [5, 10, 25, 50, 100] as const;
+
+function isAllowedMeetupRadius(value: number): value is (typeof MEETUP_RADIUS_CHOICES)[number] {
+  return MEETUP_RADIUS_CHOICES.includes(value as (typeof MEETUP_RADIUS_CHOICES)[number]);
+}
+
+/**
+ * Meetup discovery only needs an approximate city-level point. Round a validated
+ * city geocode before it touches the Meetup record so an address-level point is
+ * never stored here.
+ */
+function toCoarseMeetupCoordinate(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function normalizeMeetupLocationKey(value: string | null | undefined): string | null {
+  const normalized = value?.trim().toUpperCase();
+  return normalized || null;
+}
+
+async function resolveCoarseMeetupCoordinates(
+  groupType: string | null | undefined,
+  city: string | null | undefined,
+  state: string | null | undefined,
+): Promise<{ lat: number; lng: number } | null> {
+  if (groupType !== "meetup") return null;
+  const cityKey = normalizeMeetupLocationKey(city);
+  const stateKey = normalizeMeetupLocationKey(state);
+  if (!cityKey || !stateKey) return null;
+
+  const location = await resolvePrivateCityGeocode(cityKey, stateKey);
+  if (!location) return null;
+  return {
+    lat: toCoarseMeetupCoordinate(location.lat),
+    lng: toCoarseMeetupCoordinate(location.lng),
+  };
+}
+
+/**
+ * Backfill legacy Meetup rows opportunistically during radius discovery. A
+ * failed/ambiguous geocode remains null and is excluded from radius results,
+ * rather than being assigned an inaccurate distance.
+ */
+async function ensureCoarseMeetupCoordinates(
+  group: typeof groupsTable.$inferSelect,
+): Promise<typeof groupsTable.$inferSelect> {
+  if (isValidLat(group.meetupLat) && isValidLng(group.meetupLng)) return group;
+  const location = await resolveCoarseMeetupCoordinates(
+    group.groupType,
+    group.meetupCity,
+    group.meetupState,
+  );
+  if (!location) return group;
+
+  const [updated] = await db
+    .update(groupsTable)
+    .set({ meetupLat: location.lat, meetupLng: location.lng })
+    .where(eq(groupsTable.id, group.id))
+    .returning();
+  return updated ?? group;
+}
+
+function publicMeetupLocation(group: typeof groupsTable.$inferSelect): string | null {
+  if (group.groupType !== "meetup") return group.location;
+  if (group.meetupCity && group.meetupState) return `${group.meetupCity}, ${group.meetupState}`;
+  return group.meetupCity ?? group.meetupState ?? null;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Centralized permission helpers
@@ -695,7 +769,11 @@ function brandingUrl(
 /** Serialize a group for API response. */
 function serializeGroup(
   group: typeof groupsTable.$inferSelect,
-  opts: { viewerMemberRole?: GroupRole | null; viewerHasPendingRequest?: boolean } = {},
+  opts: {
+    viewerMemberRole?: GroupRole | null;
+    viewerHasPendingRequest?: boolean;
+    distanceMiles?: number | null;
+  } = {},
 ) {
   return {
     id: group.id,
@@ -711,7 +789,8 @@ function serializeGroup(
     // Hidden-private branding is served through the access-controlled route.
     coverUrl: brandingUrl(group, group.coverUrl),
     iconUrl: brandingUrl(group, group.iconUrl),
-    location: group.location,
+    // Meetup addresses are never public discovery data. Expose city/state only.
+    location: publicMeetupLocation(group),
     postingPermission: group.postingPermission,
     postApproval: group.postApproval,
     status: group.status,
@@ -729,6 +808,8 @@ function serializeGroup(
     meetupCity: group.meetupCity ?? null,
     meetupState: group.meetupState ?? null,
     meetupCountry: group.meetupCountry ?? null,
+    // Present only on radius searches; coordinates themselves are never serialized.
+    distanceMiles: opts.distanceMiles ?? null,
   };
 }
 
@@ -746,7 +827,11 @@ function serializeGroup(
  */
 function serializeGroupPreview(
   group: typeof groupsTable.$inferSelect,
-  opts: { viewerMemberRole?: GroupRole | null; viewerHasPendingRequest?: boolean } = {},
+  opts: {
+    viewerMemberRole?: GroupRole | null;
+    viewerHasPendingRequest?: boolean;
+    distanceMiles?: number | null;
+  } = {},
 ) {
   return {
     id: group.id,
@@ -760,7 +845,7 @@ function serializeGroupPreview(
     visibility: group.visibility,
     coverUrl: brandingUrl(group, group.coverUrl),
     iconUrl: brandingUrl(group, group.iconUrl),
-    location: group.location,
+    location: publicMeetupLocation(group),
     memberCount: group.memberCount,
     viewerMemberRole: opts.viewerMemberRole ?? null,
     viewerHasPendingRequest: opts.viewerHasPendingRequest ?? false,
@@ -772,6 +857,7 @@ function serializeGroupPreview(
     meetupCity: group.meetupCity ?? null,
     meetupState: group.meetupState ?? null,
     meetupCountry: group.meetupCountry ?? null,
+    distanceMiles: opts.distanceMiles ?? null,
   };
 }
 
@@ -1158,6 +1244,24 @@ router.get("/meetups", async (req, res): Promise<void> => {
   const sortParam = typeof req.query.sort === "string" ? req.query.sort : "most_members";
   const interestsRaw = typeof req.query.interests === "string" ? req.query.interests : undefined;
   const interests = interestsRaw ? interestsRaw.split(",").map((s) => s.trim()).filter(Boolean) : undefined;
+  const rawRadius = typeof req.query.radius === "string" ? Number(req.query.radius) : undefined;
+  if (rawRadius !== undefined && !isAllowedMeetupRadius(rawRadius)) {
+    res.status(400).json({ error: "radius must be one of 5, 10, 25, 50, or 100 miles" });
+    return;
+  }
+  const radiusMiles = rawRadius;
+  if (radiusMiles !== undefined && !viewer) {
+    res.status(401).json({ error: "Sign in and add your city to search meetups by distance" });
+    return;
+  }
+  const memberLocation =
+    radiusMiles !== undefined && viewer ? await resolveMemberLocation(db, viewer) : null;
+  if (radiusMiles !== undefined && !memberLocation) {
+    res.status(422).json({
+      error: "Add your city or enable location sharing before searching meetups by distance",
+    });
+    return;
+  }
   const limit = Math.min(
     typeof req.query.limit === "string" ? parseInt(req.query.limit, 10) || 30 : 30,
     100,
@@ -1202,13 +1306,22 @@ router.get("/meetups", async (req, res): Promise<void> => {
         ? [desc(groupsTable.isFeatured), desc(groupsTable.eventCount)]
         : [desc(groupsTable.isFeatured), desc(groupsTable.memberCount)]; // most_members (default)
 
-  const rows = await db
-    .select()
-    .from(groupsTable)
-    .where(and(...meetupConditions))
-    .orderBy(...sortOrder)
-    .limit(limit + 100)
-    .offset(offset);
+  // A distance search must calculate and order every eligible candidate before
+  // pagination. The normal discovery path retains its database-level pagination.
+  const rows =
+    radiusMiles !== undefined
+      ? await db
+          .select()
+          .from(groupsTable)
+          .where(and(...meetupConditions))
+          .orderBy(...sortOrder)
+      : await db
+          .select()
+          .from(groupsTable)
+          .where(and(...meetupConditions))
+          .orderBy(...sortOrder)
+          .limit(limit + 100)
+          .offset(offset);
 
   // Filter: hidden private meetups only visible to their members (same as groups)
   const filtered: typeof rows = [];
@@ -1221,11 +1334,35 @@ router.get("/meetups", async (req, res): Promise<void> => {
       continue;
     }
     filtered.push(g);
-    if (filtered.length >= limit) break;
+    if (radiusMiles === undefined && filtered.length >= limit) break;
   }
 
+  const distanceCandidates =
+    radiusMiles !== undefined && memberLocation
+      ? await Promise.all(
+          filtered.map(async (group) => {
+            const geocoded = await ensureCoarseMeetupCoordinates(group);
+            if (!isValidLat(geocoded.meetupLat) || !isValidLng(geocoded.meetupLng)) return null;
+            const distanceMiles = haversineMiles(
+              memberLocation.lat,
+              memberLocation.lng,
+              geocoded.meetupLat,
+              geocoded.meetupLng,
+            );
+            return distanceMiles <= radiusMiles ? { group: geocoded, distanceMiles } : null;
+          }),
+        )
+      : null;
+  const rankedByDistance = distanceCandidates
+    ?.filter((candidate): candidate is { group: typeof groupsTable.$inferSelect; distanceMiles: number } => candidate !== null)
+    .sort((a, b) => a.distanceMiles - b.distanceMiles || a.group.id - b.group.id) ?? [];
+  const page =
+    radiusMiles !== undefined
+      ? rankedByDistance.slice(offset, offset + limit)
+      : filtered.slice(0, limit).map((group) => ({ group, distanceMiles: null }));
+
   const groups = await Promise.all(
-    filtered.slice(0, limit).map(async (g) => {
+    page.map(async ({ group: g, distanceMiles }) => {
       const viewerRole = viewer ? await getGroupMemberRole(g.id, viewer.id) : null;
       let hasPending = false;
       if (viewer && !viewerRole) {
@@ -1241,11 +1378,15 @@ router.get("/meetups", async (req, res): Promise<void> => {
           );
         hasPending = !!jr;
       }
-      return serializeGroup(g, { viewerMemberRole: viewerRole, viewerHasPendingRequest: hasPending });
+      return serializeGroup(g, {
+        viewerMemberRole: viewerRole,
+        viewerHasPendingRequest: hasPending,
+        distanceMiles: distanceMiles === null ? null : Math.round(distanceMiles * 10) / 10,
+      });
     }),
   );
 
-  res.json({ groups, total: filtered.length });
+  res.json({ groups, total: radiusMiles !== undefined ? rankedByDistance.length : filtered.length });
 });
 
 // GET /groups/my
@@ -1430,6 +1571,12 @@ router.post("/groups", requireAuth(), async (req, res): Promise<void> => {
     }
   }
 
+  const meetupCoordinates = await resolveCoarseMeetupCoordinates(
+    data.groupType,
+    data.meetupCity,
+    data.meetupState,
+  );
+
   const [group, _member] = await db.transaction(async (tx) => {
     const [g] = await tx
       .insert(groupsTable)
@@ -1456,6 +1603,8 @@ router.post("/groups", requireAuth(), async (req, res): Promise<void> => {
         meetupCity: data.meetupCity ?? null,
         meetupState: data.meetupState ?? null,
         meetupCountry: data.meetupCountry ?? null,
+        meetupLat: meetupCoordinates?.lat ?? null,
+        meetupLng: meetupCoordinates?.lng ?? null,
       })
       .returning();
 
@@ -1642,6 +1791,20 @@ router.patch("/groups/:groupId", requireAuth(), async (req, res): Promise<void> 
     }
   }
 
+  const nextGroupType =
+    data.groupType !== undefined ? ((data.groupType ?? "group") as "group" | "meetup") : group.groupType ?? "group";
+  const nextMeetupCity =
+    data.meetupCity !== undefined ? (data.meetupCity ?? null) : group.meetupCity;
+  const nextMeetupState =
+    data.meetupState !== undefined ? (data.meetupState ?? null) : group.meetupState;
+  const locationChanged =
+    nextGroupType !== (group.groupType ?? "group") ||
+    nextMeetupCity !== group.meetupCity ||
+    nextMeetupState !== group.meetupState;
+  const meetupCoordinates = locationChanged
+    ? await resolveCoarseMeetupCoordinates(nextGroupType, nextMeetupCity, nextMeetupState)
+    : null;
+
   const [updated] = await db
     .update(groupsTable)
     .set({
@@ -1661,11 +1824,13 @@ router.patch("/groups/:groupId", requireAuth(), async (req, res): Promise<void> 
       postingPermission: data.postingPermission ?? group.postingPermission,
       postApproval: data.postApproval !== undefined ? data.postApproval : group.postApproval,
       // Meetup subtype fields
-      groupType: data.groupType !== undefined ? ((data.groupType ?? "group") as "group" | "meetup") : (group.groupType as "group" | "meetup") ?? "group",
+      groupType: nextGroupType,
       meetupInterests: data.meetupInterests !== undefined ? (data.meetupInterests ?? null) : group.meetupInterests,
-      meetupCity: data.meetupCity !== undefined ? (data.meetupCity ?? null) : group.meetupCity,
-      meetupState: data.meetupState !== undefined ? (data.meetupState ?? null) : group.meetupState,
+      meetupCity: nextMeetupCity,
+      meetupState: nextMeetupState,
       meetupCountry: data.meetupCountry !== undefined ? (data.meetupCountry ?? null) : group.meetupCountry,
+      meetupLat: locationChanged ? meetupCoordinates?.lat ?? null : group.meetupLat,
+      meetupLng: locationChanged ? meetupCoordinates?.lng ?? null : group.meetupLng,
     })
     .where(eq(groupsTable.id, groupId))
     .returning();

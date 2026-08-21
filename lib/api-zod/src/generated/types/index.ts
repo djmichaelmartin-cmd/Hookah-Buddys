@@ -369,6 +369,7 @@ export * from './listGroupsPrivacy';
 export * from './listLoungesParams';
 export * from './listMeetupsParams';
 export * from './listMeetupsPrivacy';
+export * from './listMeetupsRadius';
 export * from './listMeetupsSort';
 export * from './listMembersParams';
 export * from './listPlansAudience';

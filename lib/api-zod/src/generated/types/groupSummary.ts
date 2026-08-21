@@ -49,4 +49,6 @@ export interface GroupSummary {
   meetupState?: string | null;
   /** @nullable */
   meetupCountry?: string | null;
+  /** @nullable */
+  distanceMiles?: number | null;
 }

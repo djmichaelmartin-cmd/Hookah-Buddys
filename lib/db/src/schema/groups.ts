@@ -39,6 +39,7 @@ import {
   timestamp,
   uniqueIndex,
   jsonb,
+  real,
 } from "drizzle-orm/pg-core";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -95,6 +96,11 @@ export const groupsTable = pgTable("groups", {
   meetupCity: text("meetup_city"),
   meetupState: text("meetup_state"),
   meetupCountry: text("meetup_country").default("US"),
+  // Server-generated city-level coordinates for travel-radius discovery.
+  // Values are deliberately rounded to a coarse grid before storage and are
+  // never included in public API responses.
+  meetupLat: real("meetup_lat"),
+  meetupLng: real("meetup_lng"),
 });
 
 export type Group = typeof groupsTable.$inferSelect;

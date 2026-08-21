@@ -5156,6 +5156,14 @@ paths:
         - { name: state, in: query, required: false, schema: { type: string } }
         - { name: interests, in: query, required: false, schema: { type: string, description: "Comma-separated interest tags" } }
         - { name: privacy, in: query, required: false, schema: { type: string, enum: [public, private] }, description: "Limit to public or private meetups" }
+        - name: radius
+          in: query
+          required: false
+          schema: { type: integer, enum: [5, 10, 25, 50, 100] }
+          description: >
+            Search from the authenticated member's server-derived location and
+            return only in-person meetups inside this travel radius. Results are
+            sorted by approximate distance; no member or meetup coordinates are returned.
         - name: hasUpcomingEvent
           in: query
           required: false
@@ -5181,6 +5189,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupList"
+        "422":
+          description: The member has no safe location available for a radius search
 
   /groups/{groupId}/events:
     get:
@@ -8360,6 +8370,9 @@ components:
         meetupCity: { type: ["string", "null"] }
         meetupState: { type: ["string", "null"] }
         meetupCountry: { type: ["string", "null"] }
+        # Present for radius discovery only. Calculated from server-side member
+        # location and a coarse Meetup city point; raw coordinates are never public.
+        distanceMiles: { type: ["number", "null"] }
 
     GroupDetail:
       allOf:

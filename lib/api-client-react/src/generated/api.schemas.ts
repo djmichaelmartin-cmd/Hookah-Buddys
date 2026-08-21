@@ -3769,6 +3769,8 @@ export interface GroupSummary {
   meetupState?: string | null;
   /** @nullable */
   meetupCountry?: string | null;
+  /** @nullable */
+  distanceMiles?: number | null;
 }
 
 export type GroupDetail = GroupSummary & {
@@ -5467,6 +5469,11 @@ interests?: string;
  */
 privacy?: ListMeetupsPrivacy;
 /**
+ * Search from the authenticated member's server-derived location and return only in-person meetups inside this travel radius. Results are sorted by approximate distance; no member or meetup coordinates are returned.
+
+ */
+radius?: ListMeetupsRadius;
+/**
  * When true, only return meetups that have at least one active upcoming event (startsAt in the future). Implemented as a subquery; may be slower on large datasets — use with a reasonable limit.
 
  */
@@ -5488,6 +5495,7 @@ export const ListMeetupsPrivacy = {
   private: 'private',
 } as const;
 
+export type ListMeetupsRadius = typeof ListMeetupsRadius[keyof typeof ListMeetupsRadius];
 export type ListMeetupsSort = typeof ListMeetupsSort[keyof typeof ListMeetupsSort];
 
 
@@ -5543,3 +5551,11 @@ export type AdminTransferGroupOwnerBody = {
   reason?: string;
 };
 
+
+export const ListMeetupsRadius = {
+  NUMBER_5: 5,
+  NUMBER_10: 10,
+  NUMBER_25: 25,
+  NUMBER_50: 50,
+  NUMBER_100: 100,
+} as const;

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ListMeetupsPrivacy } from './listMeetupsPrivacy';
+import type { ListMeetupsRadius } from './listMeetupsRadius';
 import type { ListMeetupsSort } from './listMeetupsSort';
 
 export type ListMeetupsParams = {
@@ -20,6 +21,11 @@ interests?: string;
  * Limit to public or private meetups
  */
 privacy?: ListMeetupsPrivacy;
+/**
+ * Search from the authenticated member's server-derived location and return only in-person meetups inside this travel radius. Results are sorted by approximate distance; no member or meetup coordinates are returned.
+
+ */
+radius?: ListMeetupsRadius;
 /**
  * When true, only return meetups that have at least one active upcoming event (startsAt in the future). Implemented as a subquery; may be slower on large datasets — use with a reasonable limit.
 

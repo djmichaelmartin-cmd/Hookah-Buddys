@@ -326,6 +326,8 @@ function meetupGroup(overrides: Record<string, unknown> = {}) {
     meetupCity: "New York",
     meetupState: "NY",
     meetupCountry: "US",
+    meetupLat: 40.71,
+    meetupLng: -74.01,
     ...overrides,
   };
 }
@@ -458,6 +460,205 @@ describe("#2 Meetup discovery via GET /meetups", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as { groups: unknown[]; total: number };
     expect(body.groups.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("validates supported radius choices before querying", async () => {
+    const res = await req("/meetups?radius=12", {
+      user: { ...member, city: "Austin", state: "TX" },
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({
+      error: "radius must be one of 5, 10, 25, 50, or 100 miles",
+    });
+  });
+
+  it("requires a signed-in member for a privacy-safe radius search", async () => {
+    const res = await req("/meetups?radius=25");
+    expect(res.status).toBe(401);
+  });
+
+  it("filters and sorts by distance without exposing coordinates or a private address", async () => {
+    const viewer = { ...member, city: "Austin", state: "TX" };
+    h.enqueue(T.memberLocationsTable, [
+      {
+        id: 1,
+        userId: viewer.id,
+        lat: 30.27,
+        lng: -97.74,
+        timezone: "America/Chicago",
+        source: "device",
+        cityKey: "AUSTIN",
+        stateKey: "TX",
+      },
+    ]);
+    h.enqueue(T.groupsTable, [
+      meetupGroup({
+        id: 2,
+        name: "Farther Meetup",
+        location: "456 Private Venue Drive",
+        meetupCity: "San Antonio",
+        meetupState: "TX",
+        meetupLat: 29.42,
+        meetupLng: -98.49,
+      }),
+      meetupGroup({
+        id: 1,
+        name: "Nearby Meetup",
+        location: "123 Secret Host Street",
+        meetupCity: "Austin",
+        meetupState: "TX",
+        meetupLat: 30.3,
+        meetupLng: -97.74,
+      }),
+      meetupGroup({
+        id: 3,
+        name: "Unverified Location",
+        meetupCity: null,
+        meetupState: null,
+        meetupLat: null,
+        meetupLng: null,
+      }),
+    ]);
+    h.enqueue(T.groupMembersTable, []);
+    h.enqueue(T.groupJoinRequestsTable, []);
+    h.enqueue(T.groupMembersTable, []);
+    h.enqueue(T.groupJoinRequestsTable, []);
+
+    const res = await req("/meetups?radius=100", { user: viewer });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      groups: Array<Record<string, unknown>>;
+      total: number;
+    };
+
+    expect(body.total).toBe(2);
+    expect(body.groups.map((group) => group.name)).toEqual([
+      "Nearby Meetup",
+      "Farther Meetup",
+    ]);
+    expect(body.groups[0]?.distanceMiles).toBeTypeOf("number");
+    expect(body.groups[0]?.location).toBe("Austin, TX");
+    expect(body.groups[1]?.location).toBe("San Antonio, TX");
+
+    const serialized = JSON.stringify(body);
+    expect(serialized).not.toContain("meetupLat");
+    expect(serialized).not.toContain("meetupLng");
+    expect(serialized).not.toContain("Secret Host");
+    expect(serialized).not.toContain("Private Venue");
+    expect(serialized).not.toContain("Unverified Location");
+  });
+
+  it("excludes a Meetup when its cached city geocode is unavailable", async () => {
+    const viewer = { ...member, city: "Austin", state: "TX" };
+    h.enqueue(T.memberLocationsTable, [
+      {
+        id: 1,
+        userId: viewer.id,
+        lat: 30.27,
+        lng: -97.74,
+        timezone: "America/Chicago",
+        source: "device",
+        cityKey: "AUSTIN",
+        stateKey: "TX",
+      },
+    ]);
+    h.enqueue(T.groupsTable, [
+      meetupGroup({
+        id: 5,
+        name: "Unverified City Meetup",
+        meetupCity: "Unknown City",
+        meetupState: "TX",
+        meetupLat: null,
+        meetupLng: null,
+      }),
+    ]);
+    h.enqueue(T.cityGeocodesTable, [
+      {
+        id: 99,
+        cityKey: "UNKNOWN CITY",
+        stateKey: "TX",
+        lat: null,
+        lng: null,
+        status: "unavailable",
+        provider: "nominatim",
+        attemptedAt: new Date(),
+        resolvedAt: null,
+      },
+    ]);
+
+    const res = await req("/meetups?radius=100", { user: viewer });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ groups: [], total: 0 });
+  });
+
+  it("paginates only after calculating the global distance order", async () => {
+    const viewer = { ...member, city: "Austin", state: "TX" };
+    h.enqueue(T.memberLocationsTable, [
+      {
+        id: 1,
+        userId: viewer.id,
+        lat: 30.27,
+        lng: -97.74,
+        timezone: "America/Chicago",
+        source: "device",
+        cityKey: "AUSTIN",
+        stateKey: "TX",
+      },
+    ]);
+    h.enqueue(T.groupsTable, [
+      meetupGroup({
+        id: 7,
+        name: "Second Nearest",
+        meetupCity: "Austin",
+        meetupState: "TX",
+        meetupLat: 30.35,
+        meetupLng: -97.74,
+      }),
+      meetupGroup({
+        id: 6,
+        name: "Nearest",
+        meetupCity: "Austin",
+        meetupState: "TX",
+        meetupLat: 30.28,
+        meetupLng: -97.74,
+      }),
+    ]);
+    h.enqueue(T.groupMembersTable, []);
+    h.enqueue(T.groupJoinRequestsTable, []);
+
+    const res = await req("/meetups?radius=25&offset=1&limit=1", { user: viewer });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      groups: Array<Record<string, unknown>>;
+      total: number;
+    };
+    expect(body.total).toBe(2);
+    expect(body.groups).toHaveLength(1);
+    expect(body.groups[0]?.name).toBe("Second Nearest");
+  });
+
+  it("keeps online or location-free meetups discoverable when no radius is selected", async () => {
+    h.enqueue(T.groupsTable, [
+      meetupGroup({
+        id: 4,
+        name: "Online Hookah Workshop",
+        location: null,
+        meetupCity: null,
+        meetupState: null,
+        meetupLat: null,
+        meetupLng: null,
+      }),
+    ]);
+
+    const res = await req("/meetups");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      groups: Array<Record<string, unknown>>;
+      total: number;
+    };
+    expect(body.groups).toHaveLength(1);
+    expect(body.groups[0]?.name).toBe("Online Hookah Workshop");
+    expect(body.groups[0]?.distanceMiles).toBeNull();
   });
 });
 
