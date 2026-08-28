@@ -52,7 +52,7 @@ export default function Feed() {
           <h1 className="font-serif text-4xl text-white font-bold flex items-center gap-3 drop-shadow-md">
             The Lounge <Sparkles className="h-6 w-6 text-primary" />
           </h1>
-          <p className="text-muted-foreground mt-2">Your hookah social feed — post, browse, connect, and discover what's happening in the HookahBuddys community.</p>
+          <p className="text-muted-foreground mt-2">Your HookahBuddys Lounge — post, browse, connect, and discover what's happening in the community.</p>
         </div>
 
         <CommunityTopicsNav mobileOnly />
@@ -100,7 +100,7 @@ export default function Feed() {
           {isLoading ? (
             <div className="py-20 flex flex-col items-center justify-center text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p>Loading the feed...</p>
+              <p>Loading the Lounge...</p>
             </div>
           ) : posts?.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center text-center bg-card/20 rounded-2xl border border-white/5 backdrop-blur-md">

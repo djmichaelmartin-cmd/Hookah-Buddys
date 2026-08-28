@@ -77,7 +77,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
   const sendFriend = useSendFriendRequest({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Friend request sent" });
+        toast({ title: "Buddy request sent" });
         queryClient.invalidateQueries({ queryKey: getGetEnhancedProfileQueryKey(profile.userId) });
       },
       onError: () => toast({ title: "Failed to send request", variant: "destructive" }),
@@ -87,7 +87,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
   const respondFriend = useRespondFriendRequest({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Friend request updated" });
+        toast({ title: "Buddy request updated" });
         queryClient.invalidateQueries({ queryKey: getGetEnhancedProfileQueryKey(profile.userId) });
       },
       onError: () => toast({ title: "Failed to update request", variant: "destructive" }),
@@ -97,7 +97,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
   const unfriend = useUnfriendUser({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Unfriended" });
+        toast({ title: "Buddy removed" });
         queryClient.invalidateQueries({ queryKey: getGetEnhancedProfileQueryKey(profile.userId) });
       },
       onError: () => toast({ title: "Failed to unfriend", variant: "destructive" }),
@@ -197,7 +197,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
                   <span className="flex items-center gap-1.5 text-white/80">
                     <Users className="w-4 h-4 text-primary" />{" "}
                     {profile.mutualFriendCount} mutual{" "}
-                    {profile.mutualFriendCount === 1 ? "friend" : "friends"}
+                    {profile.mutualFriendCount === 1 ? "Buddy" : "Buddys"}
                   </span>
                 )}
               </div>
@@ -236,7 +236,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
                     variant="outline"
                     className="rounded-full border-white/20 text-white hover:bg-white/10 px-6 h-11 font-semibold"
                   >
-                    <UserPlus className="w-4 h-4 mr-2" /> Add Friend
+                    <UserPlus className="w-4 h-4 mr-2" /> Add Buddy
                   </Button>
                 )}
 
@@ -296,7 +296,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
                         variant="outline"
                         className="rounded-full border-primary/40 text-primary hover:bg-primary/10 px-6 h-11 font-semibold"
                       >
-                        <Check className="w-4 h-4 mr-2" /> Friends
+                        <Check className="w-4 h-4 mr-2" /> Buddys
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-card/95 backdrop-blur-xl border-white/10">
@@ -304,7 +304,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
                         onClick={() => unfriend.mutate({ userId: profile.userId })}
                         className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
                       >
-                        <UserX className="w-4 h-4 mr-2" /> Unfriend
+                        <UserX className="w-4 h-4 mr-2" /> Remove Buddy
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -366,7 +366,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
                 {profile.friendCount || 0}
               </span>
               <span className="text-xs text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
-                Friends
+                Buddys
               </span>
             </button>
             <div className="flex flex-col">
@@ -398,7 +398,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
             active={activeTab === "friends"}
             onClick={() => onTabChange("friends")}
           >
-            Friends
+            Buddys
           </TabButton>
           <TabButton
             active={activeTab === "photos"}

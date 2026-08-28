@@ -1,0 +1,274 @@
+Replit Agent Correction Instruction: Buddy Type Field and Buddy Pill Display
+
+Do not rebuild the HookahBuddys platform. Only correct the Buddy Type field and badge/pill display logic.
+
+Important correction:
+
+When creating any personal/member profile, require a form field that asks:
+
+“Female Buddy or Male Buddy?”
+
+Both options should display the word “Buddy” as the public badge/pill.
+
+Do not display “Bro.”
+
+Do not use an orange “Bro” pill.
+
+Required Field
+
+Add this required field to all personal/member profile creation forms:
+
+Label:
+
+“Female Buddy or Male Buddy?”
+
+Options:
+
+1. Female Buddy
+2. Male Buddy
+
+Field type:
+
+* Radio buttons or segmented pill selector
+* Required
+* No default preselected option
+* User must choose one before submitting the profile form
+
+Validation message:
+
+“Please select Female Buddy or Male Buddy to continue.”
+
+Apply this field to:
+
+* Free Profile / Bronze signup
+* Silver signup
+* Gold signup
+* Platinum signup
+* Doll profile creation, if applicable
+* Member profile creation
+* Profile edit page
+* Legacy profile completion prompt
+* Admin user/profile management, if admin can create or edit member profiles
+
+Do not apply this field to:
+
+* Business Profile creation
+* Group creation
+* Meetup creation
+* Event creation
+
+Those are not personal profiles. They are owned by a member profile.
+
+Database Update
+
+Add or update a field on the user/member profile model.
+
+Suggested field:
+
+`buddyType`
+
+Allowed values:
+
+* `female_buddy`
+* `male_buddy`
+
+This field controls the profile badge/pill color.
+
+Badge / Pill Display Rule
+
+Both Female Buddy and Male Buddy profiles must display the public pill text:
+
+“Buddy”
+
+Female Buddy:
+
+* Display a pink “Buddy” pill.
+
+Male Buddy:
+
+* Display a blue “Buddy” pill.
+
+Do not display:
+
+* “Bro”
+* “Male Buddy”
+* “Female Buddy”
+* Orange pill styling for male users
+
+Public-facing pill text should always be:
+
+“Buddy”
+
+Pill Color Rules
+
+Female Buddy pill:
+
+* Text: `Buddy`
+* Background: Pink / rose
+* Suggested background: `#E85D75`
+* Suggested border: `#F28BA0`
+* Text color: `#FFFFFF`
+
+Male Buddy pill:
+
+* Text: `Buddy`
+* Background: Blue
+* Suggested background: `#1877F2`
+* Suggested border: `#5AA2FF`
+* Text color: `#FFFFFF`
+
+Remove or replace any existing orange “Bro” pill styling.
+
+Where the Buddy Pill Should Display
+
+Show the Buddy pill in:
+
+* Profile header
+* Profile cards
+* The Lounge posts
+* Comments
+* Search/browse results
+* Friends list
+* Followers/following lists
+* Group member lists
+* Meetup member lists
+* Event attendee cards
+* Suggested people widgets
+* Online now widgets
+* Message thread headers
+* Admin user list
+
+Profile Edit Page
+
+Update `/profile/edit`.
+
+Add section:
+
+“Buddy Type”
+
+Field:
+
+“Female Buddy or Male Buddy?”
+
+Options:
+
+* Female Buddy
+* Male Buddy
+
+Helper text:
+
+“Choose how your HookahBuddys profile badge color should display.”
+
+After saving:
+
+* Female Buddy displays pink “Buddy”
+* Male Buddy displays blue “Buddy”
+
+Legacy User Handling
+
+For existing users who do not yet have `buddyType` set:
+
+* Do not break their account.
+* On next login or profile edit, show a required completion prompt.
+
+Prompt title:
+
+“Complete Your Profile”
+
+Prompt message:
+
+“Please select Female Buddy or Male Buddy to finish setting up your HookahBuddys profile.”
+
+Options:
+
+* Female Buddy
+* Male Buddy
+
+Button:
+
+“Save and Continue”
+
+Until the user completes this field, prevent them from creating:
+
+* Posts
+* Sparks
+* Groups
+* Meetups
+* Events
+* Business Profiles
+
+Search / Filter Updates
+
+Where member discovery exists, add optional filters:
+
+* Female Buddy
+* Male Buddy
+
+These filters should be optional only.
+
+Do not make the filter mandatory.
+
+Admin Dashboard Updates
+
+Update Admin Dashboard user/profile management so admin can:
+
+* View Buddy Type
+* Filter by Female Buddy / Male Buddy
+* Edit Buddy Type if needed
+* See users missing Buddy Type
+* Prompt legacy users to complete Buddy Type
+
+CSS / Styling
+
+Use consistent rounded pill styling.
+
+Suggested CSS:
+
+```css
+.buddy-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.buddy-pill-female {
+  background: #E85D75;
+  border: 1px solid #F28BA0;
+  color: #FFFFFF;
+}
+
+.buddy-pill-male {
+  background: #1877F2;
+  border: 1px solid #5AA2FF;
+  color: #FFFFFF;
+}
+```
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove existing member profiles.
+
+Do not remove Business Profiles, Groups, Meetups, Events, The Lounge, Sparks, credits, memberships, pricing, messaging, verification, or premium features.
+
+Do not display “Bro” as the male pill.
+
+Do not display an orange male pill.
+
+Only correct the profile Buddy Type field and public pill display.
+
+Final Result
+
+Every personal/member profile must require the user to select:
+
+“Female Buddy or Male Buddy?”
+
+Female Buddy profiles display a pink “Buddy” pill.
+
+Male Buddy profiles display a blue “Buddy” pill.

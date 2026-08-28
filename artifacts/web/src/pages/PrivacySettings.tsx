@@ -151,7 +151,7 @@ export default function PrivacySettings() {
                   </SelectTrigger>
                   <SelectContent className="bg-card border-white/10">
                     <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="friends">Friends</SelectItem>
+                    <SelectItem value="friends">Buddys</SelectItem>
                     <SelectItem value="followers">Followers</SelectItem>
                     <SelectItem value="only_me">Only me</SelectItem>
                   </SelectContent>
@@ -160,14 +160,14 @@ export default function PrivacySettings() {
             </div>
           </div>
 
-          {/* Friends & Followers */}
+          {/* Buddy relationships and followers */}
           <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-2xl p-6">
             <h2 className="text-xl font-serif text-white mb-6">
-              Friends & Followers
+              Buddys & Followers
             </h2>
             <div className="space-y-6">
               <div>
-                <Label htmlFor="showFriendsList">Who can see your friends list</Label>
+                <Label htmlFor="showFriendsList">Who can see your Buddys list</Label>
                 <Select
                   value={showFriendsList}
                   onValueChange={(v) => setShowFriendsList(v as PrivacySettingsInputShowFriendsList)}
@@ -180,7 +180,7 @@ export default function PrivacySettings() {
                   </SelectTrigger>
                   <SelectContent className="bg-card border-white/10">
                     <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="friends">Friends</SelectItem>
+                    <SelectItem value="friends">Buddys</SelectItem>
                     <SelectItem value="only_me">Only me</SelectItem>
                   </SelectContent>
                 </Select>
@@ -200,7 +200,7 @@ export default function PrivacySettings() {
                   </SelectTrigger>
                   <SelectContent className="bg-card border-white/10">
                     <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="friends">Friends</SelectItem>
+                    <SelectItem value="friends">Buddys</SelectItem>
                     <SelectItem value="only_me">Only me</SelectItem>
                   </SelectContent>
                 </Select>
@@ -208,7 +208,7 @@ export default function PrivacySettings() {
 
               <div>
                 <Label htmlFor="allowFriendRequestsFrom">
-                  Who can send you friend requests
+                  Who can send you Buddy requests
                 </Label>
                 <Select
                   value={allowFriendRequestsFrom}
@@ -222,7 +222,7 @@ export default function PrivacySettings() {
                   </SelectTrigger>
                   <SelectContent className="bg-card border-white/10">
                     <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="friends_of_friends">Friends of friends</SelectItem>
+                    <SelectItem value="friends_of_friends">Buddys of Buddys</SelectItem>
                     <SelectItem value="no_one">No one</SelectItem>
                   </SelectContent>
                 </Select>
@@ -247,7 +247,7 @@ export default function PrivacySettings() {
                   </SelectTrigger>
                   <SelectContent className="bg-card border-white/10">
                     <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="friends">Friends</SelectItem>
+                    <SelectItem value="friends">Buddys</SelectItem>
                     <SelectItem value="no_one">No one</SelectItem>
                   </SelectContent>
                 </Select>
@@ -264,7 +264,7 @@ export default function PrivacySettings() {
                   </SelectTrigger>
                   <SelectContent className="bg-card border-white/10">
                     <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="friends">Friends</SelectItem>
+                    <SelectItem value="friends">Buddys</SelectItem>
                     <SelectItem value="no_one">No one</SelectItem>
                   </SelectContent>
                 </Select>
@@ -302,7 +302,7 @@ export default function PrivacySettings() {
                   </SelectTrigger>
                   <SelectContent className="bg-card border-white/10">
                     <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="friends">Friends</SelectItem>
+                    <SelectItem value="friends">Buddys</SelectItem>
                     <SelectItem value="no_one">No one</SelectItem>
                   </SelectContent>
                 </Select>
@@ -319,7 +319,7 @@ export default function PrivacySettings() {
                   </SelectTrigger>
                   <SelectContent className="bg-card border-white/10">
                     <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="friends">Friends</SelectItem>
+                    <SelectItem value="friends">Buddys</SelectItem>
                     <SelectItem value="no_one">No one</SelectItem>
                   </SelectContent>
                 </Select>

@@ -29,7 +29,7 @@ function AudienceBadge({ sharedPost }: { sharedPost: SharedPostPreview }) {
   if (sharedPost.audience === "friends" || sharedPost.audience === "followers") {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border border-white/10 bg-white/5 text-muted-foreground">
-        <Users className="h-3 w-3" /> Friends
+        <Users className="h-3 w-3" /> Buddys
       </span>
     );
   }

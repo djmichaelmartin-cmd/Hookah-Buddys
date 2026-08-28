@@ -1,0 +1,188 @@
+Replit Agent Correction Instruction: Browse / Lounge Page Should Show All Buddys
+
+Do not rebuild the HookahBuddys platform. Only correct the Browse / Lounge page filtering logic.
+
+Current issue:
+
+The Browse / Lounge page appears to be showing only Female Buddys.
+
+Required correction:
+
+The Browse / Lounge page should show everyone by default, including:
+
+* Female Buddy profiles
+* Male Buddy profiles
+* All active member profiles
+* Free / Bronze members
+* Silver members
+* Gold members
+* Platinum members
+* Verified profiles
+* Non-verified profiles
+* Public personal profiles
+
+Default Browse Behavior
+
+When a user opens the Browse / Lounge page, the default view should show all eligible public member profiles, not only Female Buddys.
+
+Do not pre-filter by:
+
+* Female Buddy
+* Male Buddy
+* Buddy Type
+* Gender
+* Membership tier
+* Doll/Bro type
+* Verification status
+
+Only exclude users who should not be visible, such as:
+
+* Suspended users
+* Banned users
+* Hidden/private profiles
+* Deleted accounts
+* Profiles blocked by the current user
+* Profiles that blocked the current user
+* Profiles that fail privacy rules
+
+Buddy Type Filter
+
+Keep Buddy Type as an optional filter, not a default filter.
+
+Add or update filter options:
+
+* All Buddys
+* Female Buddy
+* Male Buddy
+
+Default selected option:
+
+“All Buddys”
+
+Filter behavior:
+
+* All Buddys: show Female Buddy and Male Buddy profiles
+* Female Buddy: show only users with `buddyType = female_buddy`
+* Male Buddy: show only users with `buddyType = male_buddy`
+
+Buddy Pill Display
+
+Continue to display the correct Buddy pill:
+
+Female Buddy:
+
+* Pink pill
+* Text: “Buddy”
+
+Male Buddy:
+
+* Blue pill
+* Text: “Buddy”
+
+Important:
+
+Do not show “Bro.”
+
+Do not show an orange Bro pill.
+
+Do not use Male Buddy as a reason to hide the user from Browse or The Lounge.
+
+Search / Browse Query Logic
+
+Review the Browse / Lounge query logic and remove any hardcoded condition such as:
+
+* `buddyType = female_buddy`
+* `gender = female`
+* `role = doll`
+* `userType = female`
+* `profileType = doll`
+
+Replace it with default logic that returns all public active member profiles.
+
+Recommended default query logic:
+
+* status = active
+* profileVisibility = public
+* account not suspended
+* account not banned
+* account not deleted
+* respect block/privacy rules
+* no Buddy Type restriction unless user selects a Buddy Type filter
+
+If the page is intended to browse member profiles, it should not only browse Dolls or Female Buddys.
+
+Page Copy Update
+
+Update the Browse / Lounge page title or helper text if needed.
+
+Use inclusive language:
+
+“Browse Buddys”
+
+or:
+
+“Find Buddys”
+
+Suggested subtitle:
+
+“Discover members across the HookahBuddys community. Browse Female Buddys, Male Buddys, friends, creators, local members, and active profiles.”
+
+Filter label:
+
+“Buddy Type”
+
+Options:
+
+* All Buddys
+* Female Buddy
+* Male Buddy
+
+The Lounge Feed
+
+If The Lounge feed has a people section, suggested users section, online now widget, or browse members widget, make sure those also show all eligible Buddys by default.
+
+Widgets that should show all Buddys unless filtered:
+
+* Online Now
+* Suggested Buddys
+* People You May Know
+* Browse Buddys
+* Members Near You
+* Active Members
+* New Members
+
+Do not limit these widgets to Female Buddys.
+
+Admin / Debug Check
+
+Add a quick internal check or seed data check to confirm:
+
+* Female Buddy profiles appear
+* Male Buddy profiles appear
+* Both display the “Buddy” pill
+* Female Buddy pill is pink
+* Male Buddy pill is blue
+* Default Browse view shows both types
+* Selecting Female Buddy filter shows only Female Buddy profiles
+* Selecting Male Buddy filter shows only Male Buddy profiles
+* Selecting All Buddys restores all visible profiles
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove Buddy Type.
+
+Do not remove the Buddy pill.
+
+Do not remove privacy rules.
+
+Do not remove member profiles, Business Profiles, Groups, Meetups, Events, The Lounge, Sparks, credits, memberships, pricing, messaging, verification, or premium features.
+
+Only correct the Browse / Lounge page so it shows everyone by default instead of only Female Buddys.
+
+Final Result
+
+The Browse / Lounge page should show all eligible public HookahBuddys members by default.
+
+Female Buddy and Male Buddy should only be used for optional filtering and pill color display.

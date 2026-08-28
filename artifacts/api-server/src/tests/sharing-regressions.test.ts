@@ -119,7 +119,7 @@ test("policy: checkSharingEligibility enforces per-destination flags", () => {
   );
   // Each must return a denial when the flag is unset
   assert.match(fnBody, /author.*disabled.*public|disabled.*public.*sharing|The author has disabled public sharing/, "must deny public");
-  assert.match(fnBody, /author.*disabled.*friends|disabled.*friends.*sharing|The author has disabled friends sharing/, "must deny friends");
+  assert.match(fnBody, /author.*disabled.*Buddy|disabled.*Buddy.*sharing|The author has disabled Buddy sharing/, "must deny Buddy sharing");
   assert.match(fnBody, /author.*disabled.*private|disabled.*private.*sharing|The author has disabled private sharing/, "must deny private");
   assert.match(fnBody, /author.*disabled.*group|disabled.*group.*sharing|The author has disabled group sharing/, "must deny group");
 });

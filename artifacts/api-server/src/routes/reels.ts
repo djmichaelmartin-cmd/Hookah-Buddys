@@ -513,7 +513,7 @@ router.post("/usertags", requireAuth(), async (req, res): Promise<void> => {
     return;
   }
   if (settings.allowTagging === "friends" && !rel.isFriend && !rel.isSelf) {
-    res.status(400).json({ error: "This user only allows tags from friends" });
+    res.status(400).json({ error: "This user only allows tags from Buddys" });
     return;
   }
   // Verify target content exists

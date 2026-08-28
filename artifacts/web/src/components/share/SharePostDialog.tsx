@@ -45,7 +45,7 @@ const DESTINATIONS: {
 }[] = [
   { key: "public", label: "Public", icon: Globe },
   { key: "lounge", label: "Lounge", icon: Coffee },
-  { key: "friends", label: "Friends", icon: Users },
+  { key: "friends", label: "Buddys", icon: Users },
   { key: "group", label: "Group", icon: Users },
   { key: "private", label: "Private Message", icon: Lock },
 ];
@@ -440,7 +440,7 @@ export function SharePostDialog({
                 Select Recipients (up to 10)
               </p>
               <Input
-                placeholder="Search friends..."
+                placeholder="Search Buddys..."
                 value={recipientSearch}
                 onChange={(e) => setRecipientSearch(e.target.value)}
                 className="bg-background/50 border-white/10 h-9 text-sm"
@@ -448,12 +448,12 @@ export function SharePostDialog({
               />
               {loadingFriends ? (
                 <div className="text-sm text-muted-foreground animate-pulse">
-                  Loading friends...
+                  Loading Buddys...
                 </div>
               ) : friends?.length === 0 ? (
                 <div className="text-sm text-muted-foreground">
                   {recipientSearch
-                    ? "No friends match your search."
+                    ? "No Buddys match your search."
                     : "No eligible recipients found."}
                 </div>
               ) : (

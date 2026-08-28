@@ -39,7 +39,7 @@ export default function PostDetail() {
             <p className="text-muted-foreground text-sm mb-6">
               The post you are looking for has been deleted or its privacy settings do not allow you to view it.
             </p>
-            <Button onClick={() => setLocation("/feed")}>Go to Feed</Button>
+            <Button onClick={() => setLocation("/feed")}>Go to the Lounge</Button>
           </div>
         ) : (
           <div className="space-y-6">

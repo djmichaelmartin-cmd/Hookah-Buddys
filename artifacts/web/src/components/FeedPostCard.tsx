@@ -199,7 +199,7 @@ export function FeedPostCard({
     if (!reportReason.trim()) return;
     reportPost.mutate({
       id: post.id,
-      data: { reason: reportReason, notes: "Reported from feed" },
+      data: { reason: reportReason, notes: "Reported from Lounge" },
     });
   };
 
@@ -526,13 +526,13 @@ export function FeedPostCard({
                     {
                       key: "allowPublicShares" as const,
                       label: "Public & Lounge",
-                      description: "Share to public feed or lounge",
+                      description: "Share to the public Lounge",
                       current: post.allowPublicShares,
                     },
                     {
                       key: "allowFriendsShares" as const,
-                      label: "Friends",
-                      description: "Share to friends' feeds",
+                      label: "Buddys",
+                      description: "Share with Buddys in the Lounge",
                       current: post.allowFriendsShares,
                     },
                     {

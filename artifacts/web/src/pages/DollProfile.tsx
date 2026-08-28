@@ -388,8 +388,8 @@ export default function DollProfile() {
 
               <TabsContent value="posts" className="space-y-6 mt-0 outline-none">
                 <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-6">
-                  <h2 className="text-xl font-serif text-white mb-2">Lounge Feed</h2>
-                  <p className="text-sm text-muted-foreground">Public posts by {doll.stageName} on the HookahBuddys feed.</p>
+                  <h2 className="text-xl font-serif text-white mb-2">Lounge Posts</h2>
+                  <p className="text-sm text-muted-foreground">Public posts by {doll.stageName} in the HookahBuddys Lounge.</p>
                 </div>
 
                 {postsLoading ? (

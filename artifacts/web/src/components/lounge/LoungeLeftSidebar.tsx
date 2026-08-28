@@ -24,7 +24,7 @@ const NAV_LINKS = [
   { to: "/feed", label: "The Lounge", icon: Home },
   { to: "/groups", label: "Groups", icon: Users },
   { to: "/meetups", label: "Meetups", icon: CalendarDays },
-  { to: "/friends", label: "Friends", icon: Users },
+  { to: "/friends", label: "Buddys", icon: Users },
   { to: "/messages", label: "Messages", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/reels", label: "Reels", icon: Clapperboard },

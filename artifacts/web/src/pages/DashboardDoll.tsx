@@ -78,7 +78,7 @@ export default function DashboardDoll() {
             <div className="bg-card/50 border border-white/10 rounded-xl p-6 min-h-[600px]">
               <Tabs defaultValue="myposts" className="w-full">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-serif text-white">Lounge Feed</h2>
+                  <h2 className="text-xl font-serif text-white">Lounge Posts</h2>
                   <TabsList className="bg-background/50 border border-white/10">
                     <TabsTrigger value="myposts" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">My Posts</TabsTrigger>
                     <TabsTrigger value="saved" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Saved</TabsTrigger>
@@ -89,8 +89,8 @@ export default function DashboardDoll() {
                   {myPosts?.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground flex flex-col items-center border border-dashed border-white/10 rounded-xl bg-background/20">
                       <FileText className="w-8 h-8 mb-3 opacity-20" />
-                      <p>You haven't posted anything to the feed yet.</p>
-                      <Link href="/feed"><Button variant="outline" size="sm" className="mt-4 border-white/20">Go to Feed</Button></Link>
+                      <p>You haven't posted anything to the Lounge yet.</p>
+                      <Link href="/feed"><Button variant="outline" size="sm" className="mt-4 border-white/20">Go to the Lounge</Button></Link>
                     </div>
                   ) : (
                     myPosts?.map(post => <FeedPostCard key={post.id} post={post} onLoginPrompt={() => {}} />)

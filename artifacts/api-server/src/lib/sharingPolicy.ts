@@ -428,7 +428,7 @@ export async function checkSharingEligibility(opts: {
   }
   if (destination === "friends") {
     if (sharingSettings && !sharingSettings.allowFriendsShares) {
-      return { allowed: false, reason: "The author has disabled friends sharing for this post" };
+      return { allowed: false, reason: "The author has disabled Buddy sharing for this post" };
     }
   }
   if (destination === "private") {

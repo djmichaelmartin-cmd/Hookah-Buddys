@@ -31,7 +31,7 @@ export function PrivacySelector({ value, onChange, className }: PrivacySelectorP
         <SelectItem value="friends" className="text-xs cursor-pointer hover:bg-white/5">
           <div className="flex items-center gap-2">
             <Users className="w-3 h-3 text-primary" />
-            Friends
+            Buddys
           </div>
         </SelectItem>
         <SelectItem value="followers" className="text-xs cursor-pointer hover:bg-white/5">

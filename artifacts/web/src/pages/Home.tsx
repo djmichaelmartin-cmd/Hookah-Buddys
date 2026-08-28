@@ -428,7 +428,7 @@ export default function Home() {
                   variant="outline"
                   className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-primary font-semibold tracking-widest uppercase h-14 px-9 backdrop-blur-md bg-white/5"
                 >
-                  Explore the Feed
+                  Explore the Lounge
                 </Button>
               </Link>
               <Link href="/browse" className="hidden lg:block">
@@ -631,10 +631,10 @@ export default function Home() {
             <div className="max-w-2xl">
               <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">Groups</p>
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
-                Explore Groups & The Feed
+                Explore Groups & The Lounge
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Join member-owned Groups to connect over specific interests, or dive into the global Feed for the latest lounge updates.
+                Join member-owned Groups to connect over specific interests, or dive into the global Lounge for the latest community updates.
               </p>
             </div>
             <div className="flex gap-4">
@@ -645,7 +645,7 @@ export default function Home() {
               </Link>
               <Link href="/feed">
                 <Button className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8">
-                  Explore Feed <ArrowRight className="ml-2 w-4 h-4" />
+                  Explore the Lounge <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
             </div>
@@ -696,7 +696,7 @@ export default function Home() {
           {feedPosts && feedPosts.length > 0 ? (
             <div>
               <h3 className="text-xl font-serif text-white mb-6 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-primary" /> Trending in the Feed
+                <MessageSquare className="w-5 h-5 text-primary" /> Trending in the Lounge
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {feedPosts.slice(0, 4).map(post => (

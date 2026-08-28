@@ -207,7 +207,7 @@ function AdminDashboardContent() {
             <TabsTrigger value="applications"><Users className="w-4 h-4 mr-2"/> Applications</TabsTrigger>
             <TabsTrigger value="media"><ImageIcon className="w-4 h-4 mr-2"/> Media Moderation</TabsTrigger>
             <TabsTrigger value="verifications"><ShieldCheck className="w-4 h-4 mr-2"/> Verifications</TabsTrigger>
-            <TabsTrigger value="feed"><MessageSquare className="w-4 h-4 mr-2"/> Feed</TabsTrigger>
+            <TabsTrigger value="feed"><MessageSquare className="w-4 h-4 mr-2"/> Lounge</TabsTrigger>
             <TabsTrigger value="shares"><Share2 className="w-4 h-4 mr-2"/> Shares</TabsTrigger>
             <TabsTrigger value="photos"><ImageIcon className="w-4 h-4 mr-2"/> Photos</TabsTrigger>
             <TabsTrigger value="reels"><Video className="w-4 h-4 mr-2"/> Reels</TabsTrigger>
@@ -363,7 +363,7 @@ function AdminDashboardContent() {
             </div>
 
             <div className="bg-card/50 border border-white/10 rounded-xl p-6">
-              <h2 className="text-xl font-serif text-white mb-4">All Feed Posts</h2>
+              <h2 className="text-xl font-serif text-white mb-4">All Lounge Posts</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -486,7 +486,7 @@ function AdminDashboardContent() {
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="text-xs text-muted-foreground uppercase tracking-wider mr-1">Source:</span>
                   <Button size="sm" variant={!shareSourceTypeFilter ? "default" : "outline"} onClick={() => setShareSourceTypeFilter(undefined)}>All</Button>
-                  <Button size="sm" variant={shareSourceTypeFilter === "feed_post" ? "default" : "outline"} onClick={() => setShareSourceTypeFilter("feed_post")}>Feed Post</Button>
+                  <Button size="sm" variant={shareSourceTypeFilter === "feed_post" ? "default" : "outline"} onClick={() => setShareSourceTypeFilter("feed_post")}>Lounge Post</Button>
                   <Button size="sm" variant={shareSourceTypeFilter === "group_post" ? "default" : "outline"} onClick={() => setShareSourceTypeFilter("group_post")}>Group Post</Button>
                 </div>
 

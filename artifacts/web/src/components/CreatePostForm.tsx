@@ -65,7 +65,7 @@ export function CreatePostForm({
         setPosterUrl("");
         setMediaType("none");
         queryClient.invalidateQueries({ queryKey: getListFeedPostsQueryKey() });
-        toast({ title: "Posted successfully", description: "Your post is now live in the feed." });
+        toast({ title: "Posted successfully", description: "Your post is now live in the Lounge." });
         onCreated?.();
       },
       onError: () => toast({ title: "Failed to post", description: "Please try again.", variant: "destructive" }),

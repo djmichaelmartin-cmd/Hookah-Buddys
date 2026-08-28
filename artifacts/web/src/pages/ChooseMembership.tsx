@@ -41,13 +41,13 @@ export default function ChooseMembership() {
           <h1 className="text-4xl font-serif text-white mb-4">Create Your Profile</h1>
           <p className="text-muted-foreground mb-4 max-w-2xl mx-auto">
             Join the HookahBuddys social community for free. Create your profile, post hookah
-            content, follow users, make friends, and explore the feed. Upgrade anytime for
+            content, follow users, make Buddys, and explore the Lounge. Upgrade anytime for
             credits, premium access, and VIP features.
           </p>
           <p className="text-sm text-muted-foreground/80 mb-8 max-w-2xl mx-auto">
 
-            HookahBuddys is free to join. Create a profile, post in the hookah feed, follow users,
-            add friends, and explore the community. Paid plans are optional upgrades that include
+            HookahBuddys is free to join. Create a profile, post in the Lounge, follow users,
+            add Buddys, and explore the community. Paid plans are optional upgrades that include
             monthly credits and premium Buddy access.
           </p>
           <h2 className="text-xl font-serif text-white mb-10">Choose how you want to join</h2>
@@ -136,7 +136,7 @@ export default function ChooseMembership() {
             <div>
               <h3 className="text-lg font-semibold text-white mb-3">Free profile access includes</h3>
               <ul className="space-y-2">
-                {["Public social feed", "Profile creation", "Friends and follows", "Likes and comments", "Public photos and reels", "Basic profile browsing"].map((f) => (
+                {["Access to the public Lounge", "Profile creation", "Buddys and follows", "Likes and comments", "Public photos and reels", "Basic profile browsing"].map((f) => (
                   <li key={f} className="text-sm text-muted-foreground flex items-start">
                     <Check className="w-4 h-4 text-primary mr-2 mt-0.5 shrink-0" /> {f}
                   </li>

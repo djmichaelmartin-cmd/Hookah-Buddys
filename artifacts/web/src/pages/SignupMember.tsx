@@ -95,7 +95,7 @@ export default function SignupMember() {
           <p className="text-muted-foreground text-center mb-8">
             {selectedPlan && selectedPlan.price > 0
               ? "Create your profile to join the lounge."
-              : "Join the HookahBuddys social community for free — post, follow, make friends, and explore the feed. Upgrade anytime."}
+              : "Join the HookahBuddys social community for free — post, follow, make Buddys, and explore the Lounge. Upgrade anytime."}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">

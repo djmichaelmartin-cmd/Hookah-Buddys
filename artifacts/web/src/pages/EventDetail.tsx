@@ -116,7 +116,7 @@ export default function EventDetail() {
     }
     try {
       await navigator.clipboard.writeText(url);
-      toast({ title: "Link copied", description: "Share it with your friends." });
+      toast({ title: "Link copied", description: "Share it with your Buddys." });
     } catch {
       toast({
         title: "Couldn't copy the link",

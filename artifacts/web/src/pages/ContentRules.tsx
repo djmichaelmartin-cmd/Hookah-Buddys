@@ -23,11 +23,11 @@ export default function ContentRules() {
         <h3>5. Originality</h3>
         <p>Only upload content you own and have the right to share. Stolen or watermarked third-party content is prohibited.</p>
 
-        <h3 className="text-secondary mt-12 pt-8 border-t border-white/10">6. Public Feed & Social Features</h3>
-        <p>The public feed is the heart of the community. Posts, photos, and reels must be hookah-related.</p>
-        <p><strong>Allowed:</strong> Lounges, setups, flavors, events, memes, reviews, photos, videos, discussion, profiles, friend posts.</p>
+        <h3 className="text-secondary mt-12 pt-8 border-t border-white/10">6. Public Lounge & Social Features</h3>
+        <p>The public Lounge is the heart of the community. Posts, photos, and reels must be hookah-related.</p>
+        <p><strong>Allowed:</strong> Lounges, setups, flavors, events, memes, reviews, photos, videos, discussion, profiles, Buddy posts.</p>
         <p><strong>Not Allowed:</strong> Spam, harassment, fake profiles, stolen content, illegal content, underage content, misleading posts, posting others' private information without consent, public street addresses, hate speech targeting individuals or groups.</p>
-        <p className="text-sm text-muted-foreground"><em>Note: While Buddy premium and verification content must show a visible hookah, general feed discussion only needs to be hookah-related. All reports are reviewed by administration.</em></p>
+        <p className="text-sm text-muted-foreground"><em>Note: While Buddy premium and verification content must show a visible hookah, general Lounge discussion only needs to be hookah-related. All reports are reviewed by administration.</em></p>
 
         <h3>7. Profile Guidelines</h3>
         <p>Your profile represents you on HookahBuddys. Provide truthful information. Do not impersonate others. Do not steal photos from other accounts or the internet. Respect others' privacy settings — do not share private profile information without permission.</p>

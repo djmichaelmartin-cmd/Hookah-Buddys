@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Feed", href: "/feed" },
+  { label: "Lounge", href: "/feed" },
   { label: "Groups", href: "/groups" },
   { label: "Meetups", href: "/meetups" },
   { label: "Reels", href: "/reels" },
@@ -288,7 +288,7 @@ export function Navbar() {
                 <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                   <Link href="/friends" className="flex items-center w-full">
                     <Users className="mr-2 h-4 w-4" />
-                    <span>Friends</span>
+                    <span>Buddys</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">

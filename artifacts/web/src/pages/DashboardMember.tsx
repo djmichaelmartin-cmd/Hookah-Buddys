@@ -423,7 +423,7 @@ export default function DashboardMember() {
               <div className="lg:col-span-1">
                 <div className="bg-card/50 border border-white/10 rounded-xl p-6 sticky top-[160px]">
                   <h2 className="text-xl font-serif text-white mb-4">
-                    Feed Stats
+                    Lounge Stats
                   </h2>
                   <div className="space-y-4 text-sm">
                     <div className="flex justify-between pb-3 border-b border-white/5">

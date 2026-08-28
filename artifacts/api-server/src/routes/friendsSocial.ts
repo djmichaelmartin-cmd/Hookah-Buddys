@@ -89,7 +89,7 @@ router.post("/friends/requests", requireAuth(), async (req, res): Promise<void> 
   }
   const receiverId = parsed.data.receiverId;
   if (receiverId === user.id) {
-    res.status(400).json({ error: "You cannot friend yourself" });
+    res.status(400).json({ error: "You cannot add yourself as a Buddy" });
     return;
   }
   const [receiver] = await db.select().from(usersTable).where(eq(usersTable.id, receiverId));
@@ -99,16 +99,16 @@ router.post("/friends/requests", requireAuth(), async (req, res): Promise<void> 
   }
   const rel = await getRelationship(user, receiverId);
   if (rel.viewerBlockedTarget || rel.targetBlockedViewer) {
-    res.status(400).json({ error: "Unable to send friend request" });
+    res.status(400).json({ error: "Unable to send Buddy request" });
     return;
   }
   if (rel.isFriend) {
-    res.status(400).json({ error: "You are already friends" });
+    res.status(400).json({ error: "You are already Buddys" });
     return;
   }
   const settings = await getOrCreatePrivacySettings(receiverId);
   if (settings.allowFriendRequestsFrom === "no_one") {
-    res.status(400).json({ error: "This user is not accepting friend requests" });
+    res.status(400).json({ error: "This user is not accepting Buddy requests" });
     return;
   }
   const [existing] = await db
@@ -124,7 +124,7 @@ router.post("/friends/requests", requireAuth(), async (req, res): Promise<void> 
       ),
     );
   if (existing) {
-    res.status(400).json({ error: "A friend request is already pending" });
+    res.status(400).json({ error: "A Buddy request is already pending" });
     return;
   }
   const [request] = await db
@@ -134,8 +134,8 @@ router.post("/friends/requests", requireAuth(), async (req, res): Promise<void> 
   await createNotification({
     userId: receiverId,
     type: "friend_request",
-    title: "New friend request",
-    message: `${user.name} sent you a friend request`,
+    title: "New Buddy request",
+    message: `${user.name} sent you a Buddy request`,
     relatedUserId: user.id,
   });
   res.status(201).json(await toRequestResponse(request));
@@ -154,7 +154,7 @@ router.patch("/friends/requests/:id", requireAuth(), async (req, res): Promise<v
     .from(friendRequestsTable)
     .where(eq(friendRequestsTable.id, id));
   if (!request || request.status !== "pending") {
-    res.status(404).json({ error: "Friend request not found" });
+    res.status(404).json({ error: "Buddy request not found" });
     return;
   }
   const action = parsed.data.action;
@@ -173,7 +173,7 @@ router.patch("/friends/requests/:id", requireAuth(), async (req, res): Promise<v
     .where(and(eq(friendRequestsTable.id, id), eq(friendRequestsTable.status, "pending")))
     .returning();
   if (!updated) {
-    res.status(404).json({ error: "Friend request not found" });
+    res.status(404).json({ error: "Buddy request not found" });
     return;
   }
   if (action === "accept") {
@@ -182,8 +182,8 @@ router.patch("/friends/requests/:id", requireAuth(), async (req, res): Promise<v
     await createNotification({
       userId: request.senderId,
       type: "friend_request_accepted",
-      title: "Friend request accepted",
-      message: `${user.name} accepted your friend request`,
+      title: "Buddy request accepted",
+      message: `${user.name} accepted your Buddy request`,
       relatedUserId: user.id,
     });
   }
@@ -199,7 +199,7 @@ router.delete("/friends/:userId", requireAuth(), async (req, res): Promise<void>
     .where(and(eq(friendshipsTable.userAId, a), eq(friendshipsTable.userBId, b)))
     .returning();
   if (deleted.length === 0) {
-    res.status(404).json({ error: "You are not friends with this user" });
+    res.status(404).json({ error: "You are not Buddys with this user" });
     return;
   }
   res.sendStatus(204);

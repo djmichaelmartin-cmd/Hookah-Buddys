@@ -89,7 +89,9 @@ async function handleInvoicePaymentSucceeded(
   invoice: Stripe.Invoice,
   log: Request["log"],
 ): Promise<void> {
-  const stripeSubscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : null;
+  const subscription = invoice.parent?.subscription_details?.subscription;
+  const stripeSubscriptionId =
+    typeof subscription === "string" ? subscription : subscription?.id ?? null;
   if (!stripeSubscriptionId) return;
 
   // Locate our subscription record to get the memberUserId.

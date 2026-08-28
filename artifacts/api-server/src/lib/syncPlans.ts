@@ -46,12 +46,12 @@ const CANONICAL_PLANS: PlanDef[] = [
       "Bronze is free and gives you access to the social side of HookahBuddys. Credits are only needed for premium Buddy interactions like paid messaging, premium content unlocks, and video chat.",
     features: [
       "Create a free HookahBuddys profile",
-      "Join the public hookah social feed",
+      "Join the public HookahBuddys Lounge",
       "Post hookah-related content",
       "Upload public photos & reels",
       "Like, comment & save posts",
       "Follow Buddys and Bros",
-      "Add friends",
+      "Add Buddys",
       "Browse public profiles",
       "Basic privacy settings & notifications",
       "View public Buddy profile previews",
@@ -190,6 +190,13 @@ const CANONICAL_PLANS: PlanDef[] = [
   },
 ];
 
+function renameRetiredPublicTerminology(value: string): string {
+  return value
+    .replace(/\bfeed\b/gi, "Lounge")
+    .replace(/\bfriends\b/gi, "Buddys")
+    .replace(/\bfriend\b/gi, "Buddy");
+}
+
 export async function syncPlans(): Promise<void> {
   let updated = 0;
   let inserted = 0;
@@ -202,7 +209,15 @@ export async function syncPlans(): Promise<void> {
         ? and(eq(plansTable.audience, plan.audience), eq(plansTable.price, plan.price))
         : and(eq(plansTable.audience, plan.audience), eq(plansTable.tier, plan.tier));
 
-    const [existing] = await db.select({ id: plansTable.id }).from(plansTable).where(matchCondition);
+    const [existing] = await db
+      .select({
+        id: plansTable.id,
+        name: plansTable.name,
+        description: plansTable.description,
+        features: plansTable.features,
+      })
+      .from(plansTable)
+      .where(matchCondition);
 
     if (existing) {
       // Never overwrite stripePriceId — it is managed by the payment provider
@@ -214,6 +229,16 @@ export async function syncPlans(): Promise<void> {
       // truth. Overwriting them here would silently revert admin edits on
       // every deploy. Structural fields (tier, slug, credits, highlight) stay
       // code-managed.
+      //
+      // The targeted public terminology migration below preserves all
+      // administrator-authored copy and changes only retired standalone terms.
+      const migratedName = renameRetiredPublicTerminology(existing.name);
+      const migratedDescription = existing.description
+        ? renameRetiredPublicTerminology(existing.description)
+        : existing.description;
+      const migratedFeatures =
+        existing.features?.map(renameRetiredPublicTerminology) ?? existing.features;
+
       await db
         .update(plansTable)
         .set({
@@ -221,6 +246,13 @@ export async function syncPlans(): Promise<void> {
           highlighted: plan.highlighted,
           monthlyCredits: plan.monthlyCredits,
           ...(plan.slug !== undefined && { slug: plan.slug }),
+          ...(migratedName !== existing.name && { name: migratedName }),
+          ...(migratedDescription !== existing.description && {
+            description: migratedDescription,
+          }),
+          ...(migratedFeatures?.some((feature, index) => feature !== existing.features?.[index]) && {
+            features: migratedFeatures,
+          }),
         })
         .where(eq(plansTable.id, existing.id));
       updated++;

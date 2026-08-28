@@ -124,15 +124,15 @@ export default function BroProfile() {
               <div className="bg-card/30 backdrop-blur-md border border-white/5 rounded-2xl p-12 text-center">
                 <UserX className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
                 <h3 className="text-xl font-serif text-white mb-2">
-                  Friends List Hidden
+                  Buddys List Hidden
                 </h3>
                 <p className="text-muted-foreground">
-                  This user's friends list is private.
+                  This user's Buddys list is private.
                 </p>
               </div>
             ) : !friends || friends.length === 0 ? (
               <div className="bg-card/30 backdrop-blur-md border border-white/5 rounded-2xl p-12 text-center">
-                <p className="text-muted-foreground">No friends to show.</p>
+                <p className="text-muted-foreground">No Buddys to show.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

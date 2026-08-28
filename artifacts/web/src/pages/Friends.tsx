@@ -46,7 +46,7 @@ export default function Friends() {
   const respondRequest = useRespondFriendRequest({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Friend request updated" });
+        toast({ title: "Buddy request updated" });
         queryClient.invalidateQueries({ queryKey: getListFriendRequestsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListFriendsQueryKey({ userId: session?.user?.id || 0 }) });
       },
@@ -81,7 +81,7 @@ export default function Friends() {
     <Layout>
       <div className="container mx-auto px-4 py-12 max-w-4xl">
         <h1 className="text-3xl font-serif text-white mb-8 flex items-center gap-3">
-          <Users className="w-8 h-8 text-primary" /> Friends
+          <Users className="w-8 h-8 text-primary" /> Buddys
         </h1>
 
         <Tabs defaultValue="all" className="w-full">
@@ -90,7 +90,7 @@ export default function Friends() {
               value="all"
               className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white py-2.5 px-6"
             >
-              All Friends
+              All Buddys
               <span className="ml-2 bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full">
                 {friends?.length || 0}
               </span>
@@ -133,7 +133,7 @@ export default function Friends() {
             ) : !friends || friends.length === 0 ? (
               <div className="bg-card/30 backdrop-blur-md border border-white/5 rounded-2xl p-12 text-center">
                 <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                <h3 className="text-xl font-serif text-white mb-2">No friends yet</h3>
+                <h3 className="text-xl font-serif text-white mb-2">No Buddys yet</h3>
                 <p className="text-muted-foreground">
                   Start connecting with members to build your network.
                 </p>
