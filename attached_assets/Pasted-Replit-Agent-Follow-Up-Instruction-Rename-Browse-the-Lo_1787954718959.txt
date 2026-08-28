@@ -1,0 +1,448 @@
+Replit Agent Follow-Up Instruction: Rename “Browse the Lounge” to “Browse Buddys” and Update Search Filters
+
+Do not rebuild the HookahBuddys platform. Only update the existing Browse page naming, labels, search fields, and filter logic.
+
+Current change needed:
+
+Rename:
+
+“Browse the Lounge”
+
+To:
+
+“Browse Buddys”
+
+Use the exact spelling:
+
+“Browse Buddys”
+
+Do not spell it “Browse Buddies.”
+
+Do not rename the main social feed “The Lounge.” The Lounge should remain the name of the main feed/social area.
+
+This update is specifically for the browse/search members page or section currently labeled “Browse the Lounge.”
+
+Page Title Update
+
+Change the page title to:
+
+“Browse Buddys”
+
+Suggested subtitle:
+
+“Find members across the HookahBuddys community by Buddy type, name, handle, age range, city, and state.”
+
+Navigation / Button Label Updates
+
+Update all user-facing references from:
+
+“Browse the Lounge”
+
+To:
+
+“Browse Buddys”
+
+Apply this to:
+
+* Main navigation
+* Mobile navigation
+* Sidebar navigation
+* Dashboard shortcuts
+* Homepage buttons or cards
+* Empty states
+* Search page heading
+* Browse page metadata
+* Any CTA buttons
+* Any breadcrumb text
+
+If a route already exists, do not break it.
+
+If the current route is something like:
+
+`/browse-lounge`
+
+Keep it working, but update the visible label to:
+
+“Browse Buddys”
+
+If creating or updating a preferred route, use:
+
+`/browse-buddys`
+
+Add redirects if needed so old links continue to work.
+
+Search / Filter Fields
+
+Update the Browse Buddys search area to include the following fields:
+
+1. Buddy Type
+2. Name or Handle
+3. Age Range
+4. City
+5. State
+
+Buddy Type Filter
+
+Add Buddy Type as a filter with these options:
+
+* All Buddys
+* Female Buddy
+* Male Buddy
+
+Default selected option:
+
+“All Buddys”
+
+Filter behavior:
+
+* All Buddys: show all eligible public members
+* Female Buddy: show only users with `buddyType = female_buddy`
+* Male Buddy: show only users with `buddyType = male_buddy`
+
+Important:
+
+Do not show only Female Buddys by default.
+
+The default Browse Buddys page should show everyone who is eligible and public.
+
+Name or Handle Search
+
+Add a search field labeled:
+
+“Name or Handle”
+
+Placeholder:
+
+“Search by name or @handle”
+
+This field should search:
+
+* Display name
+* First name, if public/searchable
+* Last name, if public/searchable
+* Username
+* Handle
+* Stage/profile name, if applicable
+
+Search should support:
+
+* Partial matches
+* Case-insensitive matching
+* Searches with or without “@”
+
+Examples:
+
+Searching:
+
+“mike”
+
+Should match:
+
+* Mike
+* @mike
+* MikeJ
+* SmokeMike
+
+Searching:
+
+“@vegas”
+
+Should match:
+
+* @vegassmoke
+* VegasBuddy
+* VegasHookahMike
+
+Age Range
+
+Keep Age Range as a filter.
+
+Fields:
+
+* Minimum age
+* Maximum age
+
+or use a slider if one already exists.
+
+Label:
+
+“Age Range”
+
+Do not show exact birthdate publicly.
+
+Use only age range filtering.
+
+City
+
+Keep City as a search/filter field.
+
+Label:
+
+“City”
+
+Placeholder:
+
+“Enter city”
+
+State
+
+Keep State as a search/filter field.
+
+Label:
+
+“State”
+
+Placeholder:
+
+“Select state”
+
+Use dropdown if state dropdown already exists.
+
+If not, use text input for now.
+
+Recommended Search Form Layout
+
+Desktop:
+
+* Name or Handle
+* Buddy Type
+* Age Range
+* City
+* State
+* Search button
+* Reset filters button
+
+Mobile:
+
+Stack fields vertically in this order:
+
+1. Name or Handle
+2. Buddy Type
+3. Age Range
+4. City
+5. State
+6. Search
+7. Reset
+
+Search Button
+
+Button text:
+
+“Search Buddys”
+
+Reset Button
+
+Button text:
+
+“Reset Filters”
+
+Reset behavior:
+
+* Buddy Type returns to All Buddys
+* Name or Handle clears
+* Age Range clears
+* City clears
+* State clears
+* Results return to all eligible public Buddys
+
+Default Browse Results
+
+When no filters are selected, show all eligible public member profiles.
+
+Include:
+
+* Female Buddy profiles
+* Male Buddy profiles
+* Free / Bronze members
+* Silver members
+* Gold members
+* Platinum members
+* Verified profiles
+* Non-verified profiles
+* Public personal profiles
+
+Exclude only:
+
+* Suspended users
+* Banned users
+* Deleted accounts
+* Hidden/private profiles
+* Users blocked by the current user
+* Users who blocked the current user
+* Profiles restricted by privacy settings
+
+Do not exclude Male Buddy profiles.
+
+Do not default to Female Buddy only.
+
+Profile Card Display
+
+Each Browse Buddys result card should show:
+
+* Profile photo
+* Display name
+* Handle
+* City/state, if public
+* Age or age range, only if allowed by privacy settings
+* Buddy pill
+* Membership badge, if applicable
+* Verified badge, if applicable
+* Follow button
+* Add Friend button
+* Message button, if allowed
+* View Profile button
+
+Buddy Pill Display
+
+Female Buddy:
+
+* Pink pill
+* Text: “Buddy”
+
+Male Buddy:
+
+* Blue pill
+* Text: “Buddy”
+
+Do not display:
+
+* “Bro”
+* Orange Bro pill
+* Male Buddy as a public pill
+* Female Buddy as a public pill
+
+Public-facing pill text should always be:
+
+“Buddy”
+
+The color determines Female Buddy vs Male Buddy.
+
+Search Results Header
+
+Above results, show:
+
+“Browse Buddys”
+
+If filters are active, show a small summary like:
+
+“Showing Female Buddy profiles in Las Vegas, NV”
+
+or:
+
+“Showing all Buddys matching @smoke”
+
+Result Count
+
+Show count:
+
+“24 Buddys found”
+
+If zero results:
+
+“No Buddys found. Try adjusting your filters.”
+
+Add Reset button.
+
+Backend / Query Logic
+
+Update the search query so it supports:
+
+* `buddyType`
+* `nameOrHandle`
+* `minAge`
+* `maxAge`
+* `city`
+* `state`
+
+Suggested query parameters:
+
+`/browse-buddys?buddyType=all&nameOrHandle=&minAge=&maxAge=&city=&state=`
+
+Buddy Type values:
+
+* `all`
+* `female_buddy`
+* `male_buddy`
+
+Default:
+
+`all`
+
+Query logic:
+
+* If buddyType is `all`, do not filter by buddyType.
+* If buddyType is `female_buddy`, filter `buddyType = female_buddy`.
+* If buddyType is `male_buddy`, filter `buddyType = male_buddy`.
+* If nameOrHandle is entered, search display name, username, handle, and profile name.
+* If minAge/maxAge are entered, filter by age range.
+* If city is entered, filter by city.
+* If state is entered, filter by state.
+
+Privacy Rules
+
+Respect privacy settings.
+
+Do not publicly show:
+
+* Exact birthdate
+* Birth year
+* Private phone
+* Private email
+* Government ID
+* Verification documents
+* Private profile fields
+* Payment information
+
+Age filtering can work internally, but display should only show age if the user’s privacy settings allow it.
+
+Admin / Testing Requirements
+
+Test the following:
+
+1. Default Browse Buddys page shows Female Buddy and Male Buddy profiles.
+2. Female Buddy filter shows only `female_buddy`.
+3. Male Buddy filter shows only `male_buddy`.
+4. All Buddys filter restores both types.
+5. Name or Handle search works with partial names.
+6. Name or Handle search works with @handles.
+7. Age Range still works.
+8. City filter still works.
+9. State filter still works.
+10. Reset Filters clears all filters.
+11. Female Buddy pill displays pink “Buddy.”
+12. Male Buddy pill displays blue “Buddy.”
+13. No orange Bro pill appears anywhere on Browse Buddys.
+14. Private/hidden/suspended/banned profiles do not appear.
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not rename The Lounge main feed.
+
+Do not remove The Lounge.
+
+Do not remove Buddy Type.
+
+Do not remove the Buddy pill.
+
+Do not remove member profiles, Business Profiles, Groups, Meetups, Events, Sparks, credits, memberships, pricing, messaging, verification, or premium features.
+
+Only rename “Browse the Lounge” to “Browse Buddys” and update the Browse Buddys search/filter fields.
+
+Final Result
+
+The browse page should be called:
+
+“Browse Buddys”
+
+It should include search/filter fields for:
+
+* Male Buddy
+* Female Buddy
+* Name or Handle
+* Age Range
+* City
+* State
+
+The default view should show all eligible public Buddys.
