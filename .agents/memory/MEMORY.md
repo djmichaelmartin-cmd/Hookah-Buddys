@@ -20,6 +20,7 @@
 - [Image upload security](storage-upload-finalize.md) — presigned PUT can't bound size/type; use a bounded server endpoint with byte sniffing + owner ACL, and guard every write path incl. registration.
 - [Feed video transcode](feed-video-transcode.md) — ffmpeg exits 0 on seek-past-end with no output (check the file, not the code); new media-URL columns must be added to the orphan-cleanup reference scan.
 - [Payment provider](payment-provider.md) — user declined Stripe; Authorize.net planned. Keep the provider-agnostic 402 payment gate; swap checkout/webhook internals later.
+- [Stripe invoice webhook versions](stripe-invoice-webhook-versions.md) — resolve recurring subscriptions from both current parent and legacy top-level invoice fields; endpoint payload versions outlive SDK upgrades.
 - [Plans copy source of truth](plans-copy-source-of-truth.md) — plan name/description/features are DB-owned via admin UI; startup sync must not overwrite them (only structural fields).
 - [Mid-session merge corruption](mid-session-merge-corruption.md) — parallel-task merges can mangle hot route files mid-session; re-read and re-typecheck touched files after any merge notification.
 - [Stale Preview bootstrap](stale-preview-bootstrap.md) — a restarted Vite client can reconnect while a blank iframe keeps its old document; force a live HTML reload.

@@ -10,6 +10,21 @@ import { grantCredits } from "../lib/credits";
 // Internal handlers
 // ---------------------------------------------------------------------------
 
+type InvoiceWithLegacySubscription = Stripe.Invoice & {
+  subscription?: string | Stripe.Subscription | null;
+};
+
+export function resolveInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  // Stripe webhook endpoints keep the API version they were created with.
+  // Newer invoice payloads expose the subscription through `parent`, while
+  // older endpoints still send the top-level `subscription` field.
+  const currentSubscription = invoice.parent?.subscription_details?.subscription;
+  const legacySubscription = (invoice as InvoiceWithLegacySubscription).subscription;
+  const subscription = currentSubscription ?? legacySubscription;
+
+  return typeof subscription === "string" ? subscription : subscription?.id ?? null;
+}
+
 async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session,
   log: Request["log"],
@@ -85,14 +100,18 @@ async function handleCheckoutSessionCompleted(
   log.warn({ sessionId: session.id, purpose }, "checkout.session.completed: unrecognised purpose");
 }
 
-async function handleInvoicePaymentSucceeded(
+export async function handleInvoicePaymentSucceeded(
   invoice: Stripe.Invoice,
   log: Request["log"],
 ): Promise<void> {
-  const subscription = invoice.parent?.subscription_details?.subscription;
-  const stripeSubscriptionId =
-    typeof subscription === "string" ? subscription : subscription?.id ?? null;
-  if (!stripeSubscriptionId) return;
+  const stripeSubscriptionId = resolveInvoiceSubscriptionId(invoice);
+  if (!stripeSubscriptionId) {
+    log.warn(
+      { invoiceId: invoice.id },
+      "invoice.payment_succeeded: missing subscription id in current and legacy payload fields",
+    );
+    return;
+  }
 
   // Locate our subscription record to get the memberUserId.
   const [row] = await db

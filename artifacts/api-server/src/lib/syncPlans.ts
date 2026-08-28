@@ -190,13 +190,6 @@ const CANONICAL_PLANS: PlanDef[] = [
   },
 ];
 
-function renameRetiredPublicTerminology(value: string): string {
-  return value
-    .replace(/\bfeed\b/gi, "Lounge")
-    .replace(/\bfriends\b/gi, "Buddys")
-    .replace(/\bfriend\b/gi, "Buddy");
-}
-
 export async function syncPlans(): Promise<void> {
   let updated = 0;
   let inserted = 0;
@@ -212,9 +205,6 @@ export async function syncPlans(): Promise<void> {
     const [existing] = await db
       .select({
         id: plansTable.id,
-        name: plansTable.name,
-        description: plansTable.description,
-        features: plansTable.features,
       })
       .from(plansTable)
       .where(matchCondition);
@@ -229,16 +219,6 @@ export async function syncPlans(): Promise<void> {
       // truth. Overwriting them here would silently revert admin edits on
       // every deploy. Structural fields (tier, slug, credits, highlight) stay
       // code-managed.
-      //
-      // The targeted public terminology migration below preserves all
-      // administrator-authored copy and changes only retired standalone terms.
-      const migratedName = renameRetiredPublicTerminology(existing.name);
-      const migratedDescription = existing.description
-        ? renameRetiredPublicTerminology(existing.description)
-        : existing.description;
-      const migratedFeatures =
-        existing.features?.map(renameRetiredPublicTerminology) ?? existing.features;
-
       await db
         .update(plansTable)
         .set({
@@ -246,13 +226,6 @@ export async function syncPlans(): Promise<void> {
           highlighted: plan.highlighted,
           monthlyCredits: plan.monthlyCredits,
           ...(plan.slug !== undefined && { slug: plan.slug }),
-          ...(migratedName !== existing.name && { name: migratedName }),
-          ...(migratedDescription !== existing.description && {
-            description: migratedDescription,
-          }),
-          ...(migratedFeatures?.some((feature, index) => feature !== existing.features?.[index]) && {
-            features: migratedFeatures,
-          }),
         })
         .where(eq(plansTable.id, existing.id));
       updated++;
