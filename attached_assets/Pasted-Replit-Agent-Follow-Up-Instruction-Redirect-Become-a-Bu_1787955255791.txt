@@ -1,0 +1,234 @@
+Replit Agent Follow-Up Instruction: Redirect “Become a Buddy” and “Create a Free Profile” Buttons to `/choose-membership`
+
+Do not rebuild the HookahBuddys platform. Only update button/link routing across the existing site.
+
+Required change:
+
+Any button, menu link, footer link, CTA card, homepage button, modal button, sidebar button, or mobile navigation item labeled:
+
+* “Become a Buddy”
+* “Create a Free Profile”
+* “Join Free”
+* “Start Free”
+* “Create Profile”
+* “Create Your Profile”
+
+Should redirect the user to:
+
+`/choose-membership`
+
+This should apply everywhere across the site, including:
+
+* Header menu
+* Mobile menu
+* Footer
+* Homepage hero
+* Homepage CTA sections
+* Pricing page CTAs
+* The Lounge sidebar
+* The Lounge empty states
+* Browse Buddys page
+* Profile preview cards
+* Login page signup prompts
+* Any unauthenticated user prompts
+* Dashboard upgrade/signup prompts
+* Business page prompts that require a member profile first
+* Groups prompts that require a member profile first
+* Meetups prompts that require a member profile first
+
+Primary Route
+
+Use:
+
+`/choose-membership`
+
+This should be the single main destination for users who want to create a profile or become a Buddy.
+
+Do not send these buttons directly to:
+
+* `/signup`
+* `/signup/bro`
+* `/signup/member`
+* `/signup/doll`
+* `/signup/bro?plan=bronze`
+* `/pricing`
+* `/register`
+
+Instead, all these general entry buttons should go first to:
+
+`/choose-membership`
+
+Membership Page Behavior
+
+The `/choose-membership` page should continue to show the membership/profile options:
+
+* Free Profile / Bronze
+* Silver
+* Gold
+* Platinum
+
+The user should select their desired option from that page.
+
+Button Routing Rules
+
+Use this behavior:
+
+1. “Become a Buddy” → `/choose-membership`
+2. “Create a Free Profile” → `/choose-membership`
+3. “Join Free” → `/choose-membership`
+4. “Start Free” → `/choose-membership`
+5. “Create Profile” → `/choose-membership`
+6. “Create Your Profile” → `/choose-membership`
+
+If a button is specifically plan-based, such as:
+
+* “Choose Silver”
+* “Choose Gold”
+* “Choose Platinum”
+* “Upgrade to Silver”
+* “Upgrade to Gold”
+* “Upgrade to Platinum”
+
+Those can still route to the appropriate plan-specific signup or checkout flow.
+
+But general profile creation CTAs should always route to:
+
+`/choose-membership`
+
+Header / Menu Update
+
+Update the main menu button:
+
+Label:
+
+“Become a Buddy”
+
+Route:
+
+`/choose-membership`
+
+If there is also a “Create a Free Profile” menu link, route it to:
+
+`/choose-membership`
+
+Footer Update
+
+Update footer links/buttons:
+
+“Become a Buddy” → `/choose-membership`
+
+“Create a Free Profile” → `/choose-membership`
+
+“Join Free” → `/choose-membership`
+
+Homepage Update
+
+Update homepage hero buttons:
+
+Primary CTA:
+
+“Create a Free Profile”
+
+Route:
+
+`/choose-membership`
+
+Optional alternate CTA:
+
+“Become a Buddy”
+
+Route:
+
+`/choose-membership`
+
+Do not route homepage profile buttons directly to signup.
+
+Unauthenticated Prompts
+
+Anywhere a logged-out visitor is prompted to create an account, use:
+
+Button label:
+
+“Create a Free Profile”
+
+Route:
+
+`/choose-membership`
+
+If the page says the user must create a member profile first, use:
+
+Button label:
+
+“Create a Free Profile”
+
+Route:
+
+`/choose-membership`
+
+Examples:
+
+* To create a Business Profile
+* To create a Group
+* To create a Meetup
+* To post in The Lounge
+* To like/comment/share
+* To follow members
+* To message
+* To save posts
+
+Routing Implementation
+
+Find all hardcoded links and navigation items currently pointing to old signup routes and update them.
+
+Search the codebase for:
+
+* `Create a Free Profile`
+* `Become a Buddy`
+* `Join Free`
+* `Start Free`
+* `Create Profile`
+* `Create Your Profile`
+* `/signup`
+* `/signup/bro`
+* `/signup/member`
+* `/signup/doll`
+* `/register`
+
+Update general signup/profile CTAs to point to:
+
+`/choose-membership`
+
+Testing Checklist
+
+After updating, confirm:
+
+* Header “Become a Buddy” opens `/choose-membership`
+* Footer “Become a Buddy” opens `/choose-membership`
+* Footer “Create a Free Profile” opens `/choose-membership`
+* Homepage “Create a Free Profile” opens `/choose-membership`
+* Mobile menu profile CTAs open `/choose-membership`
+* Login page signup prompts open `/choose-membership`
+* Business Profile requirement prompt opens `/choose-membership`
+* Group creation requirement prompt opens `/choose-membership`
+* Meetup creation requirement prompt opens `/choose-membership`
+* No general “Create Free Profile” button bypasses `/choose-membership`
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove the membership chooser page.
+
+Do not remove plan-specific checkout routes.
+
+Do not remove signup forms.
+
+Do not remove Free Profile / Bronze, Silver, Gold, or Platinum.
+
+Only update general profile creation CTAs so they all redirect to `/choose-membership`.
+
+Final Result
+
+Whenever a user clicks “Become a Buddy” or “Create a Free Profile” anywhere on the site, they should be redirected to:
+
+`/choose-membership`
