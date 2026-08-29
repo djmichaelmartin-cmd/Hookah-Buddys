@@ -3,8 +3,8 @@ name: Stale Preview bootstrap
 description: Recover a Replit Preview iframe that stays blank even though Vite reconnects and clean screenshots render.
 ---
 
-When Preview is white but its console shows only Vite connecting—without React startup or runtime errors—a workflow restart may reconnect the old document without loading the app entry module. Make an HTML entry change while Vite is already running so it broadcasts a full-page reload; restarting after the change can miss that broadcast.
+When Preview is white or shows an old React startup error, a workflow restart may reconnect the old document without loading the current app entry module. First compare it with a fresh browser context through the artifact proxy. If the fresh context works, make an HTML entry change while Vite is already running so it broadcasts a full-page reload; restarting after the change can miss that broadcast.
 
-**Why:** A stale iframe remained white across workflow restarts while fresh app screenshots rendered normally. A live `index.html` change produced Vite's page-reload event and the app immediately resumed its startup API requests.
+**Why:** Stale iframes have remained white or kept reporting an invalid React hook call across workflow restarts while fresh proxied browser contexts rendered normally. A live `index.html` change produced Vite's page-reload event and the app immediately resumed its startup API requests.
 
-**How to apply:** First prove the root HTML and entry module return 200 and a fresh screenshot renders. If the affected session still has only Vite logs, force a live HTML reload and verify startup API traffic resumes.
+**How to apply:** Prove the root HTML and entry module return 200 in a fresh browser through the artifact proxy, not the raw Vite port. After dependency-changing merges, clear Vite's generated optimizer cache before restart. If only the existing Preview remains broken, force a live HTML reload and verify startup API traffic resumes.
