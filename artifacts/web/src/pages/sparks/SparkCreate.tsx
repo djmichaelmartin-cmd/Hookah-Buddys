@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Camera, UploadCloud, X, Zap, Loader2, Circle, Square, Check, ChevronsUpDown, Info } from "lucide-react";
+import { Camera, SwitchCamera, UploadCloud, X, Zap, Loader2, Circle, Square, Check, ChevronsUpDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SparkCreate() {
@@ -42,8 +42,11 @@ export default function SparkCreate() {
   // Media Recorder state
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const timerRef = useRef<number | null>(null);
 
@@ -93,12 +96,18 @@ export default function SparkCreate() {
   const [selectedBusinessName, setSelectedBusinessName] = useState<string>("");
   const [businessComboboxOpen, setBusinessComboboxOpen] = useState(false);
 
+  const updateStream = useCallback((nextStream: MediaStream | null) => {
+    streamRef.current = nextStream;
+    setStream(nextStream);
+  }, []);
+
   const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
       setStream(null);
     }
-  }, [stream]);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -141,6 +150,13 @@ export default function SparkCreate() {
     };
   }, [stopCamera, clearTimers, previewUrl]);
 
+  const requestCamera = async (facingMode: "user" | "environment") => {
+    return navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: facingMode } },
+      audio: true,
+    });
+  };
+
   const startCamera = async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
       toast({ title: "Unsupported Browser", description: "Your browser does not support camera access.", variant: "destructive" });
@@ -148,14 +164,45 @@ export default function SparkCreate() {
     }
     
     try {
-      const ms = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
-      setStream(ms);
+      const ms = await requestCamera(cameraFacing);
+      updateStream(ms);
     } catch (e: any) {
       if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
         toast({ title: "Permission Denied", description: "Please allow camera and microphone access to record.", variant: "destructive" });
       } else {
         toast({ title: "Camera Error", description: "Unable to access camera or microphone. Your device might not support it.", variant: "destructive" });
       }
+    }
+  };
+
+  const switchCamera = async () => {
+    if (!stream || isRecording || isSwitchingCamera) return;
+
+    const nextFacing = cameraFacing === "user" ? "environment" : "user";
+    const previousStream = stream;
+    setIsSwitchingCamera(true);
+
+    try {
+      previousStream.getTracks().forEach(track => track.stop());
+      const nextStream = await requestCamera(nextFacing);
+      setCameraFacing(nextFacing);
+      updateStream(nextStream);
+    } catch {
+      try {
+        const restoredStream = await requestCamera(cameraFacing);
+        updateStream(restoredStream);
+      } catch {
+        updateStream(null);
+      }
+      toast({
+        title: "Camera Unavailable",
+        description: nextFacing === "environment"
+          ? "A rear camera could not be opened on this device."
+          : "The front camera could not be opened on this device.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSwitchingCamera(false);
     }
   };
 
@@ -358,7 +405,10 @@ export default function SparkCreate() {
                 <>
                   <video
                     ref={videoRef}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className={cn(
+                      "absolute inset-0 w-full h-full object-cover",
+                      cameraFacing === "user" && "scale-x-[-1]"
+                    )}
                     autoPlay
                     playsInline
                     muted
@@ -397,6 +447,18 @@ export default function SparkCreate() {
                           data-testid="button-start-recording"
                         >
                           <Circle className="w-8 h-8 text-primary fill-primary" />
+                        </button>
+                        <button
+                          onClick={switchCamera}
+                          disabled={isSwitchingCamera}
+                          className="w-14 h-14 bg-black/40 border border-white/20 rounded-full flex items-center justify-center hover:bg-black/60 transition-colors backdrop-blur-md disabled:opacity-50"
+                          title={cameraFacing === "user" ? "Switch to Rear Camera" : "Switch to Front Camera"}
+                          aria-label={cameraFacing === "user" ? "Switch to Rear Camera" : "Switch to Front Camera"}
+                          data-testid="button-switch-camera"
+                        >
+                          {isSwitchingCamera
+                            ? <Loader2 className="w-6 h-6 text-white animate-spin" />
+                            : <SwitchCamera className="w-6 h-6 text-white" />}
                         </button>
                       </>
                     )}
