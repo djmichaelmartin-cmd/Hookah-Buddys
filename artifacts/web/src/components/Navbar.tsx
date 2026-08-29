@@ -290,7 +290,7 @@ export function Navbar() {
                 <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                   <Link href="/friends" className="flex items-center w-full">
                     <Users className="mr-2 h-4 w-4" />
-                    <span>Buddys</span>
+                      <span>My Buddys</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
