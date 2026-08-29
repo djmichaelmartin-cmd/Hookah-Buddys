@@ -47,6 +47,7 @@ import type {
   BoostInput,
   BoostPurchase,
   BroProfile,
+  BuddyDiscoveryProfile,
   BuddyTypeInput,
   BusinessAlbum,
   BusinessAlbumInput,
@@ -6453,11 +6454,11 @@ export const getListMembersUrl = (params?: ListMembersParams,) => {
 }
 
 /**
- * @summary Browse/search all members (Doll/Admin only)
+ * @summary Publicly browse and search eligible Buddy profiles
  */
-export const listMembers = async (params?: ListMembersParams, options?: RequestInit): Promise<MemberProfile[]> => {
+export const listMembers = async (params?: ListMembersParams, options?: RequestInit): Promise<BuddyDiscoveryProfile[]> => {
 
-  return customFetch<MemberProfile[]>(getListMembersUrl(params),
+  return customFetch<BuddyDiscoveryProfile[]>(getListMembersUrl(params),
   {
     ...options,
     method: 'GET'
@@ -6500,7 +6501,7 @@ export type ListMembersQueryError = ErrorType<void>
 
 
 /**
- * @summary Browse/search all members (Doll/Admin only)
+ * @summary Publicly browse and search eligible Buddy profiles
  */
 
 export function useListMembers<TData = Awaited<ReturnType<typeof listMembers>>, TError = ErrorType<void>>(

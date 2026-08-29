@@ -1595,12 +1595,16 @@ paths:
     get:
       operationId: listMembers
       tags: [members]
-      summary: Browse/search all members (Doll/Admin only)
+      summary: Publicly browse and search eligible Buddy profiles
       parameters:
         - { name: search, in: query, required: false, schema: { type: string } }
+        - { name: name, in: query, required: false, schema: { type: string } }
+        - { name: handle, in: query, required: false, schema: { type: string } }
         - { name: city, in: query, required: false, schema: { type: string } }
         - { name: state, in: query, required: false, schema: { type: string } }
         - { name: buddyType, in: query, required: false, schema: { type: string, enum: [female_buddy, male_buddy] } }
+        - { name: minAge, in: query, required: false, schema: { type: integer, minimum: 18, maximum: 120 } }
+        - { name: maxAge, in: query, required: false, schema: { type: integer, minimum: 18, maximum: 120 } }
       responses:
         "200":
           description: OK
@@ -1609,11 +1613,9 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/MemberProfile"
-        "401":
-          description: Unauthorized
-        "403":
-          description: Forbidden
+                  $ref: "#/components/schemas/BuddyDiscoveryProfile"
+        "400":
+          description: Invalid discovery filters
 
   /members/{id}:
     get:
@@ -6296,6 +6298,37 @@ components:
         profilePhotoUrl: { type: ["string", "null"] }
         buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         memberSince: { type: string }
+
+    BuddyDiscoveryProfile:
+      type: object
+      required:
+        - id
+        - accountType
+        - dollId
+        - name
+        - handle
+        - age
+        - city
+        - state
+        - profilePhotoUrl
+        - buddyType
+        - memberSince
+        - profileUrl
+      properties:
+        id:
+          type: integer
+          description: Owning user id, retained as the stable discovery key
+        accountType: { type: string, enum: [member, doll] }
+        dollId: { type: ["integer", "null"] }
+        name: { type: string }
+        handle: { type: ["string", "null"] }
+        age: { type: ["integer", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        profilePhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        memberSince: { type: string, format: date-time }
+        profileUrl: { type: string }
 
     CurrentUser:
       type: object

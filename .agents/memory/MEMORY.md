@@ -26,6 +26,7 @@
 - [Stale Preview bootstrap](stale-preview-bootstrap.md) — a restarted Vite client can reconnect while a blank iframe keeps its old document; force a live HTML reload.
 - [Per-Doll revenue model](shared-doll-earnings-model.md) — Doll analytics & admin per-Doll revenue use one computeDollEarnings helper; illustrative GMV, NOT the platform subscription revenue.
 - [Buddy naming convention](buddy-naming-convention.md) — public copy says Buddy/Buddys and HookahBuddys; stable internal role, route, schema, and API identifiers remain unchanged.
+- [Buddy discovery privacy](buddy-discovery-privacy.md) — unified discovery uses narrow public fields; never derive member age from privacy-controlled birth-year data.
 - [Community room request resets](community-room-request-resets.md) — reset room-scoped feed filters before the destination query begins; effect-based resets briefly fetch stale filters.
 - [Group file and asset privacy](group-file-upload-ownership.md) — owner-bind bytes at upload; private-Group assets need Group-aware serving, not universal public storage.
 - [Local ranking cache isolation](local-ranking-cache-isolation.md) — coarse location caches for radius rankings must be member-scoped or boundary candidates can cross-contaminate results.

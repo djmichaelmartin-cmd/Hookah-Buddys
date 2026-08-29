@@ -48,8 +48,8 @@ export default function DashboardDoll() {
             <div className="bg-card/50 border border-white/10 rounded-xl p-6">
                <h2 className="text-xl font-serif text-white mb-4">Quick Links</h2>
                <div className="space-y-3">
-                  <Link href="/members" className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors">
-                    <Users className="w-4 h-4 text-primary" /> Member Directory
+                  <Link href="/browse" className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors">
+                    <Users className="w-4 h-4 text-primary" /> Browse Buddys
                   </Link>
                   <Link href="/messages" className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors">
                     <MessageSquare className="w-4 h-4 text-primary" /> Messages

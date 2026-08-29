@@ -83,6 +83,48 @@ export interface MemberProfile {
   memberSince?: string;
 }
 
+export type BuddyDiscoveryProfileAccountType = typeof BuddyDiscoveryProfileAccountType[keyof typeof BuddyDiscoveryProfileAccountType];
+
+
+export const BuddyDiscoveryProfileAccountType = {
+  member: 'member',
+  doll: 'doll',
+} as const;
+
+/**
+ * @nullable
+ */
+export type BuddyDiscoveryProfileBuddyType = typeof BuddyDiscoveryProfileBuddyType[keyof typeof BuddyDiscoveryProfileBuddyType] | null;
+
+
+export const BuddyDiscoveryProfileBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
+export interface BuddyDiscoveryProfile {
+  /** Owning user id, retained as the stable discovery key */
+  id: number;
+  accountType: BuddyDiscoveryProfileAccountType;
+  /** @nullable */
+  dollId: number | null;
+  name: string;
+  /** @nullable */
+  handle: string | null;
+  /** @nullable */
+  age: number | null;
+  /** @nullable */
+  city: string | null;
+  /** @nullable */
+  state: string | null;
+  /** @nullable */
+  profilePhotoUrl: string | null;
+  /** @nullable */
+  buddyType: BuddyDiscoveryProfileBuddyType;
+  memberSince: string;
+  profileUrl: string;
+}
+
 export interface CurrentUser {
   authenticated: boolean;
   user?: User | null;
@@ -5929,9 +5971,21 @@ offset?: number;
 
 export type ListMembersParams = {
 search?: string;
+name?: string;
+handle?: string;
 city?: string;
 state?: string;
 buddyType?: ListMembersBuddyType;
+/**
+ * @minimum 18
+ * @maximum 120
+ */
+minAge?: number;
+/**
+ * @minimum 18
+ * @maximum 120
+ */
+maxAge?: number;
 };
 
 export type ListMembersBuddyType = typeof ListMembersBuddyType[keyof typeof ListMembersBuddyType];

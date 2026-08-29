@@ -1838,24 +1838,40 @@ export const SubmitContactBody = zod.object({
 
 
 /**
- * @summary Browse/search all members (Doll/Admin only)
+ * @summary Publicly browse and search eligible Buddy profiles
  */
+export const listMembersQueryMinAgeMin = 18;
+export const listMembersQueryMinAgeMax = 120;
+
+export const listMembersQueryMaxAgeMin = 18;
+export const listMembersQueryMaxAgeMax = 120;
+
+
+
 export const ListMembersQueryParams = zod.object({
   "search": zod.coerce.string().optional(),
+  "name": zod.coerce.string().optional(),
+  "handle": zod.coerce.string().optional(),
   "city": zod.coerce.string().optional(),
   "state": zod.coerce.string().optional(),
-  "buddyType": zod.enum(['female_buddy', 'male_buddy']).optional()
+  "buddyType": zod.enum(['female_buddy', 'male_buddy']).optional(),
+  "minAge": zod.coerce.number().min(listMembersQueryMinAgeMin).max(listMembersQueryMinAgeMax).optional(),
+  "maxAge": zod.coerce.number().min(listMembersQueryMaxAgeMin).max(listMembersQueryMaxAgeMax).optional()
 })
 
 export const ListMembersResponseItem = zod.object({
-  "id": zod.number(),
+  "id": zod.number().describe('Owning user id, retained as the stable discovery key'),
+  "accountType": zod.enum(['member', 'doll']),
+  "dollId": zod.number().nullable(),
   "name": zod.string(),
-  "username": zod.string().nullish(),
-  "city": zod.string().nullish(),
-  "state": zod.string().nullish(),
-  "profilePhotoUrl": zod.string().nullish(),
+  "handle": zod.string().nullable(),
+  "age": zod.number().nullable(),
+  "city": zod.string().nullable(),
+  "state": zod.string().nullable(),
+  "profilePhotoUrl": zod.string().nullable(),
   "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
-  "memberSince": zod.string().optional()
+  "memberSince": zod.coerce.date(),
+  "profileUrl": zod.string()
 })
 export const ListMembersResponse = zod.array(ListMembersResponseItem)
 

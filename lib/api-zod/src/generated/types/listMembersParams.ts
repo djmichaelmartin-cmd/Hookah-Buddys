@@ -9,7 +9,19 @@ import type { ListMembersBuddyType } from './listMembersBuddyType';
 
 export type ListMembersParams = {
 search?: string;
+name?: string;
+handle?: string;
 city?: string;
 state?: string;
 buddyType?: ListMembersBuddyType;
+/**
+ * @minimum 18
+ * @maximum 120
+ */
+minAge?: number;
+/**
+ * @minimum 18
+ * @maximum 120
+ */
+maxAge?: number;
 };

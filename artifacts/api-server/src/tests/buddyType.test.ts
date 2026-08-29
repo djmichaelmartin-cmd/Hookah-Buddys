@@ -15,6 +15,7 @@ import {
   ListDollsResponseItem,
   ListBlockedUsersResponseItem,
   GetBroProfileResponse,
+  ListMembersResponseItem,
 } from "@workspace/api-zod";
 import { requireCompleteBuddyProfile } from "../lib/buddyProfile";
 
@@ -66,10 +67,63 @@ describe("Buddy type contracts", () => {
 
   it("validates public and admin filters and the admin edit body", () => {
     expect(ListMembersQueryParams.safeParse({ buddyType: "female_buddy" }).success).toBe(true);
+    expect(ListMembersQueryParams.safeParse({
+      name: "alex",
+      handle: "smoke",
+      city: "Austin",
+      state: "TX",
+      search: "legacy",
+      minAge: 18,
+      maxAge: 120,
+    }).success).toBe(true);
+    expect(ListMembersQueryParams.safeParse({ minAge: 17 }).success).toBe(false);
+    expect(ListMembersQueryParams.safeParse({ maxAge: 121 }).success).toBe(false);
     expect(ListMembersQueryParams.safeParse({ buddyType: "missing" }).success).toBe(false);
     expect(ListUsersQueryParams.safeParse({ buddyType: "missing" }).success).toBe(true);
     expect(UpdateUserBuddyTypeBody.safeParse({ buddyType: null }).success).toBe(false);
     expect(UpdateUserBuddyTypeBody.safeParse({ buddyType: "male_buddy" }).success).toBe(true);
+  });
+
+  it("uses the privacy-safe union contract for member discovery", () => {
+    const common = {
+      id: 7,
+      handle: null,
+      age: null,
+      city: null,
+      state: null,
+      profilePhotoUrl: null,
+      buddyType: null,
+      memberSince: "2026-01-01T00:00:00.000Z",
+    };
+    expect(ListMembersResponseItem.safeParse({
+      ...common,
+      accountType: "member",
+      dollId: null,
+      name: "Alex",
+      profileUrl: "/bros/7",
+    }).success).toBe(true);
+    expect(ListMembersResponseItem.safeParse({
+      ...common,
+      accountType: "doll",
+      dollId: 11,
+      name: "Stage Name",
+      age: 25,
+      profileUrl: "/dolls/11",
+    }).success).toBe(true);
+    expect(ListMembersResponseItem.safeParse({
+      ...common,
+      accountType: "member",
+      dollId: null,
+      name: "Alex",
+      profileUrl: "/bros/7",
+      email: "private@example.com",
+    }).success).toBe(true);
+    expect(ListMembersResponseItem.safeParse({
+      id: 7,
+      name: "legacy shape",
+      username: "alex",
+      buddyType: null,
+    }).success).toBe(false);
   });
 
   it("requires a nullable Buddy type in Doll, online, and follow projections", () => {

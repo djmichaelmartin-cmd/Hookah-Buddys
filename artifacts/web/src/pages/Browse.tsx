@@ -1,59 +1,81 @@
 import { useMemo, useState } from "react";
 import { Layout } from "@/components/Layout";
 import {
-  useListDolls,
-  type ListDollsParams,
+  useListMembers,
+  getListMembersQueryKey,
+  type ListMembersParams,
+  type ListMembersBuddyType,
 } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BuddyPill } from "@/components/BuddyPill";
-import { ShieldCheck, Star, X, Video, Circle, ArrowRight } from "lucide-react";
+import { Star, X, User } from "lucide-react";
 
 export default function Browse() {
+  const [buddyType, setBuddyType] = useState<ListMembersBuddyType | "all">("all");
+  const [name, setName] = useState("");
+  const [handle, setHandle] = useState("");
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
-  const [onlineOnly, setOnlineOnly] = useState(false);
-  const [videoChatOnly, setVideoChatOnly] = useState(false);
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
-  const params = useMemo<ListDollsParams>(() => {
-    const p: ListDollsParams = {};
-    const min = parseInt(minAge, 10);
-    const max = parseInt(maxAge, 10);
-    if (!Number.isNaN(min)) p.minAge = min;
-    if (!Number.isNaN(max)) p.maxAge = max;
+  const ageError = useMemo(() => {
+    const parseAge = (value: string, label: string) => {
+      if (!value) return undefined;
+      const age = Number(value);
+      if (!Number.isInteger(age) || age < 18 || age > 120) {
+        return `${label} age must be a whole number between 18 and 120.`;
+      }
+      return age;
+    };
+
+    const parsedMin = parseAge(minAge, "Minimum");
+    if (typeof parsedMin === "string") return parsedMin;
+    const parsedMax = parseAge(maxAge, "Maximum");
+    if (typeof parsedMax === "string") return parsedMax;
+    if (parsedMin !== undefined && parsedMax !== undefined && parsedMin > parsedMax) {
+      return "Minimum age must be less than or equal to maximum age.";
+    }
+    return null;
+  }, [minAge, maxAge]);
+
+  const params = useMemo<ListMembersParams>(() => {
+    const p: ListMembersParams = {};
+    if (name.trim()) p.name = name.trim();
+    if (handle.trim()) p.handle = handle.trim();
+    if (!ageError && minAge) p.minAge = Number(minAge);
+    if (!ageError && maxAge) p.maxAge = Number(maxAge);
     if (city.trim()) p.city = city.trim();
     if (state.trim()) p.state = state.trim();
-    if (onlineOnly) p.online = true;
-    if (videoChatOnly) p.videoChat = true;
-    if (verifiedOnly) p.verified = true;
+    if (buddyType !== "all") p.buddyType = buddyType;
     return p;
-  }, [minAge, maxAge, city, state, onlineOnly, videoChatOnly, verifiedOnly]);
+  }, [name, handle, minAge, maxAge, city, state, buddyType, ageError]);
 
-  const { data: dolls, isLoading, isError } = useListDolls(params);
+  const { data: buddys, isLoading, isError } = useListMembers(params, {
+    query: { enabled: !ageError, queryKey: getListMembersQueryKey(params) }
+  });
 
   const hasFilters =
+    !!name ||
+    !!handle ||
     !!minAge ||
     !!maxAge ||
     !!city ||
     !!state ||
-    onlineOnly ||
-    videoChatOnly ||
-    verifiedOnly;
+    buddyType !== "all";
 
   const clearFilters = () => {
+    setName("");
+    setHandle("");
     setMinAge("");
     setMaxAge("");
     setCity("");
     setState("");
-    setOnlineOnly(false);
-    setVideoChatOnly(false);
-    setVerifiedOnly(false);
+    setBuddyType("all");
   };
 
   return (
@@ -64,14 +86,54 @@ export default function Browse() {
             The lineup
           </p>
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-white">
-            Browse the Lounge
+            Browse Buddys
           </h1>
+          <p className="text-muted-foreground mt-3">
+            Discover and connect with Buddys across the community.
+          </p>
         </div>
 
         {/* Filters */}
         <div className="mb-10 p-5 md:p-6 bg-card/50 border border-white/10 rounded-2xl backdrop-blur-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="f-buddy-type" className="text-xs text-muted-foreground mb-1.5 block">
+                Buddy Type
+              </Label>
+              <Select value={buddyType} onValueChange={(v) => setBuddyType(v as ListMembersBuddyType | "all")}>
+                <SelectTrigger id="f-buddy-type">
+                  <SelectValue placeholder="All Buddys" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="female_buddy">Female Buddy</SelectItem>
+                  <SelectItem value="male_buddy">Male Buddy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="f-name" className="text-xs text-muted-foreground mb-1.5 block">
+                Name
+              </Label>
+              <Input
+                id="f-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Any name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="f-handle" className="text-xs text-muted-foreground mb-1.5 block">
+                Handle
+              </Label>
+              <Input
+                id="f-handle"
+                value={handle}
+                onChange={(e) => setHandle(e.target.value)}
+                placeholder="Any handle"
+              />
+            </div>
+            <div>
               <Label className="text-xs text-muted-foreground mb-1.5 block">
                 Age Range
               </Label>
@@ -80,24 +142,33 @@ export default function Browse() {
                   id="f-min-age"
                   type="number"
                   inputMode="numeric"
-                  min={21}
+                   min={18}
+                   max={120}
                   value={minAge}
                   onChange={(e) => setMinAge(e.target.value)}
                   placeholder="Min"
                   aria-label="Minimum age"
+                   aria-describedby="age-filter-error"
                 />
                 <span className="text-muted-foreground">–</span>
                 <Input
                   id="f-max-age"
                   type="number"
                   inputMode="numeric"
-                  min={21}
+                   min={18}
+                   max={120}
                   value={maxAge}
                   onChange={(e) => setMaxAge(e.target.value)}
                   placeholder="Max"
                   aria-label="Maximum age"
+                   aria-describedby="age-filter-error"
                 />
               </div>
+               {ageError && (
+                 <p id="age-filter-error" className="mt-1.5 text-xs text-destructive" role="alert">
+                   {ageError}
+                 </p>
+               )}
             </div>
             <div>
               <Label htmlFor="f-city" className="text-xs text-muted-foreground mb-1.5 block">
@@ -123,27 +194,8 @@ export default function Browse() {
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-4">
-            <div className="flex items-center gap-2.5">
-              <Switch id="f-online" checked={onlineOnly} onCheckedChange={setOnlineOnly} />
-              <Label htmlFor="f-online" className="flex items-center gap-1.5 text-sm text-zinc-300 cursor-pointer">
-                <Circle className="h-2.5 w-2.5 fill-green-400 text-green-400" /> Online now
-              </Label>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Switch id="f-video" checked={videoChatOnly} onCheckedChange={setVideoChatOnly} />
-              <Label htmlFor="f-video" className="flex items-center gap-1.5 text-sm text-zinc-300 cursor-pointer">
-                <Video className="h-4 w-4 text-primary" /> Available for video
-              </Label>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Switch id="f-verified" checked={verifiedOnly} onCheckedChange={setVerifiedOnly} />
-              <Label htmlFor="f-verified" className="flex items-center gap-1.5 text-sm text-zinc-300 cursor-pointer">
-                <ShieldCheck className="h-4 w-4 text-primary" /> Verified only
-              </Label>
-            </div>
-
-            {hasFilters && (
+          {hasFilters && (
+            <div className="mt-5 flex">
               <Button
                 variant="ghost"
                 size="sm"
@@ -152,12 +204,19 @@ export default function Browse() {
               >
                 <X className="mr-1.5 h-4 w-4" /> Clear filters
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Results */}
-        {isLoading ? (
+        {ageError ? (
+          <div className="py-16 text-center">
+            <p className="text-destructive">{ageError}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Adjust the age range to continue browsing.
+            </p>
+          </div>
+        ) : isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
@@ -169,17 +228,17 @@ export default function Browse() {
         ) : isError ? (
           <div className="py-20 text-center">
             <p className="text-muted-foreground">
-              Something went wrong loading the lounge. Please try again.
+              Something went wrong loading Buddys. Please try again.
             </p>
           </div>
-        ) : !dolls || dolls.length === 0 ? (
+        ) : !buddys || buddys.length === 0 ? (
           <div className="py-20 text-center">
             <Star className="mx-auto h-10 w-10 text-muted-foreground/30 mb-4" />
             <h3 className="text-xl font-serif text-white mb-2">No Buddys found</h3>
             <p className="text-muted-foreground text-sm">
               {hasFilters
                 ? "Try adjusting or clearing your filters."
-                : "Check back soon — new Buddys join the lounge often."}
+                : "Check back soon — new Buddys join the community often."}
             </p>
             {hasFilters && (
               <Button variant="outline" onClick={clearFilters} className="mt-6">
@@ -190,68 +249,44 @@ export default function Browse() {
         ) : (
           <>
             <p className="text-sm text-muted-foreground mb-5">
-              {dolls.length} {dolls.length === 1 ? "Buddy" : "Buddys"} in the lounge
+              {buddys.length} {buddys.length === 1 ? "Buddy" : "Buddys"} to discover
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {dolls.map((doll) => (
-                <Link key={doll.id} href={`/dolls/${doll.id}`} className="group block">
-                  <div className="relative h-[300px] w-full rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-[#E85D75]/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(232,93,117,0.2)] bg-card">
-                    {doll.profilePhotoUrl ? (
+              {buddys.map((buddy) => (
+                <Link key={`${buddy.accountType}-${buddy.id}`} href={buddy.profileUrl} className="group block">
+                  <div className="relative h-[300px] w-full rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-primary/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(24,119,242,0.15)] bg-card">
+                    {buddy.profilePhotoUrl ? (
                       <img
-                        src={doll.profilePhotoUrl}
-                        alt={doll.stageName}
+                        src={buddy.profilePhotoUrl}
+                        alt={buddy.name}
                         className="object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity"
                       />
                     ) : (
                       <div className="w-full h-full bg-card flex items-center justify-center">
-                        <Star className="w-12 h-12 text-muted-foreground/30" />
+                        <User className="w-12 h-12 text-muted-foreground/30" />
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-80" />
 
-                    <div className="absolute top-3 left-3 flex flex-col gap-2 items-start">
-                      {doll.featured && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary/25 border border-secondary/50 px-2.5 py-1 text-[10px] font-medium text-secondary backdrop-blur-md">
-                          <Star className="h-3 w-3 fill-current" /> Featured
-                        </span>
-                      )}
-                      {doll.verified && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/20 border border-primary/40 px-2.5 py-1 text-[10px] font-medium text-primary backdrop-blur-md">
-                          <ShieldCheck className="h-3 w-3" /> Verified
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
-                      {doll.online && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/20 border border-green-500/40 px-2.5 py-1 text-[10px] font-medium text-green-300 backdrop-blur-md">
-                          <Circle className="h-2 w-2 fill-green-400 text-green-400" /> Online
-                        </span>
-                      )}
-                      {doll.availableForVideoChat && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/20 border border-primary/40 px-2.5 py-1 text-[10px] font-medium text-primary backdrop-blur-md">
-                          <Video className="h-3 w-3" /> Video
-                        </span>
-                      )}
-                    </div>
-
                     <div className="absolute bottom-0 left-0 p-5 w-full">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-serif text-xl font-bold text-white">
-                          {doll.stageName}
+                        <h3 className="font-serif text-xl font-bold text-white truncate">
+                          {buddy.name}
                         </h3>
-                        {doll.verified && <ShieldCheck className="w-4 h-4 text-primary" />}
-                        <BuddyPill buddyType={doll.buddyType} className="scale-[0.8] origin-left" />
+                        <BuddyPill buddyType={buddy.buddyType} className="scale-[0.8] origin-left" />
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {doll.city}, {doll.state}
-                      </p>
-                      <Button
-                        size="sm"
-                        className="mt-3 w-full bg-white/10 hover:bg-primary text-white hover:text-primary-foreground border border-white/15 hover:border-primary backdrop-blur-md font-medium tracking-wide uppercase text-[11px] transition-all"
-                      >
-                        View Profile <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                      </Button>
+
+                      <div className="text-sm text-muted-foreground space-y-0.5 mb-2">
+                        {buddy.handle && <p className="text-primary truncate">@{buddy.handle}</p>}
+                        {(buddy.city || buddy.state) && (
+                          <p className="truncate">
+                            {[buddy.city, buddy.state].filter(Boolean).join(", ")}
+                          </p>
+                        )}
+                        {buddy.age != null && (
+                          <p>{buddy.age} years old</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Link>

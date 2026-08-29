@@ -31,6 +31,21 @@ export function toMemberProfileResponse(user: User) {
   };
 }
 
+export type BuddyDiscoveryProfile = {
+  id: number;
+  accountType: "member" | "doll";
+  dollId: number | null;
+  name: string;
+  handle: string | null;
+  age: number | null;
+  city: string | null;
+  state: string | null;
+  profilePhotoUrl: string | null;
+  buddyType: "female_buddy" | "male_buddy" | null;
+  memberSince: string;
+  profileUrl: string;
+};
+
 export type DollCounts = {
   premiumPhotoCount: number;
   premiumVideoCount: number;

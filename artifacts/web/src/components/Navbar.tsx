@@ -37,7 +37,7 @@ const NAV_LINKS = [
   { label: "Meetups", href: "/meetups" },
   // Keep the legacy route so existing links continue to work.
   { label: "Sparks", href: "/sparks" },
-  { label: "Buddys", href: "/browse" },
+  { label: "Browse Buddys", href: "/browse" },
   { label: "Businesses", href: "/businesses" },
 ];
 
@@ -227,7 +227,7 @@ export function Navbar() {
           >
             <Search className="h-4 w-4" />
 
-            Find a Buddy
+            Browse Buddys
           </Link>
           <Link
             href="/signup/doll"
