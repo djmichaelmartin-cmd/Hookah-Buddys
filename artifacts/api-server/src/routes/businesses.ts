@@ -5189,7 +5189,7 @@ router.post("/businesses/:handle/media", requireAuth(), async (req, res): Promis
   const body = req.body as Record<string, unknown>;
   const kind = typeof body.kind === "string" ? body.kind : "";
   if (!["photo", "video", "reel"].includes(kind)) {
-    res.status(400).json({ error: "kind must be one of: photo, video, reel" });
+    res.status(400).json({ error: "kind must be one of: photo, video, or a Spark" });
     return;
   }
   const rawMediaUrl = typeof body.mediaUrl === "string" ? body.mediaUrl : "";
@@ -5211,7 +5211,7 @@ router.post("/businesses/:handle/media", requireAuth(), async (req, res): Promis
     albumId = album.id;
   }
 
-  // Photo→image finalize; video/reel→video finalize+transcode (internal only).
+  // Photo→image finalize; video/Spark→video finalize+transcode (internal only).
   let mediaUrl: string;
   let posterUrl: string | null = null;
   try {
@@ -5222,7 +5222,7 @@ router.post("/businesses/:handle/media", requireAuth(), async (req, res): Promis
     );
     mediaUrl = finalized.url;
     posterUrl = finalized.posterUrl;
-    // Allow an explicit poster override for video/reel (finalized image).
+    // Allow an explicit poster override for video/Spark (finalized image).
     if (kind !== "photo" && typeof body.posterUrl === "string" && body.posterUrl && !posterUrl) {
       if (!toObjectEntityPath(body.posterUrl)) {
         res.status(400).json({ error: "posterUrl must reference an uploaded storage object" });
@@ -7118,7 +7118,7 @@ router.post(
     const body = req.body as Record<string, unknown>;
     const kind = typeof body.kind === "string" ? body.kind : "photo";
     if (!["photo", "video", "reel"].includes(kind)) {
-      res.status(400).json({ error: "kind must be one of: photo, video, reel" });
+      res.status(400).json({ error: "kind must be one of: photo, video, or a Spark" });
       return;
     }
     const rawMediaUrl = typeof body.mediaUrl === "string" ? body.mediaUrl : "";
@@ -7208,7 +7208,7 @@ router.patch(
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Reel/video view count — public increment with authenticated per-user
+// Spark/video view count — public increment with authenticated per-user
 // idempotence. No anonymous dedupe primitive exists in this project, so views
 // require auth and are recorded once per (media, user) via businessEngagements
 // (kind='view', unique index). Repeated calls by the same user do not re-count.

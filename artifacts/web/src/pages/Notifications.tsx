@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, CheckCheck, Heart, MessageCircle, UserPlus, Info, Circle, CalendarClock, CalendarX, Megaphone } from "lucide-react";
+import { Bell, CheckCheck, Heart, MessageCircle, UserPlus, Info, Circle, CalendarClock, CalendarX, Megaphone, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Notifications() {
@@ -43,19 +43,22 @@ export default function Notifications() {
 
   const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
-  const getIcon = (type: string) => {
-    switch (type) {
+  const getIcon = (n: any) => {
+    switch (n.type) {
       case "like": return <Heart className="w-5 h-5 text-primary fill-primary/20" />;
       case "comment": return <MessageCircle className="w-5 h-5 text-secondary fill-secondary/20" />;
       case "follow": return <UserPlus className="w-5 h-5 text-green-400" />;
       case "event_reminder": return <CalendarClock className="w-5 h-5 text-primary" />;
       case "event_cancelled": return <CalendarX className="w-5 h-5 text-destructive" />;
       case "event_update": return <Megaphone className="w-5 h-5 text-orange-400" />;
-      default: return <Info className="w-5 h-5 text-muted-foreground" />;
+      default:
+        if (n.relatedReelId) return <Zap className="w-5 h-5 text-primary fill-primary/20" />;
+        return <Info className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
   const getLink = (n: any) => {
+    if (n.relatedReelId) return `/sparks/${n.relatedReelId}`;
     if (n.type === "event_update" && n.relatedGroupId) return `/meetups/${n.relatedGroupId}`;
     if (n.relatedEventId) return `/events/${n.relatedEventId}`;
     if (n.relatedPostId) return `/feed?post=${n.relatedPostId}`;
@@ -104,10 +107,9 @@ export default function Notifications() {
                 {!n.isRead && (
                   <div className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_rgba(24,119,242,0.8)]" />
                 )}
-                
                 <div className="flex gap-4 items-start">
                   <div className="shrink-0 mt-1">
-                    {getIcon(n.type)}
+                    {getIcon(n)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-white font-medium mb-1">{n.title}</h4>

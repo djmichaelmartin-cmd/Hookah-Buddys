@@ -16,6 +16,8 @@ import {
   getGetCreditsQueryKey,
   useListFeedPosts,
   getListFeedPostsQueryKey,
+  useListReels,
+  getListReelsQueryKey,
   ApiError,
   type Media,
 } from "@workspace/api-client-react";
@@ -24,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FeedPostCard } from "@/components/FeedPostCard";
+import { SparkCard } from "@/components/sparks/SparkCard";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +37,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { BuyCreditsDialog } from "@/components/BuyCreditsDialog";
 import { isCheckoutRequired } from "@/lib/checkoutRequired";
-import { ShieldCheck, MessageSquare, Video, Star, Lock, Play, ImageIcon, Check, Sparkles, Coins } from "lucide-react";
+import { ShieldCheck, MessageSquare, Video, Star, Lock, Play, ImageIcon, Check, Sparkles, Coins, Zap } from "lucide-react";
 
 function serverError(err: unknown): string | undefined {
   if (err instanceof ApiError && err.data && typeof err.data === "object" && "error" in err.data) {
@@ -83,8 +86,6 @@ export default function DollProfile() {
         title: "Payment required",
         description: "This purchase must be completed through secure checkout.",
       });
-      // No specific plan is known in this context; the pricing page routes
-      // every purchase into a valid checkout flow.
       navigate("/pricing");
       return;
     }
@@ -189,6 +190,11 @@ export default function DollProfile() {
     query: { enabled: true, queryKey: getListFeedPostsQueryKey({ filter: "dolls" }) }
   });
   const dollFeedPosts = rawFeedPosts?.filter(p => p.dollId === dollId) ?? [];
+
+  const { data: sparks, isLoading: sparksLoading } = useListReels(
+    { dollId: dollId, visibility: 'public' },
+    { query: { enabled: !!dollId, queryKey: getListReelsQueryKey({ dollId: dollId, visibility: 'public' }) } }
+  );
 
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
@@ -341,9 +347,10 @@ export default function DollProfile() {
           {/* Main Content */}
           <div className="w-full md:w-2/3 space-y-8">
             <Tabs defaultValue="about" className="w-full">
-              <TabsList className="bg-card/50 backdrop-blur-md border border-white/10 w-full justify-start rounded-xl p-1 h-auto mb-6">
+              <TabsList className="bg-card/50 backdrop-blur-md border border-white/10 w-full justify-start rounded-xl p-1 h-auto mb-6 flex-wrap">
                 <TabsTrigger value="about" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white py-2.5 px-6">About & Content</TabsTrigger>
                 <TabsTrigger value="posts" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white py-2.5 px-6">Public Posts <span className="ml-2 bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full">{dollFeedPosts.length}</span></TabsTrigger>
+                <TabsTrigger value="sparks" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white py-2.5 px-6">Public Sparks <span className="ml-2 bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full">{sparks?.length || 0}</span></TabsTrigger>
               </TabsList>
 
               <TabsContent value="about" className="space-y-8 mt-0 outline-none">
@@ -402,6 +409,27 @@ export default function DollProfile() {
                   <div className="space-y-6">
                     {dollFeedPosts.map(post => (
                       <FeedPostCard key={post.id} post={post} onLoginPrompt={() => setLoginPromptOpen(true)} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="sparks" className="space-y-6 mt-0 outline-none">
+                <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-6">
+                  <h2 className="text-xl font-serif text-white mb-2 flex items-center gap-2"><Zap className="w-5 h-5 text-primary fill-primary" /> Public Sparks</h2>
+                  <p className="text-sm text-muted-foreground">Free, public moments shared by {doll.stageName}.</p>
+                </div>
+
+                {sparksLoading ? (
+                  <div className="text-center text-muted-foreground py-10">Loading Sparks...</div>
+                ) : !sparks || sparks.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-10 bg-card/30 rounded-xl border border-white/5">
+                    No public Sparks yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {sparks.map(spark => (
+                      <SparkCard key={spark.id} spark={spark} onClick={() => navigate(`/sparks/${spark.id}`)} />
                     ))}
                   </div>
                 )}

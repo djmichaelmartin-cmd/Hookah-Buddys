@@ -15,6 +15,7 @@ export function CustomerMediaUpload({ businessHandle, kind, onRequireAuth }: { b
   const [caption, setCaption] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const mediaLabel = kind === "reel" ? "Spark" : kind;
 
   const submitMedia = useSubmitBusinessCustomerMedia({
     mutation: {
@@ -75,12 +76,12 @@ export function CustomerMediaUpload({ businessHandle, kind, onRequireAuth }: { b
       <DialogTrigger asChild>
         <Button variant="outline" className="border-white/10 bg-background/50 hover:bg-white/5 text-white gap-2">
           <Upload className="w-4 h-4" />
-          Submit {kind}
+          Submit {mediaLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-card border-white/10 text-white sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="capitalize">Submit {kind}</DialogTitle>
+          <DialogTitle className="capitalize">Submit {mediaLabel}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">

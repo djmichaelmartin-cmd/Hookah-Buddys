@@ -48,7 +48,7 @@ const CANONICAL_PLANS: PlanDef[] = [
       "Create a free HookahBuddys profile",
       "Join the public HookahBuddys Lounge",
       "Post hookah-related content",
-      "Upload public photos & reels",
+      "Upload public photos & Sparks",
       "Like, comment & save posts",
       "Follow Buddys and Bros",
       "Add Buddys",

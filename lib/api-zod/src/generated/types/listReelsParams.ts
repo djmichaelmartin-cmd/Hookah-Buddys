@@ -5,9 +5,28 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ListReelsVisibility } from './listReelsVisibility';
 
 export type ListReelsParams = {
 userId?: number;
+/**
+ * Limit Sparks to the approved Doll profile that owns the author account.
+ * @minimum 1
+ */
+dollId?: number;
+/**
+ * Limit Sparks to an attributed Business Page.
+ */
+businessId?: number;
 category?: string;
+/**
+ * Limit results by requested audience without bypassing viewer access checks.
+ */
+visibility?: ListReelsVisibility;
+/**
+ * Case-insensitive caption or hashtag search.
+ * @maxLength 100
+ */
+search?: string;
 limit?: number;
 };

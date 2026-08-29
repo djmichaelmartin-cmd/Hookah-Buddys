@@ -11,6 +11,9 @@ export const notificationsTable = pgTable("notifications", {
   relatedCommentId: integer("related_comment_id"),
   relatedEventId: integer("related_event_id"),
   relatedGroupId: integer("related_group_id"),
+  // Legacy reel identifier used by canonical Spark notifications to deep-link
+  // without changing the established reel storage model.
+  relatedReelId: integer("related_reel_id"),
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -10,6 +10,7 @@ export async function createNotification(input: {
   relatedCommentId?: number | null;
   relatedEventId?: number | null;
   relatedGroupId?: number | null;
+  relatedReelId?: number | null;
 }): Promise<void> {
   await db.insert(notificationsTable).values({
     userId: input.userId,
@@ -21,5 +22,6 @@ export async function createNotification(input: {
     relatedCommentId: input.relatedCommentId ?? null,
     relatedEventId: input.relatedEventId ?? null,
     relatedGroupId: input.relatedGroupId ?? null,
+    relatedReelId: input.relatedReelId ?? null,
   });
 }

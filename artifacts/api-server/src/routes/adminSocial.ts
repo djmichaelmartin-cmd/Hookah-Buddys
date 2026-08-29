@@ -77,7 +77,7 @@ router.patch("/admin/reels/:id", requireAuth("admin"), async (req, res): Promise
     .where(eq(reelsTable.id, id))
     .returning();
   if (!updated) {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
     return;
   }
   const { reelsToAdminResponse } = await import("./photosAdminShared");

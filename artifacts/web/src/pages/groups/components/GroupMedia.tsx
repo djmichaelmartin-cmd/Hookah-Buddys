@@ -143,7 +143,7 @@ export function GroupMedia({
             { route: "media", label: "All", testId: "media" },
             { route: "photos", label: "Photos", testId: "photo" },
             { route: "videos", label: "Videos", testId: "video" },
-            { route: "reels", label: "Reels", testId: "reel" },
+            { route: "reels", label: "Sparks", testId: "reel" },
             { route: "files", label: "Files", testId: "file" },
           ].map((tab) => (
             <button

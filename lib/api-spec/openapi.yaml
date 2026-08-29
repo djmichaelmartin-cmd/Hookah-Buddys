@@ -47,7 +47,7 @@ tags:
   - name: photos
     description: Photo albums and social photos
   - name: reels
-    description: Short-form reels
+    description: Canonical Sparks API (legacy `/reels` route and internal identifiers are preserved for compatibility)
   - name: usertags
     description: Tagging users in content
   - name: admin
@@ -140,6 +140,54 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '413':
           description: Video exceeds the 50 MB size limit.
+        '500':
+          description: Failed to store video.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /sparks/uploads/video:
+    post:
+      tags: [reels]
+      operationId: uploadSparkVideo
+      summary: Upload a Spark video (raw bytes, max 50 MB and 90 seconds)
+      description: |
+        Protected bounded server-side upload for canonical Sparks. Send raw
+        MP4, MOV, or WebM bytes. The server validates the real container,
+        rejects videos longer than 90 seconds, and reuses the shared video
+        transcode and JPEG poster pipeline. The returned paths are suitable for
+        ReelInput.videoUrl and ReelInput.thumbnailUrl on the legacy `/reels`
+        creation route.
+      requestBody:
+        required: true
+        content:
+          'video/*':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: Spark video transcoded and stored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SparkVideoUploadResponse'
+        '400':
+          description: Body is not a valid MP4, MOV, or WebM video, or exceeds 90 seconds.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Authentication required.
+        '413':
+          description: Video exceeds the 50 MB size limit.
+        '503':
+          description: Video processing is temporarily busy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
         '500':
           description: Failed to store video.
           content:
@@ -2869,10 +2917,14 @@ paths:
     get:
       operationId: listReels
       tags: [reels]
-      summary: Browse reels (public preview allowed)
+      summary: Browse Sparks (legacy `/reels` route)
       parameters:
         - { name: userId, in: query, required: false, schema: { type: integer } }
+        - { name: dollId, in: query, required: false, schema: { type: integer, minimum: 1 }, description: Limit Sparks to the approved Doll profile that owns the author account. }
+        - { name: businessId, in: query, required: false, schema: { type: integer }, description: Limit Sparks to an attributed Business Page. }
         - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: visibility, in: query, required: false, schema: { type: string, enum: [public, friends, only_me] }, description: Limit results by requested audience without bypassing viewer access checks. }
+        - { name: search, in: query, required: false, schema: { type: string, maxLength: 100 }, description: Case-insensitive caption or hashtag search. }
         - { name: limit, in: query, required: false, schema: { type: integer } }
       responses:
         "200":
@@ -2886,7 +2938,7 @@ paths:
     post:
       operationId: createReel
       tags: [reels]
-      summary: Upload a reel
+      summary: Create a Spark (legacy `/reels` route)
       requestBody:
         required: true
         content:
@@ -2903,11 +2955,99 @@ paths:
         "401":
           description: Unauthorized
 
+  /reels/taggable-users:
+    get:
+      operationId: listTaggableReelUsers
+      tags: [reels]
+      summary: List people the current user can tag in a Spark
+      description: Returns active people allowed by mutual block and tagging-privacy rules. The current user is excluded.
+      parameters:
+        - { name: search, in: query, required: false, schema: { type: string, maxLength: 100 }, description: Case-insensitive name or username search. }
+      responses:
+        "200":
+          description: Eligible people
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaggableUser"
+        "401":
+          description: Unauthorized
+        "400":
+          description: Search is longer than 100 characters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /reels/editable-businesses:
+    get:
+      operationId: listEditableReelBusinesses
+      tags: [reels]
+      summary: List Business Pages the current user can use for a Spark
+      description: Returns only active pages for which the current user has an owner, admin, or editor role.
+      parameters:
+        - { name: search, in: query, required: false, schema: { type: string, maxLength: 100 }, description: Case-insensitive business name or handle search. }
+      responses:
+        "200":
+          description: Editable Business Pages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EditableSparkBusiness"
+        "401":
+          description: Unauthorized
+        "400":
+          description: Search is longer than 100 characters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /reels/{id}/media/video:
+    get:
+      operationId: getReelVideoMedia
+      tags: [reels]
+      summary: Stream Spark video with visibility enforcement
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Video stream
+          content:
+            video/mp4:
+              schema: { type: string, format: binary }
+        "404":
+          description: Spark or media not found
+
+  /reels/{id}/media/poster:
+    get:
+      operationId: getReelPosterMedia
+      tags: [reels]
+      summary: Stream Spark poster with visibility enforcement
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Poster stream
+          content:
+            image/jpeg:
+              schema: { type: string, format: binary }
+            image/png:
+              schema: { type: string, format: binary }
+            image/webp:
+              schema: { type: string, format: binary }
+        "404":
+          description: Spark or media not found
+
   /reels/{id}:
     get:
       operationId: getReel
       tags: [reels]
-      summary: Get a single reel
+      summary: Get a single Spark
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
@@ -2922,7 +3062,7 @@ paths:
     delete:
       operationId: deleteReel
       tags: [reels]
-      summary: Delete own reel (or any as Admin)
+      summary: Delete own Spark (or any as Admin)
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
@@ -2935,7 +3075,7 @@ paths:
     post:
       operationId: toggleReelLike
       tags: [reels]
-      summary: Like or unlike a reel (toggle)
+      summary: Like or unlike a Spark (toggle)
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
@@ -2952,7 +3092,7 @@ paths:
     post:
       operationId: toggleReelSave
       tags: [reels]
-      summary: Save or unsave a reel (toggle)
+      summary: Save or unsave a Spark (toggle)
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
@@ -2969,7 +3109,7 @@ paths:
     post:
       operationId: recordReelView
       tags: [reels]
-      summary: Record a reel view
+      summary: Record a Spark view
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
@@ -2980,7 +3120,7 @@ paths:
     post:
       operationId: reportReel
       tags: [reels]
-      summary: Report a reel
+      summary: Report a Spark
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       requestBody:
@@ -3004,7 +3144,7 @@ paths:
     get:
       operationId: listReelComments
       tags: [reels]
-      summary: List comments on a reel
+      summary: List comments on a Spark
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
@@ -3019,7 +3159,7 @@ paths:
     post:
       operationId: createReelComment
       tags: [reels]
-      summary: Comment on a reel
+      summary: Comment on a Spark
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       requestBody:
@@ -3042,7 +3182,7 @@ paths:
     delete:
       operationId: deleteReelComment
       tags: [reels]
-      summary: Delete own reel comment (or any as Admin)
+      summary: Delete own Spark comment (or any as Admin)
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
@@ -3070,7 +3210,7 @@ paths:
     post:
       operationId: createUserTag
       tags: [usertags]
-      summary: Tag a user in a post, photo, or reel
+      summary: Tag a user in a post, photo, or Spark
       requestBody:
         required: true
         content:
@@ -3175,7 +3315,7 @@ paths:
     get:
       operationId: listAdminReels
       tags: [admin]
-      summary: List all reels for moderation (Admin)
+      summary: List all Sparks for moderation (Admin)
       parameters:
         - { name: status, in: query, required: false, schema: { type: string } }
       responses:
@@ -3194,7 +3334,7 @@ paths:
     patch:
       operationId: moderateReel
       tags: [admin]
-      summary: Moderate a reel (Admin)
+      summary: Moderate a Spark (Admin)
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       requestBody:
@@ -3764,7 +3904,7 @@ paths:
     get:
       operationId: listBusinessMedia
       tags: [businesses]
-      summary: "List media items (photos/videos/reels). Public sees active items; team/admin see all."
+      summary: "List media items (photos, videos, and Sparks). Public sees active items; team/admin see all."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
         - { name: albumId, in: query, required: false, schema: { type: integer } }
@@ -4616,7 +4756,7 @@ paths:
     post:
       operationId: recordBusinessMediaView
       tags: [businesses]
-      summary: "Record a reel/video view. Authenticated; idempotent per (media,user) — repeats do not re-count."
+      summary: "Record a Spark/video view. Authenticated; idempotent per (media,user) — repeats do not re-count."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
         - { name: mediaId, in: path, required: true, schema: { type: integer } }
@@ -5470,7 +5610,7 @@ paths:
     get:
       operationId: listGroupMedia
       tags: [groups]
-      summary: List group media (photos/videos/reels/files)
+      summary: List group media (photos, videos, Sparks, and files)
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
         - { name: kind, in: query, required: false, schema: { type: string } }
@@ -7024,6 +7164,9 @@ components:
         source: { type: ["string", "null"], description: "Set for business-attributed feed items (business_post|business_checkin|business_event)." }
         sourceId: { type: ["integer", "null"] }
         businessId: { type: ["integer", "null"] }
+        businessName: { type: ["string", "null"] }
+        businessHandle: { type: ["string", "null"] }
+        businessLogoUrl: { type: ["string", "null"] }
         business:
           description: "Safe public business author object; null for personal posts."
           oneOf:
@@ -7425,6 +7568,7 @@ components:
         relatedCommentId: { type: ["integer", "null"] }
         relatedEventId: { type: ["integer", "null"] }
         relatedGroupId: { type: ["integer", "null"] }
+        relatedReelId: { type: ["integer", "null"], description: Legacy internal identifier for a Spark deep link (`/sparks/:id`). }
         isRead: { type: boolean }
         createdAt: { type: string }
 
@@ -7754,21 +7898,53 @@ components:
 
     ReelInput:
       type: object
-      required: [videoUrl, category, isHookahRelatedConfirmed]
+      required: [videoUrl]
       properties:
         videoUrl: { type: string, minLength: 1 }
         thumbnailUrl: { type: string }
-        caption: { type: string }
+        caption: { type: string, maxLength: 2200 }
         category: { type: string, enum: [hookah_setup, lounge_night, flavor_review, smoke_tricks, event, meme, doll_spotlight, bro_post, tutorial, other] }
         hashtags:
           type: array
+          maxItems: 30
           items: { type: string }
+        peopleTags:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items: { type: integer, minimum: 1 }
+        businessId: { type: integer, minimum: 1 }
+        location: { type: string, maxLength: 200 }
+        feeling: { type: string, maxLength: 100 }
         visibility: { type: string, enum: [public, friends, followers, only_me] }
-        isHookahRelatedConfirmed: { type: boolean }
+        commentsEnabled: { type: boolean }
+        sharingEnabled: { type: boolean }
+        isHookahRelatedConfirmed:
+          type: boolean
+          deprecated: true
+          description: Legacy compatibility field; no longer required or enforced for Spark creation.
+
+    TaggableUser:
+      type: object
+      required: [id, name, username, profilePhotoUrl]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        username: { type: ["string", "null"] }
+        profilePhotoUrl: { type: ["string", "null"] }
+
+    EditableSparkBusiness:
+      type: object
+      required: [id, name, handle, logoUrl]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        handle: { type: string }
+        logoUrl: { type: ["string", "null"] }
 
     Reel:
       type: object
-      required: [id, userId, userRole, userName, videoUrl, category, status, likeCount, commentCount, saveCount, viewCount, createdAt]
+      required: [id, userId, userRole, userName, videoUrl, category, hashtags, peopleTags, businessName, businessHandle, businessLogoUrl, visibility, commentsEnabled, sharingEnabled, status, likeCount, commentCount, saveCount, viewCount, createdAt]
       properties:
         id: { type: integer }
         userId: { type: integer }
@@ -7785,7 +7961,18 @@ components:
         hashtags:
           type: array
           items: { type: string }
+        peopleTags:
+          type: array
+          items: { type: integer }
+        businessId: { type: ["integer", "null"] }
+        businessName: { type: ["string", "null"] }
+        businessHandle: { type: ["string", "null"] }
+        businessLogoUrl: { type: ["string", "null"] }
+        location: { type: ["string", "null"] }
+        feeling: { type: ["string", "null"] }
         visibility: { type: string, enum: [public, friends, followers, only_me] }
+        commentsEnabled: { type: boolean }
+        sharingEnabled: { type: boolean }
         status: { type: string, enum: [active, hidden, removed, pending_review] }
         viewCount: { type: integer }
         likeCount: { type: integer }
@@ -7842,6 +8029,17 @@ components:
           description: Stored object path (e.g. `/objects/uploads/uuid`). Serve via `/api/storage` + objectPath.
 
     VideoUploadResponse:
+      type: object
+      required: [objectPath, posterPath]
+      properties:
+        objectPath:
+          type: string
+          description: Stored path of the transcoded H.264 MP4. Serve via `/api/storage` + objectPath.
+        posterPath:
+          type: string
+          description: Stored path of the JPEG poster frame. Serve via `/api/storage` + posterPath.
+
+    SparkVideoUploadResponse:
       type: object
       required: [objectPath, posterPath]
       properties:
@@ -8803,7 +9001,7 @@ components:
       properties:
         kind: { type: string, enum: [photo, video, reel] }
         mediaUrl: { type: string, description: "Finalized internal storage object; external URLs rejected" }
-        posterUrl: { type: string, description: "Optional finalized storage image poster for video/reel" }
+        posterUrl: { type: string, description: "Optional finalized storage image poster for video/Spark" }
         albumId: { type: integer }
         title: { type: string }
         caption: { type: string }

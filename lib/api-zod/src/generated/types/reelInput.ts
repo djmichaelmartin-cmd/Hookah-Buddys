@@ -12,9 +12,25 @@ export interface ReelInput {
   /** @minLength 1 */
   videoUrl: string;
   thumbnailUrl?: string;
+  /** @maxLength 2200 */
   caption?: string;
-  category: ReelInputCategory;
+  category?: ReelInputCategory;
+  /** @maxItems 30 */
   hashtags?: string[];
+  /** @maxItems 20 */
+  peopleTags?: number[];
+  /** @minimum 1 */
+  businessId?: number;
+  /** @maxLength 200 */
+  location?: string;
+  /** @maxLength 100 */
+  feeling?: string;
   visibility?: ReelInputVisibility;
-  isHookahRelatedConfirmed: boolean;
+  commentsEnabled?: boolean;
+  sharingEnabled?: boolean;
+  /**
+     * Legacy compatibility field; no longer required or enforced for Spark creation.
+     * @deprecated
+     */
+  isHookahRelatedConfirmed?: boolean;
 }

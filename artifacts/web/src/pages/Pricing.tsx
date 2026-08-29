@@ -104,7 +104,7 @@ export default function Pricing() {
             credits for premium Buddy interactions.
           </p>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 mb-12 text-sm text-muted-foreground/80">
-            <span>Free: profile, public Lounge access, Buddys & follows, photos & reels, likes & comments</span>
+            <span>Free: profile, public Lounge access, Buddys & follows, photos & Sparks, likes & comments</span>
             <span className="text-primary/80">Paid: monthly credits, Buddy messaging, premium unlocks, video chat, VIP features</span>
           </div>
         </div>

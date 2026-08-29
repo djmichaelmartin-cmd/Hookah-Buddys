@@ -36,7 +36,7 @@ export function ReelCard({ reel, onClick }: ReelCardProps) {
       {reel.thumbnailUrl ? (
         <img
           src={reel.thumbnailUrl}
-          alt={reel.caption || "Reel"}
+          alt={reel.caption || "Spark"}
           className="w-full h-full object-cover"
         />
       ) : (
@@ -129,7 +129,7 @@ export function ReelPlayer({ reel, onClose }: { reel: Reel; onClose: () => void 
   const report = useReportReel({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Reel reported" });
+        toast({ title: "Spark reported" });
         onClose();
       },
       onError: () => toast({ title: "Failed to report", variant: "destructive" }),

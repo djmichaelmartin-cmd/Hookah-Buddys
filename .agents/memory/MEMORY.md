@@ -35,3 +35,4 @@
 - [Group-event RSVP invariants](group-event-rsvp-invariants.md) — lock the event and apply party-size capacity, counters, FIFO promotion, and self-exclusion on every RSVP transition.
 - [Meetup attendee broadcasts](meetup-attendee-broadcasts.md) — organizer updates belong in notifications; direct-message threads remain Buddy-to-member only.
 - [Business deletion serialization](business-deletion-serialization.md) — destructive cleanup and scoped writers must share a lock; never delete reusable member-owned objects.
+- [Browser video metadata is advisory](browser-video-metadata-advisory.md) — browser codec decoding may fail for valid uploads; enforce type, size, and duration authoritatively on the server.

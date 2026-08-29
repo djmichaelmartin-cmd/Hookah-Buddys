@@ -210,7 +210,7 @@ function AdminDashboardContent() {
             <TabsTrigger value="feed"><MessageSquare className="w-4 h-4 mr-2"/> Lounge</TabsTrigger>
             <TabsTrigger value="shares"><Share2 className="w-4 h-4 mr-2"/> Shares</TabsTrigger>
             <TabsTrigger value="photos"><ImageIcon className="w-4 h-4 mr-2"/> Photos</TabsTrigger>
-            <TabsTrigger value="reels"><Video className="w-4 h-4 mr-2"/> Reels</TabsTrigger>
+            <TabsTrigger value="reels"><Video className="w-4 h-4 mr-2"/> Sparks</TabsTrigger>
             <TabsTrigger value="blocks"><AlertTriangle className="w-4 h-4 mr-2"/> Blocks</TabsTrigger>
             <TabsTrigger value="profiles"><Search className="w-4 h-4 mr-2"/> Profiles</TabsTrigger>
             <TabsTrigger value="credits"><Coins className="w-4 h-4 mr-2"/> Credits</TabsTrigger>
@@ -714,7 +714,7 @@ function ReelModeration() {
   const moderateReel = useModerateReel({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Reel moderated" });
+        toast({ title: "Spark moderated" });
         queryClient.invalidateQueries({ queryKey: getListAdminReelsQueryKey({}) });
       },
       onError: () => toast({ title: "Failed to moderate", variant: "destructive" }),
@@ -756,13 +756,13 @@ function ReelModeration() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {!reels || reels.length === 0 ? (
-          <p className="col-span-full text-muted-foreground">No reels.</p>
+          <p className="col-span-full text-muted-foreground">No Sparks.</p>
         ) : (
           reels.map((reel) => (
             <div key={reel.id} className="bg-card/50 border border-white/10 rounded-xl overflow-hidden">
               <div className="aspect-[9/16] bg-black/50 relative">
                 {reel.thumbnailUrl ? (
-                  <img src={reel.thumbnailUrl} alt="Reel" className="object-cover w-full h-full" />
+                  <img src={reel.thumbnailUrl} alt="Spark" className="object-cover w-full h-full" />
                 ) : (
                   <div className="flex items-center justify-center w-full h-full">
                     <Video className="w-12 h-12 text-muted-foreground/30" />

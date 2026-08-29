@@ -1315,6 +1315,12 @@ export interface FeedPost {
   sourceId?: number | null;
   /** @nullable */
   businessId?: number | null;
+  /** @nullable */
+  businessName?: string | null;
+  /** @nullable */
+  businessHandle?: string | null;
+  /** @nullable */
+  businessLogoUrl?: string | null;
   /** Safe public business author object; null for personal posts. */
   business?: null | FeedBusinessAuthor;
   text: string;
@@ -1848,6 +1854,11 @@ export interface Notification {
   relatedEventId?: number | null;
   /** @nullable */
   relatedGroupId?: number | null;
+  /**
+     * Legacy internal identifier for a Spark deep link (`/sparks/:id`).
+     * @nullable
+     */
+  relatedReelId?: number | null;
   isRead: boolean;
   createdAt: string;
 }
@@ -2484,11 +2495,44 @@ export interface ReelInput {
   /** @minLength 1 */
   videoUrl: string;
   thumbnailUrl?: string;
+  /** @maxLength 2200 */
   caption?: string;
-  category: ReelInputCategory;
+  category?: ReelInputCategory;
+  /** @maxItems 30 */
   hashtags?: string[];
+  /** @maxItems 20 */
+  peopleTags?: number[];
+  /** @minimum 1 */
+  businessId?: number;
+  /** @maxLength 200 */
+  location?: string;
+  /** @maxLength 100 */
+  feeling?: string;
   visibility?: ReelInputVisibility;
-  isHookahRelatedConfirmed: boolean;
+  commentsEnabled?: boolean;
+  sharingEnabled?: boolean;
+  /**
+     * Legacy compatibility field; no longer required or enforced for Spark creation.
+     * @deprecated
+     */
+  isHookahRelatedConfirmed?: boolean;
+}
+
+export interface TaggableUser {
+  id: number;
+  name: string;
+  /** @nullable */
+  username: string | null;
+  /** @nullable */
+  profilePhotoUrl: string | null;
+}
+
+export interface EditableSparkBusiness {
+  id: number;
+  name: string;
+  handle: string;
+  /** @nullable */
+  logoUrl: string | null;
 }
 
 export type ReelUserRole = typeof ReelUserRole[keyof typeof ReelUserRole];
@@ -2554,8 +2598,23 @@ export interface Reel {
   /** @nullable */
   caption?: string | null;
   category: ReelCategory;
-  hashtags?: string[];
-  visibility?: ReelVisibility;
+  hashtags: string[];
+  peopleTags: number[];
+  /** @nullable */
+  businessId?: number | null;
+  /** @nullable */
+  businessName: string | null;
+  /** @nullable */
+  businessHandle: string | null;
+  /** @nullable */
+  businessLogoUrl: string | null;
+  /** @nullable */
+  location?: string | null;
+  /** @nullable */
+  feeling?: string | null;
+  visibility: ReelVisibility;
+  commentsEnabled: boolean;
+  sharingEnabled: boolean;
   status: ReelStatus;
   viewCount: number;
   likeCount: number;
@@ -2635,6 +2694,13 @@ export interface ImageUploadResponse {
 }
 
 export interface VideoUploadResponse {
+  /** Stored path of the transcoded H.264 MP4. Serve via `/api/storage` + objectPath. */
+  objectPath: string;
+  /** Stored path of the JPEG poster frame. Serve via `/api/storage` + posterPath. */
+  posterPath: string;
+}
+
+export interface SparkVideoUploadResponse {
   /** Stored path of the transcoded H.264 MP4. Serve via `/api/storage` + objectPath. */
   objectPath: string;
   /** Stored path of the JPEG poster frame. Serve via `/api/storage` + posterPath. */
@@ -3835,7 +3901,7 @@ export interface BusinessMediaInput {
   kind: BusinessMediaInputKind;
   /** Finalized internal storage object; external URLs rejected */
   mediaUrl: string;
-  /** Optional finalized storage image poster for video/reel */
+  /** Optional finalized storage image poster for video/Spark */
   posterUrl?: string;
   albumId?: number;
   title?: string;
@@ -5689,8 +5755,51 @@ export type ReportPhoto201 = {
 
 export type ListReelsParams = {
 userId?: number;
+/**
+ * Limit Sparks to the approved Doll profile that owns the author account.
+ * @minimum 1
+ */
+dollId?: number;
+/**
+ * Limit Sparks to an attributed Business Page.
+ */
+businessId?: number;
 category?: string;
+/**
+ * Limit results by requested audience without bypassing viewer access checks.
+ */
+visibility?: ListReelsVisibility;
+/**
+ * Case-insensitive caption or hashtag search.
+ * @maxLength 100
+ */
+search?: string;
 limit?: number;
+};
+
+export type ListReelsVisibility = typeof ListReelsVisibility[keyof typeof ListReelsVisibility];
+
+
+export const ListReelsVisibility = {
+  public: 'public',
+  friends: 'friends',
+  only_me: 'only_me',
+} as const;
+
+export type ListTaggableReelUsersParams = {
+/**
+ * Case-insensitive name or username search.
+ * @maxLength 100
+ */
+search?: string;
+};
+
+export type ListEditableReelBusinessesParams = {
+/**
+ * Case-insensitive business name or handle search.
+ * @maxLength 100
+ */
+search?: string;
 };
 
 export type ReportReel201 = {

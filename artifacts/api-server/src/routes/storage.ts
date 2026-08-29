@@ -112,6 +112,50 @@ router.post(
 );
 
 /**
+ * POST /sparks/uploads/video
+ *
+ * Canonical Spark upload entry point. This deliberately reuses the bounded
+ * server upload/transcode/poster pipeline while adding Spark's 90-second cap.
+ * Legacy /storage/uploads/video remains unchanged for existing callers.
+ */
+router.post(
+  '/sparks/uploads/video',
+  requireAuth(),
+  express.raw({
+    type: () => true,
+    limit: MAX_VIDEO_UPLOAD_SIZE_BYTES,
+  }),
+  async (req: Request, res: Response) => {
+    try {
+      const body: unknown = req.body;
+      if (!Buffer.isBuffer(body) || body.length === 0) {
+        res.status(400).json({ error: 'Request body must be the raw video bytes.' });
+        return;
+      }
+
+      const { objectPath, posterPath } = await uploadVideoBuffer(
+        body,
+        req.currentUser!.id,
+        { maxDurationSeconds: 90, sparkDurationValidated: true },
+      );
+      res.status(201).json({ objectPath, posterPath });
+    } catch (error) {
+      if (error instanceof TranscodeBusyError) {
+        res.setHeader('Retry-After', '15');
+        res.status(503).json({ error: error.message });
+        return;
+      }
+      if (error instanceof InvalidUploadError) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      req.log.error({ err: error }, 'Error uploading Spark video');
+      res.status(500).json({ error: 'Failed to upload Spark video' });
+    }
+  },
+);
+
+/**
  * POST /storage/uploads/group-file
  *
  * Bounded server-side generic Group file upload. Send the raw file bytes as

@@ -17,7 +17,8 @@ import { ProfileLayout } from "@/components/profile/ProfileLayout";
 import { AboutSection } from "@/components/profile/AboutSection";
 import { FriendCard } from "@/components/profile/FriendCard";
 import { PhotoGrid } from "@/components/profile/PhotoGrid";
-import { ReelCard, ReelPlayer } from "@/components/profile/ReelCard";
+import { SparkCard } from "@/components/sparks/SparkCard";
+import { SparkPlayer } from "@/components/sparks/SparkPlayer";
 import { FeedPostCard } from "@/components/FeedPostCard";
 import { CreatePostForm } from "@/components/CreatePostForm";
 import { useQueryClient } from "@tanstack/react-query";
@@ -152,13 +153,13 @@ export default function BroProfile() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {!reels || reels.length === 0 ? (
               <div className="col-span-full bg-card/30 backdrop-blur-md border border-white/5 rounded-2xl p-12 text-center">
-                <p className="text-muted-foreground">No reels yet.</p>
+                <p className="text-muted-foreground">No Sparks yet.</p>
               </div>
             ) : (
               reels.map((reel) => (
-                <ReelCard
+                <SparkCard
                   key={reel.id}
-                  reel={reel}
+                  spark={reel}
                   onClick={() => setSelectedReel(reel)}
                 />
               ))
@@ -174,9 +175,9 @@ export default function BroProfile() {
               </div>
             ) : (
               videoReels.map((reel) => (
-                <ReelCard
+                <SparkCard
                   key={reel.id}
-                  reel={reel}
+                  spark={reel}
                   onClick={() => setSelectedReel(reel)}
                 />
               ))
@@ -244,7 +245,7 @@ export default function BroProfile() {
       </ProfileLayout>
 
       {selectedReel && (
-        <ReelPlayer reel={selectedReel} onClose={() => setSelectedReel(null)} />
+        <SparkPlayer spark={selectedReel} onClose={() => setSelectedReel(null)} />
       )}
     </Layout>
   );

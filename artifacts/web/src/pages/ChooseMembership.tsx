@@ -136,7 +136,7 @@ export default function ChooseMembership() {
             <div>
               <h3 className="text-lg font-semibold text-white mb-3">Free profile access includes</h3>
               <ul className="space-y-2">
-                {["Access to the public Lounge", "Profile creation", "Buddys and follows", "Likes and comments", "Public photos and reels", "Basic profile browsing"].map((f) => (
+                {["Access to the public Lounge", "Profile creation", "Buddys and follows", "Likes and comments", "Public photos and Sparks", "Basic profile browsing"].map((f) => (
                   <li key={f} className="text-sm text-muted-foreground flex items-start">
                     <Check className="w-4 h-4 text-primary mr-2 mt-0.5 shrink-0" /> {f}
                   </li>

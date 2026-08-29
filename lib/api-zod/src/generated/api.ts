@@ -1858,6 +1858,9 @@ export const ListFeedPostsResponseItem = zod.object({
   "source": zod.string().nullish().describe('Set for business-attributed feed items (business_post|business_checkin|business_event).'),
   "sourceId": zod.number().nullish(),
   "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "business": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "handle": zod.string(),
@@ -1974,6 +1977,9 @@ export const GetFeedPostResponse = zod.object({
   "source": zod.string().nullish().describe('Set for business-attributed feed items (business_post|business_checkin|business_event).'),
   "sourceId": zod.number().nullish(),
   "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "business": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "handle": zod.string(),
@@ -2164,6 +2170,9 @@ export const ListSavedFeedPostsResponseItem = zod.object({
   "source": zod.string().nullish().describe('Set for business-attributed feed items (business_post|business_checkin|business_event).'),
   "sourceId": zod.number().nullish(),
   "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "business": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "handle": zod.string(),
@@ -2243,6 +2252,9 @@ export const ListLikedFeedPostsResponseItem = zod.object({
   "source": zod.string().nullish().describe('Set for business-attributed feed items (business_post|business_checkin|business_event).'),
   "sourceId": zod.number().nullish(),
   "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "business": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "handle": zod.string(),
@@ -2322,6 +2334,9 @@ export const ListMyFeedPostsResponseItem = zod.object({
   "source": zod.string().nullish().describe('Set for business-attributed feed items (business_post|business_checkin|business_event).'),
   "sourceId": zod.number().nullish(),
   "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "business": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "handle": zod.string(),
@@ -2481,6 +2496,9 @@ export const GetBroProfileResponse = zod.object({
   "source": zod.string().nullish().describe('Set for business-attributed feed items (business_post|business_checkin|business_event).'),
   "sourceId": zod.number().nullish(),
   "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "business": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "handle": zod.string(),
@@ -2557,6 +2575,7 @@ export const ListNotificationsResponseItem = zod.object({
   "relatedCommentId": zod.number().nullish(),
   "relatedEventId": zod.number().nullish(),
   "relatedGroupId": zod.number().nullish(),
+  "relatedReelId": zod.number().nullish().describe('Legacy internal identifier for a Spark deep link (`\/sparks\/:id`).'),
   "isRead": zod.boolean(),
   "createdAt": zod.string()
 })
@@ -2589,6 +2608,7 @@ export const MarkNotificationReadResponse = zod.object({
   "relatedCommentId": zod.number().nullish(),
   "relatedEventId": zod.number().nullish(),
   "relatedGroupId": zod.number().nullish(),
+  "relatedReelId": zod.number().nullish().describe('Legacy internal identifier for a Spark deep link (`\/sparks\/:id`).'),
   "isRead": zod.boolean(),
   "createdAt": zod.string()
 })
@@ -2623,6 +2643,9 @@ export const ListAdminFeedPostsResponseItem = zod.object({
   "source": zod.string().nullish().describe('Set for business-attributed feed items (business_post|business_checkin|business_event).'),
   "sourceId": zod.number().nullish(),
   "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "business": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "handle": zod.string(),
@@ -2710,6 +2733,9 @@ export const ModerateFeedPostResponse = zod.object({
   "source": zod.string().nullish().describe('Set for business-attributed feed items (business_post|business_checkin|business_event).'),
   "sourceId": zod.number().nullish(),
   "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "business": zod.union([zod.null(),zod.object({
   "id": zod.number(),
   "handle": zod.string(),
@@ -3885,11 +3911,20 @@ export const ReportPhotoBody = zod.object({
 
 
 /**
- * @summary Browse reels (public preview allowed)
+ * @summary Browse Sparks (legacy `/reels` route)
  */
+
+export const listReelsQuerySearchMax = 100;
+
+
+
 export const ListReelsQueryParams = zod.object({
   "userId": zod.coerce.number().optional(),
+  "dollId": zod.coerce.number().min(1).optional().describe('Limit Sparks to the approved Doll profile that owns the author account.'),
+  "businessId": zod.coerce.number().optional().describe('Limit Sparks to an attributed Business Page.'),
   "category": zod.coerce.string().optional(),
+  "visibility": zod.enum(['public', 'friends', 'only_me']).optional().describe('Limit results by requested audience without bypassing viewer access checks.'),
+  "search": zod.coerce.string().max(listReelsQuerySearchMax).optional().describe('Case-insensitive caption or hashtag search.'),
   "limit": zod.coerce.number().optional()
 })
 
@@ -3906,8 +3941,17 @@ export const ListReelsResponseItem = zod.object({
   "thumbnailUrl": zod.string().nullish(),
   "caption": zod.string().nullish(),
   "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
-  "hashtags": zod.array(zod.string()).optional(),
-  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "hashtags": zod.array(zod.string()),
+  "peopleTags": zod.array(zod.number()),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullable(),
+  "businessHandle": zod.string().nullable(),
+  "businessLogoUrl": zod.string().nullable(),
+  "location": zod.string().nullish(),
+  "feeling": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "commentsEnabled": zod.boolean(),
+  "sharingEnabled": zod.boolean(),
   "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
   "viewCount": zod.number(),
   "likeCount": zod.number(),
@@ -3923,24 +3967,100 @@ export const ListReelsResponse = zod.array(ListReelsResponseItem)
 
 
 /**
- * @summary Upload a reel
+ * @summary Create a Spark (legacy `/reels` route)
  */
+
+export const createReelBodyCaptionMax = 2200;
+
+export const createReelBodyHashtagsMax = 30;
+
+
+export const createReelBodyPeopleTagsMax = 20;
+
+
+export const createReelBodyLocationMax = 200;
+
+export const createReelBodyFeelingMax = 100;
 
 
 
 export const CreateReelBody = zod.object({
   "videoUrl": zod.string().min(1),
   "thumbnailUrl": zod.string().optional(),
-  "caption": zod.string().optional(),
-  "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
-  "hashtags": zod.array(zod.string()).optional(),
+  "caption": zod.string().max(createReelBodyCaptionMax).optional(),
+  "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']).optional(),
+  "hashtags": zod.array(zod.string()).max(createReelBodyHashtagsMax).optional(),
+  "peopleTags": zod.array(zod.number().min(1)).max(createReelBodyPeopleTagsMax).optional(),
+  "businessId": zod.number().min(1).optional(),
+  "location": zod.string().max(createReelBodyLocationMax).optional(),
+  "feeling": zod.string().max(createReelBodyFeelingMax).optional(),
   "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
-  "isHookahRelatedConfirmed": zod.boolean()
+  "commentsEnabled": zod.boolean().optional(),
+  "sharingEnabled": zod.boolean().optional(),
+  "isHookahRelatedConfirmed": zod.boolean().optional().describe('Legacy compatibility field; no longer required or enforced for Spark creation.')
 })
 
 
 /**
- * @summary Get a single reel
+ * Returns active people allowed by mutual block and tagging-privacy rules. The current user is excluded.
+ * @summary List people the current user can tag in a Spark
+ */
+export const listTaggableReelUsersQuerySearchMax = 100;
+
+
+
+export const ListTaggableReelUsersQueryParams = zod.object({
+  "search": zod.coerce.string().max(listTaggableReelUsersQuerySearchMax).optional().describe('Case-insensitive name or username search.')
+})
+
+export const ListTaggableReelUsersResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string().nullable(),
+  "profilePhotoUrl": zod.string().nullable()
+})
+export const ListTaggableReelUsersResponse = zod.array(ListTaggableReelUsersResponseItem)
+
+
+/**
+ * Returns only active pages for which the current user has an owner, admin, or editor role.
+ * @summary List Business Pages the current user can use for a Spark
+ */
+export const listEditableReelBusinessesQuerySearchMax = 100;
+
+
+
+export const ListEditableReelBusinessesQueryParams = zod.object({
+  "search": zod.coerce.string().max(listEditableReelBusinessesQuerySearchMax).optional().describe('Case-insensitive business name or handle search.')
+})
+
+export const ListEditableReelBusinessesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "handle": zod.string(),
+  "logoUrl": zod.string().nullable()
+})
+export const ListEditableReelBusinessesResponse = zod.array(ListEditableReelBusinessesResponseItem)
+
+
+/**
+ * @summary Stream Spark video with visibility enforcement
+ */
+export const GetReelVideoMediaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Stream Spark poster with visibility enforcement
+ */
+export const GetReelPosterMediaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get a single Spark
  */
 export const GetReelParams = zod.object({
   "id": zod.coerce.number()
@@ -3959,8 +4079,17 @@ export const GetReelResponse = zod.object({
   "thumbnailUrl": zod.string().nullish(),
   "caption": zod.string().nullish(),
   "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
-  "hashtags": zod.array(zod.string()).optional(),
-  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "hashtags": zod.array(zod.string()),
+  "peopleTags": zod.array(zod.number()),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullable(),
+  "businessHandle": zod.string().nullable(),
+  "businessLogoUrl": zod.string().nullable(),
+  "location": zod.string().nullish(),
+  "feeling": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "commentsEnabled": zod.boolean(),
+  "sharingEnabled": zod.boolean(),
   "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
   "viewCount": zod.number(),
   "likeCount": zod.number(),
@@ -3975,7 +4104,7 @@ export const GetReelResponse = zod.object({
 
 
 /**
- * @summary Delete own reel (or any as Admin)
+ * @summary Delete own Spark (or any as Admin)
  */
 export const DeleteReelParams = zod.object({
   "id": zod.coerce.number()
@@ -3983,7 +4112,7 @@ export const DeleteReelParams = zod.object({
 
 
 /**
- * @summary Like or unlike a reel (toggle)
+ * @summary Like or unlike a Spark (toggle)
  */
 export const ToggleReelLikeParams = zod.object({
   "id": zod.coerce.number()
@@ -3996,7 +4125,7 @@ export const ToggleReelLikeResponse = zod.object({
 
 
 /**
- * @summary Save or unsave a reel (toggle)
+ * @summary Save or unsave a Spark (toggle)
  */
 export const ToggleReelSaveParams = zod.object({
   "id": zod.coerce.number()
@@ -4009,7 +4138,7 @@ export const ToggleReelSaveResponse = zod.object({
 
 
 /**
- * @summary Record a reel view
+ * @summary Record a Spark view
  */
 export const RecordReelViewParams = zod.object({
   "id": zod.coerce.number()
@@ -4017,7 +4146,7 @@ export const RecordReelViewParams = zod.object({
 
 
 /**
- * @summary Report a reel
+ * @summary Report a Spark
  */
 export const ReportReelParams = zod.object({
   "id": zod.coerce.number()
@@ -4033,7 +4162,7 @@ export const ReportReelBody = zod.object({
 
 
 /**
- * @summary List comments on a reel
+ * @summary List comments on a Spark
  */
 export const ListReelCommentsParams = zod.object({
   "id": zod.coerce.number()
@@ -4056,7 +4185,7 @@ export const ListReelCommentsResponse = zod.array(ListReelCommentsResponseItem)
 
 
 /**
- * @summary Comment on a reel
+ * @summary Comment on a Spark
  */
 export const CreateReelCommentParams = zod.object({
   "id": zod.coerce.number()
@@ -4071,7 +4200,7 @@ export const CreateReelCommentBody = zod.object({
 
 
 /**
- * @summary Delete own reel comment (or any as Admin)
+ * @summary Delete own Spark comment (or any as Admin)
  */
 export const DeleteReelCommentParams = zod.object({
   "id": zod.coerce.number()
@@ -4100,7 +4229,7 @@ export const ListUserTagsResponse = zod.array(ListUserTagsResponseItem)
 
 
 /**
- * @summary Tag a user in a post, photo, or reel
+ * @summary Tag a user in a post, photo, or Spark
  */
 export const CreateUserTagBody = zod.object({
   "taggedUserId": zod.number(),
@@ -4206,7 +4335,7 @@ export const ModeratePhotoResponse = zod.object({
 
 
 /**
- * @summary List all reels for moderation (Admin)
+ * @summary List all Sparks for moderation (Admin)
  */
 export const ListAdminReelsQueryParams = zod.object({
   "status": zod.coerce.string().optional()
@@ -4225,8 +4354,17 @@ export const ListAdminReelsResponseItem = zod.object({
   "thumbnailUrl": zod.string().nullish(),
   "caption": zod.string().nullish(),
   "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
-  "hashtags": zod.array(zod.string()).optional(),
-  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "hashtags": zod.array(zod.string()),
+  "peopleTags": zod.array(zod.number()),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullable(),
+  "businessHandle": zod.string().nullable(),
+  "businessLogoUrl": zod.string().nullable(),
+  "location": zod.string().nullish(),
+  "feeling": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "commentsEnabled": zod.boolean(),
+  "sharingEnabled": zod.boolean(),
   "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
   "viewCount": zod.number(),
   "likeCount": zod.number(),
@@ -4242,7 +4380,7 @@ export const ListAdminReelsResponse = zod.array(ListAdminReelsResponseItem)
 
 
 /**
- * @summary Moderate a reel (Admin)
+ * @summary Moderate a Spark (Admin)
  */
 export const ModerateReelParams = zod.object({
   "id": zod.coerce.number()
@@ -4265,8 +4403,17 @@ export const ModerateReelResponse = zod.object({
   "thumbnailUrl": zod.string().nullish(),
   "caption": zod.string().nullish(),
   "category": zod.enum(['hookah_setup', 'lounge_night', 'flavor_review', 'smoke_tricks', 'event', 'meme', 'doll_spotlight', 'bro_post', 'tutorial', 'other']),
-  "hashtags": zod.array(zod.string()).optional(),
-  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']).optional(),
+  "hashtags": zod.array(zod.string()),
+  "peopleTags": zod.array(zod.number()),
+  "businessId": zod.number().nullish(),
+  "businessName": zod.string().nullable(),
+  "businessHandle": zod.string().nullable(),
+  "businessLogoUrl": zod.string().nullable(),
+  "location": zod.string().nullish(),
+  "feeling": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'friends', 'followers', 'only_me']),
+  "commentsEnabled": zod.boolean(),
+  "sharingEnabled": zod.boolean(),
   "status": zod.enum(['active', 'hidden', 'removed', 'pending_review']),
   "viewCount": zod.number(),
   "likeCount": zod.number(),
@@ -5155,7 +5302,7 @@ export const DeleteBusinessAlbumParams = zod.object({
 
 
 /**
- * @summary List media items (photos/videos/reels). Public sees active items; team/admin see all.
+ * @summary List media items (photos, videos, and Sparks). Public sees active items; team/admin see all.
  */
 export const ListBusinessMediaParams = zod.object({
   "handle": zod.coerce.string()
@@ -5202,7 +5349,7 @@ export const CreateBusinessMediaParams = zod.object({
 export const CreateBusinessMediaBody = zod.object({
   "kind": zod.enum(['photo', 'video', 'reel']),
   "mediaUrl": zod.string().describe('Finalized internal storage object; external URLs rejected'),
-  "posterUrl": zod.string().optional().describe('Optional finalized storage image poster for video\/reel'),
+  "posterUrl": zod.string().optional().describe('Optional finalized storage image poster for video\/Spark'),
   "albumId": zod.number().optional(),
   "title": zod.string().optional(),
   "caption": zod.string().optional(),
@@ -6318,7 +6465,7 @@ export const ReviewBusinessCustomerMediaResponse = zod.object({
 
 
 /**
- * @summary Record a reel/video view. Authenticated; idempotent per (media,user) — repeats do not re-count.
+ * @summary Record a Spark/video view. Authenticated; idempotent per (media,user) — repeats do not re-count.
  */
 export const RecordBusinessMediaViewParams = zod.object({
   "handle": zod.coerce.string(),
@@ -7747,7 +7894,7 @@ export const ListGroupSavedPostsResponse = zod.array(ListGroupSavedPostsResponse
 
 
 /**
- * @summary List group media (photos/videos/reels/files)
+ * @summary List group media (photos, videos, Sparks, and files)
  */
 export const ListGroupMediaParams = zod.object({
   "groupId": zod.coerce.number()

@@ -7,6 +7,9 @@ import path from "path";
 /** Thrown when ffmpeg cannot decode/encode the uploaded bytes. */
 export class TranscodeError extends Error {}
 
+/** Thrown when a valid upload exceeds a caller-supplied duration policy. */
+export class VideoTooLongError extends TranscodeError {}
+
 /** Thrown when the transcode queue is saturated — the caller should retry later. */
 export class TranscodeBusyError extends Error {}
 
@@ -77,6 +80,33 @@ function runFfmpeg(args: string[]): Promise<void> {
   });
 }
 
+function probeDurationSeconds(inputPath: string): Promise<number> {
+  return new Promise((resolve, reject) => {
+    execFile(
+      "ffprobe",
+      [
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        inputPath,
+      ],
+      { timeout: FFMPEG_TIMEOUT_MS, maxBuffer: 64 * 1024 },
+      (err, stdout, stderr) => {
+        const duration = Number.parseFloat(String(stdout).trim());
+        if (err || !Number.isFinite(duration) || duration <= 0) {
+          reject(
+            new TranscodeError(
+              `ffprobe failed: ${String(stderr || err?.message || "invalid duration").slice(0, 500)}`,
+            ),
+          );
+          return;
+        }
+        resolve(duration);
+      },
+    );
+  });
+}
+
 export type TranscodeResult = {
   /** Web-friendly H.264 MP4 (faststart, bounded bitrate, max 720p). */
   video: Buffer;
@@ -98,10 +128,11 @@ export type TranscodeResult = {
  */
 export async function transcodeVideoForFeed(
   input: Buffer,
+  options?: { maxDurationSeconds?: number },
 ): Promise<TranscodeResult> {
   await acquireTranscodeSlot();
   try {
-    return await transcodeVideoForFeedNow(input);
+    return await transcodeVideoForFeedNow(input, options);
   } finally {
     releaseTranscodeSlot();
   }
@@ -109,6 +140,7 @@ export async function transcodeVideoForFeed(
 
 async function transcodeVideoForFeedNow(
   input: Buffer,
+  options?: { maxDurationSeconds?: number },
 ): Promise<TranscodeResult> {
   const dir = await mkdtemp(path.join(tmpdir(), "video-transcode-"));
   const inPath = path.join(dir, `in-${randomUUID()}`);
@@ -116,6 +148,14 @@ async function transcodeVideoForFeedNow(
   const posterPath = path.join(dir, "poster.jpg");
   try {
     await writeFile(inPath, input);
+    if (options?.maxDurationSeconds != null) {
+      const durationSeconds = await probeDurationSeconds(inPath);
+      if (durationSeconds > options.maxDurationSeconds) {
+        throw new VideoTooLongError(
+          `Uploaded video exceeds the ${options.maxDurationSeconds} second duration limit.`,
+        );
+      }
+    }
 
     await runFfmpeg([
       "-i", inPath,

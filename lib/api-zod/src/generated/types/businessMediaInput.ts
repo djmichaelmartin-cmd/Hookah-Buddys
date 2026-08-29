@@ -11,7 +11,7 @@ export interface BusinessMediaInput {
   kind: BusinessMediaInputKind;
   /** Finalized internal storage object; external URLs rejected */
   mediaUrl: string;
-  /** Optional finalized storage image poster for video/reel */
+  /** Optional finalized storage image poster for video/Spark */
   posterUrl?: string;
   albumId?: number;
   title?: string;

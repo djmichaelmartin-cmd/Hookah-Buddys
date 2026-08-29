@@ -1,5 +1,5 @@
-import { Router, type IRouter } from "express";
-import { and, eq, desc, sql, inArray, or } from "drizzle-orm";
+import { Router, type IRouter, type Request, type Response } from "express";
+import { and, eq, desc, asc, sql, inArray, or, ilike, ne } from "drizzle-orm";
 import {
   db,
   reelsTable,
@@ -10,6 +10,11 @@ import {
   postReportsTable,
   feedPostsTable,
   photosTable,
+  photoAlbumsTable,
+  usersTable,
+  businessesTable,
+  businessPageRolesTable,
+  dollsTable,
   type Reel,
 } from "@workspace/db";
 import {
@@ -21,18 +26,25 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
 import {
-  finalizeMediaUrl,
-  finalizeMediaUrlWithVideoTranscode,
+  assertOwnedStorageObject,
+  getValidatedSparkUpload,
   InvalidUploadError,
+  publishSparkUpload,
+  toObjectEntityPath,
 } from "../lib/imageUploads";
-import { loadAuthors } from "../lib/feedHelpers";
+import { loadAuthors, feedPostBusinessVisible } from "../lib/feedHelpers";
 import {
   getRelationship,
   canView,
   parseJsonArray,
   getOrCreatePrivacySettings,
+  loadAudienceSets,
+  canViewAudience,
+  type Relationship,
 } from "../lib/socialHelpers";
 import { createNotification } from "../lib/notify";
+import { ObjectNotFoundError, ObjectStorageService } from "../lib/objectStorage";
+import { streamValidatedObject } from "./storage";
 
 const router: IRouter = Router();
 
@@ -43,10 +55,46 @@ function parseId(raw: string | string[]): number {
 
 async function reelsToResponse(reels: Reel[], viewerId: number | null) {
   const authorIds = [...new Set(reels.map((r) => r.userId))];
+  const businessIds = [...new Set(reels.flatMap((r) => (r.businessId == null ? [] : [r.businessId])))];
   const authors = await loadAuthors(authorIds);
   const likedSet = new Set<number>();
   const savedSet = new Set<number>();
   const followSet = new Set<number>();
+  const approvedPeopleTags = new Map<number, number[]>();
+  const activeBusinesses = new Map<number, {
+    name: string;
+    handle: string;
+    logoUrl: string | null;
+  }>();
+  if (businessIds.length) {
+    const rows = await db
+      .select({
+        id: businessesTable.id,
+        name: businessesTable.name,
+        handle: businessesTable.handle,
+        logoUrl: businessesTable.logoUrl,
+      })
+      .from(businessesTable)
+      .where(and(inArray(businessesTable.id, businessIds), eq(businessesTable.status, "active")));
+    rows.forEach((business) => activeBusinesses.set(business.id, business));
+  }
+  if (reels.length) {
+    const tags = await db
+      .select()
+      .from(userTagsTable)
+      .where(
+        and(
+          eq(userTagsTable.relatedType, "reel"),
+          eq(userTagsTable.status, "approved"),
+          inArray(userTagsTable.relatedId, reels.map((reel) => reel.id)),
+        ),
+      );
+    for (const tag of tags) {
+      const ids = approvedPeopleTags.get(tag.relatedId) ?? [];
+      ids.push(tag.taggedUserId);
+      approvedPeopleTags.set(tag.relatedId, ids);
+    }
+  }
   if (viewerId != null && reels.length) {
     const ids = reels.map((r) => r.id);
     const [likes, saves] = await Promise.all([
@@ -70,6 +118,7 @@ async function reelsToResponse(reels: Reel[], viewerId: number | null) {
   }
   return reels.map((r) => {
     const a = authors.get(r.userId);
+    const business = r.businessId == null ? undefined : activeBusinesses.get(r.businessId);
     return {
       id: r.id,
       userId: r.userId,
@@ -79,12 +128,27 @@ async function reelsToResponse(reels: Reel[], viewerId: number | null) {
       userPhotoUrl: a?.user?.profilePhotoUrl ?? null,
       userVerified: a?.dollVerified ?? false,
       dollId: a?.user?.dollId ?? null,
-      videoUrl: r.videoUrl,
-      thumbnailUrl: r.thumbnailUrl ?? null,
+      videoUrl:
+        r.visibility === "public" || !toObjectEntityPath(r.videoUrl)
+          ? r.videoUrl
+          : `/api/reels/${r.id}/media/video`,
+      thumbnailUrl:
+        !r.thumbnailUrl || r.visibility === "public" || !toObjectEntityPath(r.thumbnailUrl)
+          ? r.thumbnailUrl ?? null
+          : `/api/reels/${r.id}/media/poster`,
       caption: r.caption ?? null,
       category: r.category,
       hashtags: parseJsonArray(r.hashtags),
+      peopleTags: approvedPeopleTags.get(r.id) ?? [],
+      businessId: r.businessId ?? null,
+      businessName: business?.name ?? null,
+      businessHandle: business?.handle ?? null,
+      businessLogoUrl: business?.logoUrl ?? null,
+      location: r.location ?? null,
+      feeling: r.feeling ?? null,
       visibility: r.visibility,
+      commentsEnabled: r.commentsEnabled,
+      sharingEnabled: r.sharingEnabled,
       status: r.status,
       viewCount: r.viewCount,
       likeCount: r.likeCount,
@@ -102,14 +166,63 @@ async function reelsToResponse(reels: Reel[], viewerId: number | null) {
 router.get("/reels", async (req, res): Promise<void> => {
   const viewer = await getSessionUser(req);
   const userId = typeof req.query.userId === "string" ? parseInt(req.query.userId, 10) : null;
+  const rawDollId = typeof req.query.dollId === "string" ? req.query.dollId : null;
+  const dollId = rawDollId && /^\d+$/.test(rawDollId) ? Number(rawDollId) : null;
+  const businessId = typeof req.query.businessId === "string" ? parseInt(req.query.businessId, 10) : null;
   const category = typeof req.query.category === "string" ? req.query.category : null;
+  const visibility = typeof req.query.visibility === "string" ? req.query.visibility : null;
+  const rawSearch = typeof req.query.search === "string" ? req.query.search : "";
+  if (rawSearch.length > 100) {
+    res.status(400).json({ error: "search must be 100 characters or fewer" });
+    return;
+  }
+  if (visibility && !["public", "friends", "only_me"].includes(visibility)) {
+    res.status(400).json({ error: "visibility must be public, friends, or only_me" });
+    return;
+  }
+  if (rawDollId !== null && (dollId == null || dollId < 1)) {
+    res.status(400).json({ error: "dollId must be a positive integer" });
+    return;
+  }
+  const search = rawSearch.trim();
   const limit = Math.min(
     typeof req.query.limit === "string" ? parseInt(req.query.limit, 10) || 50 : 50,
     100,
   );
   const conditions = [eq(reelsTable.status, "active")];
   if (userId != null && !Number.isNaN(userId)) conditions.push(eq(reelsTable.userId, userId));
+  if (dollId != null) {
+    // Filter through the approved Doll profile's user ownership relation rather
+    // than exposing or trusting a generic userId on a Doll response.
+    conditions.push(
+      inArray(
+        reelsTable.userId,
+        db
+          .select({ userId: dollsTable.userId })
+          .from(dollsTable)
+          .where(
+            and(
+              eq(dollsTable.id, dollId),
+              eq(dollsTable.applicationStatus, "approved"),
+            ),
+          ),
+      ),
+    );
+  }
+  if (businessId != null && !Number.isNaN(businessId)) conditions.push(eq(reelsTable.businessId, businessId));
   if (category) conditions.push(eq(reelsTable.category, category));
+  // This narrows candidates only. The relationship/block/canView checks below
+  // remain mandatory, including for Lounge's visibility=public widgets.
+  if (visibility) conditions.push(eq(reelsTable.visibility, visibility));
+  if (search) {
+    const pattern = `%${search}%`;
+    conditions.push(
+      or(
+        ilike(reelsTable.caption, pattern),
+        ilike(reelsTable.hashtags, pattern),
+      )!,
+    );
+  }
   const reels = await db
     .select()
     .from(reelsTable)
@@ -143,21 +256,72 @@ router.post("/reels", requireAuth(), async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  if (!parsed.data.isHookahRelatedConfirmed) {
-    res.status(400).json({ error: "Please confirm your reel is hookah lifestyle related" });
-    return;
+  if (parsed.data.businessId != null) {
+    const [[business], [role]] = await Promise.all([
+      db.select().from(businessesTable).where(eq(businessesTable.id, parsed.data.businessId)),
+      db
+        .select()
+        .from(businessPageRolesTable)
+        .where(
+          and(
+            eq(businessPageRolesTable.businessId, parsed.data.businessId),
+            eq(businessPageRolesTable.userId, user.id),
+          ),
+        ),
+    ]);
+    if (!business || business.status !== "active") {
+      res.status(400).json({ error: "Business Page not found or inactive" });
+      return;
+    }
+    if (!role || !["owner", "admin", "editor"].includes(role.role)) {
+      res.status(403).json({ error: "You cannot create Sparks for this Business Page" });
+      return;
+    }
   }
-  let videoUrl = parsed.data.videoUrl;
-  let thumbnailUrl = parsed.data.thumbnailUrl ?? null;
+
+  const peopleTags = parsed.data.peopleTags ?? [];
+  const preparedTags: Array<{ taggedUserId: number; status: "pending" | "approved" }> = [];
+  if (peopleTags.length) {
+    const tagTargets = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(inArray(usersTable.id, peopleTags));
+    if (tagTargets.length !== peopleTags.length) {
+      res.status(400).json({ error: "One or more tagged users do not exist" });
+      return;
+    }
+    for (const taggedUserId of peopleTags) {
+      const rel = await getRelationship(user, taggedUserId);
+      if (rel.viewerBlockedTarget || rel.targetBlockedViewer) {
+        res.status(400).json({ error: "Unable to tag this user" });
+        return;
+      }
+      const settings = await getOrCreatePrivacySettings(taggedUserId);
+      if (settings.allowTagging === "no_one" && !rel.isSelf) {
+        res.status(400).json({ error: "One or more users do not allow tagging" });
+        return;
+      }
+      if (settings.allowTagging === "friends" && !rel.isFriend && !rel.isSelf) {
+        res.status(400).json({ error: "One or more users only allow tags from Buddys" });
+        return;
+      }
+      preparedTags.push({
+        taggedUserId,
+        status: settings.requireTagReview === "true" && !rel.isSelf ? "pending" : "approved",
+      });
+    }
+  }
+  let videoUrl: string;
+  let thumbnailUrl: string;
   try {
-    // Reel videos go through the same transcode + poster pipeline as feed
-    // videos; the generated poster backfills a missing thumbnail.
-    const finalized = await finalizeMediaUrlWithVideoTranscode(videoUrl, user.id, "video");
-    videoUrl = finalized.url;
-    if (thumbnailUrl) {
-      thumbnailUrl = await finalizeMediaUrl(thumbnailUrl, user.id);
-    } else if (finalized.posterUrl) {
-      thumbnailUrl = finalized.posterUrl;
+    // Only canonical endpoint uploads carry the server-written duration
+    // marker and paired poster reference. Generic/raw/external URLs cannot
+    // become new Sparks.
+    const upload = await getValidatedSparkUpload(parsed.data.videoUrl, user.id);
+    videoUrl = upload.videoUrl;
+    thumbnailUrl = upload.posterUrl;
+    if (parsed.data.thumbnailUrl) {
+      await assertOwnedStorageObject(parsed.data.thumbnailUrl, user.id);
     }
   } catch (err) {
     if (err instanceof InvalidUploadError) {
@@ -174,14 +338,168 @@ router.post("/reels", requireAuth(), async (req, res): Promise<void> => {
       videoUrl,
       thumbnailUrl,
       caption: parsed.data.caption ?? null,
-      category: parsed.data.category,
+      category: parsed.data.category ?? "other",
       hashtags: parsed.data.hashtags ? JSON.stringify(parsed.data.hashtags) : null,
+      peopleTags: peopleTags.length ? JSON.stringify(peopleTags) : null,
+      businessId: parsed.data.businessId ?? null,
+      location: parsed.data.location ?? null,
+      feeling: parsed.data.feeling ?? null,
       visibility: parsed.data.visibility ?? "public",
-      isHookahRelatedConfirmed: true,
+      commentsEnabled: parsed.data.commentsEnabled ?? true,
+      sharingEnabled: parsed.data.sharingEnabled ?? true,
     })
     .returning();
+  if (reel.visibility === "public") {
+    await publishSparkUpload(videoUrl, thumbnailUrl, user.id);
+  }
+  if (preparedTags.length) {
+    await db.insert(userTagsTable).values(
+      preparedTags.map((tag) => ({
+        ...tag,
+        taggedByUserId: user.id,
+        relatedType: "reel",
+        relatedId: reel.id,
+      })),
+    );
+    await Promise.all(
+      preparedTags
+        .filter((tag) => tag.taggedUserId !== user.id)
+        .map((tag) =>
+          createNotification({
+            userId: tag.taggedUserId,
+            type: "tag",
+            title: tag.status === "pending" ? "Tag pending your review" : "You were tagged",
+            message: `${user.name} tagged you in a Spark`,
+            relatedUserId: user.id,
+            relatedReelId: reel.id,
+          }),
+        ),
+    );
+  }
   const [result] = await reelsToResponse([reel], user.id);
   res.status(201).json(result);
+});
+
+// These literal selector routes must remain before /reels/:id so Express never
+// treats their names as a legacy reel identifier.
+router.get("/reels/taggable-users", requireAuth(), async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const rawSearch = typeof req.query.search === "string" ? req.query.search : "";
+  if (rawSearch.length > 100) {
+    res.status(400).json({ error: "search must be 100 characters or fewer" });
+    return;
+  }
+  const search = rawSearch.trim();
+  const conditions = [
+    eq(usersTable.accountStatus, "active"),
+    ne(usersTable.id, user.id),
+  ];
+  if (search) {
+    const pattern = `%${search}%`;
+    conditions.push(or(ilike(usersTable.name, pattern), ilike(usersTable.username, pattern))!);
+  }
+  const candidates = await db
+    .select({
+      id: usersTable.id,
+      name: usersTable.name,
+      username: usersTable.username,
+      profilePhotoUrl: usersTable.profilePhotoUrl,
+    })
+    .from(usersTable)
+    .where(and(...conditions))
+    .orderBy(asc(usersTable.name), asc(usersTable.id))
+    .limit(100);
+
+  const taggable: Array<{
+    id: number;
+    name: string;
+    username: string | null;
+    profilePhotoUrl: string | null;
+  }> = [];
+  for (const candidate of candidates) {
+    const relationship = await getRelationship(user, candidate.id);
+    if (relationship.viewerBlockedTarget || relationship.targetBlockedViewer) continue;
+    const settings = await getOrCreatePrivacySettings(candidate.id);
+    if (settings.allowTagging === "no_one") continue;
+    if (settings.allowTagging === "friends" && !relationship.isFriend) continue;
+    taggable.push(candidate);
+    if (taggable.length === 50) break;
+  }
+  res.json(taggable);
+});
+
+router.get("/reels/editable-businesses", requireAuth(), async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const rawSearch = typeof req.query.search === "string" ? req.query.search : "";
+  if (rawSearch.length > 100) {
+    res.status(400).json({ error: "search must be 100 characters or fewer" });
+    return;
+  }
+  const search = rawSearch.trim();
+  const conditions = [
+    eq(businessesTable.status, "active"),
+    eq(businessPageRolesTable.userId, user.id),
+    inArray(businessPageRolesTable.role, ["owner", "admin", "editor"]),
+  ];
+  if (search) {
+    const pattern = `%${search}%`;
+    conditions.push(or(ilike(businessesTable.name, pattern), ilike(businessesTable.handle, pattern))!);
+  }
+  const businesses = await db
+    .select({
+      id: businessesTable.id,
+      name: businessesTable.name,
+      handle: businessesTable.handle,
+      logoUrl: businessesTable.logoUrl,
+    })
+    .from(businessesTable)
+    .innerJoin(
+      businessPageRolesTable,
+      eq(businessPageRolesTable.businessId, businessesTable.id),
+    )
+    .where(and(...conditions))
+    .orderBy(asc(businessesTable.name), asc(businessesTable.id))
+    .limit(50);
+  res.json(businesses);
+});
+
+const reelMediaObjectStorage = new ObjectStorageService();
+
+async function serveReelMedia(
+  req: Request,
+  res: Response,
+  field: "videoUrl" | "thumbnailUrl",
+): Promise<void> {
+  const viewer = await getSessionUser(req);
+  const id = parseId(req.params.id);
+  const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, id));
+  if (!reel || reel.status !== "active" || !(await viewerCanSeeReel(reel, viewer ?? null))) {
+    res.status(404).json({ error: "Spark not found" });
+    return;
+  }
+  const objectPath = toObjectEntityPath(reel[field] ?? "");
+  if (!objectPath) {
+    res.status(404).json({ error: "Spark media not found" });
+    return;
+  }
+  try {
+    const objectFile = await reelMediaObjectStorage.getObjectEntityFile(objectPath);
+    await streamValidatedObject(objectFile, req, res);
+  } catch (error) {
+    if (error instanceof ObjectNotFoundError) {
+      res.status(404).json({ error: "Spark media not found" });
+      return;
+    }
+    throw error;
+  }
+}
+
+router.get("/reels/:id/media/video", async (req, res): Promise<void> => {
+  await serveReelMedia(req, res, "videoUrl");
+});
+
+router.get("/reels/:id/media/poster", async (req, res): Promise<void> => {
+  await serveReelMedia(req, res, "thumbnailUrl");
 });
 
 router.get("/reels/:id", async (req, res): Promise<void> => {
@@ -189,12 +507,12 @@ router.get("/reels/:id", async (req, res): Promise<void> => {
   const id = parseId(req.params.id);
   const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, id));
   if (!reel || reel.status !== "active") {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
     return;
   }
   const rel = await getRelationship(viewer ?? null, reel.userId);
   if (((rel.targetBlockedViewer || rel.viewerBlockedTarget) && !rel.isSelf && !rel.isAdmin) || !canView(reel.visibility, rel)) {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
     return;
   }
   const [result] = await reelsToResponse([reel], viewer?.id ?? null);
@@ -206,11 +524,11 @@ router.delete("/reels/:id", requireAuth(), async (req, res): Promise<void> => {
   const id = parseId(req.params.id);
   const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, id));
   if (!reel) {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
     return;
   }
   if (reel.userId !== user.id && user.role !== "admin") {
-    res.status(403).json({ error: "You can only delete your own reels" });
+    res.status(403).json({ error: "You can only delete your own Sparks" });
     return;
   }
   await db.delete(reelLikesTable).where(eq(reelLikesTable.reelId, id));
@@ -220,14 +538,20 @@ router.delete("/reels/:id", requireAuth(), async (req, res): Promise<void> => {
   res.sendStatus(204);
 });
 
+export function relationshipCanSeeReel(
+  reel: { visibility: string },
+  rel: Relationship,
+): boolean {
+  if (rel.isSelf || rel.isAdmin) return true;
+  if (rel.viewerBlockedTarget || rel.targetBlockedViewer) return false;
+  return canView(reel.visibility, rel);
+}
+
 async function viewerCanSeeReel(
   reel: { userId: number; visibility: string },
   viewer: { id: number; role: string } | null,
 ): Promise<boolean> {
-  const rel = await getRelationship(viewer, reel.userId);
-  if (rel.isSelf || rel.isAdmin) return true;
-  if (rel.viewerBlockedTarget || rel.targetBlockedViewer) return false;
-  return canView(reel.visibility, rel);
+  return relationshipCanSeeReel(reel, await getRelationship(viewer, reel.userId));
 }
 
 router.post("/reels/:id/like", requireAuth(), async (req, res): Promise<void> => {
@@ -235,7 +559,7 @@ router.post("/reels/:id/like", requireAuth(), async (req, res): Promise<void> =>
   const id = parseId(req.params.id);
   const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, id));
   if (!reel || reel.status !== "active" || !(await viewerCanSeeReel(reel, user))) {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
     return;
   }
   const [existing] = await db
@@ -268,8 +592,9 @@ router.post("/reels/:id/like", requireAuth(), async (req, res): Promise<void> =>
           userId: reel.userId,
           type: "reel_like",
           title: "New like",
-          message: `${user.name} liked your reel`,
+          message: `${user.name} liked your Spark`,
           relatedUserId: user.id,
+          relatedReelId: reel.id,
         });
       }
     }
@@ -284,7 +609,7 @@ router.post("/reels/:id/save", requireAuth(), async (req, res): Promise<void> =>
   const id = parseId(req.params.id);
   const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, id));
   if (!reel || reel.status !== "active" || !(await viewerCanSeeReel(reel, user))) {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
     return;
   }
   const [existing] = await db
@@ -344,7 +669,7 @@ router.post("/reels/:id/report", requireAuth(), async (req, res): Promise<void> 
   }
   const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, id));
   if (!reel || !(await viewerCanSeeReel(reel, user))) {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
     return;
   }
   await db.insert(postReportsTable).values({
@@ -367,7 +692,7 @@ router.get("/reels/:id/comments", async (req, res): Promise<void> => {
   const viewer = await getSessionUser(req);
   const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, id));
   if (!reel || reel.status !== "active" || !(await viewerCanSeeReel(reel, viewer ?? null))) {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
     return;
   }
   const comments = await db
@@ -406,7 +731,11 @@ router.post("/reels/:id/comments", requireAuth(), async (req, res): Promise<void
   }
   const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, id));
   if (!reel || reel.status !== "active" || !(await viewerCanSeeReel(reel, user))) {
-    res.status(404).json({ error: "Reel not found" });
+    res.status(404).json({ error: "Spark not found" });
+    return;
+  }
+  if (!reel.commentsEnabled) {
+    res.status(403).json({ error: "Comments are disabled for this Spark" });
     return;
   }
   const [comment] = await db
@@ -422,8 +751,9 @@ router.post("/reels/:id/comments", requireAuth(), async (req, res): Promise<void
       userId: reel.userId,
       type: "reel_comment",
       title: "New comment",
-      message: `${user.name} commented on your reel`,
+      message: `${user.name} commented on your Spark`,
       relatedUserId: user.id,
+      relatedReelId: reel.id,
     });
   }
   const authors = await loadAuthors([user.id]);
@@ -481,6 +811,7 @@ async function tagToResponse(t: typeof userTagsTable.$inferSelect) {
 }
 
 router.get("/usertags", async (req, res): Promise<void> => {
+  const viewer = await getSessionUser(req);
   const userId = typeof req.query.userId === "string" ? parseInt(req.query.userId, 10) : NaN;
   if (Number.isNaN(userId)) {
     res.status(400).json({ error: "userId is required" });
@@ -491,8 +822,55 @@ router.get("/usertags", async (req, res): Promise<void> => {
     .from(userTagsTable)
     .where(and(eq(userTagsTable.taggedUserId, userId), eq(userTagsTable.status, "approved")))
     .orderBy(desc(userTagsTable.createdAt));
-  res.json(await Promise.all(tags.map(tagToResponse)));
+  const audienceSets = await loadAudienceSets(viewer?.id ?? null);
+  const visibleTags = [];
+  for (const tag of tags) {
+    if (await viewerCanSeeTaggedTarget(tag, viewer ?? null, audienceSets)) {
+      visibleTags.push(tag);
+    }
+  }
+  res.json(await Promise.all(visibleTags.map(tagToResponse)));
 });
+
+/**
+ * User-tag discovery must not disclose a target that the current viewer could
+ * not open directly. Keep these checks beside /usertags because this endpoint
+ * can return tags for more than one private target type.
+ */
+async function viewerCanSeeTaggedTarget(
+  tag: typeof userTagsTable.$inferSelect,
+  viewer: { id: number; role: string } | null,
+  audienceSets: Awaited<ReturnType<typeof loadAudienceSets>>,
+): Promise<boolean> {
+  if (tag.relatedType === "reel") {
+    const [reel] = await db.select().from(reelsTable).where(eq(reelsTable.id, tag.relatedId));
+    return !!reel && reel.status === "active" && await viewerCanSeeReel(reel, viewer);
+  }
+  if (tag.relatedType === "post") {
+    const [post] = await db.select().from(feedPostsTable).where(eq(feedPostsTable.id, tag.relatedId));
+    if (!post || post.status === "removed") return false;
+    if (post.status !== "active" && viewer?.id !== post.userId && viewer?.role !== "admin") {
+      return false;
+    }
+    return (await feedPostBusinessVisible(post)) &&
+      canViewAudience(post.audience, post.userId, viewer, audienceSets);
+  }
+  if (tag.relatedType === "photo") {
+    const [photo] = await db.select().from(photosTable).where(eq(photosTable.id, tag.relatedId));
+    if (!photo || photo.status !== "active") return false;
+    const relationship = await getRelationship(viewer, photo.userId);
+    if (!relationship.isSelf && !relationship.isAdmin) {
+      if (relationship.viewerBlockedTarget || relationship.targetBlockedViewer) return false;
+      if (!canView(photo.visibility, relationship)) return false;
+    }
+    const [album] = await db
+      .select()
+      .from(photoAlbumsTable)
+      .where(eq(photoAlbumsTable.id, photo.albumId));
+    return canView(album?.visibility ?? "public", relationship);
+  }
+  return false;
+}
 
 router.post("/usertags", requireAuth(), async (req, res): Promise<void> => {
   const user = req.currentUser!;

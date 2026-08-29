@@ -28,8 +28,23 @@ export interface Reel {
   /** @nullable */
   caption?: string | null;
   category: ReelCategory;
-  hashtags?: string[];
-  visibility?: ReelVisibility;
+  hashtags: string[];
+  peopleTags: number[];
+  /** @nullable */
+  businessId?: number | null;
+  /** @nullable */
+  businessName: string | null;
+  /** @nullable */
+  businessHandle: string | null;
+  /** @nullable */
+  businessLogoUrl: string | null;
+  /** @nullable */
+  location?: string | null;
+  /** @nullable */
+  feeling?: string | null;
+  visibility: ReelVisibility;
+  commentsEnabled: boolean;
+  sharingEnabled: boolean;
   status: ReelStatus;
   viewCount: number;
   likeCount: number;

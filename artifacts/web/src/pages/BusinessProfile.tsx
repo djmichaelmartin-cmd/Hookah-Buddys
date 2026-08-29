@@ -45,7 +45,9 @@ import {
   getListBusinessReviewsQueryKey,
   getListBusinessEventsQueryKey,
   getListBusinessMediaQueryKey,
-  getListBusinessPostCommentsQueryKey
+  getListBusinessPostCommentsQueryKey,
+  useListReels,
+  getListReelsQueryKey
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -59,6 +61,7 @@ import {
 } from "lucide-react";
 import { ChildInteractions } from "@/components/business/ChildInteractions";
 import { CustomerMediaUpload } from "@/components/business/CustomerMediaUpload";
+import { SparkCard } from "@/components/sparks/SparkCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function BusinessProfile() {
@@ -82,6 +85,10 @@ export default function BusinessProfile() {
   const { data: photos } = useListBusinessMedia(handle || "", { kind: "photo" }, { query: { enabled: !!business, queryKey: getListBusinessMediaQueryKey(handle || "", { kind: "photo" }) } });
   const { data: videos } = useListBusinessMedia(handle || "", { kind: "video" }, { query: { enabled: !!business, queryKey: getListBusinessMediaQueryKey(handle || "", { kind: "video" }) } });
   const { data: reels } = useListBusinessMedia(handle || "", { kind: "reel" }, { query: { enabled: !!business, queryKey: getListBusinessMediaQueryKey(handle || "", { kind: "reel" }) } });
+  const { data: standaloneSparks } = useListReels(
+    { businessId: business?.id },
+    { query: { enabled: !!business?.id, queryKey: getListReelsQueryKey({ businessId: business?.id }) } }
+  );
 
   const toggleFollow = useToggleBusinessFollow({
     mutation: {
@@ -297,7 +304,7 @@ export default function BusinessProfile() {
               )}
               {reels && reels.length > 0 && (
                 <TabsTrigger value="reels" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[#D6B56D] data-[state=active]:text-[#D6B56D] rounded-none h-full text-base px-2">
-                  <Film className="w-4 h-4 mr-2" /> Reels
+                  <Film className="w-4 h-4 mr-2" /> Sparks
                 </TabsTrigger>
               )}
               {videos && videos.length > 0 && (
@@ -476,11 +483,32 @@ export default function BusinessProfile() {
               <MediaGrid business={business} mediaList={videos} kind="video" onRequireAuth={requireAuth} />
             </TabsContent>
 
-            <TabsContent value="reels" className="space-y-6">
-              <div className="flex justify-end">
-                <CustomerMediaUpload businessHandle={business.handle} kind="reel" onRequireAuth={requireAuth} />
+            <TabsContent value="reels" className="space-y-12 mt-0 outline-none">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-serif text-white">Community Sparks</h3>
+                  <Button variant="outline" className="rounded-full" onClick={() => setLocation("/sparks/create")}>
+                    Share a Spark
+                  </Button>
+                </div>
+                {!standaloneSparks || standaloneSparks.length === 0 ? (
+                  <p className="text-white/50 py-10 text-center bg-card/30 rounded-2xl border border-white/5">No community Sparks for this business yet.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {standaloneSparks.map(spark => (
+                      <SparkCard key={spark.id} spark={spark} onClick={() => setLocation(`/sparks/${spark.id}`)} />
+                    ))}
+                  </div>
+                )}
               </div>
-              <MediaGrid business={business} mediaList={reels} kind="reel" onRequireAuth={requireAuth} />
+
+              <div className="space-y-6 pt-8 border-t border-white/10">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-serif text-white">Approved Page Sparks</h3>
+                  <CustomerMediaUpload businessHandle={business.handle} kind="reel" onRequireAuth={requireAuth} />
+                </div>
+                <MediaGrid business={business} mediaList={reels} kind="reel" onRequireAuth={requireAuth} />
+              </div>
             </TabsContent>
             
             <TabsContent value="services" className="space-y-6">
@@ -631,7 +659,7 @@ function MediaGrid({ business, mediaList, kind, onRequireAuth }: { business: Bus
         {kind === 'photo' && <ImageIcon className="w-12 h-12 mx-auto text-white/20 mb-3" />}
         {kind === 'video' && <Video className="w-12 h-12 mx-auto text-white/20 mb-3" />}
         {kind === 'reel' && <Film className="w-12 h-12 mx-auto text-white/20 mb-3" />}
-        <p className="text-white/50 capitalize">No {kind}s uploaded.</p>
+        <p className="text-white/50 capitalize">No {kind === "reel" ? "Sparks" : `${kind}s`} uploaded.</p>
       </div>
     );
   }

@@ -410,7 +410,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
             active={activeTab === "reels"}
             onClick={() => onTabChange("reels")}
           >
-            Reels
+            Sparks
           </TabButton>
           <TabButton
             active={activeTab === "videos"}

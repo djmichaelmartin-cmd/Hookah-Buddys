@@ -35,7 +35,9 @@ import BroProfile from "@/pages/BroProfile";
 import ProfileEdit from "@/pages/ProfileEdit";
 import PrivacySettings from "@/pages/PrivacySettings";
 import Friends from "@/pages/Friends";
-import Reels from "@/pages/Reels";
+import SparksDiscover from "@/pages/sparks/SparksDiscover";
+import SparkCreate from "@/pages/sparks/SparkCreate";
+import SparkDetail from "@/pages/sparks/SparkDetail";
 import GroupsDiscover from "@/pages/groups/GroupsDiscover";
 import GroupCreate from "@/pages/groups/GroupCreate";
 import GroupDetail from "@/pages/groups/GroupDetail";
@@ -98,7 +100,9 @@ function Router() {
       <Route path="/profile/edit" component={ProfileEdit} />
       <Route path="/settings/privacy" component={PrivacySettings} />
       <Route path="/friends" component={Friends} />
-      <Route path="/reels" component={Reels} />
+      <Route path="/sparks" component={SparksDiscover} />
+      <Route path="/sparks/create" component={SparkCreate} />
+      <Route path="/sparks/:id" component={SparkDetail} />
       <Route path="/events" component={Events} />
       <Route path="/events/:id" component={EventDetail} />
 
@@ -123,6 +127,10 @@ function Router() {
       <Route path="/communities"><Redirect to="/groups" /></Route>
       <Route path="/communities/create"><Redirect to="/groups/create" /></Route>
       <Route path="/communities/:id">{({id}) => <Redirect to={`/groups/${id}`} />}</Route>
+
+      <Route path="/reels"><Redirect to="/sparks" /></Route>
+      <Route path="/reels/create"><Redirect to="/sparks/create" /></Route>
+      <Route path="/reels/:id">{({id}) => <Redirect to={`/sparks/${id}`} />}</Route>
 
       <Route path="/community/hookah-setups" component={CommunityFeed} />
       <Route path="/community/favorite-flavors" component={CommunityFeed} />

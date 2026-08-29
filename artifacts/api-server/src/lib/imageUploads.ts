@@ -9,6 +9,7 @@ import {
   transcodeVideoForFeed,
   TranscodeBusyError,
   TranscodeError,
+  VideoTooLongError,
 } from "./videoTranscode";
 
 export { TranscodeBusyError };
@@ -22,8 +23,13 @@ export const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
-export const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
+export const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/quicktime", "video/webm"]);
 export const MAX_VIDEO_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+// These server-written metadata fields are the capability that binds a video
+// to the canonical Spark upload endpoint. They must never be client supplied.
+export const SPARK_DURATION_VALIDATED_METADATA_KEY = "sparkDurationValidated";
+export const SPARK_POSTER_PATH_METADATA_KEY = "sparkPosterPath";
+export const SPARK_VIDEO_PATH_METADATA_KEY = "sparkVideoPath";
 
 // Verification documents: images we already sniff, plus PDF. These are stored
 // PRIVATELY (never public ACL) and only accessible to the owner + platform
@@ -92,11 +98,12 @@ const MP4_BRANDS = new Set([
 /**
  * Sniff the real video type from the file's magic bytes.
  * Returns the authoritative MIME type, or null if the bytes are not a
- * recognized video format (MP4 or WebM).
+ * recognized video format (MP4, MOV, or WebM).
  */
 export function sniffVideoType(bytes: Buffer): string | null {
   if (bytes.length >= 12 && bytes.subarray(4, 8).toString("latin1") === "ftyp") {
     const brand = bytes.subarray(8, 12).toString("latin1");
+    if (brand === "qt  ") return "video/quicktime";
     if (MP4_BRANDS.has(brand)) return "video/mp4";
     return null;
   }
@@ -181,6 +188,7 @@ export async function uploadImageBuffer(
 export async function uploadVideoBuffer(
   buffer: Buffer,
   ownerId: number,
+  options?: { maxDurationSeconds?: number; sparkDurationValidated?: boolean },
 ): Promise<{ objectPath: string; posterPath: string }> {
   if (buffer.length === 0) {
     throw new InvalidUploadError("Uploaded file is empty.");
@@ -191,32 +199,142 @@ export async function uploadVideoBuffer(
   const sniffedType = sniffVideoType(buffer);
   if (!sniffedType || !ALLOWED_VIDEO_TYPES.has(sniffedType)) {
     throw new InvalidUploadError(
-      "Uploaded file is not an allowed video type (MP4, WebM).",
+      "Uploaded file is not an allowed video type (MP4, MOV, WebM).",
     );
   }
 
   let transcoded;
   try {
-    transcoded = await transcodeVideoForFeed(buffer);
+    transcoded = await transcodeVideoForFeed(buffer, options);
   } catch (err) {
     if (err instanceof TranscodeBusyError) {
       throw err; // surfaced as 503 by the route — retryable, not a bad upload
     }
+    if (err instanceof VideoTooLongError) {
+      throw new InvalidUploadError(err.message);
+    }
     if (err instanceof TranscodeError) {
       throw new InvalidUploadError(
-        "Uploaded video could not be processed. Please upload a valid MP4 or WebM video.",
+        "Uploaded video could not be processed. Please upload a valid MP4, MOV, or WebM video.",
       );
     }
     throw err;
   }
 
-  const [objectPath, posterPath] = await Promise.all([
-    storeValidatedBuffer(transcoded.video, "video/mp4", ownerId, {
-      [TRANSCODED_METADATA_KEY]: "true",
-    }),
-    storeValidatedBuffer(transcoded.poster, "image/jpeg", ownerId),
-  ]);
+  const videoMetadata = {
+    [TRANSCODED_METADATA_KEY]: "true",
+    ...(options?.sparkDurationValidated
+      ? { [SPARK_DURATION_VALIDATED_METADATA_KEY]: "true" }
+      : {}),
+  };
+  const visibility = options?.sparkDurationValidated ? "private" : "public";
+  const objectPath = await storeValidatedBuffer(
+    transcoded.video,
+    "video/mp4",
+    ownerId,
+    videoMetadata,
+    visibility,
+  );
+  const posterPath = await storeValidatedBuffer(
+    transcoded.poster,
+    "image/jpeg",
+    ownerId,
+    options?.sparkDurationValidated ? { [SPARK_VIDEO_PATH_METADATA_KEY]: objectPath } : undefined,
+    visibility,
+  );
+  if (options?.sparkDurationValidated) {
+    const file = await new ObjectStorageService().getObjectEntityFile(objectPath);
+    const [metadata] = await file.getMetadata();
+    await file.setMetadata({
+      metadata: {
+        ...(metadata.metadata ?? {}),
+        [SPARK_POSTER_PATH_METADATA_KEY]: posterPath,
+      },
+    });
+  }
   return { objectPath, posterPath };
+}
+
+/**
+ * Resolves a video produced by POST /sparks/uploads/video. This intentionally
+ * does not run the generic finalization/transcode path: a Spark may only use a
+ * server-stamped, duration-checked canonical upload and its paired poster.
+ */
+export async function getValidatedSparkUpload(
+  videoUrl: string,
+  ownerId: number,
+): Promise<{ videoUrl: string; posterUrl: string }> {
+  const objectPath = toObjectEntityPath(videoUrl);
+  if (!objectPath) {
+    throw new InvalidUploadError("Spark videos must use an upload from /api/sparks/uploads/video.");
+  }
+  try {
+    const service = new ObjectStorageService();
+    const videoFile = await service.getObjectEntityFile(objectPath);
+    const [videoMetadata] = await videoFile.getMetadata();
+    const videoPolicy = await getObjectAclPolicy(videoFile);
+    const custom = videoMetadata.metadata ?? {};
+    const posterPath = custom[SPARK_POSTER_PATH_METADATA_KEY];
+    if (
+      videoMetadata.contentType !== "video/mp4" ||
+      videoPolicy?.owner !== String(ownerId) ||
+      custom[SPARK_DURATION_VALIDATED_METADATA_KEY] !== "true" ||
+      typeof posterPath !== "string" ||
+      !posterPath.startsWith("/objects/")
+    ) {
+      throw new InvalidUploadError("Spark videos must use an upload from /api/sparks/uploads/video.");
+    }
+    const posterFile = await service.getObjectEntityFile(posterPath);
+    const [posterMetadata] = await posterFile.getMetadata();
+    const posterPolicy = await getObjectAclPolicy(posterFile);
+    if (
+      posterMetadata.contentType !== "image/jpeg" ||
+      posterPolicy?.owner !== String(ownerId) ||
+      posterMetadata.metadata?.[SPARK_VIDEO_PATH_METADATA_KEY] !== objectPath
+    ) {
+      throw new InvalidUploadError("Spark upload poster is invalid.");
+    }
+    return {
+      videoUrl: `${STORAGE_URL_PREFIX}${objectPath}`,
+      posterUrl: `${STORAGE_URL_PREFIX}${posterPath}`,
+    };
+  } catch (error) {
+    if (error instanceof InvalidUploadError) throw error;
+    if (error instanceof ObjectNotFoundError) {
+      throw new InvalidUploadError("Spark upload was not found.");
+    }
+    throw error;
+  }
+}
+
+/** Confirm an optional caller-supplied thumbnail is an object owned by them. */
+export async function assertOwnedStorageObject(url: string, ownerId: number): Promise<void> {
+  const objectPath = toObjectEntityPath(url);
+  if (!objectPath) throw new InvalidUploadError("Spark thumbnails must be uploaded storage objects.");
+  try {
+    const file = await new ObjectStorageService().getObjectEntityFile(objectPath);
+    const policy = await getObjectAclPolicy(file);
+    if (policy?.owner !== String(ownerId)) {
+      throw new InvalidUploadError("This uploaded file belongs to another user.");
+    }
+  } catch (error) {
+    if (error instanceof InvalidUploadError) throw error;
+    if (error instanceof ObjectNotFoundError) throw new InvalidUploadError("Spark thumbnail was not found.");
+    throw error;
+  }
+}
+
+/** Publish canonical Spark assets only after their Spark row was created. */
+export async function publishSparkUpload(videoUrl: string, posterUrl: string, ownerId: number): Promise<void> {
+  const service = new ObjectStorageService();
+  for (const url of [videoUrl, posterUrl]) {
+    const objectPath = toObjectEntityPath(url);
+    if (!objectPath) throw new InvalidUploadError("Spark upload was not found.");
+    const file = await service.getObjectEntityFile(objectPath);
+    const policy = await getObjectAclPolicy(file);
+    if (policy?.owner !== String(ownerId)) throw new InvalidUploadError("This uploaded file belongs to another user.");
+    await setObjectAclPolicy(file, { owner: String(ownerId), visibility: "public" });
+  }
 }
 
 /**
@@ -230,6 +348,7 @@ async function storeValidatedBuffer(
   contentType: string,
   ownerId: number,
   extraMetadata?: Record<string, string>,
+  visibility: "public" | "private" = "public",
 ): Promise<string> {
   const service = new ObjectStorageService();
   const privateDir = service.getPrivateObjectDir().replace(/\/$/, "");
@@ -246,7 +365,7 @@ async function storeValidatedBuffer(
   });
   await setObjectAclPolicy(file, {
     owner: String(ownerId),
-    visibility: "public",
+    visibility,
   });
 
   return `/objects/uploads/${id}`;
@@ -650,8 +769,8 @@ async function finalizeUploadedMediaInternal(
       kind === "image"
         ? "Uploaded file is not an allowed image type (JPEG, PNG, WebP, GIF, AVIF)."
         : kind === "video"
-          ? "Uploaded file is not an allowed video type (MP4, WebM)."
-          : "Uploaded file is not an allowed media type (JPEG, PNG, WebP, GIF, AVIF, MP4, WebM).",
+          ? "Uploaded file is not an allowed video type (MP4, MOV, WebM)."
+          : "Uploaded file is not an allowed media type (JPEG, PNG, WebP, GIF, AVIF, MP4, MOV, WebM).",
     );
   }
 
@@ -738,7 +857,7 @@ export async function finalizeMediaUrlWithVideoTranscode(
   } catch (err) {
     if (err instanceof TranscodeError) {
       throw new InvalidUploadError(
-        "Uploaded video could not be processed. Please upload a valid MP4 or WebM video.",
+        "Uploaded video could not be processed. Please upload a valid MP4, MOV, or WebM video.",
       );
     }
     throw err;
@@ -753,7 +872,7 @@ export async function finalizeMediaUrlWithVideoTranscode(
 
   // NOTE: the raw original is intentionally NOT deleted here. Finalization
   // has no view of database references — the same object may already back an
-  // existing gallery item, reel, or feed post. The reference-aware
+   // existing gallery item, Spark, or feed post. The reference-aware
   // orphan-cleanup script removes it once nothing points at it.
   return {
     url: `${STORAGE_URL_PREFIX}${objectPath}`,

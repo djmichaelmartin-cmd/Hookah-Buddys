@@ -17,8 +17,10 @@ import {
   useListSubscriptions,
   getListSubscriptionsQueryKey,
   useListGroups,
+  useListReels,
+  getListReelsQueryKey,
 } from "@workspace/api-client-react";
-import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check, Users, Lock, AlertCircle } from "lucide-react";
+import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check, Users, Lock, AlertCircle, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type Props = {
@@ -237,6 +239,10 @@ export default function LoungeRightSidebar({ onSelectHashtag, activeHashtag }: P
   const { data: events } = useListEvents({ limit: 4 });
   const { data: trendingHashtags } = useListTrendingHashtags({ limit: 6 });
   const { data: featuredGroups } = useListGroups({ featured: true, limit: 3 });
+  const { data: recentSparks } = useListReels(
+    { visibility: 'public', limit: 3 },
+    { query: { queryKey: getListReelsQueryKey({ visibility: 'public', limit: 3 }) } }
+  );
 
   const onlineList = (onlineUsers ?? []).slice(0, 5);
   const onlineDollIds = new Set(
@@ -343,6 +349,28 @@ export default function LoungeRightSidebar({ onSelectHashtag, activeHashtag }: P
               </button>
             ))}
           </div>
+        </SectionCard>
+      )}
+
+      {recentSparks && recentSparks.length > 0 && (
+        <SectionCard title="Recent Sparks">
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {recentSparks.map(spark => (
+              <Link key={spark.id} href={`/sparks/${spark.id}`} className="group relative aspect-[9/16] rounded-xl overflow-hidden block">
+                {spark.thumbnailUrl ? (
+                  <img src={spark.thumbnailUrl} alt={spark.caption || "Spark"} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                ) : (
+                  <div className="w-full h-full bg-primary/10" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <p className="text-[10px] text-white font-bold truncate leading-tight shadow-black drop-shadow-sm">{spark.userName}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <Link href="/sparks" className="block text-xs text-primary hover:underline flex items-center gap-1">
+            Browse all Sparks <Zap className="w-3 h-3 fill-primary" />
+          </Link>
         </SectionCard>
       )}
 

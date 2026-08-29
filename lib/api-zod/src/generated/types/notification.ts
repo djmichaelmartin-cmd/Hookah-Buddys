@@ -22,6 +22,11 @@ export interface Notification {
   relatedEventId?: number | null;
   /** @nullable */
   relatedGroupId?: number | null;
+  /**
+     * Legacy internal identifier for a Spark deep link (`/sparks/:id`).
+     * @nullable
+     */
+  relatedReelId?: number | null;
   isRead: boolean;
   createdAt: string;
 }

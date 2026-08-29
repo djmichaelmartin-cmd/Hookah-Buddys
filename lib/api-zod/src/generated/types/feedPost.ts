@@ -37,6 +37,12 @@ export interface FeedPost {
   sourceId?: number | null;
   /** @nullable */
   businessId?: number | null;
+  /** @nullable */
+  businessName?: string | null;
+  /** @nullable */
+  businessHandle?: string | null;
+  /** @nullable */
+  businessLogoUrl?: string | null;
   /** Safe public business author object; null for personal posts. */
   business?: null | FeedBusinessAuthor;
   text: string;

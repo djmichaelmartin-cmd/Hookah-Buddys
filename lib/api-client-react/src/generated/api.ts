@@ -132,6 +132,7 @@ import type {
   DollProfileUpdate,
   DollRegistration,
   DollRevenueShare,
+  EditableSparkBusiness,
   EnhancedProfile,
   ErrorEnvelope,
   EstimateVideoChatParams,
@@ -213,6 +214,7 @@ import type {
   ListBusinessReportsParams,
   ListBusinessesParams,
   ListDollsParams,
+  ListEditableReelBusinessesParams,
   ListEventsParams,
   ListFeedPostsParams,
   ListFeedReportsParams,
@@ -235,6 +237,7 @@ import type {
   ListPlansParams,
   ListReelsParams,
   ListRejectedLeadsParams,
+  ListTaggableReelUsersParams,
   ListTrendingHashtagsParams,
   ListUserPhotosParams,
   ListUserTagsParams,
@@ -289,9 +292,11 @@ import type {
   ShareRecipientUser,
   ShareResult,
   SharingSuspension,
+  SparkVideoUploadResponse,
   Subscription,
   SubscriptionInput,
   SuspendSharingInput,
+  TaggableUser,
   ThreadInput,
   TrendingHashtag,
   UnlockInput,
@@ -475,6 +480,83 @@ export const useUploadVideo = <TError = ErrorType<ErrorEnvelope | void>,
         TContext
       > => {
       return useMutation(getUploadVideoMutationOptions(options));
+    }
+
+export const getUploadSparkVideoUrl = () => {
+
+
+
+
+  return `/api/sparks/uploads/video`
+}
+
+/**
+ * Protected bounded server-side upload for canonical Sparks. Send raw
+MP4, MOV, or WebM bytes. The server validates the real container,
+rejects videos longer than 90 seconds, and reuses the shared video
+transcode and JPEG poster pipeline. The returned paths are suitable for
+ReelInput.videoUrl and ReelInput.thumbnailUrl on the legacy `/reels`
+creation route.
+
+ * @summary Upload a Spark video (raw bytes, max 50 MB and 90 seconds)
+ */
+export const uploadSparkVideo = async (uploadSparkVideoBody: Blob, options?: RequestInit): Promise<SparkVideoUploadResponse> => {
+
+  return customFetch<SparkVideoUploadResponse>(getUploadSparkVideoUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'video/*', ...options?.headers },
+    body: uploadSparkVideoBody
+  }
+);}
+
+
+
+
+export const getUploadSparkVideoMutationOptions = <TError = ErrorType<ErrorEnvelope | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadSparkVideo>>, TError,{data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadSparkVideo>>, TError,{data: BodyType<Blob>}, TContext> => {
+
+const mutationKey = ['uploadSparkVideo'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadSparkVideo>>, {data: BodyType<Blob>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadSparkVideo(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadSparkVideoMutationResult = NonNullable<Awaited<ReturnType<typeof uploadSparkVideo>>>
+    export type UploadSparkVideoMutationBody = BodyType<Blob>
+    export type UploadSparkVideoMutationError = ErrorType<ErrorEnvelope | void>
+
+    /**
+ * @summary Upload a Spark video (raw bytes, max 50 MB and 90 seconds)
+ */
+export const useUploadSparkVideo = <TError = ErrorType<ErrorEnvelope | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadSparkVideo>>, TError,{data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadSparkVideo>>,
+        TError,
+        {data: BodyType<Blob>},
+        TContext
+      > => {
+      return useMutation(getUploadSparkVideoMutationOptions(options));
     }
 
 export const getUploadGroupFileUrl = () => {
@@ -11651,7 +11733,7 @@ export const getListReelsUrl = (params?: ListReelsParams,) => {
 }
 
 /**
- * @summary Browse reels (public preview allowed)
+ * @summary Browse Sparks (legacy `/reels` route)
  */
 export const listReels = async (params?: ListReelsParams, options?: RequestInit): Promise<Reel[]> => {
 
@@ -11698,7 +11780,7 @@ export type ListReelsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary Browse reels (public preview allowed)
+ * @summary Browse Sparks (legacy `/reels` route)
  */
 
 export function useListReels<TData = Awaited<ReturnType<typeof listReels>>, TError = ErrorType<unknown>>(
@@ -11728,7 +11810,7 @@ export const getCreateReelUrl = () => {
 }
 
 /**
- * @summary Upload a reel
+ * @summary Create a Spark (legacy `/reels` route)
  */
 export const createReel = async (reelInput: ReelInput, options?: RequestInit): Promise<Reel> => {
 
@@ -11777,7 +11859,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateReelMutationError = ErrorType<void>
 
     /**
- * @summary Upload a reel
+ * @summary Create a Spark (legacy `/reels` route)
  */
 export const useCreateReel = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReel>>, TError,{data: BodyType<ReelInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -11790,6 +11872,330 @@ export const useCreateReel = <TError = ErrorType<void>,
       return useMutation(getCreateReelMutationOptions(options));
     }
 
+export const getListTaggableReelUsersUrl = (params?: ListTaggableReelUsersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reels/taggable-users?${stringifiedParams}` : `/api/reels/taggable-users`
+}
+
+/**
+ * Returns active people allowed by mutual block and tagging-privacy rules. The current user is excluded.
+ * @summary List people the current user can tag in a Spark
+ */
+export const listTaggableReelUsers = async (params?: ListTaggableReelUsersParams, options?: RequestInit): Promise<TaggableUser[]> => {
+
+  return customFetch<TaggableUser[]>(getListTaggableReelUsersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTaggableReelUsersQueryKey = (params?: ListTaggableReelUsersParams,) => {
+    return [
+    `/api/reels/taggable-users`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListTaggableReelUsersQueryOptions = <TData = Awaited<ReturnType<typeof listTaggableReelUsers>>, TError = ErrorType<ErrorEnvelope | void>>(params?: ListTaggableReelUsersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTaggableReelUsers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTaggableReelUsersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTaggableReelUsers>>> = ({ signal }) => listTaggableReelUsers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTaggableReelUsers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTaggableReelUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listTaggableReelUsers>>>
+export type ListTaggableReelUsersQueryError = ErrorType<ErrorEnvelope | void>
+
+
+/**
+ * @summary List people the current user can tag in a Spark
+ */
+
+export function useListTaggableReelUsers<TData = Awaited<ReturnType<typeof listTaggableReelUsers>>, TError = ErrorType<ErrorEnvelope | void>>(
+ params?: ListTaggableReelUsersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTaggableReelUsers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTaggableReelUsersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListEditableReelBusinessesUrl = (params?: ListEditableReelBusinessesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reels/editable-businesses?${stringifiedParams}` : `/api/reels/editable-businesses`
+}
+
+/**
+ * Returns only active pages for which the current user has an owner, admin, or editor role.
+ * @summary List Business Pages the current user can use for a Spark
+ */
+export const listEditableReelBusinesses = async (params?: ListEditableReelBusinessesParams, options?: RequestInit): Promise<EditableSparkBusiness[]> => {
+
+  return customFetch<EditableSparkBusiness[]>(getListEditableReelBusinessesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEditableReelBusinessesQueryKey = (params?: ListEditableReelBusinessesParams,) => {
+    return [
+    `/api/reels/editable-businesses`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListEditableReelBusinessesQueryOptions = <TData = Awaited<ReturnType<typeof listEditableReelBusinesses>>, TError = ErrorType<ErrorEnvelope | void>>(params?: ListEditableReelBusinessesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEditableReelBusinesses>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEditableReelBusinessesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEditableReelBusinesses>>> = ({ signal }) => listEditableReelBusinesses(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEditableReelBusinesses>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListEditableReelBusinessesQueryResult = NonNullable<Awaited<ReturnType<typeof listEditableReelBusinesses>>>
+export type ListEditableReelBusinessesQueryError = ErrorType<ErrorEnvelope | void>
+
+
+/**
+ * @summary List Business Pages the current user can use for a Spark
+ */
+
+export function useListEditableReelBusinesses<TData = Awaited<ReturnType<typeof listEditableReelBusinesses>>, TError = ErrorType<ErrorEnvelope | void>>(
+ params?: ListEditableReelBusinessesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEditableReelBusinesses>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListEditableReelBusinessesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetReelVideoMediaUrl = (id: number,) => {
+
+
+
+
+  return `/api/reels/${id}/media/video`
+}
+
+/**
+ * @summary Stream Spark video with visibility enforcement
+ */
+export const getReelVideoMedia = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetReelVideoMediaUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReelVideoMediaQueryKey = (id: number,) => {
+    return [
+    `/api/reels/${id}/media/video`
+    ] as const;
+    }
+
+
+export const getGetReelVideoMediaQueryOptions = <TData = Awaited<ReturnType<typeof getReelVideoMedia>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReelVideoMedia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReelVideoMediaQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReelVideoMedia>>> = ({ signal }) => getReelVideoMedia(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReelVideoMedia>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReelVideoMediaQueryResult = NonNullable<Awaited<ReturnType<typeof getReelVideoMedia>>>
+export type GetReelVideoMediaQueryError = ErrorType<void>
+
+
+/**
+ * @summary Stream Spark video with visibility enforcement
+ */
+
+export function useGetReelVideoMedia<TData = Awaited<ReturnType<typeof getReelVideoMedia>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReelVideoMedia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReelVideoMediaQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetReelPosterMediaUrl = (id: number,) => {
+
+
+
+
+  return `/api/reels/${id}/media/poster`
+}
+
+/**
+ * @summary Stream Spark poster with visibility enforcement
+ */
+export const getReelPosterMedia = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetReelPosterMediaUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReelPosterMediaQueryKey = (id: number,) => {
+    return [
+    `/api/reels/${id}/media/poster`
+    ] as const;
+    }
+
+
+export const getGetReelPosterMediaQueryOptions = <TData = Awaited<ReturnType<typeof getReelPosterMedia>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReelPosterMedia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReelPosterMediaQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReelPosterMedia>>> = ({ signal }) => getReelPosterMedia(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReelPosterMedia>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReelPosterMediaQueryResult = NonNullable<Awaited<ReturnType<typeof getReelPosterMedia>>>
+export type GetReelPosterMediaQueryError = ErrorType<void>
+
+
+/**
+ * @summary Stream Spark poster with visibility enforcement
+ */
+
+export function useGetReelPosterMedia<TData = Awaited<ReturnType<typeof getReelPosterMedia>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReelPosterMedia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReelPosterMediaQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetReelUrl = (id: number,) => {
 
 
@@ -11799,7 +12205,7 @@ export const getGetReelUrl = (id: number,) => {
 }
 
 /**
- * @summary Get a single reel
+ * @summary Get a single Spark
  */
 export const getReel = async (id: number, options?: RequestInit): Promise<Reel> => {
 
@@ -11846,7 +12252,7 @@ export type GetReelQueryError = ErrorType<void>
 
 
 /**
- * @summary Get a single reel
+ * @summary Get a single Spark
  */
 
 export function useGetReel<TData = Awaited<ReturnType<typeof getReel>>, TError = ErrorType<void>>(
@@ -11876,7 +12282,7 @@ export const getDeleteReelUrl = (id: number,) => {
 }
 
 /**
- * @summary Delete own reel (or any as Admin)
+ * @summary Delete own Spark (or any as Admin)
  */
 export const deleteReel = async (id: number, options?: RequestInit): Promise<void> => {
 
@@ -11924,7 +12330,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteReelMutationError = ErrorType<void>
 
     /**
- * @summary Delete own reel (or any as Admin)
+ * @summary Delete own Spark (or any as Admin)
  */
 export const useDeleteReel = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReel>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -11946,7 +12352,7 @@ export const getToggleReelLikeUrl = (id: number,) => {
 }
 
 /**
- * @summary Like or unlike a reel (toggle)
+ * @summary Like or unlike a Spark (toggle)
  */
 export const toggleReelLike = async (id: number, options?: RequestInit): Promise<LikeStatus> => {
 
@@ -11994,7 +12400,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ToggleReelLikeMutationError = ErrorType<void>
 
     /**
- * @summary Like or unlike a reel (toggle)
+ * @summary Like or unlike a Spark (toggle)
  */
 export const useToggleReelLike = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleReelLike>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -12016,7 +12422,7 @@ export const getToggleReelSaveUrl = (id: number,) => {
 }
 
 /**
- * @summary Save or unsave a reel (toggle)
+ * @summary Save or unsave a Spark (toggle)
  */
 export const toggleReelSave = async (id: number, options?: RequestInit): Promise<SaveStatus> => {
 
@@ -12064,7 +12470,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ToggleReelSaveMutationError = ErrorType<void>
 
     /**
- * @summary Save or unsave a reel (toggle)
+ * @summary Save or unsave a Spark (toggle)
  */
 export const useToggleReelSave = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleReelSave>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -12086,7 +12492,7 @@ export const getRecordReelViewUrl = (id: number,) => {
 }
 
 /**
- * @summary Record a reel view
+ * @summary Record a Spark view
  */
 export const recordReelView = async (id: number, options?: RequestInit): Promise<void> => {
 
@@ -12134,7 +12540,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type RecordReelViewMutationError = ErrorType<unknown>
 
     /**
- * @summary Record a reel view
+ * @summary Record a Spark view
  */
 export const useRecordReelView = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordReelView>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -12156,7 +12562,7 @@ export const getReportReelUrl = (id: number,) => {
 }
 
 /**
- * @summary Report a reel
+ * @summary Report a Spark
  */
 export const reportReel = async (id: number,
     feedReportInput: FeedReportInput, options?: RequestInit): Promise<ReportReel201> => {
@@ -12206,7 +12612,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ReportReelMutationError = ErrorType<unknown>
 
     /**
- * @summary Report a reel
+ * @summary Report a Spark
  */
 export const useReportReel = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reportReel>>, TError,{id: number;data: BodyType<FeedReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -12228,7 +12634,7 @@ export const getListReelCommentsUrl = (id: number,) => {
 }
 
 /**
- * @summary List comments on a reel
+ * @summary List comments on a Spark
  */
 export const listReelComments = async (id: number, options?: RequestInit): Promise<FeedComment[]> => {
 
@@ -12275,7 +12681,7 @@ export type ListReelCommentsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List comments on a reel
+ * @summary List comments on a Spark
  */
 
 export function useListReelComments<TData = Awaited<ReturnType<typeof listReelComments>>, TError = ErrorType<unknown>>(
@@ -12305,7 +12711,7 @@ export const getCreateReelCommentUrl = (id: number,) => {
 }
 
 /**
- * @summary Comment on a reel
+ * @summary Comment on a Spark
  */
 export const createReelComment = async (id: number,
     feedCommentInput: FeedCommentInput, options?: RequestInit): Promise<FeedComment> => {
@@ -12355,7 +12761,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateReelCommentMutationError = ErrorType<void>
 
     /**
- * @summary Comment on a reel
+ * @summary Comment on a Spark
  */
 export const useCreateReelComment = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReelComment>>, TError,{id: number;data: BodyType<FeedCommentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -12377,7 +12783,7 @@ export const getDeleteReelCommentUrl = (id: number,) => {
 }
 
 /**
- * @summary Delete own reel comment (or any as Admin)
+ * @summary Delete own Spark comment (or any as Admin)
  */
 export const deleteReelComment = async (id: number, options?: RequestInit): Promise<void> => {
 
@@ -12425,7 +12831,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteReelCommentMutationError = ErrorType<void>
 
     /**
- * @summary Delete own reel comment (or any as Admin)
+ * @summary Delete own Spark comment (or any as Admin)
  */
 export const useDeleteReelComment = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReelComment>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -12531,7 +12937,7 @@ export const getCreateUserTagUrl = () => {
 }
 
 /**
- * @summary Tag a user in a post, photo, or reel
+ * @summary Tag a user in a post, photo, or Spark
  */
 export const createUserTag = async (userTagInput: UserTagInput, options?: RequestInit): Promise<UserTag> => {
 
@@ -12580,7 +12986,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateUserTagMutationError = ErrorType<void>
 
     /**
- * @summary Tag a user in a post, photo, or reel
+ * @summary Tag a user in a post, photo, or Spark
  */
 export const useCreateUserTag = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUserTag>>, TError,{data: BodyType<UserTagInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -12914,7 +13320,7 @@ export const getListAdminReelsUrl = (params?: ListAdminReelsParams,) => {
 }
 
 /**
- * @summary List all reels for moderation (Admin)
+ * @summary List all Sparks for moderation (Admin)
  */
 export const listAdminReels = async (params?: ListAdminReelsParams, options?: RequestInit): Promise<Reel[]> => {
 
@@ -12961,7 +13367,7 @@ export type ListAdminReelsQueryError = ErrorType<void>
 
 
 /**
- * @summary List all reels for moderation (Admin)
+ * @summary List all Sparks for moderation (Admin)
  */
 
 export function useListAdminReels<TData = Awaited<ReturnType<typeof listAdminReels>>, TError = ErrorType<void>>(
@@ -12991,7 +13397,7 @@ export const getModerateReelUrl = (id: number,) => {
 }
 
 /**
- * @summary Moderate a reel (Admin)
+ * @summary Moderate a Spark (Admin)
  */
 export const moderateReel = async (id: number,
     feedModerationInput: FeedModerationInput, options?: RequestInit): Promise<Reel> => {
@@ -13041,7 +13447,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ModerateReelMutationError = ErrorType<void>
 
     /**
- * @summary Moderate a reel (Admin)
+ * @summary Moderate a Spark (Admin)
  */
 export const useModerateReel = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moderateReel>>, TError,{id: number;data: BodyType<FeedModerationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -15248,7 +15654,7 @@ export const getListBusinessMediaUrl = (handle: string,
 }
 
 /**
- * @summary List media items (photos/videos/reels). Public sees active items; team/admin see all.
+ * @summary List media items (photos, videos, and Sparks). Public sees active items; team/admin see all.
  */
 export const listBusinessMedia = async (handle: string,
     params?: ListBusinessMediaParams, options?: RequestInit): Promise<BusinessMediaItem[]> => {
@@ -15298,7 +15704,7 @@ export type ListBusinessMediaQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List media items (photos/videos/reels). Public sees active items; team/admin see all.
+ * @summary List media items (photos, videos, and Sparks). Public sees active items; team/admin see all.
  */
 
 export function useListBusinessMedia<TData = Awaited<ReturnType<typeof listBusinessMedia>>, TError = ErrorType<unknown>>(
@@ -18697,7 +19103,7 @@ export const getRecordBusinessMediaViewUrl = (handle: string,
 }
 
 /**
- * @summary Record a reel/video view. Authenticated; idempotent per (media,user) — repeats do not re-count.
+ * @summary Record a Spark/video view. Authenticated; idempotent per (media,user) — repeats do not re-count.
  */
 export const recordBusinessMediaView = async (handle: string,
     mediaId: number, options?: RequestInit): Promise<void> => {
@@ -18746,7 +19152,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type RecordBusinessMediaViewMutationError = ErrorType<unknown>
 
     /**
- * @summary Record a reel/video view. Authenticated; idempotent per (media,user) — repeats do not re-count.
+ * @summary Record a Spark/video view. Authenticated; idempotent per (media,user) — repeats do not re-count.
  */
 export const useRecordBusinessMediaView = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordBusinessMediaView>>, TError,{handle: string;mediaId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -22116,7 +22522,7 @@ export const getListGroupMediaUrl = (groupId: number,
 }
 
 /**
- * @summary List group media (photos/videos/reels/files)
+ * @summary List group media (photos, videos, Sparks, and files)
  */
 export const listGroupMedia = async (groupId: number,
     params?: ListGroupMediaParams, options?: RequestInit): Promise<GroupMediaItem[]> => {
@@ -22166,7 +22572,7 @@ export type ListGroupMediaQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List group media (photos/videos/reels/files)
+ * @summary List group media (photos, videos, Sparks, and files)
  */
 
 export function useListGroupMedia<TData = Awaited<ReturnType<typeof listGroupMedia>>, TError = ErrorType<unknown>>(

@@ -44,7 +44,7 @@ export function DashboardMedia({ business }: { business: BusinessDetail }) {
       >
         <TabsList className="bg-card border border-white/10 mb-6 flex overflow-x-auto hide-scrollbar w-full h-auto p-1">
           <TabsTrigger value="photo"><ImageIcon className="w-4 h-4 mr-2" /> Photos</TabsTrigger>
-          <TabsTrigger value="reel"><Film className="w-4 h-4 mr-2" /> Reels</TabsTrigger>
+          <TabsTrigger value="reel"><Film className="w-4 h-4 mr-2" /> Sparks</TabsTrigger>
           <TabsTrigger value="video"><Video className="w-4 h-4 mr-2" /> Videos</TabsTrigger>
           <TabsTrigger value="album"><FolderHeart className="w-4 h-4 mr-2" /> Albums</TabsTrigger>
         </TabsList>
@@ -187,6 +187,7 @@ function MediaManager({ business, kind }: { business: BusinessDetail, kind: Busi
   const [isAdding, setIsAdding] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
+  const mediaLabel = kind === "reel" ? "Spark" : kind;
 
   const { data: mediaList, isLoading } = useListBusinessMedia(business.handle, { kind }, {
     query: { enabled: !!business.handle, queryKey: getListBusinessMediaQueryKey(business.handle, { kind }) }
@@ -258,7 +259,7 @@ function MediaManager({ business, kind }: { business: BusinessDetail, kind: Busi
     <div className="space-y-6">
       <div className="flex justify-end mb-4">
         <Button onClick={() => setIsAdding(!isAdding)} variant="outline" className="rounded-full border-white/20 text-white">
-          {isAdding ? "Cancel" : <><Plus className="w-4 h-4 mr-2" /> Upload {kind}</>}
+          {isAdding ? "Cancel" : <><Plus className="w-4 h-4 mr-2" /> Upload {mediaLabel}</>}
         </Button>
       </div>
 
@@ -286,7 +287,7 @@ function MediaManager({ business, kind }: { business: BusinessDetail, kind: Busi
         <div className="text-center py-12 text-white/50">Loading media...</div>
       ) : !mediaList || mediaList.length === 0 ? (
         <div className="text-center py-12 bg-card/30 border border-white/5 rounded-2xl">
-          <p className="text-white/50">No {kind}s added yet.</p>
+          <p className="text-white/50">No {mediaLabel}s added yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

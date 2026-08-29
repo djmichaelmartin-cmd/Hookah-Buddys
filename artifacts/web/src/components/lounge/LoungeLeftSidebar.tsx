@@ -27,7 +27,7 @@ const NAV_LINKS = [
   { to: "/friends", label: "Buddys", icon: Users },
   { to: "/messages", label: "Messages", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Bell },
-  { to: "/reels", label: "Reels", icon: Clapperboard },
+  { to: "/sparks", label: "Sparks", icon: Clapperboard },
   { to: "/browse", label: "Browse Buddys", icon: Search },
   { to: "/pricing", label: "Pricing / Upgrade", icon: Coins },
 ];
@@ -109,7 +109,7 @@ export default function LoungeLeftSidebar() {
 
       {/* Navigation */}
       <nav className="rounded-2xl bg-card/30 border border-white/5 backdrop-blur-md p-2">
-        {(authenticated ? NAV_LINKS : NAV_LINKS.filter((l) => ["/feed", "/reels", "/groups", "/meetups", "/browse", "/pricing"].includes(l.to))).map(
+        {(authenticated ? NAV_LINKS : NAV_LINKS.filter((l) => ["/feed", "/sparks", "/groups", "/meetups", "/browse", "/pricing"].includes(l.to))).map(
           ({ to, label, icon: Icon }) => {
             const isActive = location === to || (to !== "/" && location.startsWith(to) && to !== "/feed");
             return (

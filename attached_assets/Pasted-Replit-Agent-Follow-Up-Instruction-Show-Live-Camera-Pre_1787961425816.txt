@@ -1,0 +1,358 @@
+Replit Agent Follow-Up Instruction: Show Live Camera Preview Before Spark Recording Starts
+
+Do not rebuild the HookahBuddys platform. Only update the existing Spark creation/recording flow.
+
+Current issue:
+
+When creating a Spark and clicking “Start Camera,” the user’s camera does not display on the screen until recording starts or may not display clearly before recording.
+
+Required behavior:
+
+When a user clicks “Start Camera,” the user’s camera feed should immediately appear on the screen as a live preview before recording begins.
+
+Starting the camera and starting the recording should be two separate actions.
+
+Spark Recording Flow
+
+Update the Spark recording flow to work like this:
+
+1. User goes to Create Spark.
+2. User selects “Record Now.”
+3. User clicks “Start Camera.”
+4. Browser requests camera and microphone permission.
+5. Once permission is granted, show the live camera preview immediately.
+6. Show the user what the camera sees before recording starts.
+7. After the camera preview is visible, show the “Start Recording” button.
+8. User clicks “Start Recording.”
+9. Recording timer starts.
+10. User clicks “Stop Recording” or recording stops automatically at max duration.
+11. User previews the recorded Spark.
+12. User can choose:
+
+* Use This Spark
+* Record Again
+* Cancel
+
+Important UI Rule
+
+Clicking “Start Camera” should not automatically begin recording.
+
+It should only turn on the camera and display the live preview.
+
+Recording should only begin when the user clicks:
+
+“Start Recording”
+
+Buttons / States
+
+Use these states:
+
+1. Camera Off
+
+Show:
+
+* Start Camera
+* Upload Video instead
+
+2. Camera Ready / Preview Active
+
+Show live camera feed on screen.
+
+Show buttons:
+
+* Start Recording
+* Stop Camera
+* Switch Camera, if available
+* Cancel
+
+3. Recording
+
+Show live camera feed while recording.
+
+Show:
+
+* Recording timer
+* Stop Recording
+* Red recording indicator
+
+4. Recording Preview
+
+Show playback preview of the recorded Spark.
+
+Show:
+
+* Use This Spark
+* Record Again
+* Cancel
+
+Live Camera Preview Requirements
+
+When the camera is started:
+
+* Show the live video stream inside the Spark form.
+* Use a visible video preview container.
+* The video should autoplay.
+* The video should be muted to prevent echo.
+* Use `playsInline` for mobile support.
+* Use a responsive vertical video layout.
+* Use object-fit cover so it looks like a short-video preview.
+
+Suggested video element behavior:
+
+* `autoPlay`
+* `muted`
+* `playsInline`
+* `srcObject = mediaStream`
+
+The live preview should be visible before recording starts.
+
+Camera Access Implementation
+
+Use browser camera access through:
+
+`navigator.mediaDevices.getUserMedia`
+
+Request:
+
+* Video: true
+* Audio: true
+
+Preferred constraints:
+
+```js
+{
+  video: {
+    facingMode: "user"
+  },
+  audio: true
+}
+```
+
+For mobile, allow switching between:
+
+* Front camera
+* Back camera
+
+Use:
+
+* `facingMode: "user"`
+* `facingMode: "environment"`
+
+Start Camera Logic
+
+When the user clicks “Start Camera”:
+
+1. Check browser support.
+2. Request camera/microphone permissions.
+3. Store the stream in component state.
+4. Assign the stream to the preview video element.
+5. Call `.play()` on the video element if needed.
+6. Set recording state to `camera_ready`.
+7. Show the live camera feed immediately.
+
+Do not create the final video file at this stage.
+
+Do not upload anything at this stage.
+
+Do not start MediaRecorder at this stage unless it is only being prepared and not recording.
+
+Start Recording Logic
+
+When the user clicks “Start Recording”:
+
+1. Use the already-active camera stream.
+2. Create a MediaRecorder instance from that stream.
+3. Start recording.
+4. Start the timer.
+5. Set state to `recording`.
+6. Show recording indicator.
+
+Stop Recording Logic
+
+When the user clicks “Stop Recording”:
+
+1. Stop the MediaRecorder.
+2. Collect recorded video chunks.
+3. Create a Blob from the recorded chunks.
+4. Create an object URL for preview.
+5. Show playback preview.
+6. Set state to `preview`.
+
+Do not stop the camera automatically until the user chooses “Use This Spark,” “Record Again,” “Stop Camera,” or leaves the page.
+
+Record Again Logic
+
+When the user clicks “Record Again”:
+
+* Clear the previous recorded blob.
+* Clear the preview URL.
+* Return to the live camera preview.
+* Keep the camera on if possible.
+* Show “Start Recording” again.
+
+Stop Camera Logic
+
+Add a “Stop Camera” button when the camera preview is active.
+
+When clicked:
+
+* Stop all media stream tracks.
+* Clear video preview.
+* Clear camera stream state.
+* Return to camera-off state.
+
+Use:
+
+```js
+stream.getTracks().forEach(track => track.stop())
+```
+
+Cleanup Requirement
+
+When the user leaves the Create Spark page, closes the modal, cancels recording, or switches away from recording:
+
+* Stop all camera tracks.
+* Stop all microphone tracks.
+* Clear `srcObject`.
+* Revoke any object URLs created for preview.
+* Reset recording state.
+
+This prevents the camera light from staying on.
+
+Permission Error Handling
+
+If user denies camera/microphone permission, show:
+
+“Camera and microphone access are required to record a Spark. You can still upload a video instead.”
+
+Show button:
+
+“Upload Video”
+
+If browser does not support camera recording, show:
+
+“Recording is not available on this device or browser. Please upload a video instead.”
+
+If camera fails to start, show:
+
+“We could not start your camera. Please check your browser permissions and try again.”
+
+Mobile Requirements
+
+On mobile:
+
+* Camera preview should display immediately after Start Camera.
+* Use `playsInline` so the preview stays inside the page.
+* Buttons should be large and easy to tap.
+* The preview should be vertical by default.
+* Allow front/back camera switch if supported.
+* If recording is not supported, allow file upload as fallback.
+
+Spark Form Update
+
+The Spark form should still allow:
+
+* Upload Video
+* Record Now
+
+Under “Record Now,” the user should see:
+
+* Start Camera first
+* Live camera preview after permission is granted
+* Start Recording only after camera preview is active
+
+Do not show:
+
+* Video URL field
+* Thumbnail URL field
+* Hookah content required checkbox
+* “I confirm this reel is hookah-related”
+
+Keep Spark terminology:
+
+* Spark
+* Create Spark
+* Record Spark
+* Upload Spark
+* Use This Spark
+
+Do not use:
+
+* Reel
+* Reels
+
+Technical State Example
+
+Use a clean recording state structure similar to:
+
+```js
+const [cameraStream, setCameraStream] = useState(null);
+const [recordingState, setRecordingState] = useState("idle");
+// idle, camera_ready, recording, preview, uploading
+const [recordedBlob, setRecordedBlob] = useState(null);
+const [previewUrl, setPreviewUrl] = useState(null);
+```
+
+Expected behavior:
+
+* `idle`: no camera preview
+* `camera_ready`: live camera preview is visible
+* `recording`: live camera preview is visible and recording
+* `preview`: recorded video playback is visible
+* `uploading`: upload progress visible
+
+Accessibility
+
+Add accessible labels:
+
+* Start Camera
+* Start Recording
+* Stop Recording
+* Stop Camera
+* Use This Spark
+* Record Again
+* Cancel Spark recording
+
+The live preview container should have a label:
+
+“Live camera preview”
+
+Testing Checklist
+
+Confirm:
+
+1. Click Create Spark.
+2. Click Record Now.
+3. Click Start Camera.
+4. Browser asks for camera/microphone permission.
+5. After permission is granted, live camera feed appears immediately.
+6. Recording does not start automatically.
+7. Start Recording button appears only after camera preview is visible.
+8. Clicking Start Recording begins recording.
+9. Timer works.
+10. Clicking Stop Recording creates preview.
+11. Use This Spark works.
+12. Record Again returns to live preview.
+13. Stop Camera turns camera off.
+14. Leaving the page turns camera off.
+15. Upload Video fallback still works.
+16. No Video URL field appears.
+17. No Thumbnail URL field appears.
+18. No Reels wording appears.
+19. No hookah confirmation checkbox appears.
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove Spark upload.
+
+Do not remove Spark recording.
+
+Do not remove Sparks from profiles, The Lounge, Groups, Businesses, Meetups, or Events.
+
+Only fix the Spark recording experience so the camera feed displays on screen immediately after clicking “Start Camera,” before recording starts.
+
+Final Result
+
+When a member creates a Spark and clicks “Start Camera,” their camera should visibly display on the screen as a live preview before they click “Start Recording.”

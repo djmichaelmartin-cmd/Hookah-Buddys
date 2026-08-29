@@ -9,7 +9,15 @@ export const reelsTable = pgTable("reels", {
   caption: text("caption"),
   category: text("category").notNull().default("other"),
   hashtags: text("hashtags"), // JSON string array
+  peopleTags: text("people_tags"), // JSON integer array; legacy user_tags rows remain authoritative for review
+  businessId: integer("business_id"),
+  location: text("location"),
+  feeling: text("feeling"),
   visibility: text("visibility").notNull().default("public"),
+  commentsEnabled: boolean("comments_enabled").notNull().default(true),
+  sharingEnabled: boolean("sharing_enabled").notNull().default(true),
+  // Legacy column retained for existing rows and compatibility. Spark creation
+  // no longer requires or writes a client confirmation.
   isHookahRelatedConfirmed: boolean("is_hookah_related_confirmed").notNull().default(false),
   viewCount: integer("view_count").notNull().default(0),
   likeCount: integer("like_count").notNull().default(0),
