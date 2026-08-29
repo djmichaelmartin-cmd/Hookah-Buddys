@@ -16,6 +16,7 @@ import { Sparkles, Loader2, Frown, Sparkle, X } from "lucide-react";
 import LoungeLeftSidebar from "@/components/lounge/LoungeLeftSidebar";
 import LoungeRightSidebar from "@/components/lounge/LoungeRightSidebar";
 import { CommunityTopicsNav } from "@/components/lounge/CommunityTopicsNav";
+import { PROFILE_ENTRY_PATH } from "@/lib/routes";
 
 type FilterTab = "trending" | "new" | "nearby" | "dolls" | "bros" | "lounges" | "events";
 
@@ -146,7 +147,7 @@ export default function Feed() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 pt-4">
-            <Link href="/signup/bro?plan=bronze">
+            <Link href={PROFILE_ENTRY_PATH}>
               <Button className="w-full h-12 text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                 Create Free Profile
               </Button>

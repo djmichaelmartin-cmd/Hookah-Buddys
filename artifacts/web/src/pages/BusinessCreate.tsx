@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, Building2, Store, Users, MapPin, Tag } from "lucide-react";
 import { uploadImage } from "@/lib/uploadImage";
+import { PROFILE_ENTRY_PATH } from "@/lib/routes";
 
 const createBusinessSchema = z.object({
   handle: z.string()
@@ -125,7 +126,7 @@ export default function BusinessCreate() {
               <Button onClick={() => setLocation("/login")} className="rounded-full bg-[#D6B56D] px-8 text-[#111] hover:bg-[#C9A456]">
                 Sign In
               </Button>
-              <Button variant="outline" onClick={() => setLocation("/signup/member")} className="rounded-full border-white/15 px-8 text-white">
+              <Button variant="outline" onClick={() => setLocation(PROFILE_ENTRY_PATH)} className="rounded-full border-white/15 px-8 text-white">
                 Create Free Profile
               </Button>
             </div>

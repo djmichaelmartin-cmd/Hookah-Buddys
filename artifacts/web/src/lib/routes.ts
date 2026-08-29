@@ -1,0 +1,1 @@
+export const PROFILE_ENTRY_PATH = "/choose-membership" as const;

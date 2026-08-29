@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 
 import { FeedPostCard } from "@/components/FeedPostCard";
+import { PROFILE_ENTRY_PATH } from "@/lib/routes";
 
 const BASE = import.meta.env.BASE_URL;
 const HERO_IMAGES = [1, 2, 3, 4, 5].map((i) => `${BASE}lounge/lounge${i}.png`);
@@ -414,7 +415,7 @@ export default function Home() {
               intimate video sessions — tasteful, glamorous, always after dark.
             </p>
             <div className="mt-9 flex flex-col sm:flex-row gap-4">
-              <Link href="/choose-membership">
+              <Link href={PROFILE_ENTRY_PATH}>
                 <Button
                   size="lg"
                   className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-widest uppercase h-14 px-9 shadow-[0_0_30px_rgba(24,119,242,0.4)] border-none"
@@ -610,7 +611,7 @@ export default function Home() {
                   <span className="flex items-center gap-1.5"><Video className="h-3.5 w-3.5 text-primary" /> Video lounge</span>
                 </div>
 
-                <Link href="/choose-membership">
+                <Link href={PROFILE_ENTRY_PATH}>
                   <Button className="w-full h-12 rounded-full bg-primary text-zinc-900 font-semibold hover:bg-primary/90 transition-colors">
                     Create my member profile <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -892,7 +893,7 @@ export default function Home() {
                 Get verified, set your own prices, and earn from subscriptions, premium content, messages, and video
                 sessions. You're always in control.
               </p>
-              <Link href="/signup/doll">
+              <Link href={PROFILE_ENTRY_PATH}>
                 <Button
                   size="lg"
                   className="bg-[#D6B56D] hover:bg-[#C9A456] text-[#111111] font-bold tracking-widest uppercase h-14 px-9 shadow-[0_0_40px_rgba(214,181,109,0.35)] border-none"
@@ -917,7 +918,7 @@ export default function Home() {
 
             Join thousands enjoying premium content, private chats, and exclusive connections with verified Hookah Buddys.
           </p>
-          <Link href="/signup/bro?plan=bronze">
+          <Link href={PROFILE_ENTRY_PATH}>
             <Button
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-widest uppercase h-14 px-12 shadow-[0_0_40px_rgba(24,119,242,0.4)] border-none"

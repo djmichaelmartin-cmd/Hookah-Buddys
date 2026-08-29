@@ -20,6 +20,7 @@ import {
   COMMUNITY_SHORTCUTS,
   type CommunityShortcut,
 } from "@/lib/communityTopics";
+import { PROFILE_ENTRY_PATH } from "@/lib/routes";
 
 type FilterTab = "trending" | "new";
 
@@ -188,7 +189,7 @@ function CommunityFeedRoom({ shortcut }: { shortcut: CommunityShortcut }) {
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 pt-4">
-            <Link href="/signup/bro?plan=bronze">
+            <Link href={PROFILE_ENTRY_PATH}>
               <Button className="w-full h-12 text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                 Create Free Profile
               </Button>

@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { PROFILE_ENTRY_PATH } from "@/lib/routes";
 
 export function Footer() {
   return (
@@ -22,8 +23,8 @@ export function Footer() {
               <li><Link href="/groups" className="text-muted-foreground hover:text-primary transition-colors text-sm">Browse Groups</Link></li>
               <li><Link href="/browse" className="text-muted-foreground hover:text-primary transition-colors text-sm">Browse Buddys</Link></li>
               <li><Link href="/pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">Pricing & Plans</Link></li>
-              <li><Link href="/signup/doll" className="text-sm text-muted-foreground hover:text-primary transition-colors">Become a Buddy</Link></li>
-              <li><Link href="/choose-membership" className="text-sm text-muted-foreground hover:text-primary transition-colors">Create Free Profile</Link></li>
+              <li><Link href={PROFILE_ENTRY_PATH} className="text-sm text-muted-foreground hover:text-primary transition-colors">Become a Buddy</Link></li>
+              <li><Link href={PROFILE_ENTRY_PATH} className="text-sm text-muted-foreground hover:text-primary transition-colors">Create Free Profile</Link></li>
             </ul>
           </div>
           <div>

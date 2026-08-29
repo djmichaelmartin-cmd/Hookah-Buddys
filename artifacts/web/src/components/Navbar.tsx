@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PROFILE_ENTRY_PATH } from "@/lib/routes";
 import {
   LogOut,
   User as UserIcon,
@@ -230,7 +231,7 @@ export function Navbar() {
             Browse Buddys
           </Link>
           <Link
-            href="/signup/doll"
+            href={PROFILE_ENTRY_PATH}
             className={`hidden xl:inline-flex items-center h-10 px-5 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
           >
             Become a Buddy
@@ -408,7 +409,7 @@ export function Navbar() {
                 Log in
               </Link>
               <Link
-                href="/choose-membership"
+                href={PROFILE_ENTRY_PATH}
                 className={`inline-flex items-center h-10 px-6 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
               >
                 Create Free Profile
@@ -459,7 +460,7 @@ export function Navbar() {
               </Link>
             ))}
             <Link
-              href="/signup/doll"
+              href={PROFILE_ENTRY_PATH}
               onClick={() => setMenuOpen(false)}
               className={`mt-3 inline-flex items-center justify-center h-11 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
             >
@@ -476,7 +477,7 @@ export function Navbar() {
                   Log in
                 </Link>
                 <Link
-                  href="/choose-membership"
+                  href={PROFILE_ENTRY_PATH}
                   onClick={() => setMenuOpen(false)}
                   className={`inline-flex items-center justify-center h-11 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
                 >

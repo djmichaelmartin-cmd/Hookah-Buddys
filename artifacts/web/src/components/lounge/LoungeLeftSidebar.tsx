@@ -19,6 +19,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { COMMUNITY_SHORTCUTS } from "@/lib/communityTopics";
+import { PROFILE_ENTRY_PATH } from "@/lib/routes";
 
 const NAV_LINKS = [
   { to: "/feed", label: "The Lounge", icon: Home },
@@ -58,7 +59,7 @@ export default function LoungeLeftSidebar() {
     ? session!.user!.role === "doll" && session!.user!.dollId
       ? `/dolls/${session!.user!.dollId}`
       : `/members/${session!.user!.id}`
-    : "/choose-membership";
+    : PROFILE_ENTRY_PATH;
 
   return (
     <aside className="space-y-4">
@@ -98,7 +99,7 @@ export default function LoungeLeftSidebar() {
               Join the community — it's free.
             </p>
             <Link
-              href="/choose-membership"
+              href={PROFILE_ENTRY_PATH}
               className="inline-block w-full rounded-full bg-primary text-primary-foreground text-sm font-medium py-2 hover:opacity-90 transition-opacity"
             >
               Create Free Profile
