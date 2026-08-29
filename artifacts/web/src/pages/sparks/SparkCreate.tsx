@@ -100,6 +100,24 @@ export default function SparkCreate() {
     }
   }, [stream]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+
+    video.srcObject = stream;
+    video.muted = true;
+    void video.play().catch(() => {
+      // The live stream remains attached so the browser can start playback
+      // as soon as its autoplay policy allows it.
+    });
+
+    return () => {
+      if (video.srcObject === stream) {
+        video.srcObject = null;
+      }
+    };
+  }, [stream]);
+
   const clearTimers = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -132,11 +150,6 @@ export default function SparkCreate() {
     try {
       const ms = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
       setStream(ms);
-      if (videoRef.current) {
-        videoRef.current.srcObject = ms;
-        videoRef.current.muted = true;
-        videoRef.current.play().catch(() => {});
-      }
     } catch (e: any) {
       if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
         toast({ title: "Permission Denied", description: "Please allow camera and microphone access to record.", variant: "destructive" });
