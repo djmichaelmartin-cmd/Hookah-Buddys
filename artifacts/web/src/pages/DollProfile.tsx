@@ -18,6 +18,8 @@ import {
   getListFeedPostsQueryKey,
   useListReels,
   getListReelsQueryKey,
+  useGetCreatorRequestAvailability,
+  getGetCreatorRequestAvailabilityQueryKey,
   ApiError,
   type Media,
 } from "@workspace/api-client-react";
@@ -52,10 +54,10 @@ function isOutOfCredits(err: unknown): boolean {
 }
 
 const VIDEO_TYPES = new Set(["premium_video", "short_video"]);
+const isVideo = (media: Media) => VIDEO_TYPES.has(media.type);
 
-function isVideo(m: Media) {
-  return VIDEO_TYPES.has(m.type);
-}
+import { DollProfileAlbums } from "@/components/creator/DollProfileAlbums";
+import { CustomRequestDialog } from "@/components/creator/CustomRequestDialog";
 
 export default function DollProfile() {
   const { id } = useParams();
@@ -197,6 +199,14 @@ export default function DollProfile() {
   );
 
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
+  const creatorUserId = doll?.creatorUserId ?? 0;
+  const { data: requestAvailability } = useGetCreatorRequestAvailability(creatorUserId, {
+    query: {
+      enabled: creatorUserId > 0,
+      queryKey: getGetCreatorRequestAvailabilityQueryKey(creatorUserId),
+    },
+  });
 
   if (isLoading)
     return (
@@ -211,7 +221,7 @@ export default function DollProfile() {
       </Layout>
     );
 
-  const media = (doll.media ?? []).filter((m) => m.type !== "profile" && m.type !== "verification");
+  const media = (doll.media ?? []).filter((item) => item.type !== "profile" && item.type !== "verification");
   const subscribed = doll.viewerSubscribed ?? false;
 
   const handleSubscribe = () => {
@@ -234,7 +244,19 @@ export default function DollProfile() {
     subscribe.mutate({ data: { planId: memberPlan.id, dollId } });
   };
 
-  const handleUnlock = (m: Media) => {
+  const handleRequestContent = () => {
+    if (!session?.user) {
+      navigate("/login");
+      return;
+    }
+    if (!isMember) {
+      toast({ title: "Members only", description: "Sign in as a member to request content.", variant: "destructive" });
+      return;
+    }
+    setRequestOpen(true);
+  };
+
+  const handleUnlock = (item: Media) => {
     if (!session?.user) {
       navigate("/login");
       return;
@@ -243,7 +265,7 @@ export default function DollProfile() {
       toast({ title: "Members only", description: "Sign in as a member to unlock content.", variant: "destructive" });
       return;
     }
-    unlock.mutate({ data: { mediaId: m.id } });
+    unlock.mutate({ data: { mediaId: item.id } });
   };
 
   const requirePaidMember = (action: () => void) => {
@@ -372,23 +394,41 @@ export default function DollProfile() {
                 <div className="bg-card/50 backdrop-blur-md border border-white/10 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-serif text-white">Content</h2>
-                    <span className="text-xs text-muted-foreground">{media.length} items</span>
                   </div>
 
-                  {media.length === 0 ? (
-                    <p className="text-muted-foreground">No content posted yet.</p>
+                  {creatorUserId ? (
+                    <>
+                      <DollProfileAlbums
+                        creatorUserId={creatorUserId}
+                        onUnlockError={(err) => handleCreditError(err, "Failed to unlock album")}
+                        onRequest={handleRequestContent}
+                        requestsAvailable={Boolean(
+                          requestAvailability?.enabled && requestAvailability.onlineEligible,
+                        )}
+                        requestPrice={requestAvailability?.photoPriceCredits}
+                      />
+                      {media.length > 0 && (
+                        <div className="mt-8 border-t border-white/10 pt-6">
+                          <h3 className="mb-3 text-base font-semibold text-white">Existing Gallery</h3>
+                          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                            {media.map((item) => (
+                              <MediaTile
+                                key={item.id}
+                                media={item}
+                                stageName={doll.stageName}
+                                onUnlock={() => handleUnlock(item)}
+                                unlocking={
+                                  unlock.isPending &&
+                                  unlock.variables?.data.mediaId === item.id
+                                }
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {media.map((m) => (
-                        <MediaTile
-                          key={m.id}
-                          media={m}
-                          stageName={doll.stageName}
-                          onUnlock={() => handleUnlock(m)}
-                          unlocking={unlock.isPending && unlock.variables?.data.mediaId === m.id}
-                        />
-                      ))}
-                    </div>
+                    <p className="text-muted-foreground text-sm">Albums are temporarily unavailable for this creator.</p>
                   )}
                 </div>
               </TabsContent>
@@ -501,6 +541,14 @@ export default function DollProfile() {
       </Dialog>
 
       <BuyCreditsDialog open={buyOpen} onOpenChange={setBuyOpen} />
+      {creatorUserId > 0 && (
+        <CustomRequestDialog
+          creatorUserId={creatorUserId}
+          open={requestOpen}
+          onOpenChange={setRequestOpen}
+          onCreditError={(err) => handleCreditError(err, "Failed to send request")}
+        />
+      )}
     </Layout>
   );
 }
@@ -517,58 +565,54 @@ function MediaTile({
   unlocking: boolean;
 }) {
   const video = isVideo(media);
-
   if (media.locked) {
     return (
-      <div className="relative aspect-square rounded-lg overflow-hidden border border-white/10 group">
+      <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/10">
         {media.thumbnailUrl ? (
           <img
             src={media.thumbnailUrl}
             alt={`${stageName} premium content`}
-            className="object-cover w-full h-full blur-xl scale-110"
+            className="h-full w-full scale-110 object-cover blur-xl"
           />
         ) : (
-          <div className="w-full h-full bg-card" />
+          <div className="h-full w-full bg-card" />
         )}
-        <div className="absolute inset-0 bg-background/60 flex flex-col items-center justify-center gap-2 p-3 text-center">
-          <Lock className="w-6 h-6 text-primary" />
-          <p className="text-[11px] text-muted-foreground capitalize">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/60 p-3 text-center">
+          <Lock className="h-6 w-6 text-primary" />
+          <p className="text-[11px] capitalize text-muted-foreground">
             {media.tier ? `Premium ${media.tier}` : video ? "Premium video" : "Premium photo"}
           </p>
           <Button
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs"
+            className="bg-primary text-xs text-primary-foreground hover:bg-primary/90"
             onClick={onUnlock}
             disabled={unlocking}
           >
-            {unlocking
-              ? "Unlocking..."
-              : `Unlock${media.unlockCost ? ` · ${media.unlockCost} credits` : ""}`}
+            {unlocking ? "Unlocking..." : `Unlock${media.unlockCost ? ` · ${media.unlockCost} credits` : ""}`}
           </Button>
         </div>
       </div>
     );
   }
-
   return (
-    <div className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-card">
+    <div className="relative aspect-square overflow-hidden rounded-lg border border-white/10 bg-card">
       {video ? (
         media.url ? (
-          <video src={media.url} controls playsInline className="object-cover w-full h-full" />
+          <video src={media.url} controls playsInline className="h-full w-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Play className="w-8 h-8 text-muted-foreground/40" />
+          <div className="flex h-full w-full items-center justify-center">
+            <Play className="h-8 w-8 text-muted-foreground/40" />
           </div>
         )
       ) : media.url ? (
-        <img src={media.url} alt={media.caption || `${stageName} content`} className="object-cover w-full h-full" />
+        <img src={media.url} alt={media.caption || `${stageName} content`} className="h-full w-full object-cover" />
       ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <ImageIcon className="w-8 h-8 text-muted-foreground/40" />
+        <div className="flex h-full w-full items-center justify-center">
+          <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
         </div>
       )}
       {media.premium && (
-        <span className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+        <span className="absolute left-2 top-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
           Premium
         </span>
       )}

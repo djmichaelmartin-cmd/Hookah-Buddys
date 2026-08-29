@@ -27,6 +27,73 @@ async function ensureBalanceRow(tx: Tx, userId: number): Promise<void> {
     .onConflictDoNothing({ target: creditBalancesTable.userId });
 }
 
+export type CreditHold = {
+  membershipCredits: number;
+  purchasedCredits: number;
+};
+
+/**
+ * Reserve credits for a custom request while retaining the exact source
+ * buckets. Callers must insert their request/ledger row in this same
+ * transaction. The locked balance row prevents concurrent reservations from
+ * overspending and the returned split makes a later refund deterministic.
+ */
+export async function holdCredits(
+  tx: Tx,
+  userId: number,
+  amount: number,
+): Promise<CreditHold | null> {
+  if (!Number.isInteger(amount) || amount < 0) {
+    throw new Error("Credit hold amount must be a non-negative integer");
+  }
+  await ensureBalanceRow(tx, userId);
+  const [balance] = await tx
+    .select()
+    .from(creditBalancesTable)
+    .where(eq(creditBalancesTable.userId, userId))
+    .for("update");
+  if (!balance || balance.membershipBalance + balance.purchasedBalance < amount) return null;
+  const membershipCredits = Math.min(balance.membershipBalance, amount);
+  const purchasedCredits = amount - membershipCredits;
+  await tx
+    .update(creditBalancesTable)
+    .set({
+      membershipBalance: balance.membershipBalance - membershipCredits,
+      purchasedBalance: balance.purchasedBalance - purchasedCredits,
+    })
+    .where(eq(creditBalancesTable.userId, userId));
+  return { membershipCredits, purchasedCredits };
+}
+
+/**
+ * Refund a previously recorded hold to its original buckets. This does not
+ * create a ledger entry because the request transition owns the reference and
+ * descriptive metadata; keeping that insert with the status transition makes
+ * the refund exactly-once under the request row lock.
+ */
+export async function restoreHeldCredits(
+  tx: Tx,
+  userId: number,
+  hold: CreditHold,
+): Promise<void> {
+  if (
+    !Number.isInteger(hold.membershipCredits) ||
+    !Number.isInteger(hold.purchasedCredits) ||
+    hold.membershipCredits < 0 ||
+    hold.purchasedCredits < 0
+  ) {
+    throw new Error("Invalid credit hold");
+  }
+  await ensureBalanceRow(tx, userId);
+  await tx
+    .update(creditBalancesTable)
+    .set({
+      membershipBalance: sql`${creditBalancesTable.membershipBalance} + ${hold.membershipCredits}`,
+      purchasedBalance: sql`${creditBalancesTable.purchasedBalance} + ${hold.purchasedCredits}`,
+    })
+    .where(eq(creditBalancesTable.userId, userId));
+}
+
 /**
  * Atomically debit `cost` credits from a user and run `action` in the same
  * transaction. Membership credits are spent first, then purchased credits.
@@ -63,6 +130,53 @@ export async function spendCredits<T>(
     if (!row) return { ok: false as const };
     const result = await action(tx);
     return { ok: true as const, balance: row.membershipBalance + row.purchasedBalance, result };
+  });
+}
+
+/**
+ * Atomically calculate a context-sensitive price after locking the member's
+ * balance, then debit and run the entitlement action in the same transaction.
+ * Every competing spend for this member serializes on the same balance row.
+ */
+export async function spendCalculatedCredits<T>(
+  userId: number,
+  prepare: (
+    tx: Tx,
+  ) => Promise<{ cost: number; action: (tx: Tx) => Promise<T> }>,
+): Promise<{ ok: true; balance: number; result: T } | { ok: false }> {
+  return db.transaction(async (tx) => {
+    await ensureBalanceRow(tx, userId);
+    const [balance] = await tx
+      .select()
+      .from(creditBalancesTable)
+      .where(eq(creditBalancesTable.userId, userId))
+      .for("update");
+    const { cost, action } = await prepare(tx);
+    if (!Number.isInteger(cost) || cost < 0) {
+      throw new Error("Credit spend must be a non-negative integer");
+    }
+    if (
+      !balance ||
+      balance.membershipBalance + balance.purchasedBalance < cost
+    ) {
+      return { ok: false as const };
+    }
+    const membershipCredits = Math.min(balance.membershipBalance, cost);
+    const purchasedCredits = cost - membershipCredits;
+    const [updated] = await tx
+      .update(creditBalancesTable)
+      .set({
+        membershipBalance: balance.membershipBalance - membershipCredits,
+        purchasedBalance: balance.purchasedBalance - purchasedCredits,
+      })
+      .where(eq(creditBalancesTable.userId, userId))
+      .returning();
+    const result = await action(tx);
+    return {
+      ok: true as const,
+      balance: updated.membershipBalance + updated.purchasedBalance,
+      result,
+    };
   });
 }
 

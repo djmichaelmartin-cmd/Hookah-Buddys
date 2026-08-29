@@ -29,6 +29,7 @@ import type {
   AdminGroupActionBody,
   AdminGroupDetail,
   AdminGroupList,
+  AdminListCustomRequestsParams,
   AdminListGroupPostsParams,
   AdminListGroupReportsParams,
   AdminListGroupsParams,
@@ -36,6 +37,7 @@ import type {
   AdminListSharingSuspensionsParams,
   AdminModerateGroupContentBody,
   AdminModerateShareInput,
+  AdminResolveCustomRequestInput,
   AdminShareList,
   AdminShareRecord,
   AdminStats,
@@ -121,12 +123,26 @@ import type {
   CreateGroupBody,
   CreateGroupEventBody,
   CreateGroupPostBody,
+  CreatorAlbum,
+  CreatorAlbumMedia,
+  CreatorAlbumMediaInput,
+  CreatorAlbumMediaUpdate,
+  CreatorAlbumUnlock,
+  CreatorAlbumUpdate,
+  CreatorRequestAcceptanceInput,
+  CreatorRequestAvailability,
+  CreatorRequestSettings,
+  CreatorRequestSettingsInput,
   CreditAdjustmentInput,
   CreditBalance,
   CreditPackage,
   CreditPackageUpdate,
   CreditPurchaseInput,
   CurrentUser,
+  CustomContentRequest,
+  CustomContentRequestInput,
+  CustomDeliveryInput,
+  CustomRequestDisputeInput,
   DeleteBusinessChildComment200,
   Doll,
   DollAnalytics,
@@ -337,6 +353,146 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
+
+export const getUploadCreatorContentImageUrl = () => {
+
+
+
+
+  return `/api/creator-content/uploads/image`
+}
+
+/**
+ * @summary Upload a private Creator album or custom-request image
+ */
+export const uploadCreatorContentImage = async (uploadCreatorContentImageBody: Blob, options?: RequestInit): Promise<ImageUploadResponse> => {
+
+  return customFetch<ImageUploadResponse>(getUploadCreatorContentImageUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'image/*', ...options?.headers },
+    body: uploadCreatorContentImageBody
+  }
+);}
+
+
+
+
+export const getUploadCreatorContentImageMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadCreatorContentImage>>, TError,{data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadCreatorContentImage>>, TError,{data: BodyType<Blob>}, TContext> => {
+
+const mutationKey = ['uploadCreatorContentImage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadCreatorContentImage>>, {data: BodyType<Blob>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadCreatorContentImage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadCreatorContentImageMutationResult = NonNullable<Awaited<ReturnType<typeof uploadCreatorContentImage>>>
+    export type UploadCreatorContentImageMutationBody = BodyType<Blob>
+    export type UploadCreatorContentImageMutationError = ErrorType<void>
+
+    /**
+ * @summary Upload a private Creator album or custom-request image
+ */
+export const useUploadCreatorContentImage = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadCreatorContentImage>>, TError,{data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadCreatorContentImage>>,
+        TError,
+        {data: BodyType<Blob>},
+        TContext
+      > => {
+      return useMutation(getUploadCreatorContentImageMutationOptions(options));
+    }
+
+export const getUploadCreatorContentVideoUrl = () => {
+
+
+
+
+  return `/api/creator-content/uploads/video`
+}
+
+/**
+ * @summary Upload a private Creator album or custom-request video
+ */
+export const uploadCreatorContentVideo = async (uploadCreatorContentVideoBody: Blob, options?: RequestInit): Promise<VideoUploadResponse> => {
+
+  return customFetch<VideoUploadResponse>(getUploadCreatorContentVideoUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'video/*', ...options?.headers },
+    body: uploadCreatorContentVideoBody
+  }
+);}
+
+
+
+
+export const getUploadCreatorContentVideoMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadCreatorContentVideo>>, TError,{data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadCreatorContentVideo>>, TError,{data: BodyType<Blob>}, TContext> => {
+
+const mutationKey = ['uploadCreatorContentVideo'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadCreatorContentVideo>>, {data: BodyType<Blob>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadCreatorContentVideo(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadCreatorContentVideoMutationResult = NonNullable<Awaited<ReturnType<typeof uploadCreatorContentVideo>>>
+    export type UploadCreatorContentVideoMutationBody = BodyType<Blob>
+    export type UploadCreatorContentVideoMutationError = ErrorType<void>
+
+    /**
+ * @summary Upload a private Creator album or custom-request video
+ */
+export const useUploadCreatorContentVideo = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadCreatorContentVideo>>, TError,{data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadCreatorContentVideo>>,
+        TError,
+        {data: BodyType<Blob>},
+        TContext
+      > => {
+      return useMutation(getUploadCreatorContentVideoMutationOptions(options));
+    }
 
 export const getUploadImageUrl = () => {
 
@@ -4246,6 +4402,1707 @@ export const useUnlockContent = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUnlockContentMutationOptions(options));
+    }
+
+export const getListCreatorAlbumsUrl = (creatorUserId: number,) => {
+
+
+
+
+  return `/api/creator-albums/${creatorUserId}`
+}
+
+export const listCreatorAlbums = async (creatorUserId: number, options?: RequestInit): Promise<CreatorAlbum[]> => {
+
+  return customFetch<CreatorAlbum[]>(getListCreatorAlbumsUrl(creatorUserId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCreatorAlbumsQueryKey = (creatorUserId: number,) => {
+    return [
+    `/api/creator-albums/${creatorUserId}`
+    ] as const;
+    }
+
+
+export const getListCreatorAlbumsQueryOptions = <TData = Awaited<ReturnType<typeof listCreatorAlbums>>, TError = ErrorType<unknown>>(creatorUserId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCreatorAlbums>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCreatorAlbumsQueryKey(creatorUserId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCreatorAlbums>>> = ({ signal }) => listCreatorAlbums(creatorUserId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(creatorUserId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCreatorAlbums>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCreatorAlbumsQueryResult = NonNullable<Awaited<ReturnType<typeof listCreatorAlbums>>>
+export type ListCreatorAlbumsQueryError = ErrorType<unknown>
+
+
+
+export function useListCreatorAlbums<TData = Awaited<ReturnType<typeof listCreatorAlbums>>, TError = ErrorType<unknown>>(
+ creatorUserId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCreatorAlbums>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCreatorAlbumsQueryOptions(creatorUserId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUnlockCreatorAlbumUrl = (albumId: number,) => {
+
+
+
+
+  return `/api/creator-albums/${albumId}/unlock`
+}
+
+export const unlockCreatorAlbum = async (albumId: number, options?: RequestInit): Promise<CreatorAlbumUnlock> => {
+
+  return customFetch<CreatorAlbumUnlock>(getUnlockCreatorAlbumUrl(albumId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getUnlockCreatorAlbumMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlockCreatorAlbum>>, TError,{albumId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unlockCreatorAlbum>>, TError,{albumId: number}, TContext> => {
+
+const mutationKey = ['unlockCreatorAlbum'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlockCreatorAlbum>>, {albumId: number}> = (props) => {
+          const {albumId} = props ?? {};
+
+          return  unlockCreatorAlbum(albumId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnlockCreatorAlbumMutationResult = NonNullable<Awaited<ReturnType<typeof unlockCreatorAlbum>>>
+
+    export type UnlockCreatorAlbumMutationError = ErrorType<unknown>
+
+    export const useUnlockCreatorAlbum = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlockCreatorAlbum>>, TError,{albumId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof unlockCreatorAlbum>>,
+        TError,
+        {albumId: number},
+        TContext
+      > => {
+      return useMutation(getUnlockCreatorAlbumMutationOptions(options));
+    }
+
+export const getGetCreatorAlbumMediaContentUrl = (albumId: number,
+    mediaId: number,) => {
+
+
+
+
+  return `/api/creator-albums/${albumId}/media/${mediaId}/content`
+}
+
+/**
+ * @summary Stream album media for an entitled viewer
+ */
+export const getCreatorAlbumMediaContent = async (albumId: number,
+    mediaId: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetCreatorAlbumMediaContentUrl(albumId,mediaId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCreatorAlbumMediaContentQueryKey = (albumId: number,
+    mediaId: number,) => {
+    return [
+    `/api/creator-albums/${albumId}/media/${mediaId}/content`
+    ] as const;
+    }
+
+
+export const getGetCreatorAlbumMediaContentQueryOptions = <TData = Awaited<ReturnType<typeof getCreatorAlbumMediaContent>>, TError = ErrorType<void>>(albumId: number,
+    mediaId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCreatorAlbumMediaContent>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCreatorAlbumMediaContentQueryKey(albumId,mediaId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCreatorAlbumMediaContent>>> = ({ signal }) => getCreatorAlbumMediaContent(albumId,mediaId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(albumId && mediaId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCreatorAlbumMediaContent>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCreatorAlbumMediaContentQueryResult = NonNullable<Awaited<ReturnType<typeof getCreatorAlbumMediaContent>>>
+export type GetCreatorAlbumMediaContentQueryError = ErrorType<void>
+
+
+/**
+ * @summary Stream album media for an entitled viewer
+ */
+
+export function useGetCreatorAlbumMediaContent<TData = Awaited<ReturnType<typeof getCreatorAlbumMediaContent>>, TError = ErrorType<void>>(
+ albumId: number,
+    mediaId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCreatorAlbumMediaContent>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCreatorAlbumMediaContentQueryOptions(albumId,mediaId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddCreatorAlbumMediaUrl = (albumId: number,) => {
+
+
+
+
+  return `/api/creator/albums/${albumId}/media`
+}
+
+export const addCreatorAlbumMedia = async (albumId: number,
+    creatorAlbumMediaInput: CreatorAlbumMediaInput, options?: RequestInit): Promise<CreatorAlbumMedia> => {
+
+  return customFetch<CreatorAlbumMedia>(getAddCreatorAlbumMediaUrl(albumId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      creatorAlbumMediaInput,)
+  }
+);}
+
+
+
+
+export const getAddCreatorAlbumMediaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addCreatorAlbumMedia>>, TError,{albumId: number;data: BodyType<CreatorAlbumMediaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addCreatorAlbumMedia>>, TError,{albumId: number;data: BodyType<CreatorAlbumMediaInput>}, TContext> => {
+
+const mutationKey = ['addCreatorAlbumMedia'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addCreatorAlbumMedia>>, {albumId: number;data: BodyType<CreatorAlbumMediaInput>}> = (props) => {
+          const {albumId,data} = props ?? {};
+
+          return  addCreatorAlbumMedia(albumId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddCreatorAlbumMediaMutationResult = NonNullable<Awaited<ReturnType<typeof addCreatorAlbumMedia>>>
+    export type AddCreatorAlbumMediaMutationBody = BodyType<CreatorAlbumMediaInput>
+    export type AddCreatorAlbumMediaMutationError = ErrorType<unknown>
+
+    export const useAddCreatorAlbumMedia = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addCreatorAlbumMedia>>, TError,{albumId: number;data: BodyType<CreatorAlbumMediaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addCreatorAlbumMedia>>,
+        TError,
+        {albumId: number;data: BodyType<CreatorAlbumMediaInput>},
+        TContext
+      > => {
+      return useMutation(getAddCreatorAlbumMediaMutationOptions(options));
+    }
+
+export const getUpdateCreatorAlbumUrl = (albumId: number,) => {
+
+
+
+
+  return `/api/creator/albums/${albumId}`
+}
+
+export const updateCreatorAlbum = async (albumId: number,
+    creatorAlbumUpdate: CreatorAlbumUpdate, options?: RequestInit): Promise<CreatorAlbum> => {
+
+  return customFetch<CreatorAlbum>(getUpdateCreatorAlbumUrl(albumId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      creatorAlbumUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateCreatorAlbumMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCreatorAlbum>>, TError,{albumId: number;data: BodyType<CreatorAlbumUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCreatorAlbum>>, TError,{albumId: number;data: BodyType<CreatorAlbumUpdate>}, TContext> => {
+
+const mutationKey = ['updateCreatorAlbum'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCreatorAlbum>>, {albumId: number;data: BodyType<CreatorAlbumUpdate>}> = (props) => {
+          const {albumId,data} = props ?? {};
+
+          return  updateCreatorAlbum(albumId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCreatorAlbumMutationResult = NonNullable<Awaited<ReturnType<typeof updateCreatorAlbum>>>
+    export type UpdateCreatorAlbumMutationBody = BodyType<CreatorAlbumUpdate>
+    export type UpdateCreatorAlbumMutationError = ErrorType<unknown>
+
+    export const useUpdateCreatorAlbum = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCreatorAlbum>>, TError,{albumId: number;data: BodyType<CreatorAlbumUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCreatorAlbum>>,
+        TError,
+        {albumId: number;data: BodyType<CreatorAlbumUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateCreatorAlbumMutationOptions(options));
+    }
+
+export const getRemoveCreatorAlbumMediaUrl = (albumId: number,
+    mediaId: number,) => {
+
+
+
+
+  return `/api/creator/albums/${albumId}/media/${mediaId}`
+}
+
+export const removeCreatorAlbumMedia = async (albumId: number,
+    mediaId: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRemoveCreatorAlbumMediaUrl(albumId,mediaId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRemoveCreatorAlbumMediaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeCreatorAlbumMedia>>, TError,{albumId: number;mediaId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeCreatorAlbumMedia>>, TError,{albumId: number;mediaId: number}, TContext> => {
+
+const mutationKey = ['removeCreatorAlbumMedia'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeCreatorAlbumMedia>>, {albumId: number;mediaId: number}> = (props) => {
+          const {albumId,mediaId} = props ?? {};
+
+          return  removeCreatorAlbumMedia(albumId,mediaId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveCreatorAlbumMediaMutationResult = NonNullable<Awaited<ReturnType<typeof removeCreatorAlbumMedia>>>
+
+    export type RemoveCreatorAlbumMediaMutationError = ErrorType<unknown>
+
+    export const useRemoveCreatorAlbumMedia = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeCreatorAlbumMedia>>, TError,{albumId: number;mediaId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeCreatorAlbumMedia>>,
+        TError,
+        {albumId: number;mediaId: number},
+        TContext
+      > => {
+      return useMutation(getRemoveCreatorAlbumMediaMutationOptions(options));
+    }
+
+export const getUpdateCreatorAlbumMediaUrl = (albumId: number,
+    mediaId: number,) => {
+
+
+
+
+  return `/api/creator/albums/${albumId}/media/${mediaId}`
+}
+
+export const updateCreatorAlbumMedia = async (albumId: number,
+    mediaId: number,
+    creatorAlbumMediaUpdate: CreatorAlbumMediaUpdate, options?: RequestInit): Promise<CreatorAlbumMedia> => {
+
+  return customFetch<CreatorAlbumMedia>(getUpdateCreatorAlbumMediaUrl(albumId,mediaId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      creatorAlbumMediaUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateCreatorAlbumMediaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCreatorAlbumMedia>>, TError,{albumId: number;mediaId: number;data: BodyType<CreatorAlbumMediaUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCreatorAlbumMedia>>, TError,{albumId: number;mediaId: number;data: BodyType<CreatorAlbumMediaUpdate>}, TContext> => {
+
+const mutationKey = ['updateCreatorAlbumMedia'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCreatorAlbumMedia>>, {albumId: number;mediaId: number;data: BodyType<CreatorAlbumMediaUpdate>}> = (props) => {
+          const {albumId,mediaId,data} = props ?? {};
+
+          return  updateCreatorAlbumMedia(albumId,mediaId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCreatorAlbumMediaMutationResult = NonNullable<Awaited<ReturnType<typeof updateCreatorAlbumMedia>>>
+    export type UpdateCreatorAlbumMediaMutationBody = BodyType<CreatorAlbumMediaUpdate>
+    export type UpdateCreatorAlbumMediaMutationError = ErrorType<unknown>
+
+    export const useUpdateCreatorAlbumMedia = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCreatorAlbumMedia>>, TError,{albumId: number;mediaId: number;data: BodyType<CreatorAlbumMediaUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCreatorAlbumMedia>>,
+        TError,
+        {albumId: number;mediaId: number;data: BodyType<CreatorAlbumMediaUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateCreatorAlbumMediaMutationOptions(options));
+    }
+
+export const getGetCreatorRequestSettingsUrl = () => {
+
+
+
+
+  return `/api/creator/request-settings`
+}
+
+export const getCreatorRequestSettings = async ( options?: RequestInit): Promise<CreatorRequestSettings> => {
+
+  return customFetch<CreatorRequestSettings>(getGetCreatorRequestSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCreatorRequestSettingsQueryKey = () => {
+    return [
+    `/api/creator/request-settings`
+    ] as const;
+    }
+
+
+export const getGetCreatorRequestSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getCreatorRequestSettings>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCreatorRequestSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCreatorRequestSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCreatorRequestSettings>>> = ({ signal }) => getCreatorRequestSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCreatorRequestSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCreatorRequestSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getCreatorRequestSettings>>>
+export type GetCreatorRequestSettingsQueryError = ErrorType<unknown>
+
+
+
+export function useGetCreatorRequestSettings<TData = Awaited<ReturnType<typeof getCreatorRequestSettings>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCreatorRequestSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCreatorRequestSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateCreatorRequestSettingsUrl = () => {
+
+
+
+
+  return `/api/creator/request-settings`
+}
+
+export const updateCreatorRequestSettings = async (creatorRequestSettingsInput: CreatorRequestSettingsInput, options?: RequestInit): Promise<CreatorRequestSettings> => {
+
+  return customFetch<CreatorRequestSettings>(getUpdateCreatorRequestSettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      creatorRequestSettingsInput,)
+  }
+);}
+
+
+
+
+export const getUpdateCreatorRequestSettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCreatorRequestSettings>>, TError,{data: BodyType<CreatorRequestSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCreatorRequestSettings>>, TError,{data: BodyType<CreatorRequestSettingsInput>}, TContext> => {
+
+const mutationKey = ['updateCreatorRequestSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCreatorRequestSettings>>, {data: BodyType<CreatorRequestSettingsInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateCreatorRequestSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCreatorRequestSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateCreatorRequestSettings>>>
+    export type UpdateCreatorRequestSettingsMutationBody = BodyType<CreatorRequestSettingsInput>
+    export type UpdateCreatorRequestSettingsMutationError = ErrorType<unknown>
+
+    export const useUpdateCreatorRequestSettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCreatorRequestSettings>>, TError,{data: BodyType<CreatorRequestSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCreatorRequestSettings>>,
+        TError,
+        {data: BodyType<CreatorRequestSettingsInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCreatorRequestSettingsMutationOptions(options));
+    }
+
+export const getGetCreatorRequestAvailabilityUrl = (creatorUserId: number,) => {
+
+
+
+
+  return `/api/creators/${creatorUserId}/request-availability`
+}
+
+export const getCreatorRequestAvailability = async (creatorUserId: number, options?: RequestInit): Promise<CreatorRequestAvailability> => {
+
+  return customFetch<CreatorRequestAvailability>(getGetCreatorRequestAvailabilityUrl(creatorUserId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCreatorRequestAvailabilityQueryKey = (creatorUserId: number,) => {
+    return [
+    `/api/creators/${creatorUserId}/request-availability`
+    ] as const;
+    }
+
+
+export const getGetCreatorRequestAvailabilityQueryOptions = <TData = Awaited<ReturnType<typeof getCreatorRequestAvailability>>, TError = ErrorType<unknown>>(creatorUserId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCreatorRequestAvailability>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCreatorRequestAvailabilityQueryKey(creatorUserId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCreatorRequestAvailability>>> = ({ signal }) => getCreatorRequestAvailability(creatorUserId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(creatorUserId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCreatorRequestAvailability>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCreatorRequestAvailabilityQueryResult = NonNullable<Awaited<ReturnType<typeof getCreatorRequestAvailability>>>
+export type GetCreatorRequestAvailabilityQueryError = ErrorType<unknown>
+
+
+
+export function useGetCreatorRequestAvailability<TData = Awaited<ReturnType<typeof getCreatorRequestAvailability>>, TError = ErrorType<unknown>>(
+ creatorUserId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCreatorRequestAvailability>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCreatorRequestAvailabilityQueryOptions(creatorUserId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListCustomRequestsUrl = () => {
+
+
+
+
+  return `/api/custom-requests`
+}
+
+export const listCustomRequests = async ( options?: RequestInit): Promise<CustomContentRequest[]> => {
+
+  return customFetch<CustomContentRequest[]>(getListCustomRequestsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCustomRequestsQueryKey = () => {
+    return [
+    `/api/custom-requests`
+    ] as const;
+    }
+
+
+export const getListCustomRequestsQueryOptions = <TData = Awaited<ReturnType<typeof listCustomRequests>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCustomRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCustomRequestsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCustomRequests>>> = ({ signal }) => listCustomRequests({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCustomRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCustomRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof listCustomRequests>>>
+export type ListCustomRequestsQueryError = ErrorType<unknown>
+
+
+
+export function useListCustomRequests<TData = Awaited<ReturnType<typeof listCustomRequests>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCustomRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCustomRequestsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCustomRequestUrl = () => {
+
+
+
+
+  return `/api/custom-requests`
+}
+
+export const createCustomRequest = async (customContentRequestInput: CustomContentRequestInput, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getCreateCustomRequestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      customContentRequestInput,)
+  }
+);}
+
+
+
+
+export const getCreateCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCustomRequest>>, TError,{data: BodyType<CustomContentRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCustomRequest>>, TError,{data: BodyType<CustomContentRequestInput>}, TContext> => {
+
+const mutationKey = ['createCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCustomRequest>>, {data: BodyType<CustomContentRequestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCustomRequest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createCustomRequest>>>
+    export type CreateCustomRequestMutationBody = BodyType<CustomContentRequestInput>
+    export type CreateCustomRequestMutationError = ErrorType<unknown>
+
+    export const useCreateCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCustomRequest>>, TError,{data: BodyType<CustomContentRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCustomRequest>>,
+        TError,
+        {data: BodyType<CustomContentRequestInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCustomRequestMutationOptions(options));
+    }
+
+export const getAcceptCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}/accept`
+}
+
+export const acceptCustomRequest = async (id: number,
+    creatorRequestAcceptanceInput: CreatorRequestAcceptanceInput, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getAcceptCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      creatorRequestAcceptanceInput,)
+  }
+);}
+
+
+
+
+export const getAcceptCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptCustomRequest>>, TError,{id: number;data: BodyType<CreatorRequestAcceptanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptCustomRequest>>, TError,{id: number;data: BodyType<CreatorRequestAcceptanceInput>}, TContext> => {
+
+const mutationKey = ['acceptCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptCustomRequest>>, {id: number;data: BodyType<CreatorRequestAcceptanceInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  acceptCustomRequest(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof acceptCustomRequest>>>
+    export type AcceptCustomRequestMutationBody = BodyType<CreatorRequestAcceptanceInput>
+    export type AcceptCustomRequestMutationError = ErrorType<unknown>
+
+    export const useAcceptCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptCustomRequest>>, TError,{id: number;data: BodyType<CreatorRequestAcceptanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acceptCustomRequest>>,
+        TError,
+        {id: number;data: BodyType<CreatorRequestAcceptanceInput>},
+        TContext
+      > => {
+      return useMutation(getAcceptCustomRequestMutationOptions(options));
+    }
+
+export const getDeclineCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}/decline`
+}
+
+export const declineCustomRequest = async (id: number, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getDeclineCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getDeclineCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineCustomRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof declineCustomRequest>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['declineCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof declineCustomRequest>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  declineCustomRequest(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeclineCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof declineCustomRequest>>>
+
+    export type DeclineCustomRequestMutationError = ErrorType<unknown>
+
+    export const useDeclineCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineCustomRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof declineCustomRequest>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeclineCustomRequestMutationOptions(options));
+    }
+
+export const getCancelCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}/cancel`
+}
+
+export const cancelCustomRequest = async (id: number, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getCancelCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCancelCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelCustomRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelCustomRequest>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['cancelCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelCustomRequest>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelCustomRequest(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof cancelCustomRequest>>>
+
+    export type CancelCustomRequestMutationError = ErrorType<unknown>
+
+    export const useCancelCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelCustomRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelCustomRequest>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCancelCustomRequestMutationOptions(options));
+    }
+
+export const getCompleteCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}/complete`
+}
+
+export const completeCustomRequest = async (id: number, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getCompleteCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCompleteCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeCustomRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeCustomRequest>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['completeCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeCustomRequest>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  completeCustomRequest(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof completeCustomRequest>>>
+
+    export type CompleteCustomRequestMutationError = ErrorType<unknown>
+
+    export const useCompleteCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeCustomRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeCustomRequest>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCompleteCustomRequestMutationOptions(options));
+    }
+
+export const getDisputeCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}/dispute`
+}
+
+export const disputeCustomRequest = async (id: number,
+    customRequestDisputeInput: CustomRequestDisputeInput, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getDisputeCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      customRequestDisputeInput,)
+  }
+);}
+
+
+
+
+export const getDisputeCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disputeCustomRequest>>, TError,{id: number;data: BodyType<CustomRequestDisputeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof disputeCustomRequest>>, TError,{id: number;data: BodyType<CustomRequestDisputeInput>}, TContext> => {
+
+const mutationKey = ['disputeCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof disputeCustomRequest>>, {id: number;data: BodyType<CustomRequestDisputeInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  disputeCustomRequest(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DisputeCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof disputeCustomRequest>>>
+    export type DisputeCustomRequestMutationBody = BodyType<CustomRequestDisputeInput>
+    export type DisputeCustomRequestMutationError = ErrorType<unknown>
+
+    export const useDisputeCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disputeCustomRequest>>, TError,{id: number;data: BodyType<CustomRequestDisputeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof disputeCustomRequest>>,
+        TError,
+        {id: number;data: BodyType<CustomRequestDisputeInput>},
+        TContext
+      > => {
+      return useMutation(getDisputeCustomRequestMutationOptions(options));
+    }
+
+export const getGetCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}`
+}
+
+export const getCustomRequest = async (id: number, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getGetCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCustomRequestQueryKey = (id: number,) => {
+    return [
+    `/api/custom-requests/${id}`
+    ] as const;
+    }
+
+
+export const getGetCustomRequestQueryOptions = <TData = Awaited<ReturnType<typeof getCustomRequest>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomRequest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCustomRequestQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomRequest>>> = ({ signal }) => getCustomRequest(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomRequest>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCustomRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomRequest>>>
+export type GetCustomRequestQueryError = ErrorType<unknown>
+
+
+
+export function useGetCustomRequest<TData = Awaited<ReturnType<typeof getCustomRequest>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomRequest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCustomRequestQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDeliverCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}/deliver`
+}
+
+export const deliverCustomRequest = async (id: number,
+    customDeliveryInput: CustomDeliveryInput, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getDeliverCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      customDeliveryInput,)
+  }
+);}
+
+
+
+
+export const getDeliverCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverCustomRequest>>, TError,{id: number;data: BodyType<CustomDeliveryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deliverCustomRequest>>, TError,{id: number;data: BodyType<CustomDeliveryInput>}, TContext> => {
+
+const mutationKey = ['deliverCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deliverCustomRequest>>, {id: number;data: BodyType<CustomDeliveryInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  deliverCustomRequest(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeliverCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deliverCustomRequest>>>
+    export type DeliverCustomRequestMutationBody = BodyType<CustomDeliveryInput>
+    export type DeliverCustomRequestMutationError = ErrorType<unknown>
+
+    export const useDeliverCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverCustomRequest>>, TError,{id: number;data: BodyType<CustomDeliveryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deliverCustomRequest>>,
+        TError,
+        {id: number;data: BodyType<CustomDeliveryInput>},
+        TContext
+      > => {
+      return useMutation(getDeliverCustomRequestMutationOptions(options));
+    }
+
+export const getGetCustomRequestImageUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}/media/image`
+}
+
+export const getCustomRequestImage = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetCustomRequestImageUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCustomRequestImageQueryKey = (id: number,) => {
+    return [
+    `/api/custom-requests/${id}/media/image`
+    ] as const;
+    }
+
+
+export const getGetCustomRequestImageQueryOptions = <TData = Awaited<ReturnType<typeof getCustomRequestImage>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomRequestImage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCustomRequestImageQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomRequestImage>>> = ({ signal }) => getCustomRequestImage(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomRequestImage>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCustomRequestImageQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomRequestImage>>>
+export type GetCustomRequestImageQueryError = ErrorType<unknown>
+
+
+
+export function useGetCustomRequestImage<TData = Awaited<ReturnType<typeof getCustomRequestImage>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomRequestImage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCustomRequestImageQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCustomRequestVideoUrl = (id: number,) => {
+
+
+
+
+  return `/api/custom-requests/${id}/media/video`
+}
+
+export const getCustomRequestVideo = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetCustomRequestVideoUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCustomRequestVideoQueryKey = (id: number,) => {
+    return [
+    `/api/custom-requests/${id}/media/video`
+    ] as const;
+    }
+
+
+export const getGetCustomRequestVideoQueryOptions = <TData = Awaited<ReturnType<typeof getCustomRequestVideo>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomRequestVideo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCustomRequestVideoQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomRequestVideo>>> = ({ signal }) => getCustomRequestVideo(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomRequestVideo>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCustomRequestVideoQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomRequestVideo>>>
+export type GetCustomRequestVideoQueryError = ErrorType<unknown>
+
+
+
+export function useGetCustomRequestVideo<TData = Awaited<ReturnType<typeof getCustomRequestVideo>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomRequestVideo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCustomRequestVideoQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAdminListCustomRequestsUrl = (params?: AdminListCustomRequestsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/custom-requests?${stringifiedParams}` : `/api/admin/custom-requests`
+}
+
+export const adminListCustomRequests = async (params?: AdminListCustomRequestsParams, options?: RequestInit): Promise<CustomContentRequest[]> => {
+
+  return customFetch<CustomContentRequest[]>(getAdminListCustomRequestsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminListCustomRequestsQueryKey = (params?: AdminListCustomRequestsParams,) => {
+    return [
+    `/api/admin/custom-requests`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAdminListCustomRequestsQueryOptions = <TData = Awaited<ReturnType<typeof adminListCustomRequests>>, TError = ErrorType<unknown>>(params?: AdminListCustomRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListCustomRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminListCustomRequestsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListCustomRequests>>> = ({ signal }) => adminListCustomRequests(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminListCustomRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminListCustomRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof adminListCustomRequests>>>
+export type AdminListCustomRequestsQueryError = ErrorType<unknown>
+
+
+
+export function useAdminListCustomRequests<TData = Awaited<ReturnType<typeof adminListCustomRequests>>, TError = ErrorType<unknown>>(
+ params?: AdminListCustomRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListCustomRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminListCustomRequestsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAdminRefundCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/custom-requests/${id}/refund`
+}
+
+export const adminRefundCustomRequest = async (id: number, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getAdminRefundCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAdminRefundCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRefundCustomRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminRefundCustomRequest>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['adminRefundCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminRefundCustomRequest>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  adminRefundCustomRequest(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminRefundCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof adminRefundCustomRequest>>>
+
+    export type AdminRefundCustomRequestMutationError = ErrorType<unknown>
+
+    export const useAdminRefundCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRefundCustomRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminRefundCustomRequest>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getAdminRefundCustomRequestMutationOptions(options));
+    }
+
+export const getAdminResolveCustomRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/custom-requests/${id}/resolve`
+}
+
+export const adminResolveCustomRequest = async (id: number,
+    adminResolveCustomRequestInput: AdminResolveCustomRequestInput, options?: RequestInit): Promise<CustomContentRequest> => {
+
+  return customFetch<CustomContentRequest>(getAdminResolveCustomRequestUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminResolveCustomRequestInput,)
+  }
+);}
+
+
+
+
+export const getAdminResolveCustomRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminResolveCustomRequest>>, TError,{id: number;data: BodyType<AdminResolveCustomRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminResolveCustomRequest>>, TError,{id: number;data: BodyType<AdminResolveCustomRequestInput>}, TContext> => {
+
+const mutationKey = ['adminResolveCustomRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminResolveCustomRequest>>, {id: number;data: BodyType<AdminResolveCustomRequestInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  adminResolveCustomRequest(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminResolveCustomRequestMutationResult = NonNullable<Awaited<ReturnType<typeof adminResolveCustomRequest>>>
+    export type AdminResolveCustomRequestMutationBody = BodyType<AdminResolveCustomRequestInput>
+    export type AdminResolveCustomRequestMutationError = ErrorType<unknown>
+
+    export const useAdminResolveCustomRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminResolveCustomRequest>>, TError,{id: number;data: BodyType<AdminResolveCustomRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminResolveCustomRequest>>,
+        TError,
+        {id: number;data: BodyType<AdminResolveCustomRequestInput>},
+        TContext
+      > => {
+      return useMutation(getAdminResolveCustomRequestMutationOptions(options));
+    }
+
+export const getAdminDisableCreatorRequestsUrl = (creatorUserId: number,) => {
+
+
+
+
+  return `/api/admin/creators/${creatorUserId}/request-settings/disable`
+}
+
+export const adminDisableCreatorRequests = async (creatorUserId: number, options?: RequestInit): Promise<CreatorRequestSettings> => {
+
+  return customFetch<CreatorRequestSettings>(getAdminDisableCreatorRequestsUrl(creatorUserId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAdminDisableCreatorRequestsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDisableCreatorRequests>>, TError,{creatorUserId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminDisableCreatorRequests>>, TError,{creatorUserId: number}, TContext> => {
+
+const mutationKey = ['adminDisableCreatorRequests'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminDisableCreatorRequests>>, {creatorUserId: number}> = (props) => {
+          const {creatorUserId} = props ?? {};
+
+          return  adminDisableCreatorRequests(creatorUserId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminDisableCreatorRequestsMutationResult = NonNullable<Awaited<ReturnType<typeof adminDisableCreatorRequests>>>
+
+    export type AdminDisableCreatorRequestsMutationError = ErrorType<unknown>
+
+    export const useAdminDisableCreatorRequests = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDisableCreatorRequests>>, TError,{creatorUserId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminDisableCreatorRequests>>,
+        TError,
+        {creatorUserId: number},
+        TContext
+      > => {
+      return useMutation(getAdminDisableCreatorRequestsMutationOptions(options));
     }
 
 export const getListVideoChatsUrl = () => {

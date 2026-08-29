@@ -111,6 +111,71 @@ router.post(
   },
 );
 
+router.post(
+  '/creator-content/uploads/image',
+  requireAuth('doll'),
+  express.raw({
+    type: () => true,
+    limit: MAX_UPLOAD_SIZE_BYTES,
+  }),
+  async (req: Request, res: Response) => {
+    try {
+      const body: unknown = req.body;
+      if (!Buffer.isBuffer(body) || body.length === 0) {
+        res.status(400).json({ error: 'Request body must be the raw image bytes.' });
+        return;
+      }
+      const objectPath = await uploadImageBuffer(body, req.currentUser!.id, {
+        visibility: 'private',
+      });
+      res.status(201).json({ objectPath });
+    } catch (error) {
+      if (error instanceof InvalidUploadError) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      req.log.error({ err: error }, 'Error uploading private Creator image');
+      res.status(500).json({ error: 'Failed to upload image' });
+    }
+  },
+);
+
+router.post(
+  '/creator-content/uploads/video',
+  requireAuth('doll'),
+  express.raw({
+    type: () => true,
+    limit: MAX_VIDEO_UPLOAD_SIZE_BYTES,
+  }),
+  async (req: Request, res: Response) => {
+    try {
+      const body: unknown = req.body;
+      if (!Buffer.isBuffer(body) || body.length === 0) {
+        res.status(400).json({ error: 'Request body must be the raw video bytes.' });
+        return;
+      }
+      const { objectPath, posterPath } = await uploadVideoBuffer(
+        body,
+        req.currentUser!.id,
+        { visibility: 'private' },
+      );
+      res.status(201).json({ objectPath, posterPath });
+    } catch (error) {
+      if (error instanceof TranscodeBusyError) {
+        res.setHeader('Retry-After', '15');
+        res.status(503).json({ error: error.message });
+        return;
+      }
+      if (error instanceof InvalidUploadError) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      req.log.error({ err: error }, 'Error uploading private Creator video');
+      res.status(500).json({ error: 'Failed to upload video' });
+    }
+  },
+);
+
 /**
  * POST /sparks/uploads/video
  *

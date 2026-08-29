@@ -14,4 +14,9 @@ export interface Message {
   body: string;
   paid?: boolean;
   createdAt?: string;
+  customMessage?: boolean;
+  requestId?: number;
+  imageUrl?: string;
+  videoUrl?: string;
+  reusable?: boolean;
 }

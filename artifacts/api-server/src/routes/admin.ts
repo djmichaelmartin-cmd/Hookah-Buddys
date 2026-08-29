@@ -4,6 +4,7 @@ import {
   db,
   usersTable,
   dollsTable,
+  creatorAlbumsTable,
   mediaTable,
   favoritesTable,
   verificationsTable,
@@ -187,19 +188,51 @@ router.patch("/admin/applications/:id/review", requireAuth("admin"), async (req,
     return;
   }
   const status = parsed.data.decision === "approve" ? "approved" : "rejected";
-  const [doll] = await db
-    .update(dollsTable)
-    .set({ applicationStatus: status })
-    .where(eq(dollsTable.id, params.data.id))
-    .returning();
+  const doll = await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(dollsTable)
+      .set({ applicationStatus: status })
+      .where(eq(dollsTable.id, params.data.id))
+      .returning();
+    if (!updated) return null;
+    await tx
+      .update(usersTable)
+      .set({ accountStatus: status === "approved" ? "active" : "suspended" })
+      .where(eq(usersTable.id, updated.userId));
+    if (status === "approved") {
+      await tx
+        .insert(creatorAlbumsTable)
+        .values([
+          {
+            creatorUserId: updated.userId,
+            dollId: updated.id,
+            albumType: "free_preview",
+            title: "Free Preview Album",
+            description: "Up to five free preview images.",
+          },
+          {
+            creatorUserId: updated.userId,
+            dollId: updated.id,
+            albumType: "cloud_vibes",
+            title: "Cloud Vibes Album",
+            description: "Permanent access for 25 credits.",
+          },
+          {
+            creatorUserId: updated.userId,
+            dollId: updated.id,
+            albumType: "smokin_hot",
+            title: "Smokin Hot Album",
+            description: "Includes Cloud Vibes with permanent access.",
+          },
+        ])
+        .onConflictDoNothing();
+    }
+    return updated;
+  });
   if (!doll) {
     res.status(404).json({ error: "Application not found" });
     return;
   }
-  await db
-    .update(usersTable)
-    .set({ accountStatus: status === "approved" ? "active" : "suspended" })
-    .where(eq(usersTable.id, doll.userId));
   res.json({
     id: doll.id,
     userId: doll.userId,

@@ -1,13 +1,16 @@
 import { Layout } from "@/components/Layout";
-import { useGetMyDollProfile, useGetMyDollAnalytics, useListMyFeedPosts, useListSavedFeedPosts, useGetMyFeedStats } from "@workspace/api-client-react";
+import { useGetMyDollProfile, useGetMyDollAnalytics, useListMyFeedPosts, useListSavedFeedPosts, useGetMyFeedStats, useGetCurrentUser } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, Upload, MessageSquare, Video, Users, Bookmark, FileText } from "lucide-react";
 import { FeedPostCard } from "@/components/FeedPostCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreatorAlbumsManager, CreatorRequestsManager } from "@/components/creator/CreatorManagement";
 
 export default function DashboardDoll() {
   const { data: profile, isLoading: loadingProfile } = useGetMyDollProfile();
+  const { data: session } = useGetCurrentUser();
+  const userId = session?.user?.id;
   const { data: analytics } = useGetMyDollAnalytics();
 
   const { data: myPosts } = useListMyFeedPosts();
@@ -78,10 +81,12 @@ export default function DashboardDoll() {
             <div className="bg-card/50 border border-white/10 rounded-xl p-6 min-h-[600px]">
               <Tabs defaultValue="myposts" className="w-full">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-serif text-white">Lounge Posts</h2>
-                  <TabsList className="bg-background/50 border border-white/10">
+                  <h2 className="text-xl font-serif text-white">Content & Activity</h2>
+                  <TabsList className="bg-background/50 border border-white/10 flex-wrap">
                     <TabsTrigger value="myposts" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">My Posts</TabsTrigger>
                     <TabsTrigger value="saved" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Saved</TabsTrigger>
+                    <TabsTrigger value="albums" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Albums</TabsTrigger>
+                    <TabsTrigger value="requests" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Custom Requests</TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -106,6 +111,14 @@ export default function DashboardDoll() {
                   ) : (
                     savedPosts?.map(post => <FeedPostCard key={post.id} post={post} onLoginPrompt={() => {}} />)
                   )}
+                </TabsContent>
+
+                <TabsContent value="albums" className="mt-0 outline-none">
+                  {userId && <CreatorAlbumsManager creatorUserId={userId} />}
+                </TabsContent>
+
+                <TabsContent value="requests" className="mt-0 outline-none">
+                  {userId && <CreatorRequestsManager creatorUserId={userId} />}
                 </TabsContent>
               </Tabs>
             </div>

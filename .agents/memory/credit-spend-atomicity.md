@@ -24,10 +24,11 @@ just the obvious one.
 - Adjust (admin): clamp at zero, but lock the balance row (`SELECT ... FOR
   UPDATE`) so concurrent adjustments serialize, and log the *applied* (post-clamp)
   delta, not the requested amount, or the ledger won't reconcile.
-- Idempotent actions (content unlocks): enforce with a DB unique constraint plus
-  `onConflictDoNothing`; on conflict, roll back the debit and return the existing
-  row (no charge). After a concurrent exact-balance 402, re-check existence
-  before returning the error.
+- Idempotent money actions (content unlocks and credit holds): enforce with a DB
+  unique constraint plus `onConflictDoNothing`; on conflict, throw so the whole
+  debit/hold transaction rolls back, then re-read and return the winning row.
+  After a concurrent exact-balance 402, re-check existence before returning the
+  error. Never let the uniqueness loser escape as a 500.
 - Tiered pricing must be driven by durable, authoritative metadata (a `tier`
   column), not inferred from a loose `type` string. Binary type inference silently
   undercharges when the spec has >2 tiers; reviewers treat an advertised-but-

@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FeedPostCard } from "@/components/FeedPostCard";
 import { SharedPostPreviewCard } from "@/components/share/SharedPostPreviewCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MemberRequestsManager } from "@/components/creator/CreatorManagement";
 
 function formatWhen(iso?: string): string {
   if (!iso) return "";
@@ -286,6 +287,12 @@ export default function DashboardMember() {
               className="px-6 py-2.5 rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white whitespace-nowrap"
             >
               My Posts & Activity
+            </TabsTrigger>
+            <TabsTrigger
+              value="requests"
+              className="px-6 py-2.5 rounded-lg data-[state=active]:bg-white/10 data-[state=active]:text-white whitespace-nowrap"
+            >
+              Custom Requests
             </TabsTrigger>
             <TabsTrigger
               value="network"
@@ -571,6 +578,13 @@ export default function DashboardMember() {
                   </TabsContent>
                 </Tabs>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="requests" className="mt-0 outline-none">
+            <div className="bg-card/50 border border-white/10 rounded-xl p-6">
+              <h2 className="text-xl font-serif text-white mb-6">Your Custom Requests</h2>
+              <MemberRequestsManager />
             </div>
           </TabsContent>
 

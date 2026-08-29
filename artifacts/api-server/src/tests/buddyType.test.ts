@@ -128,7 +128,7 @@ describe("Buddy type contracts", () => {
 
   it("requires a nullable Buddy type in Doll, online, and follow projections", () => {
     const doll = {
-      id: 1, stageName: "Buddy", city: "Las Vegas", state: "NV", verified: true,
+      id: 1, creatorUserId: 2, stageName: "Buddy", city: "Las Vegas", state: "NV", verified: true,
       featured: false, elite: false, online: false, tier: "free",
     };
     expect(ListDollsResponseItem.safeParse({ ...doll, buddyType: null }).success).toBe(true);

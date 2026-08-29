@@ -18,6 +18,7 @@ import AdminPlans from "@/pages/AdminPlans";
 import AdminEvents from "@/pages/AdminEvents";
 import AdminBusinesses from "@/pages/AdminBusinesses";
 import AdminGroups from "@/pages/AdminGroups";
+import { AdminCustomRequests } from "@/components/admin/AdminCustomRequests";
 import { Briefcase } from "lucide-react";
 
 import { useLocation } from "wouter";
@@ -222,6 +223,7 @@ function AdminDashboardContent() {
             <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
             <TabsTrigger value="businesses"><Briefcase className="w-4 h-4 mr-2"/> Businesses</TabsTrigger>
             <TabsTrigger value="groups"><Users className="w-4 h-4 mr-2"/> Groups</TabsTrigger>
+            <TabsTrigger value="custom-requests"><MessageSquare className="w-4 h-4 mr-2"/> Custom Requests</TabsTrigger>
           </TabsList>
 
           <TabsContent value="applications" className="space-y-4">
@@ -608,6 +610,10 @@ function AdminDashboardContent() {
 
           <TabsContent value="groups">
             <AdminGroups />
+          </TabsContent>
+
+          <TabsContent value="custom-requests">
+            <AdminCustomRequests />
           </TabsContent>
         </Tabs>
       </div>

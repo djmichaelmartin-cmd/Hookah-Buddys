@@ -224,6 +224,7 @@ export const DollTier = {
 
 export interface Doll {
   id: number;
+  creatorUserId: number;
   stageName: string;
   city: string;
   state: string;
@@ -911,6 +912,11 @@ export interface Message {
   body: string;
   paid?: boolean;
   createdAt?: string;
+  customMessage?: boolean;
+  requestId?: number;
+  imageUrl?: string;
+  videoUrl?: string;
+  reusable?: boolean;
 }
 
 export interface MessageInput {
@@ -928,6 +934,259 @@ export interface ContentUnlock {
 
 export interface UnlockInput {
   mediaId: number;
+}
+
+export type CreatorAlbumAlbumType = typeof CreatorAlbumAlbumType[keyof typeof CreatorAlbumAlbumType];
+
+
+export const CreatorAlbumAlbumType = {
+  free_preview: 'free_preview',
+  cloud_vibes: 'cloud_vibes',
+  smokin_hot: 'smokin_hot',
+} as const;
+
+export type CreatorAlbumMediaMediaType = typeof CreatorAlbumMediaMediaType[keyof typeof CreatorAlbumMediaMediaType];
+
+
+export const CreatorAlbumMediaMediaType = {
+  image: 'image',
+  video: 'video',
+} as const;
+
+export type CreatorAlbumMediaStatus = typeof CreatorAlbumMediaStatus[keyof typeof CreatorAlbumMediaStatus];
+
+
+export const CreatorAlbumMediaStatus = {
+  pending_review: 'pending_review',
+  active: 'active',
+  hidden: 'hidden',
+  removed: 'removed',
+} as const;
+
+export interface CreatorAlbumMedia {
+  id: number;
+  albumId: number;
+  mediaType: CreatorAlbumMediaMediaType;
+  objectPath?: string;
+  /** @nullable */
+  thumbnailObjectPath?: string | null;
+  /** @nullable */
+  posterObjectPath?: string | null;
+  /** @nullable */
+  caption?: string | null;
+  status: CreatorAlbumMediaStatus;
+  sortOrder: number;
+}
+
+export interface CreatorAlbum {
+  id: number;
+  creatorUserId: number;
+  dollId: number;
+  albumType: CreatorAlbumAlbumType;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  isActive: boolean;
+  unlocked?: boolean;
+  media: CreatorAlbumMedia[];
+}
+
+export type CreatorAlbumInputAlbumType = typeof CreatorAlbumInputAlbumType[keyof typeof CreatorAlbumInputAlbumType];
+
+
+export const CreatorAlbumInputAlbumType = {
+  free_preview: 'free_preview',
+  cloud_vibes: 'cloud_vibes',
+  smokin_hot: 'smokin_hot',
+} as const;
+
+export interface CreatorAlbumInput {
+  albumType: CreatorAlbumInputAlbumType;
+  /** @minLength 1 */
+  title: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+export interface CreatorAlbumUpdate {
+  /** @minLength 1 */
+  title?: string;
+  /** @nullable */
+  description?: string | null;
+  isActive?: boolean;
+}
+
+export type CreatorAlbumMediaInputMediaType = typeof CreatorAlbumMediaInputMediaType[keyof typeof CreatorAlbumMediaInputMediaType];
+
+
+export const CreatorAlbumMediaInputMediaType = {
+  image: 'image',
+  video: 'video',
+} as const;
+
+export interface CreatorAlbumMediaInput {
+  objectPath: string;
+  mediaType: CreatorAlbumMediaInputMediaType;
+  thumbnailObjectPath?: string;
+  posterObjectPath?: string;
+  caption?: string;
+}
+
+export type CreatorAlbumMediaUpdateStatus = typeof CreatorAlbumMediaUpdateStatus[keyof typeof CreatorAlbumMediaUpdateStatus];
+
+
+export const CreatorAlbumMediaUpdateStatus = {
+  active: 'active',
+  hidden: 'hidden',
+} as const;
+
+export interface CreatorAlbumMediaUpdate {
+  /** @minimum 0 */
+  sortOrder?: number;
+  status?: CreatorAlbumMediaUpdateStatus;
+}
+
+export type CreatorAlbumUnlockAlbumType = typeof CreatorAlbumUnlockAlbumType[keyof typeof CreatorAlbumUnlockAlbumType];
+
+
+export const CreatorAlbumUnlockAlbumType = {
+  cloud_vibes: 'cloud_vibes',
+  smokin_hot: 'smokin_hot',
+} as const;
+
+export interface CreatorAlbumUnlock {
+  id: number;
+  albumId: number;
+  albumType: CreatorAlbumUnlockAlbumType;
+  priceCredits: number;
+}
+
+export interface CreatorRequestSettings {
+  enabled: boolean;
+  photoPriceCredits: number;
+  videoPriceCredits: number;
+  photoVideoPriceCredits: number;
+  /** @nullable */
+  instructions?: string | null;
+  allowReuse: boolean;
+}
+
+export interface CreatorRequestAvailability {
+  enabled: boolean;
+  onlineEligible: boolean;
+  photoPriceCredits: number;
+  videoPriceCredits: number;
+  photoVideoPriceCredits: number;
+  /** @nullable */
+  instructions?: string | null;
+  allowReuse: boolean;
+}
+
+export type AdminResolveCustomRequestInputResolution = typeof AdminResolveCustomRequestInputResolution[keyof typeof AdminResolveCustomRequestInputResolution];
+
+
+export const AdminResolveCustomRequestInputResolution = {
+  refund: 'refund',
+  complete: 'complete',
+} as const;
+
+export interface AdminResolveCustomRequestInput {
+  resolution: AdminResolveCustomRequestInputResolution;
+}
+
+export interface CreatorRequestSettingsInput {
+  enabled: boolean;
+  /** @minimum 0 */
+  photoPriceCredits: number;
+  /** @minimum 0 */
+  videoPriceCredits: number;
+  /** @minimum 0 */
+  photoVideoPriceCredits: number;
+  instructions?: string;
+  allowReuse: boolean;
+}
+
+export interface CreatorRequestAcceptanceInput {
+  creatorAgreesReuse: boolean;
+}
+
+export interface CustomRequestDisputeInput {
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  reason: string;
+}
+
+export type CustomContentRequestInputRequestType = typeof CustomContentRequestInputRequestType[keyof typeof CustomContentRequestInputRequestType];
+
+
+export const CustomContentRequestInputRequestType = {
+  custom_photo: 'custom_photo',
+  custom_video: 'custom_video',
+  custom_photo_video: 'custom_photo_video',
+} as const;
+
+export interface CustomContentRequestInput {
+  creatorUserId: number;
+  requestType: CustomContentRequestInputRequestType;
+  /** @minLength 1 */
+  requestText: string;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  idempotencyKey: string;
+  allowReuse: boolean;
+}
+
+export type CustomContentRequestRequestType = typeof CustomContentRequestRequestType[keyof typeof CustomContentRequestRequestType];
+
+
+export const CustomContentRequestRequestType = {
+  custom_photo: 'custom_photo',
+  custom_video: 'custom_video',
+  custom_photo_video: 'custom_photo_video',
+} as const;
+
+export interface CustomContentRequest {
+  id: number;
+  creatorUserId: number;
+  customerUserId: number;
+  requestType: CustomContentRequestRequestType;
+  requestText: string;
+  priceCredits: number;
+  status: string;
+  customerAllowsReuse: boolean;
+  /** @nullable */
+  creatorAgreesReuse?: boolean | null;
+  reusable?: boolean;
+  responseDeadlineAt?: string;
+  /** @nullable */
+  deliveryDeadlineAt?: string | null;
+  /** @nullable */
+  acceptedAt?: string | null;
+  /** @nullable */
+  declinedAt?: string | null;
+  /** @nullable */
+  deliveredAt?: string | null;
+  /** @nullable */
+  completedAt?: string | null;
+  /** @nullable */
+  canceledAt?: string | null;
+  /** @nullable */
+  refundedAt?: string | null;
+  /** @nullable */
+  disputeReason?: string | null;
+  /** @nullable */
+  adminResolution?: string | null;
+}
+
+export interface CustomDeliveryInput {
+  imageObjectPath?: string;
+  videoObjectPath?: string;
+  videoPosterObjectPath?: string;
+  message?: string;
 }
 
 export type VideoChatSessionStatus = typeof VideoChatSessionStatus[keyof typeof VideoChatSessionStatus];
@@ -6103,6 +6362,12 @@ export const ListEventsPriceType = {
   free: 'free',
   paid: 'paid',
 } as const;
+
+export type AdminListCustomRequestsParams = {
+status?: string;
+creatorUserId?: number;
+customerUserId?: number;
+};
 
 export type EstimateVideoChatParams = {
 minutes?: number;

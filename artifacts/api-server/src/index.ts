@@ -3,6 +3,7 @@ import { logger } from "./lib/logger";
 import { syncPlans } from "./lib/syncPlans";
 import { startEventReminderScheduler } from "./lib/eventReminders";
 import { startBusinessSpotlightGeocodeScheduler } from "./lib/privateGeocoding";
+import { startCustomRequestReconciliation } from "./lib/customRequestReconciliation";
 
 const rawPort = process.env["PORT"];
 
@@ -31,6 +32,7 @@ syncPlans()
       logger.info({ port }, "Server listening");
       startEventReminderScheduler();
       startBusinessSpotlightGeocodeScheduler();
+      startCustomRequestReconciliation();
     });
   })
   .catch((err) => {

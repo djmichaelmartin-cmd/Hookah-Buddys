@@ -61,6 +61,7 @@ export function toDollResponse(
 ) {
   return {
     id: doll.id,
+    creatorUserId: doll.userId,
     stageName: doll.stageName,
     city: doll.city,
     state: doll.state,

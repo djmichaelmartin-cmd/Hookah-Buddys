@@ -160,6 +160,7 @@ export function toObjectEntityPath(url: string): string | null {
 export async function uploadImageBuffer(
   buffer: Buffer,
   ownerId: number,
+  options?: { visibility?: "public" | "private" },
 ): Promise<string> {
   if (buffer.length === 0) {
     throw new InvalidUploadError("Uploaded file is empty.");
@@ -173,7 +174,13 @@ export async function uploadImageBuffer(
       "Uploaded file is not an allowed image type (JPEG, PNG, WebP, GIF, AVIF).",
     );
   }
-  return storeValidatedBuffer(buffer, sniffedType, ownerId);
+  return storeValidatedBuffer(
+    buffer,
+    sniffedType,
+    ownerId,
+    undefined,
+    options?.visibility ?? "public",
+  );
 }
 
 /**
@@ -188,7 +195,11 @@ export async function uploadImageBuffer(
 export async function uploadVideoBuffer(
   buffer: Buffer,
   ownerId: number,
-  options?: { maxDurationSeconds?: number; sparkDurationValidated?: boolean },
+  options?: {
+    maxDurationSeconds?: number;
+    sparkDurationValidated?: boolean;
+    visibility?: "public" | "private";
+  },
 ): Promise<{ objectPath: string; posterPath: string }> {
   if (buffer.length === 0) {
     throw new InvalidUploadError("Uploaded file is empty.");
@@ -227,7 +238,9 @@ export async function uploadVideoBuffer(
       ? { [SPARK_DURATION_VALIDATED_METADATA_KEY]: "true" }
       : {}),
   };
-  const visibility = options?.sparkDurationValidated ? "private" : "public";
+  const visibility = options?.sparkDurationValidated
+    ? "private"
+    : (options?.visibility ?? "public");
   const objectPath = await storeValidatedBuffer(
     transcoded.video,
     "video/mp4",

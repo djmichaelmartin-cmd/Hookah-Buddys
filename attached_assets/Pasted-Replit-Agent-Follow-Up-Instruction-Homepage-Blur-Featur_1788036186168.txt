@@ -1,0 +1,231 @@
+Replit Agent Follow-Up Instruction: Homepage Blur, Featured Buddy Redirect, and Creative Buddy Section Copy Update
+
+Do not rebuild the HookahBuddys platform. Only update the existing homepage behavior, homepage copy, button routing, and visual styling.
+
+Use the platform name:
+
+HookahBuddys
+
+Important:
+
+Do not remove existing homepage sections, profiles, Featured Buddys, pricing, memberships, The Lounge, Sparks, Groups, Meetups, Business Pages, credits, messaging, or Creator features.
+
+Only make the homepage edits listed below.
+
+1. Slightly Blur Selected Homepage Areas for Logged-Out Users
+
+Add a slight blur effect to selected homepage sections for users who are not logged in and do not yet have a profile.
+
+The goal is to tease the content and encourage users to create a free profile, without completely hiding the site.
+
+Apply this only to non-profile / not logged-in users.
+
+Definitions:
+
+A “non-profile user” means:
+
+* User is not logged in
+* User does not have an active member profile
+* User is viewing the public homepage as a visitor
+
+Do not blur these sections for logged-in users with a profile.
+
+Blur Behavior
+
+For selected homepage content areas:
+
+* Apply a slight blur effect
+* Add a subtle dark overlay if needed
+* Keep the section visible enough to understand what it is
+* Do not make it unreadable
+* Add a CTA overlay where appropriate
+
+Suggested blur style:
+
+* Blur amount: 3px to 5px
+* Overlay background: rgba(15, 17, 21, 0.45)
+* Border radius should match the section/card
+* Keep the design premium and clean
+
+Suggested CSS class:
+
+```css
+.logged-out-blur {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.logged-out-blur-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.logged-out-blur-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 17, 21, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+```
+
+CTA overlay text:
+
+“Create a free profile to unlock the full HookahBuddys experience.”
+
+CTA button:
+
+“Create Free Profile”
+
+Button route:
+
+`/choose-membership`
+
+Important:
+
+I will upload or provide a screenshot/image showing the exact homepage section that should be blurred. Use that uploaded image as the reference for which homepage area to blur.
+
+If the screenshot identifies a specific homepage section, blur only that section for logged-out users.
+
+If no screenshot is available yet, prepare the blur logic as a reusable component that can be applied to the target homepage section once identified.
+
+2. Featured Buddy Section Redirect for Logged-Out Users
+
+In the Featured Buddy section on the homepage, update the “View Profile” button behavior.
+
+For logged-out users / non-profile users:
+
+* Clicking “View Profile” should redirect to:
+
+`/choose-membership`
+
+Do not allow logged-out users to access the full Featured Buddy profile directly from the homepage.
+
+For logged-in users with an active profile:
+
+* Clicking “View Profile” should continue to route to the actual Buddy profile page.
+
+Example logic:
+
+```js
+if (!currentUser || !currentUser.profileComplete) {
+  navigate("/choose-membership");
+} else {
+  navigate(`/profile/${buddy.id}`);
+}
+```
+
+Button behavior:
+
+Logged-out user:
+
+* “View Profile” → `/choose-membership`
+
+Logged-in/profile user:
+
+* “View Profile” → Buddy profile detail page
+
+3. Update Homepage Section: “Turn your lounge nights into income”
+
+Find the homepage section currently titled:
+
+“Turn your lounge nights into income”
+
+Update the title to:
+
+“Turn your lounging into income.”
+
+Remove the small label/text above this title that currently says:
+
+“For Buddys”
+
+Do not replace it with another label.
+
+The section should no longer show “For Buddys” above the title.
+
+4. Update Section Description
+
+Replace the current description:
+
+“Get verified, set your own prices, and earn from subscriptions, premium content, messages, and video sessions. You're always in control.”
+
+With:
+
+“Get verified, earn from premium content, private messages including photos/videos, video sessions, and the ability to set your own prices on custom content. You're in control.”
+
+Use this corrected final copy exactly:
+
+“Get verified, earn from premium content, private messages including photos/videos, video sessions, and the ability to set your own prices on custom content. You're in control.”
+
+5. Rename Button
+
+In the same homepage section, rename the button to:
+
+“Become a Creative Buddy”
+
+Button route:
+
+`/choose-membership`
+
+This button should follow the sitewide rule that profile creation / Buddy signup CTAs route to:
+
+`/choose-membership`
+
+6. Make “Become a Creative Buddy” Button Pink
+
+Update the button background color to pink/rose.
+
+Use the existing HookahBuddys Female Buddy pink/rose accent.
+
+Suggested color:
+
+* Background: `#E85D75`
+* Hover: `#D94A66`
+* Text: `#FFFFFF`
+* Border: `#F28BA0`
+
+Button styling:
+
+```css
+.creative-buddy-button {
+  background: #E85D75;
+  color: #FFFFFF;
+  border: 1px solid #F28BA0;
+}
+
+.creative-buddy-button:hover {
+  background: #D94A66;
+}
+```
+
+Do not use orange.
+
+Do not use red-heavy styling.
+
+The button should feel premium, creator-focused, and aligned with the pink Buddy visual system.
+
+7. Testing Checklist
+
+After making the updates, verify:
+
+* Logged-out users see the selected homepage area slightly blurred.
+* Logged-in users do not see that area blurred.
+* The blur is subtle, not overly aggressive.
+* The blurred area has a CTA to `/choose-membership` if appropriate.
+* Featured Buddy “View Profile” redirects logged-out users to `/choose-membership`.
+* Featured Buddy “View Profile” still opens the actual profile for logged-in users.
+* “For Buddys” text is removed above the income section.
+* Title now says: “Turn your lounging into income.”
+* Description now says: “Get verified, earn from premium content, private messages including photos/videos, video sessions, and the ability to set your own prices on custom content. You're in control.”
+* Button now says: “Become a Creative Buddy.”
+* Button routes to `/choose-membership`.
+* Button background is pink/rose.
+* No existing homepage functionality is removed.
+
+Final Result
+
+The homepage should lightly tease selected content to logged-out users, route Featured Buddy profile clicks to `/choose-membership` for non-profile users, and update the Creator income section to promote becoming a Creative Buddy with the new title, description, and pink button.

@@ -36,6 +36,7 @@ import presenceRouter from "./presence";
 import businessesRouter from "./businesses";
 import groupsRouter from "./groups";
 import sharingRouter from "./sharing";
+import creatorContentRouter from "./creatorContent";
 
 const router: IRouter = Router();
 
@@ -76,5 +77,6 @@ router.use(presenceRouter);
 router.use(businessesRouter);
 router.use(groupsRouter);
 router.use(sharingRouter);
+router.use(creatorContentRouter);
 
 export default router;

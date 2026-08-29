@@ -10,7 +10,7 @@ import {
   type CSSProperties,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { useListFeaturedDolls, useListFeedPosts, useListGroups } from "@workspace/api-client-react";
+import { useGetCurrentUser, useListFeaturedDolls, useListFeedPosts, useListGroups } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Star,
@@ -45,6 +45,13 @@ const BLOB_PATH =
 const REVEAL_MS = 1500;
 
 export default function Home() {
+  const { data: session } = useGetCurrentUser();
+  const hasActiveProfile = Boolean(
+    session?.authenticated &&
+      session.user &&
+      session.user.accountStatus === "active" &&
+      (session.user.role === "admin" || session.user.buddyType),
+  );
   const { data: featuredDolls } = useListFeaturedDolls();
   const dolls = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl);
 
@@ -812,7 +819,7 @@ export default function Home() {
                 {marqueeLoop.map((doll, i) => (
                   <Link
                     key={`${doll.id}-${i}`}
-                    href={`/dolls/${doll.id}`}
+                    href={hasActiveProfile ? `/dolls/${doll.id}` : PROFILE_ENTRY_PATH}
                     className="group block shrink-0 w-56 sm:w-64 md:w-72 mr-4 md:mr-6"
                     aria-hidden={i >= marqueeBase.length || undefined}
                     tabIndex={i >= marqueeBase.length ? -1 : undefined}
@@ -885,21 +892,19 @@ export default function Home() {
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-card/50 backdrop-blur-md p-10 md:p-16">
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/15 blur-[120px] rounded-full pointer-events-none" />
             <div className="relative z-10 max-w-2xl">
-              <p className="text-secondary uppercase tracking-[0.25em] text-xs font-semibold mb-4">For Buddys</p>
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight">
-                Turn your lounge nights into income.
+                Turn your lounging into income.
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Get verified, set your own prices, and earn from subscriptions, premium content, messages, and video
-                sessions. You're always in control.
+                Get verified, earn from premium content, private messages including photos/videos, video sessions, and
+                the ability to set your own prices on custom content. You're in control.
               </p>
-              <Link href={PROFILE_ENTRY_PATH}>
+              <Link href="/choose-membership">
                 <Button
                   size="lg"
-                  className="bg-[#D6B56D] hover:bg-[#C9A456] text-[#111111] font-bold tracking-widest uppercase h-14 px-9 shadow-[0_0_40px_rgba(214,181,109,0.35)] border-none"
+                  className="h-14 border border-[#F28BA0] bg-[#E85D75] px-9 font-bold uppercase tracking-widest text-white shadow-[0_0_40px_rgba(232,93,117,0.3)] hover:bg-[#D94A66]"
                 >
-
-                  Become a Buddy
+                  Become a Creative Buddy
                 </Button>
               </Link>
             </div>

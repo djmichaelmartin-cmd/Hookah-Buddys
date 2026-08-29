@@ -14,8 +14,12 @@ export default function Messages() {
   const queryClient = useQueryClient();
   const { data: threads } = useListThreads();
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
-  
+  const [messageFilter, setMessageFilter] = useState<"all" | "custom">("all");
+
   const { data: messages } = useListMessages(activeThreadId || 0, { query: { enabled: !!activeThreadId, queryKey: getListMessagesQueryKey(activeThreadId || 0) } });
+
+  const filteredMessages = messages?.filter(m => messageFilter === "all" || m.customMessage) || [];
+
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState("");
   const { toast } = useToast();
@@ -137,20 +141,42 @@ export default function Messages() {
                     </div>
                   )}
                 </div>
-                
+
+                <div className="bg-background/20 border-b border-white/5 px-4 py-2 flex gap-2">
+                  <Button size="sm" variant={messageFilter === "all" ? "default" : "outline"} onClick={() => setMessageFilter("all")} className={`h-8 ${messageFilter !== "all" ? 'border-white/10' : ''}`}>All</Button>
+                  <Button size="sm" variant={messageFilter === "custom" ? "default" : "outline"} onClick={() => setMessageFilter("custom")} className={`h-8 ${messageFilter !== "custom" ? 'border-white/10' : ''}`}>Custom Content</Button>
+                </div>
+
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages?.map(msg => {
+                  {filteredMessages.map(msg => {
                     const isMine = msg.senderRole === myRole;
                     return (
                       <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[75%] rounded-2xl p-3 ${isMine ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white'}`}>
-                          {msg.body}
+                        <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-3 ${isMine ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white'}`}>
+                          {msg.customMessage && (
+                            <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${isMine ? 'text-primary-foreground/80' : 'text-primary'}`}>
+                              Custom Content Delivery
+                            </div>
+                          )}
+                          {(msg.imageUrl || msg.videoUrl) && (
+                            <div className="mb-3 rounded-lg overflow-hidden border border-white/10 bg-black max-w-sm">
+                              {msg.imageUrl && (
+                                <img src={msg.imageUrl} alt="Custom content" className="w-full h-auto object-cover max-h-64" />
+                              )}
+                              {msg.videoUrl && (
+                                <video src={msg.videoUrl} controls className="w-full h-auto object-cover max-h-64" />
+                              )}
+                            </div>
+                          )}
+                          <div className="whitespace-pre-wrap">{msg.body}</div>
                         </div>
                       </div>
                     );
                   })}
-                  {(!messages || messages.length === 0) && (
-                    <div className="h-full flex items-center justify-center text-muted-foreground">Say hello!</div>
+                  {filteredMessages.length === 0 && (
+                    <div className="h-full flex items-center justify-center text-muted-foreground text-center">
+                      {messageFilter === "custom" ? "No custom content deliveries in this conversation." : "Say hello!"}
+                    </div>
                   )}
                 </div>
 

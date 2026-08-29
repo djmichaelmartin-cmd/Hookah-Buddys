@@ -69,6 +69,43 @@ tags:
   - name: groups
     description: Member-created Groups for HookahBuddys
 paths:
+  /creator-content/uploads/image:
+    post:
+      tags: [Storage]
+      operationId: uploadCreatorContentImage
+      summary: Upload a private Creator album or custom-request image
+      requestBody:
+        required: true
+        content:
+          "image/*":
+            schema: { type: string, format: binary }
+      responses:
+        "201":
+          description: Private image stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImageUploadResponse" }
+        "400": { description: Invalid image }
+        "413": { description: Image exceeds 10 MB }
+  /creator-content/uploads/video:
+    post:
+      tags: [Storage]
+      operationId: uploadCreatorContentVideo
+      summary: Upload a private Creator album or custom-request video
+      requestBody:
+        required: true
+        content:
+          "video/*":
+            schema: { type: string, format: binary }
+      responses:
+        "201":
+          description: Private video stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VideoUploadResponse" }
+        "400": { description: Invalid video }
+        "413": { description: Video exceeds 50 MB }
+        "503": { description: Video processing is temporarily busy }
   /storage/uploads/image:
     post:
       tags: [Storage]
@@ -82,31 +119,31 @@ paths:
       requestBody:
         required: true
         content:
-          'image/*':
+          "image/*":
             schema:
               type: string
               format: binary
       responses:
-        '201':
+        "201":
           description: Image stored.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImageUploadResponse'
-        '400':
+                $ref: "#/components/schemas/ImageUploadResponse"
+        "400":
           description: Body is not a valid image of an allowed type.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '413':
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
           description: Image exceeds the 10 MB size limit.
-        '500':
+        "500":
           description: Failed to store image.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: "#/components/schemas/ErrorEnvelope"
   /storage/uploads/video:
     post:
       tags: [Storage]
@@ -121,31 +158,31 @@ paths:
       requestBody:
         required: true
         content:
-          'video/*':
+          "video/*":
             schema:
               type: string
               format: binary
       responses:
-        '201':
+        "201":
           description: Video transcoded and stored.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VideoUploadResponse'
-        '400':
+                $ref: "#/components/schemas/VideoUploadResponse"
+        "400":
           description: Body is not a valid video of an allowed type.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '413':
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
           description: Video exceeds the 50 MB size limit.
-        '500':
+        "500":
           description: Failed to store video.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: "#/components/schemas/ErrorEnvelope"
   /sparks/uploads/video:
     post:
       tags: [reels]
@@ -161,39 +198,39 @@ paths:
       requestBody:
         required: true
         content:
-          'video/*':
+          "video/*":
             schema:
               type: string
               format: binary
       responses:
-        '201':
+        "201":
           description: Spark video transcoded and stored.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SparkVideoUploadResponse'
-        '400':
+                $ref: "#/components/schemas/SparkVideoUploadResponse"
+        "400":
           description: Body is not a valid MP4, MOV, or WebM video, or exceeds 90 seconds.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '401':
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
           description: Authentication required.
-        '413':
+        "413":
           description: Video exceeds the 50 MB size limit.
-        '503':
+        "503":
           description: Video processing is temporarily busy.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '500':
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
           description: Failed to store video.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: "#/components/schemas/ErrorEnvelope"
   /storage/uploads/group-file:
     post:
       tags: [Storage]
@@ -210,31 +247,31 @@ paths:
       requestBody:
         required: true
         content:
-          'application/octet-stream':
+          "application/octet-stream":
             schema:
               type: string
               format: binary
       responses:
-        '201':
+        "201":
           description: File stored.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GroupFileUploadResponse'
-        '400':
+                $ref: "#/components/schemas/GroupFileUploadResponse"
+        "400":
           description: Body is not an allowed Group file type.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '413':
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
           description: File exceeds the 15 MB size limit.
-        '500':
+        "500":
           description: Failed to store file.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: "#/components/schemas/ErrorEnvelope"
   /storage/public-objects/{filePath}:
     get:
       tags: [Storage]
@@ -251,25 +288,25 @@ paths:
             type: string
           description: Relative file path within the public search paths.
       responses:
-        '200':
+        "200":
           description: Object content streamed with correct Content-Type.
           content:
-            '*/*':
+            "*/*":
               schema:
                 type: string
                 format: binary
-        '404':
+        "404":
           description: File not found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '500':
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
           description: Failed to serve public object.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: "#/components/schemas/ErrorEnvelope"
   /storage/objects/{objectPath}:
     get:
       tags: [Storage]
@@ -286,25 +323,25 @@ paths:
             type: string
           description: Object path within the private object dir (e.g. `uploads/some-uuid`).
       responses:
-        '200':
+        "200":
           description: Object content streamed with correct Content-Type.
           content:
-            '*/*':
+            "*/*":
               schema:
                 type: string
                 format: binary
-        '404':
+        "404":
           description: Object not found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '500':
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
           description: Failed to serve object.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: "#/components/schemas/ErrorEnvelope"
   /healthz:
     get:
       operationId: healthCheck
@@ -412,14 +449,54 @@ paths:
         - { name: city, in: query, required: false, schema: { type: string } }
         - { name: state, in: query, required: false, schema: { type: string } }
         - { name: flavor, in: query, required: false, schema: { type: string } }
-        - { name: experience, in: query, required: false, schema: { type: string } }
-        - { name: verified, in: query, required: false, schema: { type: boolean } }
-        - { name: featured, in: query, required: false, schema: { type: boolean } }
-        - { name: online, in: query, required: false, schema: { type: boolean } }
-        - { name: videoChat, in: query, required: false, schema: { type: boolean } }
-        - { name: premium, in: query, required: false, schema: { type: boolean } }
-        - { name: minAge, in: query, required: false, schema: { type: integer } }
-        - { name: maxAge, in: query, required: false, schema: { type: integer } }
+        - {
+            name: experience,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: verified,
+            in: query,
+            required: false,
+            schema: { type: boolean },
+          }
+        - {
+            name: featured,
+            in: query,
+            required: false,
+            schema: { type: boolean },
+          }
+        - {
+            name: online,
+            in: query,
+            required: false,
+            schema: { type: boolean },
+          }
+        - {
+            name: videoChat,
+            in: query,
+            required: false,
+            schema: { type: boolean },
+          }
+        - {
+            name: premium,
+            in: query,
+            required: false,
+            schema: { type: boolean },
+          }
+        - {
+            name: minAge,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
+        - {
+            name: maxAge,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -692,7 +769,12 @@ paths:
       tags: [plans]
       summary: List pricing plans
       parameters:
-        - { name: audience, in: query, required: false, schema: { type: string, enum: [member, doll] } }
+        - {
+            name: audience,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [member, doll] },
+          }
       responses:
         "200":
           description: OK
@@ -784,18 +866,87 @@ paths:
         with no filters are unaffected.
       parameters:
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
-        - { name: filter, in: query, required: false, schema: { type: string, enum: [going, saved] } }
-        - { name: scope, in: query, required: false, schema: { type: string, enum: [upcoming, past] } }
-        - { name: city, in: query, required: false, schema: { type: string }, description: "Filter by city (case-insensitive substring)" }
-        - { name: state, in: query, required: false, schema: { type: string }, description: "Filter by 2-letter state code" }
-        - { name: eventFormat, in: query, required: false, schema: { type: string, enum: [in_person, online, hybrid] }, description: "Meetup-projected events only" }
-        - { name: eventCategory, in: query, required: false, schema: { type: string }, description: "Meetup-projected events only" }
-        - { name: topic, in: query, required: false, schema: { type: string }, description: "Meetup-projected events only — matches any topic in the topics array" }
-        - { name: sourceType, in: query, required: false, schema: { type: string, enum: [native, meetup] }, description: "Limit to native events or Meetup projections" }
-        - { name: priceType, in: query, required: false, schema: { type: string, enum: [free, paid] }, description: "Meetup-projected events only" }
-        - { name: startsAfter, in: query, required: false, schema: { type: string }, description: "ISO-8601 datetime — only events starting after this time" }
-        - { name: startsBefore, in: query, required: false, schema: { type: string }, description: "ISO-8601 datetime — only events starting before this time" }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
+        - {
+            name: filter,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [going, saved] },
+          }
+        - {
+            name: scope,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [upcoming, past] },
+          }
+        - {
+            name: city,
+            in: query,
+            required: false,
+            schema: { type: string },
+            description: "Filter by city (case-insensitive substring)",
+          }
+        - {
+            name: state,
+            in: query,
+            required: false,
+            schema: { type: string },
+            description: "Filter by 2-letter state code",
+          }
+        - {
+            name: eventFormat,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [in_person, online, hybrid] },
+            description: "Meetup-projected events only",
+          }
+        - {
+            name: eventCategory,
+            in: query,
+            required: false,
+            schema: { type: string },
+            description: "Meetup-projected events only",
+          }
+        - {
+            name: topic,
+            in: query,
+            required: false,
+            schema: { type: string },
+            description: "Meetup-projected events only — matches any topic in the topics array",
+          }
+        - {
+            name: sourceType,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [native, meetup] },
+            description: "Limit to native events or Meetup projections",
+          }
+        - {
+            name: priceType,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [free, paid] },
+            description: "Meetup-projected events only",
+          }
+        - {
+            name: startsAfter,
+            in: query,
+            required: false,
+            schema: { type: string },
+            description: "ISO-8601 datetime — only events starting after this time",
+          }
+        - {
+            name: startsBefore,
+            in: query,
+            required: false,
+            schema: { type: string },
+            description: "ISO-8601 datetime — only events starting before this time",
+          }
       responses:
         "200":
           description: OK
@@ -1094,6 +1245,520 @@ paths:
               schema:
                 $ref: "#/components/schemas/ContentUnlock"
 
+  /creator-albums/{creatorUserId}:
+    get:
+      operationId: listCreatorAlbums
+      tags: [unlocks]
+      parameters:
+        - {
+            name: creatorUserId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  {
+                    schema:
+                      {
+                        type: array,
+                        items: { $ref: "#/components/schemas/CreatorAlbum" },
+                      },
+                  },
+              },
+          }
+  /creator-albums/{albumId}/unlock:
+    post:
+      operationId: unlockCreatorAlbum
+      tags: [unlocks]
+      parameters:
+        - { name: albumId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "201":
+          {
+            description: Created,
+            content:
+              {
+                application/json:
+                  {
+                    schema: { $ref: "#/components/schemas/CreatorAlbumUnlock" },
+                  },
+              },
+          }
+  /creator-albums/{albumId}/media/{mediaId}/content:
+    get:
+      operationId: getCreatorAlbumMediaContent
+      tags: [unlocks]
+      summary: Stream album media for an entitled viewer
+      parameters:
+        - { name: albumId, in: path, required: true, schema: { type: integer } }
+        - { name: mediaId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Album media bytes
+          content:
+            "*/*":
+              schema: { type: string, format: binary }
+        "404":
+          description: Media not found or viewer is not entitled
+  /creator/albums/{albumId}/media:
+    post:
+      operationId: addCreatorAlbumMedia
+      tags: [dolls]
+      parameters:
+        - { name: albumId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    { $ref: "#/components/schemas/CreatorAlbumMediaInput" },
+                },
+            },
+        }
+      responses:
+        "201":
+          {
+            description: Created,
+            content:
+              {
+                application/json:
+                  {
+                    schema: { $ref: "#/components/schemas/CreatorAlbumMedia" },
+                  },
+              },
+          }
+  /creator/albums/{albumId}:
+    patch:
+      operationId: updateCreatorAlbum
+      tags: [dolls]
+      parameters:
+        - { name: albumId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreatorAlbumUpdate" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatorAlbum" }
+  /creator/albums/{albumId}/media/{mediaId}:
+    delete:
+      operationId: removeCreatorAlbumMedia
+      tags: [dolls]
+      parameters:
+        - { name: albumId, in: path, required: true, schema: { type: integer } }
+        - { name: mediaId, in: path, required: true, schema: { type: integer } }
+      responses: { "204": { description: Removed } }
+    patch:
+      operationId: updateCreatorAlbumMedia
+      tags: [dolls]
+      parameters:
+        - { name: albumId, in: path, required: true, schema: { type: integer } }
+        - { name: mediaId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    { $ref: "#/components/schemas/CreatorAlbumMediaUpdate" },
+                },
+            },
+        }
+      responses:
+        {
+          "200":
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        { $ref: "#/components/schemas/CreatorAlbumMedia" },
+                    },
+                },
+            },
+        }
+  /creator/request-settings:
+    get:
+      operationId: getCreatorRequestSettings
+      tags: [dolls]
+      responses:
+        {
+          "200":
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        { $ref: "#/components/schemas/CreatorRequestSettings" },
+                    },
+                },
+            },
+        }
+    put:
+      operationId: updateCreatorRequestSettings
+      tags: [dolls]
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      $ref: "#/components/schemas/CreatorRequestSettingsInput",
+                    },
+                },
+            },
+        }
+      responses:
+        {
+          "200":
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        { $ref: "#/components/schemas/CreatorRequestSettings" },
+                    },
+                },
+            },
+        }
+  /creators/{creatorUserId}/request-availability:
+    get:
+      operationId: getCreatorRequestAvailability
+      tags: [dolls]
+      parameters:
+        [
+          {
+            name: creatorUserId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          },
+        ]
+      responses:
+        {
+          "200":
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        {
+                          $ref: "#/components/schemas/CreatorRequestAvailability",
+                        },
+                    },
+                },
+            },
+        }
+  /custom-requests:
+    get:
+      operationId: listCustomRequests
+      tags: [messages]
+      responses:
+        {
+          "200":
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        {
+                          type: array,
+                          items:
+                            {
+                              $ref: "#/components/schemas/CustomContentRequest",
+                            },
+                        },
+                    },
+                },
+            },
+        }
+    post:
+      operationId: createCustomRequest
+      tags: [messages]
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    { $ref: "#/components/schemas/CustomContentRequestInput" },
+                },
+            },
+        }
+      responses:
+        {
+          "201":
+            {
+              description: Created,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        { $ref: "#/components/schemas/CustomContentRequest" },
+                    },
+                },
+            },
+        }
+  /custom-requests/{id}/accept:
+    post:
+      operationId: acceptCustomRequest
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreatorRequestAcceptanceInput" }
+      responses:
+        "200":
+          description: Accepted request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomContentRequest" }
+  /custom-requests/{id}/decline:
+    post:
+      operationId: declineCustomRequest
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200":
+          description: Declined request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomContentRequest" }
+  /custom-requests/{id}/cancel:
+    post:
+      operationId: cancelCustomRequest
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200":
+          description: Cancelled request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomContentRequest" }
+  /custom-requests/{id}/complete:
+    post:
+      operationId: completeCustomRequest
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200":
+          description: Completed request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomContentRequest" }
+  /custom-requests/{id}/dispute:
+    post:
+      operationId: disputeCustomRequest
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomRequestDisputeInput" }
+      responses:
+        "200":
+          description: Disputed request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomContentRequest" }
+  /custom-requests/{id}:
+    get:
+      operationId: getCustomRequest
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        {
+          "200":
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        { $ref: "#/components/schemas/CustomContentRequest" },
+                    },
+                },
+            },
+        }
+  /custom-requests/{id}/deliver:
+    post:
+      operationId: deliverCustomRequest
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema: { $ref: "#/components/schemas/CustomDeliveryInput" },
+                },
+            },
+        }
+      responses:
+        "201":
+          description: Delivered request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomContentRequest" }
+  /custom-requests/{id}/media/image:
+    get:
+      operationId: getCustomRequestImage
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        {
+          "200":
+            {
+              description: Private delivered image,
+              content: { "*/*": { schema: { type: string, format: binary } } },
+            },
+        }
+  /custom-requests/{id}/media/video:
+    get:
+      operationId: getCustomRequestVideo
+      tags: [messages]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        {
+          "200":
+            {
+              description: Private delivered video,
+              content: { "*/*": { schema: { type: string, format: binary } } },
+            },
+        }
+  /admin/custom-requests:
+    get:
+      operationId: adminListCustomRequests
+      tags: [admin]
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: creatorUserId, in: query, schema: { type: integer } }
+        - { name: customerUserId, in: query, schema: { type: integer } }
+      responses:
+        {
+          "200":
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        {
+                          type: array,
+                          items:
+                            {
+                              $ref: "#/components/schemas/CustomContentRequest",
+                            },
+                        },
+                    },
+                },
+            },
+        }
+  /admin/custom-requests/{id}/refund:
+    post:
+      operationId: adminRefundCustomRequest
+      tags: [admin]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200":
+          description: Refunded request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomContentRequest" }
+  /admin/custom-requests/{id}/resolve:
+    post:
+      operationId: adminResolveCustomRequest
+      tags: [admin]
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      $ref: "#/components/schemas/AdminResolveCustomRequestInput",
+                    },
+                },
+            },
+        }
+      responses:
+        "200":
+          description: Resolved request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomContentRequest" }
+  /admin/creators/{creatorUserId}/request-settings/disable:
+    post:
+      operationId: adminDisableCreatorRequests
+      tags: [admin]
+      parameters:
+        [
+          {
+            name: creatorUserId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          },
+        ]
+      responses:
+        "200":
+          description: Disabled Creator settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatorRequestSettings" }
+
   /video-chats:
     get:
       operationId: listVideoChats
@@ -1132,7 +1797,12 @@ paths:
       tags: [videochat]
       summary: Estimate the credit cost of a video chat
       parameters:
-        - { name: minutes, in: query, required: false, schema: { type: integer } }
+        - {
+            name: minutes,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -1290,8 +1960,18 @@ paths:
       tags: [admin]
       summary: Manage users (Admin)
       parameters:
-        - { name: role, in: query, required: false, schema: { type: string, enum: [doll, member, admin] } }
-        - { name: buddyType, in: query, required: false, schema: { type: string, enum: [female_buddy, male_buddy, missing] } }
+        - {
+            name: role,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [doll, member, admin] },
+          }
+        - {
+            name: buddyType,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [female_buddy, male_buddy, missing] },
+          }
       responses:
         "200":
           description: OK
@@ -1441,10 +2121,29 @@ paths:
       tags: [admin]
       summary: Recent credit transactions across all members (Admin)
       parameters:
-        - { name: userId, in: query, required: false, schema: { type: integer } }
-        - { name: type, in: query, required: false, schema: { type: string, enum: [purchase, spend, adjustment, membership, expiry] } }
+        - {
+            name: userId,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
+        - {
+            name: type,
+            in: query,
+            required: false,
+            schema:
+              {
+                type: string,
+                enum: [purchase, spend, adjustment, membership, expiry],
+              },
+          }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -1480,12 +2179,33 @@ paths:
       parameters:
         - { name: state, in: query, required: false, schema: { type: string } }
         - { name: city, in: query, required: false, schema: { type: string } }
-        - { name: category, in: query, required: false, schema: { type: string } }
-        - { name: status, in: query, required: false, schema: { type: string, enum: [confirmed, likely, needs_manual, closed] } }
-        - { name: minConfidence, in: query, required: false, schema: { type: integer } }
+        - {
+            name: category,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: status,
+            in: query,
+            required: false,
+            schema:
+              { type: string, enum: [confirmed, likely, needs_manual, closed] },
+          }
+        - {
+            name: minConfidence,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
         - { name: q, in: query, required: false, schema: { type: string } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -1514,7 +2234,12 @@ paths:
       summary: Rejected / duplicate records from collection (Admin)
       parameters:
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -1602,9 +2327,24 @@ paths:
         - { name: handle, in: query, required: false, schema: { type: string } }
         - { name: city, in: query, required: false, schema: { type: string } }
         - { name: state, in: query, required: false, schema: { type: string } }
-        - { name: buddyType, in: query, required: false, schema: { type: string, enum: [female_buddy, male_buddy] } }
-        - { name: minAge, in: query, required: false, schema: { type: integer, minimum: 18, maximum: 120 } }
-        - { name: maxAge, in: query, required: false, schema: { type: integer, minimum: 18, maximum: 120 } }
+        - {
+            name: buddyType,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [female_buddy, male_buddy] },
+          }
+        - {
+            name: minAge,
+            in: query,
+            required: false,
+            schema: { type: integer, minimum: 18, maximum: 120 },
+          }
+        - {
+            name: maxAge,
+            in: query,
+            required: false,
+            schema: { type: integer, minimum: 18, maximum: 120 },
+          }
       responses:
         "200":
           description: OK
@@ -1640,10 +2380,34 @@ paths:
       tags: [feed]
       summary: Browse the public hookah feed (public preview allowed)
       parameters:
-        - { name: filter, in: query, required: false, schema: { type: string, enum: [trending, new, nearby, dolls, bros, lounges, events] } }
-        - { name: category, in: query, required: false, schema: { type: string } }
-        - { name: hashtag, in: query, required: false, schema: { type: string } }
-        - { name: userId, in: query, required: false, schema: { type: integer } }
+        - {
+            name: filter,
+            in: query,
+            required: false,
+            schema:
+              {
+                type: string,
+                enum: [trending, new, nearby, dolls, bros, lounges, events],
+              },
+          }
+        - {
+            name: category,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: hashtag,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: userId,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
         - { name: limit, in: query, required: false, schema: { type: integer } }
       responses:
         "200":
@@ -1940,7 +2704,12 @@ paths:
       summary: List followers or following for a user
       parameters:
         - { name: userId, in: query, required: true, schema: { type: integer } }
-        - { name: direction, in: query, required: true, schema: { type: string, enum: [followers, following] } }
+        - {
+            name: direction,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [followers, following] },
+          }
       responses:
         "200":
           description: OK
@@ -2038,7 +2807,13 @@ paths:
       tags: [admin]
       summary: List all feed posts for moderation (Admin)
       parameters:
-        - { name: status, in: query, required: false, schema: { type: string, enum: [active, hidden, removed, pending_review] } }
+        - {
+            name: status,
+            in: query,
+            required: false,
+            schema:
+              { type: string, enum: [active, hidden, removed, pending_review] },
+          }
       responses:
         "200":
           description: OK
@@ -2080,7 +2855,16 @@ paths:
       tags: [admin]
       summary: List feed post/comment reports (Admin)
       parameters:
-        - { name: status, in: query, required: false, schema: { type: string, enum: [pending, reviewed, dismissed, action_taken] } }
+        - {
+            name: status,
+            in: query,
+            required: false,
+            schema:
+              {
+                type: string,
+                enum: [pending, reviewed, dismissed, action_taken],
+              },
+          }
       responses:
         "200":
           description: OK
@@ -2258,7 +3042,12 @@ paths:
       tags: [feed]
       summary: List private shares sent or received by the current user
       parameters:
-        - { name: direction, in: query, required: false, schema: { type: string, enum: [sent, received] } }
+        - {
+            name: direction,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [sent, received] },
+          }
         - { name: limit, in: query, required: false, schema: { type: integer } }
       responses:
         "200":
@@ -2364,12 +3153,38 @@ paths:
       tags: [admin]
       summary: List/filter share records (Admin)
       parameters:
-        - { name: sharerId, in: query, required: false, schema: { type: integer } }
-        - { name: sourceType, in: query, required: false, schema: { type: string, enum: [feed_post, group_post] } }
-        - { name: destination, in: query, required: false, schema: { type: string, enum: [public, lounge, friends, private, group] } }
-        - { name: status, in: query, required: false, schema: { type: string, enum: [active, hidden, removed] } }
+        - {
+            name: sharerId,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
+        - {
+            name: sourceType,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [feed_post, group_post] },
+          }
+        - {
+            name: destination,
+            in: query,
+            required: false,
+            schema:
+              { type: string, enum: [public, lounge, friends, private, group] },
+          }
+        - {
+            name: status,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [active, hidden, removed] },
+          }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -2411,8 +3226,18 @@ paths:
       tags: [admin]
       summary: List sharing suspensions (Admin)
       parameters:
-        - { name: userId, in: query, required: false, schema: { type: integer } }
-        - { name: status, in: query, required: false, schema: { type: string, enum: [active, lifted] } }
+        - {
+            name: userId,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
+        - {
+            name: status,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [active, lifted] },
+          }
         - { name: limit, in: query, required: false, schema: { type: integer } }
       responses:
         "200":
@@ -2944,12 +3769,46 @@ paths:
       tags: [reels]
       summary: Browse Sparks (legacy `/reels` route)
       parameters:
-        - { name: userId, in: query, required: false, schema: { type: integer } }
-        - { name: dollId, in: query, required: false, schema: { type: integer, minimum: 1 }, description: Limit Sparks to the approved Doll profile that owns the author account. }
-        - { name: businessId, in: query, required: false, schema: { type: integer }, description: Limit Sparks to an attributed Business Page. }
-        - { name: category, in: query, required: false, schema: { type: string } }
-        - { name: visibility, in: query, required: false, schema: { type: string, enum: [public, friends, only_me] }, description: Limit results by requested audience without bypassing viewer access checks. }
-        - { name: search, in: query, required: false, schema: { type: string, maxLength: 100 }, description: Case-insensitive caption or hashtag search. }
+        - {
+            name: userId,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
+        - {
+            name: dollId,
+            in: query,
+            required: false,
+            schema: { type: integer, minimum: 1 },
+            description: Limit Sparks to the approved Doll profile that owns the author account.,
+          }
+        - {
+            name: businessId,
+            in: query,
+            required: false,
+            schema: { type: integer },
+            description: Limit Sparks to an attributed Business Page.,
+          }
+        - {
+            name: category,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: visibility,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [public, friends, only_me] },
+            description: Limit results by requested audience without bypassing viewer access checks.,
+          }
+        - {
+            name: search,
+            in: query,
+            required: false,
+            schema: { type: string, maxLength: 100 },
+            description: Case-insensitive caption or hashtag search.,
+          }
         - { name: limit, in: query, required: false, schema: { type: integer } }
       responses:
         "200":
@@ -2987,7 +3846,13 @@ paths:
       summary: List people the current user can tag in a Spark
       description: Returns active people allowed by mutual block and tagging-privacy rules. The current user is excluded.
       parameters:
-        - { name: search, in: query, required: false, schema: { type: string, maxLength: 100 }, description: Case-insensitive name or username search. }
+        - {
+            name: search,
+            in: query,
+            required: false,
+            schema: { type: string, maxLength: 100 },
+            description: Case-insensitive name or username search.,
+          }
       responses:
         "200":
           description: Eligible people
@@ -3013,7 +3878,13 @@ paths:
       summary: List Business Pages the current user can use for a Spark
       description: Returns only active pages for which the current user has an owner, admin, or editor role.
       parameters:
-        - { name: search, in: query, required: false, schema: { type: string, maxLength: 100 }, description: Case-insensitive business name or handle search. }
+        - {
+            name: search,
+            in: query,
+            required: false,
+            schema: { type: string, maxLength: 100 },
+            description: Case-insensitive business name or handle search.,
+          }
       responses:
         "200":
           description: Editable Business Pages
@@ -3444,29 +4315,103 @@ paths:
         - { name: q, in: query, required: false, schema: { type: string } }
         - { name: city, in: query, required: false, schema: { type: string } }
         - { name: state, in: query, required: false, schema: { type: string } }
-        - { name: category, in: query, required: false, schema: { type: string } }
-        - { name: businessType, in: query, required: false, schema: { type: string } }
-        - { name: verified, in: query, required: false, schema: { type: string } }
-        - { name: featured, in: query, required: false, schema: { type: string } }
-        - { name: sponsored, in: query, required: false, schema: { type: string } }
-        - { name: appointmentsAvailable, in: query, required: false, schema: { type: string } }
-        - { name: minRating, in: query, required: false, schema: { type: number } }
-        - { name: hasServices, in: query, required: false, schema: { type: string } }
-        - { name: hasProducts, in: query, required: false, schema: { type: string } }
-        - { name: hasOffers, in: query, required: false, schema: { type: string } }
-        - { name: hasEvents, in: query, required: false, schema: { type: string } }
-        - { name: openNow, in: query, required: false, schema: { type: string } }
+        - {
+            name: category,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: businessType,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: verified,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: featured,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: sponsored,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: appointmentsAvailable,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: minRating,
+            in: query,
+            required: false,
+            schema: { type: number },
+          }
+        - {
+            name: hasServices,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: hasProducts,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: hasOffers,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: hasEvents,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: openNow,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
         - name: sort
           in: query
           required: false
           schema:
             type: string
-            enum: [recommended, distance, rating, newest, most_followed, most_recommended, recently_active]
+            enum:
+              [
+                recommended,
+                distance,
+                rating,
+                newest,
+                most_followed,
+                most_recommended,
+                recently_active,
+              ]
         - { name: lat, in: query, required: false, schema: { type: number } }
         - { name: lng, in: query, required: false, schema: { type: number } }
         - { name: radius, in: query, required: false, schema: { type: number } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -3636,7 +4581,12 @@ paths:
       summary: "Reply to a review on behalf of the business. Accessible to: owner, admin, moderator. Reply is attributed to the business only (reviewer's userId is not exposed in reply)."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: reviewId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: reviewId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -3837,7 +4787,12 @@ paths:
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
         - { name: postId, in: path, required: true, schema: { type: integer } }
-        - { name: commentId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: commentId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "204":
           description: Deleted
@@ -3850,7 +4805,12 @@ paths:
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -3932,8 +4892,18 @@ paths:
       summary: "List media items (photos, videos, and Sparks). Public sees active items; team/admin see all."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: albumId, in: query, required: false, schema: { type: integer } }
-        - { name: kind, in: query, required: false, schema: { type: string, enum: [photo, video, reel] } }
+        - {
+            name: albumId,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
+        - {
+            name: kind,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [photo, video, reel] },
+          }
       responses:
         "200":
           description: OK
@@ -4125,7 +5095,12 @@ paths:
       tags: [businesses]
       summary: "Platform-admin-only proxy download of a private verification document. Streamed by the server; no public URL, no shared caching."
       parameters:
-        - { name: submissionId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: submissionId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
         - { name: index, in: path, required: true, schema: { type: integer } }
       responses:
         "200":
@@ -4143,7 +5118,12 @@ paths:
       summary: "Reschedule an appointment. Customer may reschedule own (resets to pending); team managers may reschedule any. New slot re-validated against booking availability."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: appointmentId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: appointmentId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -4201,7 +5181,12 @@ paths:
       summary: "Delete a service. Accessible to: owner, admin, editor."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: serviceId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: serviceId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "204":
           description: Deleted
@@ -4249,7 +5234,12 @@ paths:
       summary: "Delete a product. Accessible to: owner, admin, editor."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: productId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: productId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "204":
           description: Deleted
@@ -4345,7 +5335,12 @@ paths:
       summary: Update appointment status (owner confirms/cancels; user cancels own)
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: appointmentId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: appointmentId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -4397,7 +5392,12 @@ paths:
       summary: "Read messages in a conversation. Accessible to: the conversation's own user, OR owner/admin/support_agent."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: conversationId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: conversationId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -4413,7 +5413,12 @@ paths:
       summary: "Send a message. senderType is auto-set: 'user' for the conversation owner, 'business' for owner/admin/support_agent."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: conversationId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: conversationId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -4530,20 +5535,81 @@ paths:
       summary: Admin list of all business pages
       parameters:
         - { name: status, in: query, required: false, schema: { type: string } }
-        - { name: verificationStatus, in: query, required: false, schema: { type: string, enum: [unverified, pending, verified, rejected] } }
-        - { name: category, in: query, required: false, schema: { type: string } }
-        - { name: businessType, in: query, required: false, schema: { type: string } }
+        - {
+            name: verificationStatus,
+            in: query,
+            required: false,
+            schema:
+              { type: string, enum: [unverified, pending, verified, rejected] },
+          }
+        - {
+            name: category,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: businessType,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
         - { name: q, in: query, required: false, schema: { type: string } }
-        - { name: featured, in: query, required: false, schema: { type: string } }
-        - { name: sponsored, in: query, required: false, schema: { type: string } }
-        - { name: appointmentsAvailable, in: query, required: false, schema: { type: string } }
-        - { name: hasServices, in: query, required: false, schema: { type: string } }
-        - { name: hasProducts, in: query, required: false, schema: { type: string } }
-        - { name: hasOffers, in: query, required: false, schema: { type: string } }
-        - { name: hasEvents, in: query, required: false, schema: { type: string } }
-        - { name: reportsPending, in: query, required: false, schema: { type: string } }
+        - {
+            name: featured,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: sponsored,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: appointmentsAvailable,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: hasServices,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: hasProducts,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: hasOffers,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: hasEvents,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: reportsPending,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -4621,8 +5687,19 @@ paths:
       summary: "Like/unlike a public business child entity (media|event|product|offer|checkin)"
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
-        - { name: entityId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: entityType,
+            in: path,
+            required: true,
+            schema:
+              { type: string, enum: [media, event, product, offer, checkin] },
+          }
+        - {
+            name: entityId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -4638,8 +5715,19 @@ paths:
       summary: "Save/unsave a public business child entity"
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
-        - { name: entityId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: entityType,
+            in: path,
+            required: true,
+            schema:
+              { type: string, enum: [media, event, product, offer, checkin] },
+          }
+        - {
+            name: entityId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -4655,8 +5743,22 @@ paths:
       summary: "Report a business child entity to the admin report queue"
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: entityType, in: path, required: true, schema: { type: string, enum: [post, comment, media, event, product, offer, checkin] } }
-        - { name: entityId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: entityType,
+            in: path,
+            required: true,
+            schema:
+              {
+                type: string,
+                enum: [post, comment, media, event, product, offer, checkin],
+              },
+          }
+        - {
+            name: entityId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -4678,8 +5780,19 @@ paths:
       summary: "List comments on a public business child entity (media|event|product|offer|checkin)."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
-        - { name: entityId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: entityType,
+            in: path,
+            required: true,
+            schema:
+              { type: string, enum: [media, event, product, offer, checkin] },
+          }
+        - {
+            name: entityId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -4695,8 +5808,19 @@ paths:
       summary: "Create a comment on a public business child entity."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
-        - { name: entityId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: entityType,
+            in: path,
+            required: true,
+            schema:
+              { type: string, enum: [media, event, product, offer, checkin] },
+          }
+        - {
+            name: entityId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -4721,9 +5845,25 @@ paths:
       summary: "Soft-delete a business child comment (author, page moderator, or admin)."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: entityType, in: path, required: true, schema: { type: string, enum: [media, event, product, offer, checkin] } }
-        - { name: entityId, in: path, required: true, schema: { type: integer } }
-        - { name: commentId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: entityType,
+            in: path,
+            required: true,
+            schema:
+              { type: string, enum: [media, event, product, offer, checkin] },
+          }
+        - {
+            name: entityId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
+        - {
+            name: commentId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -4795,7 +5935,12 @@ paths:
       summary: "List business @-mentions (page team; moderator+)."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: status, in: query, required: false, schema: { type: string, enum: [pending, approved, rejected] } }
+        - {
+            name: status,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [pending, approved, rejected] },
+          }
       responses:
         "200":
           description: OK
@@ -4813,7 +5958,12 @@ paths:
       summary: "Approve or reject a business @-mention (page team)."
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: mentionId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: mentionId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -4837,8 +5987,18 @@ paths:
       tags: [admin]
       summary: "Admin report queue for business content."
       parameters:
-        - { name: status, in: query, required: false, schema: { type: string, enum: [open, dismissed, actioned] } }
-        - { name: entityType, in: query, required: false, schema: { type: string } }
+        - {
+            name: status,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [open, dismissed, actioned] },
+          }
+        - {
+            name: entityType,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
       responses:
         "200":
           description: OK
@@ -4855,7 +6015,12 @@ paths:
       tags: [admin]
       summary: "Dismiss or action a business content report."
       parameters:
-        - { name: reportId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: reportId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -4889,9 +6054,24 @@ paths:
         explicitly request only meetup groups, or groupType=all to include both.
       parameters:
         - { name: search, in: query, required: false, schema: { type: string } }
-        - { name: category, in: query, required: false, schema: { type: string } }
-        - { name: privacy, in: query, required: false, schema: { type: string, enum: [public, private] } }
-        - { name: featured, in: query, required: false, schema: { type: boolean } }
+        - {
+            name: category,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: privacy,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [public, private] },
+          }
+        - {
+            name: featured,
+            in: query,
+            required: false,
+            schema: { type: boolean },
+          }
         - name: groupType
           in: query
           required: false
@@ -4901,7 +6081,12 @@ paths:
             to include both.
           schema: { type: string, enum: [group, meetup, all] }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -5155,7 +6340,12 @@ paths:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
         - { name: role, in: query, required: false, schema: { type: string } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -5241,7 +6431,12 @@ paths:
       summary: Accept or decline a group invite (invited user)
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
-        - { name: inviteId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: inviteId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -5261,7 +6456,12 @@ paths:
       summary: Cancel a pending invite (admin/owner or inviter)
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
-        - { name: inviteId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: inviteId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "204":
           description: Cancelled
@@ -5291,7 +6491,12 @@ paths:
       summary: Approve or decline a join request (admin/owner/moderator)
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
-        - { name: requestId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: requestId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -5426,7 +6631,12 @@ paths:
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
         - { name: status, in: query, required: false, schema: { type: string } }
       responses:
         "200":
@@ -5677,7 +6887,12 @@ paths:
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
         - { name: postId, in: path, required: true, schema: { type: integer } }
-        - { name: commentId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: commentId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "204":
           description: Deleted
@@ -5690,7 +6905,12 @@ paths:
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
         - { name: postId, in: path, required: true, schema: { type: integer } }
-        - { name: commentId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: commentId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -5731,7 +6951,12 @@ paths:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
         - { name: kind, in: query, required: false, schema: { type: string } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -5786,8 +7011,20 @@ paths:
         - { name: search, in: query, required: false, schema: { type: string } }
         - { name: city, in: query, required: false, schema: { type: string } }
         - { name: state, in: query, required: false, schema: { type: string } }
-        - { name: interests, in: query, required: false, schema: { type: string, description: "Comma-separated interest tags" } }
-        - { name: privacy, in: query, required: false, schema: { type: string, enum: [public, private] }, description: "Limit to public or private meetups" }
+        - {
+            name: interests,
+            in: query,
+            required: false,
+            schema:
+              { type: string, description: "Comma-separated interest tags" },
+          }
+        - {
+            name: privacy,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [public, private] },
+            description: "Limit to public or private meetups",
+          }
         - name: radius
           in: query
           required: false
@@ -5813,7 +7050,12 @@ paths:
             (default), most_active = eventCount DESC. Featured meetups always
             float to the top regardless of sort.
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -5831,7 +7073,12 @@ paths:
       summary: List group events (private group requires membership)
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
-        - { name: scope, in: query, required: false, schema: { type: string, enum: [upcoming, past] } }
+        - {
+            name: scope,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [upcoming, past] },
+          }
         - { name: limit, in: query, required: false, schema: { type: integer } }
       responses:
         "200":
@@ -6062,7 +7309,12 @@ paths:
       summary: Review a group report (admin/mod/owner)
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
-        - { name: reportId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: reportId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       requestBody:
         required: true
         content:
@@ -6133,7 +7385,12 @@ paths:
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -6202,7 +7459,12 @@ paths:
       summary: Remove featured content (admin/owner)
       parameters:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
-        - { name: featuredId, in: path, required: true, schema: { type: integer } }
+        - {
+            name: featuredId,
+            in: path,
+            required: true,
+            schema: { type: integer },
+          }
       responses:
         "204":
           description: Removed
@@ -6216,11 +7478,26 @@ paths:
       summary: Admin — list all groups with filters
       parameters:
         - { name: search, in: query, required: false, schema: { type: string } }
-        - { name: privacy, in: query, required: false, schema: { type: string } }
-        - { name: category, in: query, required: false, schema: { type: string } }
+        - {
+            name: privacy,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
+        - {
+            name: category,
+            in: query,
+            required: false,
+            schema: { type: string },
+          }
         - { name: status, in: query, required: false, schema: { type: string } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -6272,7 +7549,12 @@ paths:
         - { name: groupId, in: path, required: true, schema: { type: integer } }
         - { name: status, in: query, required: false, schema: { type: string } }
         - { name: limit, in: query, required: false, schema: { type: integer } }
-        - { name: offset, in: query, required: false, schema: { type: integer } }
+        - {
+            name: offset,
+            in: query,
+            required: false,
+            schema: { type: integer },
+          }
       responses:
         "200":
           description: OK
@@ -6372,8 +7654,10 @@ components:
         role: { type: string, enum: [doll, member, admin] }
         email: { type: string }
         name: { type: string }
-        accountStatus: { type: string, enum: [active, pending, suspended, banned] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        accountStatus:
+          { type: string, enum: [active, pending, suspended, banned] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         dollId: { type: ["integer", "null"] }
         createdAt: { type: string }
 
@@ -6387,7 +7671,8 @@ components:
         city: { type: ["string", "null"] }
         state: { type: ["string", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         memberSince: { type: string }
 
     BuddyDiscoveryProfile:
@@ -6417,7 +7702,8 @@ components:
         city: { type: ["string", "null"] }
         state: { type: ["string", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         memberSince: { type: string, format: date-time }
         profileUrl: { type: string }
 
@@ -6507,6 +7793,7 @@ components:
       type: object
       required:
         - id
+        - creatorUserId
         - stageName
         - city
         - state
@@ -6518,6 +7805,7 @@ components:
         - buddyType
       properties:
         id: { type: integer }
+        creatorUserId: { type: integer }
         stageName: { type: string }
         city: { type: string }
         state: { type: string }
@@ -6527,7 +7815,8 @@ components:
         experienceLevel: { type: string }
         preferences: { type: string }
         profilePhotoUrl: { type: string }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         verified: { type: boolean }
         featured: { type: boolean }
         elite: { type: boolean }
@@ -6549,7 +7838,8 @@ components:
         - $ref: "#/components/schemas/Doll"
         - type: object
           properties:
-            verificationStatus: { type: string, enum: [unverified, pending, approved, rejected] }
+            verificationStatus:
+              { type: string, enum: [unverified, pending, approved, rejected] }
             isFavorited: { type: boolean }
             viewerSubscribed: { type: boolean }
             media:
@@ -6576,7 +7866,15 @@ components:
 
     DollAnalytics:
       type: object
-      required: [profileViews, favorites, contentUnlocks, messageRevenue, videoChatRevenue, subscriptionRevenue]
+      required:
+        [
+          profileViews,
+          favorites,
+          contentUnlocks,
+          messageRevenue,
+          videoChatRevenue,
+          subscriptionRevenue,
+        ]
       properties:
         profileViews: { type: integer }
         favorites: { type: integer }
@@ -6599,7 +7897,19 @@ components:
       properties:
         id: { type: integer }
         dollId: { type: integer }
-        type: { type: string, enum: [profile, free_photo, premium_photo, premium_video, short_video, verification] }
+        type:
+          {
+            type: string,
+            enum:
+              [
+                profile,
+                free_photo,
+                premium_photo,
+                premium_video,
+                short_video,
+                verification,
+              ],
+          }
         url: { type: string }
         thumbnailUrl: { type: string }
         caption: { type: string }
@@ -6618,7 +7928,19 @@ components:
       type: object
       required: [type, url, containsHookah]
       properties:
-        type: { type: string, enum: [profile, free_photo, premium_photo, premium_video, short_video, verification] }
+        type:
+          {
+            type: string,
+            enum:
+              [
+                profile,
+                free_photo,
+                premium_photo,
+                premium_video,
+                short_video,
+                verification,
+              ],
+          }
         url: { type: string, minLength: 1 }
         thumbnailUrl: { type: string }
         caption: { type: string }
@@ -6703,7 +8025,8 @@ components:
 
     Event:
       type: object
-      required: [id, title, city, state, startsAt, status, rsvpCount, rsvped, saved]
+      required:
+        [id, title, city, state, startsAt, status, rsvpCount, rsvped, saved]
       properties:
         id: { type: integer }
         title: { type: string }
@@ -6728,17 +8051,36 @@ components:
           type: integer
           description: Total visible attendees under the same eligibility filters as the preview (detail route only)
         # Meetup-projected events carry source attribution fields
-        sourceType: { type: ["string", "null"], description: "meetup_event when projected from a Meetup group" }
-        sourceId: { type: ["integer", "null"], description: "group_event.id (original source record)" }
-        meetupId: { type: ["integer", "null"], description: "groups.id (Meetup group)" }
-        meetupName: { type: ["string", "null"], description: "Meetup group name" }
-        businessId: { type: ["integer", "null"], description: "Business Page hosting the Meetup event" }
+        sourceType:
+          {
+            type: ["string", "null"],
+            description: "meetup_event when projected from a Meetup group",
+          }
+        sourceId:
+          {
+            type: ["integer", "null"],
+            description: "group_event.id (original source record)",
+          }
+        meetupId:
+          { type: ["integer", "null"], description: "groups.id (Meetup group)" }
+        meetupName:
+          { type: ["string", "null"], description: "Meetup group name" }
+        businessId:
+          {
+            type: ["integer", "null"],
+            description: "Business Page hosting the Meetup event",
+          }
         businessName: { type: ["string", "null"] }
         businessHandle: { type: ["string", "null"] }
         businessLogoUrl: { type: ["string", "null"] }
         # Additional Meetup-projected fields (null on native events, never includes protected onlineUrl)
-        eventFormat: { type: ["string", "null"], description: "in_person | online | hybrid (meetup projected only)" }
-        eventCategory: { type: ["string", "null"], description: "Meetup event category" }
+        eventFormat:
+          {
+            type: ["string", "null"],
+            description: "in_person | online | hybrid (meetup projected only)",
+          }
+        eventCategory:
+          { type: ["string", "null"], description: "Meetup event category" }
         topics:
           type: array
           nullable: true
@@ -6749,12 +8091,36 @@ components:
           nullable: true
           items: { type: string }
           description: "Meetup event tags"
-        isPaid: { type: ["boolean", "null"], description: "True when event requires payment (meetup projected only)" }
-        paidMetadata: { type: ["object", "null"], description: "Provider-neutral payment metadata (meetup projected only)" }
-        attendeeLimit: { type: ["integer", "null"], description: "Capacity cap (meetup projected only)" }
-        waitlistEnabled: { type: ["boolean", "null"], description: "Whether waitlist is active (meetup projected only)" }
-        waitlistCount: { type: ["integer", "null"], description: "Current waitlist size (meetup projected only)" }
-        viewerWaitlistPosition: { type: ["integer", "null"], description: "Authenticated viewer's waitlist position when waitlisted" }
+        isPaid:
+          {
+            type: ["boolean", "null"],
+            description: "True when event requires payment (meetup projected only)",
+          }
+        paidMetadata:
+          {
+            type: ["object", "null"],
+            description: "Provider-neutral payment metadata (meetup projected only)",
+          }
+        attendeeLimit:
+          {
+            type: ["integer", "null"],
+            description: "Capacity cap (meetup projected only)",
+          }
+        waitlistEnabled:
+          {
+            type: ["boolean", "null"],
+            description: "Whether waitlist is active (meetup projected only)",
+          }
+        waitlistCount:
+          {
+            type: ["integer", "null"],
+            description: "Current waitlist size (meetup projected only)",
+          }
+        viewerWaitlistPosition:
+          {
+            type: ["integer", "null"],
+            description: "Authenticated viewer's waitlist position when waitlisted",
+          }
 
     EventAttendee:
       type: object
@@ -6763,7 +8129,8 @@ components:
         id: { type: integer }
         name: { type: string }
         profilePhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
 
     EventRsvpResult:
       type: object
@@ -6771,9 +8138,21 @@ components:
       properties:
         rsvped: { type: boolean }
         rsvpCount: { type: integer }
-        rsvpStatus: { type: ["string", "null"], description: "Authoritative post-mutation RSVP status for projected Meetup Events" }
-        waitlisted: { type: boolean, description: "Whether the viewer is now waitlisted for a projected Meetup Event" }
-        waitlistPosition: { type: ["integer", "null"], description: "The viewer's current projected Meetup Event waitlist position" }
+        rsvpStatus:
+          {
+            type: ["string", "null"],
+            description: "Authoritative post-mutation RSVP status for projected Meetup Events",
+          }
+        waitlisted:
+          {
+            type: boolean,
+            description: "Whether the viewer is now waitlisted for a projected Meetup Event",
+          }
+        waitlistPosition:
+          {
+            type: ["integer", "null"],
+            description: "The viewer's current projected Meetup Event waitlist position",
+          }
 
     EventSaveResult:
       type: object
@@ -6855,7 +8234,8 @@ components:
 
     CreditBalance:
       type: object
-      required: [balance, membershipBalance, purchasedBalance, monthlyMembershipCredits]
+      required:
+        [balance, membershipBalance, purchasedBalance, monthlyMembershipCredits]
       properties:
         balance: { type: integer }
         membershipBalance: { type: integer }
@@ -6873,7 +8253,11 @@ components:
       properties:
         id: { type: integer }
         amount: { type: integer }
-        type: { type: string, enum: [purchase, spend, adjustment, membership, expiry] }
+        type:
+          {
+            type: string,
+            enum: [purchase, spend, adjustment, membership, expiry],
+          }
         description: { type: string }
         amountCents: { type: ["integer", "null"] }
         createdAt: { type: string }
@@ -6916,7 +8300,11 @@ components:
         userName: { type: string }
         userEmail: { type: string }
         amount: { type: integer }
-        type: { type: string, enum: [purchase, spend, adjustment, membership, expiry] }
+        type:
+          {
+            type: string,
+            enum: [purchase, spend, adjustment, membership, expiry],
+          }
         description: { type: string }
         amountCents: { type: ["integer", "null"] }
         createdAt: { type: string }
@@ -6955,10 +8343,12 @@ components:
         dollId: { type: integer }
         dollName: { type: string }
         dollPhotoUrl: { type: string }
-        dollBuddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        dollBuddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         memberId: { type: integer }
         memberName: { type: string }
-        memberBuddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        memberBuddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         lastMessage: { type: string }
         lastMessageAt: { type: string }
         unreadCount: { type: integer }
@@ -6980,6 +8370,11 @@ components:
         body: { type: string }
         paid: { type: boolean }
         createdAt: { type: string }
+        customMessage: { type: boolean }
+        requestId: { type: integer }
+        imageUrl: { type: string }
+        videoUrl: { type: string }
+        reusable: { type: boolean }
 
     MessageInput:
       type: object
@@ -7003,6 +8398,194 @@ components:
       properties:
         mediaId: { type: integer }
 
+    CreatorAlbum:
+      type: object
+      required: [id, creatorUserId, dollId, albumType, title, isActive, media]
+      properties:
+        id: { type: integer }
+        creatorUserId: { type: integer }
+        dollId: { type: integer }
+        albumType:
+          { type: string, enum: [free_preview, cloud_vibes, smokin_hot] }
+        title: { type: string }
+        description: { type: [string, "null"] }
+        isActive: { type: boolean }
+        unlocked: { type: boolean }
+        media:
+          {
+            type: array,
+            items: { $ref: "#/components/schemas/CreatorAlbumMedia" },
+          }
+    CreatorAlbumInput:
+      type: object
+      required: [albumType, title]
+      properties:
+        albumType:
+          { type: string, enum: [free_preview, cloud_vibes, smokin_hot] }
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        isActive: { type: boolean }
+    CreatorAlbumUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: ["string", "null"] }
+        isActive: { type: boolean }
+    CreatorAlbumMedia:
+      type: object
+      required: [id, albumId, mediaType, status, sortOrder]
+      properties:
+        id: { type: integer }
+        albumId: { type: integer }
+        mediaType: { type: string, enum: [image, video] }
+        objectPath: { type: string }
+        thumbnailObjectPath: { type: [string, "null"] }
+        posterObjectPath: { type: [string, "null"] }
+        caption: { type: [string, "null"] }
+        status:
+          { type: string, enum: [pending_review, active, hidden, removed] }
+        sortOrder: { type: integer }
+    CreatorAlbumMediaInput:
+      type: object
+      required: [objectPath, mediaType]
+      properties:
+        objectPath: { type: string }
+        mediaType: { type: string, enum: [image, video] }
+        thumbnailObjectPath: { type: string }
+        posterObjectPath: { type: string }
+        caption: { type: string }
+    CreatorAlbumMediaUpdate:
+      type: object
+      properties:
+        sortOrder: { type: integer, minimum: 0 }
+        status: { type: string, enum: [active, hidden] }
+    CreatorAlbumUnlock:
+      type: object
+      required: [id, albumId, albumType, priceCredits]
+      properties:
+        id: { type: integer }
+        albumId: { type: integer }
+        albumType: { type: string, enum: [cloud_vibes, smokin_hot] }
+        priceCredits: { type: integer }
+    CreatorRequestSettings:
+      type: object
+      required:
+        [
+          enabled,
+          photoPriceCredits,
+          videoPriceCredits,
+          photoVideoPriceCredits,
+          allowReuse,
+        ]
+      properties:
+        enabled: { type: boolean }
+        photoPriceCredits: { type: integer }
+        videoPriceCredits: { type: integer }
+        photoVideoPriceCredits: { type: integer }
+        instructions: { type: [string, "null"] }
+        allowReuse: { type: boolean }
+    CreatorRequestAvailability:
+      type: object
+      required:
+        [
+          enabled,
+          onlineEligible,
+          photoPriceCredits,
+          videoPriceCredits,
+          photoVideoPriceCredits,
+          allowReuse,
+        ]
+      properties:
+        enabled: { type: boolean }
+        onlineEligible: { type: boolean }
+        photoPriceCredits: { type: integer }
+        videoPriceCredits: { type: integer }
+        photoVideoPriceCredits: { type: integer }
+        instructions: { type: [string, "null"] }
+        allowReuse: { type: boolean }
+    AdminResolveCustomRequestInput:
+      type: object
+      required: [resolution]
+      properties:
+        resolution: { type: string, enum: [refund, complete] }
+    CreatorRequestSettingsInput:
+      type: object
+      required:
+        [
+          enabled,
+          photoPriceCredits,
+          videoPriceCredits,
+          photoVideoPriceCredits,
+          allowReuse,
+        ]
+      properties:
+        enabled: { type: boolean }
+        photoPriceCredits: { type: integer, minimum: 0 }
+        videoPriceCredits: { type: integer, minimum: 0 }
+        photoVideoPriceCredits: { type: integer, minimum: 0 }
+        instructions: { type: string }
+        allowReuse: { type: boolean }
+    CreatorRequestAcceptanceInput:
+      type: object
+      required: [creatorAgreesReuse]
+      properties:
+        creatorAgreesReuse: { type: boolean }
+    CustomRequestDisputeInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 2000 }
+    CustomContentRequestInput:
+      type: object
+      required:
+        [creatorUserId, requestType, requestText, idempotencyKey, allowReuse]
+      properties:
+        creatorUserId: { type: integer }
+        requestType:
+          {
+            type: string,
+            enum: [custom_photo, custom_video, custom_photo_video],
+          }
+        requestText: { type: string, minLength: 1 }
+        idempotencyKey: { type: string, minLength: 1, maxLength: 200 }
+        allowReuse: { type: boolean }
+    CustomContentRequest:
+      type: object
+      required:
+        [id, creatorUserId, customerUserId, requestType, requestText, priceCredits, status, customerAllowsReuse]
+      properties:
+        id: { type: integer }
+        creatorUserId: { type: integer }
+        customerUserId: { type: integer }
+        requestType:
+          {
+            type: string,
+            enum: [custom_photo, custom_video, custom_photo_video],
+          }
+        requestText: { type: string }
+        priceCredits: { type: integer }
+        status: { type: string }
+        customerAllowsReuse: { type: boolean }
+        creatorAgreesReuse: { type: [boolean, "null"] }
+        reusable: { type: boolean }
+        responseDeadlineAt: { type: string }
+        deliveryDeadlineAt: { type: [string, "null"] }
+        acceptedAt: { type: [string, "null"] }
+        declinedAt: { type: [string, "null"] }
+        deliveredAt: { type: [string, "null"] }
+        completedAt: { type: [string, "null"] }
+        canceledAt: { type: [string, "null"] }
+        refundedAt: { type: [string, "null"] }
+        disputeReason: { type: [string, "null"] }
+        adminResolution: { type: [string, "null"] }
+    CustomDeliveryInput:
+      type: object
+      properties:
+        imageObjectPath: { type: string }
+        videoObjectPath: { type: string }
+        videoPosterObjectPath: { type: string }
+        message: { type: string }
+
     VideoChatSession:
       type: object
       required: [id, status]
@@ -7013,7 +8596,8 @@ components:
         memberId: { type: integer }
         memberName: { type: string }
         scheduledAt: { type: string }
-        status: { type: string, enum: [requested, confirmed, completed, canceled] }
+        status:
+          { type: string, enum: [requested, confirmed, completed, canceled] }
         ratePerMinute: { type: number }
         durationMinutes: { type: integer }
         createdAt: { type: string }
@@ -7152,8 +8736,10 @@ components:
         role: { type: string, enum: [doll, member, admin] }
         email: { type: string }
         name: { type: string }
-        accountStatus: { type: string, enum: [active, pending, suspended, banned] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        accountStatus:
+          { type: string, enum: [active, pending, suspended, banned] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         dollId: { type: ["integer", "null"] }
         verified: { type: boolean }
         createdAt: { type: string }
@@ -7174,7 +8760,20 @@ components:
       type: object
       required: [purpose, amount]
       properties:
-        purpose: { type: string, enum: [membership, credits, unlock, subscription, video_chat, boost, featured] }
+        purpose:
+          {
+            type: string,
+            enum:
+              [
+                membership,
+                credits,
+                unlock,
+                subscription,
+                video_chat,
+                boost,
+                featured,
+              ],
+          }
         amount: { type: number }
         referenceId: { type: integer }
         description: { type: string }
@@ -7184,11 +8783,16 @@ components:
       required: [id, status, amount]
       properties:
         id: { type: string }
-        status: { type: string, enum: [open, requires_payment, paid, placeholder] }
+        status:
+          { type: string, enum: [open, requires_payment, paid, placeholder] }
         amount: { type: number }
         purpose: { type: string }
         message: { type: string }
-        url: { type: string, description: "Stripe-hosted checkout URL. Redirect the user here to complete payment." }
+        url:
+          {
+            type: string,
+            description: "Stripe-hosted checkout URL. Redirect the user here to complete payment.",
+          }
 
     ContactInput:
       type: object
@@ -7229,7 +8833,8 @@ components:
         facebook: { type: string }
         sourceQuery: { type: string }
         confidence: { type: integer }
-        validationStatus: { type: string, enum: [confirmed, likely, needs_manual, closed] }
+        validationStatus:
+          { type: string, enum: [confirmed, likely, needs_manual, closed] }
         dateCollected: { type: string }
         lastVerified: { type: string }
 
@@ -7318,7 +8923,21 @@ components:
 
     FeedPost:
       type: object
-      required: [id, userId, userRole, userName, buddyType, text, category, status, likeCount, commentCount, saveCount, createdAt]
+      required:
+        [
+          id,
+          userId,
+          userRole,
+          userName,
+          buddyType,
+          text,
+          category,
+          status,
+          likeCount,
+          commentCount,
+          saveCount,
+          createdAt,
+        ]
       properties:
         id: { type: integer }
         userId: { type: integer }
@@ -7326,12 +8945,17 @@ components:
         userName: { type: string }
         username: { type: ["string", "null"] }
         userPhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         userVerified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         city: { type: ["string", "null"] }
         state: { type: ["string", "null"] }
-        source: { type: ["string", "null"], description: "Set for business-attributed feed items (business_post|business_checkin|business_event)." }
+        source:
+          {
+            type: ["string", "null"],
+            description: "Set for business-attributed feed items (business_post|business_checkin|business_event).",
+          }
         sourceId: { type: ["integer", "null"] }
         businessId: { type: ["integer", "null"] }
         businessName: { type: ["string", "null"] }
@@ -7344,10 +8968,15 @@ components:
             - $ref: "#/components/schemas/FeedBusinessAuthor"
         text: { type: string }
         mediaUrl: { type: ["string", "null"] }
-        posterUrl: { type: ["string", "null"], description: Poster/thumbnail image for video posts. }
+        posterUrl:
+          {
+            type: ["string", "null"],
+            description: Poster/thumbnail image for video posts.,
+          }
         mediaType: { type: string, enum: [none, image, video] }
         category: { type: string }
-        status: { type: string, enum: [active, hidden, removed, pending_review] }
+        status:
+          { type: string, enum: [active, hidden, removed, pending_review] }
         likeCount: { type: integer }
         commentCount: { type: integer }
         saveCount: { type: integer }
@@ -7356,9 +8985,18 @@ components:
         viewerSaved: { type: boolean }
         viewerFollowsAuthor: { type: boolean }
         audience: { type: string, enum: [public, friends, followers, only_me] }
-        shareCount: { type: integer, description: "Total shares (public+lounge+friends+group)." }
-        publicShareCount: { type: integer, description: "Public/lounge/friends wrapper shares." }
-        groupShareCount: { type: integer, description: "Group destination wrapper shares." }
+        shareCount:
+          {
+            type: integer,
+            description: "Total shares (public+lounge+friends+group).",
+          }
+        publicShareCount:
+          {
+            type: integer,
+            description: "Public/lounge/friends wrapper shares.",
+          }
+        groupShareCount:
+          { type: integer, description: "Group destination wrapper shares." }
         privateShareCount:
           type: integer
           nullable: true
@@ -7371,7 +9009,8 @@ components:
         viewerCanShareReason: { type: ["string", "null"] }
         allowedShareDestinations:
           type: array
-          items: { type: string, enum: [public, lounge, friends, private, group] }
+          items:
+            { type: string, enum: [public, lounge, friends, private, group] }
           description: "Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks."
         viewerCanCopyLink: { type: boolean }
         sharingDisabled: { type: boolean }
@@ -7379,7 +9018,11 @@ components:
         allowFriendsShares: { type: boolean }
         allowPrivateShares: { type: boolean }
         allowGroupShares: { type: boolean }
-        isShareWrapper: { type: boolean, description: "True when this post is a share wrapper referencing another post." }
+        isShareWrapper:
+          {
+            type: boolean,
+            description: "True when this post is a share wrapper referencing another post.",
+          }
         sharedPost:
           description: "Live-authorized source preview; present only when isShareWrapper=true."
           oneOf:
@@ -7397,7 +9040,11 @@ components:
         name: { type: string }
         logoUrl: { type: ["string", "null"] }
         verified: { type: boolean }
-        url: { type: string, description: "Navigation target, e.g. /business/:handle" }
+        url:
+          {
+            type: string,
+            description: "Navigation target, e.g. /business/:handle",
+          }
 
     FeedPostInput:
       type: object
@@ -7405,9 +9052,27 @@ components:
       properties:
         text: { type: string, minLength: 1 }
         mediaUrl: { type: string }
-        posterUrl: { type: string, description: Poster image object URL returned by the video upload endpoint. }
+        posterUrl:
+          {
+            type: string,
+            description: Poster image object URL returned by the video upload endpoint.,
+          }
         mediaType: { type: string, enum: [none, image, video] }
-        category: { type: string, enum: [setup, lounge, flavor, event, meme, review, question, discussion] }
+        category:
+          {
+            type: string,
+            enum:
+              [
+                setup,
+                lounge,
+                flavor,
+                event,
+                meme,
+                review,
+                question,
+                discussion,
+              ],
+          }
         isHookahRelatedConfirmed: { type: boolean }
         audience: { type: string, enum: [public, friends, followers, only_me] }
 
@@ -7422,13 +9087,24 @@ components:
 
     FeedComment:
       type: object
-      required: [id, postId, userId, userName, userRole, buddyType, commentText, createdAt]
+      required:
+        [
+          id,
+          postId,
+          userId,
+          userName,
+          userRole,
+          buddyType,
+          commentText,
+          createdAt,
+        ]
       properties:
         id: { type: integer }
         postId: { type: integer }
         userId: { type: integer }
         userName: { type: string }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         username: { type: ["string", "null"] }
         userPhotoUrl: { type: ["string", "null"] }
         userRole: { type: string, enum: [doll, member, admin] }
@@ -7452,7 +9128,8 @@ components:
 
     FeedReport:
       type: object
-      required: [id, targetType, targetId, reporterId, reason, status, createdAt]
+      required:
+        [id, targetType, targetId, reporterId, reason, status, createdAt]
       properties:
         id: { type: integer }
         targetType: { type: string, enum: [post, comment] }
@@ -7462,7 +9139,8 @@ components:
         reporterName: { type: string }
         reason: { type: string }
         notes: { type: ["string", "null"] }
-        status: { type: string, enum: [pending, reviewed, dismissed, action_taken] }
+        status:
+          { type: string, enum: [pending, reviewed, dismissed, action_taken] }
         postText: { type: ["string", "null"] }
         commentText: { type: ["string", "null"] }
         createdAt: { type: string }
@@ -7478,7 +9156,8 @@ components:
       type: object
       required: [status]
       properties:
-        status: { type: string, enum: [active, hidden, removed, pending_review] }
+        status:
+          { type: string, enum: [active, hidden, removed, pending_review] }
 
     # ── Sharing schemas ────────────────────────────────────────────────────────
 
@@ -7488,7 +9167,8 @@ components:
       description: Live-authorized preview of the shared source post. When available=false all other fields are null — the source is inaccessible to this viewer.
       properties:
         available: { type: boolean }
-        sourceType: { type: ["string", "null"], enum: [feed_post, group_post, null] }
+        sourceType:
+          { type: ["string", "null"], enum: [feed_post, group_post, null] }
         sourcePostId: { type: ["integer", "null"] }
         sourceGroupId: { type: ["integer", "null"] }
         canonicalUrl: { type: ["string", "null"] }
@@ -7500,7 +9180,8 @@ components:
           enum: [public, private, null]
         allowedShareDestinations:
           type: array
-          items: { type: string, enum: [public, lounge, friends, private, group] }
+          items:
+            { type: string, enum: [public, lounge, friends, private, group] }
         viewerCanCopyLink: { type: boolean }
         text: { type: ["string", "null"] }
         mediaUrl: { type: ["string", "null"] }
@@ -7513,12 +9194,29 @@ components:
 
     PostSharingSettings:
       type: object
-      required: [sourceType, sourcePostId, sharingDisabled, allowPublicShares, allowFriendsShares, allowPrivateShares, allowGroupShares]
+      required:
+        [
+          sourceType,
+          sourcePostId,
+          sharingDisabled,
+          allowPublicShares,
+          allowFriendsShares,
+          allowPrivateShares,
+          allowGroupShares,
+        ]
       properties:
         sourceType: { type: string, enum: [feed_post, group_post] }
         sourcePostId: { type: integer }
-        sharingDisabled: { type: boolean, description: "Global kill-switch — disables all sharing." }
-        allowPublicShares: { type: boolean, description: "Allow public/lounge/friends wrapper shares." }
+        sharingDisabled:
+          {
+            type: boolean,
+            description: "Global kill-switch — disables all sharing.",
+          }
+        allowPublicShares:
+          {
+            type: boolean,
+            description: "Allow public/lounge/friends wrapper shares.",
+          }
         allowFriendsShares: { type: boolean }
         allowPrivateShares: { type: boolean }
         allowGroupShares: { type: boolean }
@@ -7557,11 +9255,16 @@ components:
       required: [shareId, destination, deduplicated]
       properties:
         shareId: { type: integer }
-        destination: { type: string, enum: [public, lounge, friends, private, group] }
+        destination:
+          { type: string, enum: [public, lounge, friends, private, group] }
         wrapperFeedPostId: { type: ["integer", "null"] }
         destinationGroupPostId: { type: ["integer", "null"] }
         recipientCount: { type: ["integer", "null"] }
-        deduplicated: { type: boolean, description: "True when the exact same share already existed; counters were not incremented again." }
+        deduplicated:
+          {
+            type: boolean,
+            description: "True when the exact same share already existed; counters were not incremented again.",
+          }
 
     CopyLinkResult:
       type: object
@@ -7608,12 +9311,14 @@ components:
 
     AdminShareRecord:
       type: object
-      required: [id, sharerId, destination, sourceType, sourcePostId, status, createdAt]
+      required:
+        [id, sharerId, destination, sourceType, sourcePostId, status, createdAt]
       properties:
         id: { type: integer }
         sharerId: { type: integer }
         sharerName: { type: ["string", "null"] }
-        destination: { type: string, enum: [public, lounge, friends, private, group] }
+        destination:
+          { type: string, enum: [public, lounge, friends, private, group] }
         sourceType: { type: string, enum: [feed_post, group_post] }
         sourcePostId: { type: integer }
         sourceGroupId: { type: ["integer", "null"] }
@@ -7693,7 +9398,8 @@ components:
         username: { type: ["string", "null"] }
         role: { type: string, enum: [doll, member, admin] }
         profilePhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         verified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         city: { type: ["string", "null"] }
@@ -7709,7 +9415,8 @@ components:
         username: { type: ["string", "null"] }
         role: { type: string, enum: [doll, member, admin] }
         profilePhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         verified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         city: { type: ["string", "null"] }
@@ -7725,7 +9432,8 @@ components:
         username: { type: ["string", "null"] }
         city: { type: ["string", "null"] }
         state: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         bio: { type: ["string", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
         memberSince: { type: string }
@@ -7757,7 +9465,11 @@ components:
         relatedCommentId: { type: ["integer", "null"] }
         relatedEventId: { type: ["integer", "null"] }
         relatedGroupId: { type: ["integer", "null"] }
-        relatedReelId: { type: ["integer", "null"], description: Legacy internal identifier for a Spark deep link (`/sparks/:id`). }
+        relatedReelId:
+          {
+            type: ["integer", "null"],
+            description: Legacy internal identifier for a Spark deep link (`/sparks/:id`).,
+          }
         isRead: { type: boolean }
         createdAt: { type: string }
 
@@ -7769,7 +9481,15 @@ components:
 
     FeedStats:
       type: object
-      required: [postCount, followerCount, followingCount, likesReceived, commentsReceived, savedCount]
+      required:
+        [
+          postCount,
+          followerCount,
+          followingCount,
+          likesReceived,
+          commentsReceived,
+          savedCount,
+        ]
       properties:
         postCount: { type: integer }
         followerCount: { type: integer }
@@ -7800,7 +9520,15 @@ components:
 
     FeedAnalytics:
       type: object
-      required: [totalPosts, newPostsToday, activeUsers, totalLikes, totalComments, totalReports]
+      required:
+        [
+          totalPosts,
+          newPostsToday,
+          activeUsers,
+          totalLikes,
+          totalComments,
+          totalReports,
+        ]
       properties:
         totalPosts: { type: integer }
         newPostsToday: { type: integer }
@@ -7864,7 +9592,8 @@ components:
       required: [fieldName, visibility]
       properties:
         fieldName: { type: string }
-        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        visibility:
+          { type: string, enum: [public, friends, followers, only_me] }
 
     MyProfileData:
       type: object
@@ -7874,7 +9603,8 @@ components:
         name: { type: string }
         username: { type: ["string", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         details:
           $ref: "#/components/schemas/ProfileDetails"
         fieldPrivacy:
@@ -7904,13 +9634,25 @@ components:
 
     EnhancedProfile:
       type: object
-      required: [userId, name, role, buddyType, followerCount, followingCount, friendCount, postCount, friendStatus]
+      required:
+        [
+          userId,
+          name,
+          role,
+          buddyType,
+          followerCount,
+          followingCount,
+          friendCount,
+          postCount,
+          friendStatus,
+        ]
       properties:
         userId: { type: integer }
         name: { type: string }
         username: { type: ["string", "null"] }
         role: { type: string, enum: [doll, member, admin] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         verified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
@@ -7927,7 +9669,12 @@ components:
         postCount: { type: integer }
         photoCount: { type: integer }
         reelCount: { type: integer }
-        friendStatus: { type: string, enum: [none, pending_sent, pending_received, friends, blocked, self] }
+        friendStatus:
+          {
+            type: string,
+            enum:
+              [none, pending_sent, pending_received, friends, blocked, self],
+          }
         pendingRequestId: { type: ["integer", "null"] }
         viewerFollows: { type: boolean }
         viewerBlocked: { type: boolean }
@@ -7938,12 +9685,27 @@ components:
 
     PrivacySettings:
       type: object
-      required: [defaultPostAudience, showFriendsList, showFollowersList, allowFriendRequestsFrom, allowMessagesFrom, allowTagging, requireTagReview, allowSearchByEmail, allowSearchByPhone, allowExternalSearchIndexing, showOnlineStatus]
+      required:
+        [
+          defaultPostAudience,
+          showFriendsList,
+          showFollowersList,
+          allowFriendRequestsFrom,
+          allowMessagesFrom,
+          allowTagging,
+          requireTagReview,
+          allowSearchByEmail,
+          allowSearchByPhone,
+          allowExternalSearchIndexing,
+          showOnlineStatus,
+        ]
       properties:
-        defaultPostAudience: { type: string, enum: [public, friends, followers, only_me] }
+        defaultPostAudience:
+          { type: string, enum: [public, friends, followers, only_me] }
         showFriendsList: { type: string, enum: [public, friends, only_me] }
         showFollowersList: { type: string, enum: [public, friends, only_me] }
-        allowFriendRequestsFrom: { type: string, enum: [everyone, friends_of_friends, no_one] }
+        allowFriendRequestsFrom:
+          { type: string, enum: [everyone, friends_of_friends, no_one] }
         allowMessagesFrom: { type: string, enum: [everyone, friends, no_one] }
         allowTagging: { type: string, enum: [everyone, friends, no_one] }
         requireTagReview: { type: boolean }
@@ -7955,10 +9717,12 @@ components:
     PrivacySettingsInput:
       type: object
       properties:
-        defaultPostAudience: { type: string, enum: [public, friends, followers, only_me] }
+        defaultPostAudience:
+          { type: string, enum: [public, friends, followers, only_me] }
         showFriendsList: { type: string, enum: [public, friends, only_me] }
         showFollowersList: { type: string, enum: [public, friends, only_me] }
-        allowFriendRequestsFrom: { type: string, enum: [everyone, friends_of_friends, no_one] }
+        allowFriendRequestsFrom:
+          { type: string, enum: [everyone, friends_of_friends, no_one] }
         allowMessagesFrom: { type: string, enum: [everyone, friends, no_one] }
         allowTagging: { type: string, enum: [everyone, friends, no_one] }
         requireTagReview: { type: boolean }
@@ -7974,7 +9738,8 @@ components:
         id: { type: integer }
         role: { type: string, enum: [doll, member, admin] }
         displayName: { type: string }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         profilePhotoUrl: { type: string, nullable: true }
         city: { type: string, nullable: true }
         state: { type: string, nullable: true }
@@ -8045,19 +9810,48 @@ components:
       properties:
         title: { type: string, minLength: 1 }
         description: { type: string }
-        visibility: { type: string, enum: [public, friends, followers, only_me] }
-        albumType: { type: string, enum: [profile_pictures, cover_photos, feed_photos, hookah_setups, lounge_nights, events, custom] }
+        visibility:
+          { type: string, enum: [public, friends, followers, only_me] }
+        albumType:
+          {
+            type: string,
+            enum:
+              [
+                profile_pictures,
+                cover_photos,
+                feed_photos,
+                hookah_setups,
+                lounge_nights,
+                events,
+                custom,
+              ],
+          }
 
     PhotoAlbum:
       type: object
-      required: [id, userId, title, visibility, albumType, photoCount, createdAt]
+      required:
+        [id, userId, title, visibility, albumType, photoCount, createdAt]
       properties:
         id: { type: integer }
         userId: { type: integer }
         title: { type: string }
         description: { type: ["string", "null"] }
-        visibility: { type: string, enum: [public, friends, followers, only_me] }
-        albumType: { type: string, enum: [profile_pictures, cover_photos, feed_photos, hookah_setups, lounge_nights, events, custom] }
+        visibility:
+          { type: string, enum: [public, friends, followers, only_me] }
+        albumType:
+          {
+            type: string,
+            enum:
+              [
+                profile_pictures,
+                cover_photos,
+                feed_photos,
+                hookah_setups,
+                lounge_nights,
+                events,
+                custom,
+              ],
+          }
         photoCount: { type: integer }
         coverImageUrl: { type: ["string", "null"] }
         createdAt: { type: string }
@@ -8068,11 +9862,23 @@ components:
       properties:
         imageUrl: { type: string, minLength: 1 }
         caption: { type: string }
-        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        visibility:
+          { type: string, enum: [public, friends, followers, only_me] }
 
     Photo:
       type: object
-      required: [id, userId, albumId, imageUrl, visibility, status, likeCount, commentCount, createdAt]
+      required:
+        [
+          id,
+          userId,
+          albumId,
+          imageUrl,
+          visibility,
+          status,
+          likeCount,
+          commentCount,
+          createdAt,
+        ]
       properties:
         id: { type: integer }
         userId: { type: integer }
@@ -8082,8 +9888,10 @@ components:
         albumTitle: { type: string }
         imageUrl: { type: string }
         caption: { type: ["string", "null"] }
-        visibility: { type: string, enum: [public, friends, followers, only_me] }
-        status: { type: string, enum: [active, hidden, removed, pending_review] }
+        visibility:
+          { type: string, enum: [public, friends, followers, only_me] }
+        status:
+          { type: string, enum: [active, hidden, removed, pending_review] }
         likeCount: { type: integer }
         commentCount: { type: integer }
         viewerLiked: { type: boolean }
@@ -8096,7 +9904,23 @@ components:
         videoUrl: { type: string, minLength: 1 }
         thumbnailUrl: { type: string }
         caption: { type: string, maxLength: 2200 }
-        category: { type: string, enum: [hookah_setup, lounge_night, flavor_review, smoke_tricks, event, meme, doll_spotlight, bro_post, tutorial, other] }
+        category:
+          {
+            type: string,
+            enum:
+              [
+                hookah_setup,
+                lounge_night,
+                flavor_review,
+                smoke_tricks,
+                event,
+                meme,
+                doll_spotlight,
+                bro_post,
+                tutorial,
+                other,
+              ],
+          }
         hashtags:
           type: array
           maxItems: 30
@@ -8109,7 +9933,8 @@ components:
         businessId: { type: integer, minimum: 1 }
         location: { type: string, maxLength: 200 }
         feeling: { type: string, maxLength: 100 }
-        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        visibility:
+          { type: string, enum: [public, friends, followers, only_me] }
         commentsEnabled: { type: boolean }
         sharingEnabled: { type: boolean }
         isHookahRelatedConfirmed:
@@ -8138,7 +9963,30 @@ components:
 
     Reel:
       type: object
-      required: [id, userId, userRole, userName, buddyType, videoUrl, category, hashtags, peopleTags, businessName, businessHandle, businessLogoUrl, visibility, commentsEnabled, sharingEnabled, status, likeCount, commentCount, saveCount, viewCount, createdAt]
+      required:
+        [
+          id,
+          userId,
+          userRole,
+          userName,
+          buddyType,
+          videoUrl,
+          category,
+          hashtags,
+          peopleTags,
+          businessName,
+          businessHandle,
+          businessLogoUrl,
+          visibility,
+          commentsEnabled,
+          sharingEnabled,
+          status,
+          likeCount,
+          commentCount,
+          saveCount,
+          viewCount,
+          createdAt,
+        ]
       properties:
         id: { type: integer }
         userId: { type: integer }
@@ -8146,13 +9994,30 @@ components:
         userName: { type: string }
         username: { type: ["string", "null"] }
         userPhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         userVerified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         videoUrl: { type: string }
         thumbnailUrl: { type: ["string", "null"] }
         caption: { type: ["string", "null"] }
-        category: { type: string, enum: [hookah_setup, lounge_night, flavor_review, smoke_tricks, event, meme, doll_spotlight, bro_post, tutorial, other] }
+        category:
+          {
+            type: string,
+            enum:
+              [
+                hookah_setup,
+                lounge_night,
+                flavor_review,
+                smoke_tricks,
+                event,
+                meme,
+                doll_spotlight,
+                bro_post,
+                tutorial,
+                other,
+              ],
+          }
         hashtags:
           type: array
           items: { type: string }
@@ -8165,10 +10030,12 @@ components:
         businessLogoUrl: { type: ["string", "null"] }
         location: { type: ["string", "null"] }
         feeling: { type: ["string", "null"] }
-        visibility: { type: string, enum: [public, friends, followers, only_me] }
+        visibility:
+          { type: string, enum: [public, friends, followers, only_me] }
         commentsEnabled: { type: boolean }
         sharingEnabled: { type: boolean }
-        status: { type: string, enum: [active, hidden, removed, pending_review] }
+        status:
+          { type: string, enum: [active, hidden, removed, pending_review] }
         viewCount: { type: integer }
         likeCount: { type: integer }
         commentCount: { type: integer }
@@ -8189,7 +10056,16 @@ components:
 
     UserTag:
       type: object
-      required: [id, taggedUserId, taggedByUserId, relatedType, relatedId, status, createdAt]
+      required:
+        [
+          id,
+          taggedUserId,
+          taggedByUserId,
+          relatedType,
+          relatedId,
+          status,
+          createdAt,
+        ]
       properties:
         id: { type: integer }
         taggedUserId: { type: integer }
@@ -8742,7 +10618,8 @@ components:
         salePriceCents: { type: integer }
         durationMinutes: { type: integer }
         imageUrl: { type: string }
-        bookingUrl: { type: string, description: "External http(s) booking link" }
+        bookingUrl:
+          { type: string, description: "External http(s) booking link" }
         isActive: { type: boolean }
         status: { type: string, enum: [active, draft, archived] }
         sortOrder: { type: integer }
@@ -8764,7 +10641,11 @@ components:
         purchaseUrl: { type: ["string", "null"] }
         sku: { type: ["string", "null"] }
         isAvailable: { type: boolean }
-        status: { type: string, enum: [active, draft, archived, out_of_stock, hidden, removed] }
+        status:
+          {
+            type: string,
+            enum: [active, draft, archived, out_of_stock, hidden, removed],
+          }
         likeCount: { type: integer }
         saveCount: { type: integer }
         commentCount: { type: integer }
@@ -8785,8 +10666,14 @@ components:
         salePriceCents: { type: integer }
         priceLabel: { type: string }
         imageUrl: { type: string }
-        imageUrls: { type: array, items: { type: string, description: "Finalized storage image objects" } }
-        purchaseUrl: { type: string, description: "External http(s) purchase link" }
+        imageUrls:
+          {
+            type: array,
+            items:
+              { type: string, description: "Finalized storage image objects" },
+          }
+        purchaseUrl:
+          { type: string, description: "External http(s) purchase link" }
         sku: { type: string }
         isAvailable: { type: boolean }
         status: { type: string, enum: [active, draft, archived] }
@@ -8825,7 +10712,8 @@ components:
         discountLabel: { type: string }
         code: { type: string }
         terms: { type: string }
-        redeemUrl: { type: string, description: "External http(s) redemption link" }
+        redeemUrl:
+          { type: string, description: "External http(s) redemption link" }
         imageUrl: { type: string }
         startsAt: { type: string }
         expiresAt: { type: string }
@@ -8912,7 +10800,16 @@ components:
         userPhotoUrl: { type: ["string", "null"] }
         role:
           type: string
-          enum: [owner, admin, editor, moderator, advertiser, analyst, support_agent]
+          enum:
+            [
+              owner,
+              admin,
+              editor,
+              moderator,
+              advertiser,
+              analyst,
+              support_agent,
+            ]
           description: "Full role hierarchy: owner > admin > editor/moderator/advertiser/analyst/support_agent"
         createdAt: { type: string }
 
@@ -8928,7 +10825,17 @@ components:
 
     BusinessDashboard:
       type: object
-      required: [businessId, followerCount, saveCount, reviewCount, checkInCount, postCount, appointmentCount, unreadMessages]
+      required:
+        [
+          businessId,
+          followerCount,
+          saveCount,
+          reviewCount,
+          checkInCount,
+          postCount,
+          appointmentCount,
+          unreadMessages,
+        ]
       properties:
         businessId: { type: integer }
         followerCount: { type: integer }
@@ -9146,7 +11053,8 @@ components:
         id: { type: integer }
         title: { type: string, minLength: 1 }
         description: { type: string }
-        coverUrl: { type: string, description: "Finalized storage image object" }
+        coverUrl:
+          { type: string, description: "Finalized storage image object" }
         status: { type: string, enum: [active, hidden] }
         sortOrder: { type: integer }
 
@@ -9166,7 +11074,8 @@ components:
         posterUrl: { type: ["string", "null"] }
         source: { type: string, enum: [team, customer] }
         submittedByUserId: { type: ["integer", "null"] }
-        status: { type: string, enum: [active, hidden, pending, rejected, removed] }
+        status:
+          { type: string, enum: [active, hidden, pending, rejected, removed] }
         likeCount: { type: integer }
         saveCount: { type: integer }
         commentCount: { type: integer }
@@ -9181,7 +11090,11 @@ components:
       required: [kind, mediaUrl]
       properties:
         kind: { type: string, enum: [photo, video, reel] }
-        mediaUrl: { type: string, description: "Finalized internal storage object; external URLs rejected" }
+        mediaUrl:
+          {
+            type: string,
+            description: "Finalized internal storage object; external URLs rejected",
+          }
         caption: { type: string }
 
     BusinessMediaReviewInput:
@@ -9195,8 +11108,16 @@ components:
       required: [kind, mediaUrl]
       properties:
         kind: { type: string, enum: [photo, video, reel] }
-        mediaUrl: { type: string, description: "Finalized internal storage object; external URLs rejected" }
-        posterUrl: { type: string, description: "Optional finalized storage image poster for video/Spark" }
+        mediaUrl:
+          {
+            type: string,
+            description: "Finalized internal storage object; external URLs rejected",
+          }
+        posterUrl:
+          {
+            type: string,
+            description: "Optional finalized storage image poster for video/Spark",
+          }
         albumId: { type: integer }
         title: { type: string }
         caption: { type: string }
@@ -9226,14 +11147,19 @@ components:
         onlineUrl: { type: ["string", "null"] }
         imageUrls: { type: array, items: { type: string } }
         ticketUrl: { type: ["string", "null"] }
-        status: { type: string, enum: [draft, active, cancelled, completed, hidden, removed] }
+        status:
+          {
+            type: string,
+            enum: [draft, active, cancelled, completed, hidden, removed],
+          }
         visibility: { type: string, enum: [public, private] }
         rsvpCount: { type: integer }
         likeCount: { type: integer }
         saveCount: { type: integer }
         commentCount: { type: integer }
         feedPostId: { type: ["integer", "null"] }
-        viewerRsvp: { type: ["string", "null"], enum: [going, interested, null] }
+        viewerRsvp:
+          { type: ["string", "null"], enum: [going, interested, null] }
         viewerLiked: { type: boolean }
         viewerSaved: { type: boolean }
         createdAt: { type: string }
@@ -9248,7 +11174,12 @@ components:
         location: { type: string }
         startsAt: { type: string }
         endsAt: { type: string }
-        imageUrls: { type: array, items: { type: string, description: "Finalized storage image object" } }
+        imageUrls:
+          {
+            type: array,
+            items:
+              { type: string, description: "Finalized storage image object" },
+          }
         ticketUrl: { type: string }
         status: { type: string, enum: [draft, active, cancelled] }
         visibility: { type: string, enum: [public, private] }
@@ -9263,7 +11194,8 @@ components:
       required: [active, rsvpCount]
       properties:
         active: { type: boolean }
-        rsvpStatus: { type: ["string", "null"], enum: [going, interested, null] }
+        rsvpStatus:
+          { type: ["string", "null"], enum: [going, interested, null] }
         rsvpCount: { type: integer }
 
     # ── Verification ──────────────────────────────────────────────────────────
@@ -9271,7 +11203,8 @@ components:
       type: object
       required: [verificationStatus, submissions]
       properties:
-        verificationStatus: { type: string, enum: [unverified, pending, verified, rejected] }
+        verificationStatus:
+          { type: string, enum: [unverified, pending, verified, rejected] }
         submissions:
           type: array
           items: { $ref: "#/components/schemas/BusinessVerificationSubmission" }
@@ -9295,12 +11228,18 @@ components:
         contactEmail: { type: ["string", "null"] }
         contactPhone: { type: ["string", "null"] }
         notes: { type: ["string", "null"] }
-        documentCount: { type: integer, description: "Number of attached private documents" }
+        documentCount:
+          { type: integer, description: "Number of attached private documents" }
         documents:
           type: array
           description: "Only present for platform admin — opaque admin-only download refs (no raw storage paths)"
-          items: { $ref: "#/components/schemas/BusinessVerificationDocumentRef" }
-        status: { type: string, enum: [pending, approved, rejected, changes_requested] }
+          items:
+            { $ref: "#/components/schemas/BusinessVerificationDocumentRef" }
+        status:
+          {
+            type: string,
+            enum: [pending, approved, rejected, changes_requested],
+          }
         reviewNotes: { type: ["string", "null"] }
         reviewedAt: { type: ["string", "null"] }
         createdAt: { type: string }
@@ -9363,7 +11302,8 @@ components:
         location: { type: ["string", "null"] }
         postingPermission: { type: string }
         postApproval: { type: boolean }
-        status: { type: string, enum: [draft, active, hidden, suspended, deleted] }
+        status:
+          { type: string, enum: [draft, active, hidden, suspended, deleted] }
         isFeatured: { type: boolean }
         memberCount: { type: integer }
         postCount: { type: integer }
@@ -9375,7 +11315,8 @@ components:
         # Meetup discriminator (group | meetup). Defaults to "group" for all existing records.
         groupType: { type: string, enum: [group, meetup] }
         # Meetup-specific interest/location metadata (null on non-meetup groups)
-        meetupInterests: { type: array, items: { type: string }, nullable: true }
+        meetupInterests:
+          { type: array, items: { type: string }, nullable: true }
         meetupCity: { type: ["string", "null"] }
         meetupState: { type: ["string", "null"] }
         meetupCountry: { type: ["string", "null"] }
@@ -9422,10 +11363,19 @@ components:
         tags: { type: array, items: { type: string } }
         privacy: { type: string, enum: [public, private] }
         visibility: { type: string, enum: [visible, hidden] }
-        coverUrl: { type: string, description: "Finalized internal storage image object path" }
-        iconUrl: { type: string, description: "Finalized internal storage image object path" }
+        coverUrl:
+          {
+            type: string,
+            description: "Finalized internal storage image object path",
+          }
+        iconUrl:
+          {
+            type: string,
+            description: "Finalized internal storage image object path",
+          }
         location: { type: string }
-        postingPermission: { type: string, enum: [all_members, admins_only, approved_members] }
+        postingPermission:
+          { type: string, enum: [all_members, admins_only, approved_members] }
         postApproval: { type: boolean }
         # Meetup subtype fields (optional — omit for a regular group)
         groupType: { type: string, enum: [group, meetup] }
@@ -9445,10 +11395,19 @@ components:
         tags: { type: array, items: { type: string } }
         privacy: { type: string, enum: [public, private] }
         visibility: { type: string, enum: [visible, hidden] }
-        coverUrl: { type: ["string", "null"], description: "Finalized internal storage image object; null clears" }
-        iconUrl: { type: ["string", "null"], description: "Finalized internal storage image object; null clears" }
+        coverUrl:
+          {
+            type: ["string", "null"],
+            description: "Finalized internal storage image object; null clears",
+          }
+        iconUrl:
+          {
+            type: ["string", "null"],
+            description: "Finalized internal storage image object; null clears",
+          }
         location: { type: string }
-        postingPermission: { type: string, enum: [all_members, admins_only, approved_members] }
+        postingPermission:
+          { type: string, enum: [all_members, admins_only, approved_members] }
         postApproval: { type: boolean }
         # Meetup subtype fields
         groupType: { type: string, enum: [group, meetup] }
@@ -9486,7 +11445,8 @@ components:
         userId: { type: integer }
         userName: { type: string }
         userPhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         role: { type: string, enum: [owner, admin, moderator, member] }
         joinedVia: { type: string }
         status: { type: string, enum: [active, suspended] }
@@ -9509,7 +11469,11 @@ components:
         invitedByUserName: { type: string }
         invitedUserId: { type: integer }
         invitedUserName: { type: string }
-        status: { type: string, enum: [pending, accepted, declined, expired, cancelled] }
+        status:
+          {
+            type: string,
+            enum: [pending, accepted, declined, expired, cancelled],
+          }
         createdAt: { type: string }
         expiresAt: { type: ["string", "null"] }
         # Enriched payload for the dashboard "Pending Invitations" section.
@@ -9528,7 +11492,12 @@ components:
         id: { type: integer }
         name: { type: string }
         iconUrl: { type: ["string", "null"] }
-        groupType: { type: string, enum: [group, meetup], description: "Discriminator so the frontend can filter Meetup invites from Group invites" }
+        groupType:
+          {
+            type: string,
+            enum: [group, meetup],
+            description: "Discriminator so the frontend can filter Meetup invites from Group invites",
+          }
 
     GroupInviteInput:
       type: object
@@ -9613,7 +11582,20 @@ components:
 
     GroupPost:
       type: object
-      required: [id, groupId, buddyType, text, mediaType, postType, status, likeCount, commentCount, saveCount, createdAt]
+      required:
+        [
+          id,
+          groupId,
+          buddyType,
+          text,
+          mediaType,
+          postType,
+          status,
+          likeCount,
+          commentCount,
+          saveCount,
+          createdAt,
+        ]
       properties:
         id: { type: integer }
         groupId: { type: integer }
@@ -9621,7 +11603,8 @@ components:
         authorUserId: { type: ["integer", "null"] }
         authorName: { type: string }
         authorPhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         authorRole: { type: string }
         # Business attribution (authorUserId never exposed when businessId is set)
         businessId: { type: ["integer", "null"] }
@@ -9634,13 +11617,18 @@ components:
         mediaType: { type: string, enum: [none, image, video] }
         postType: { type: string }
         pollData: { type: ["object", "null"] }
-        status: { type: string, enum: [active, pending_approval, hidden, removed] }
+        status:
+          { type: string, enum: [active, pending_approval, hidden, removed] }
         moderationLocked: { type: boolean }
         isPinned: { type: boolean }
         likeCount: { type: integer }
         commentCount: { type: integer }
         saveCount: { type: integer }
-        shareCount: { type: integer, description: "Total shares (public+lounge+friends+group)." }
+        shareCount:
+          {
+            type: integer,
+            description: "Total shares (public+lounge+friends+group).",
+          }
         publicShareCount: { type: integer }
         groupShareCount: { type: integer }
         privateShareCount:
@@ -9658,7 +11646,8 @@ components:
         viewerCanShareReason: { type: ["string", "null"] }
         allowedShareDestinations:
           type: array
-          items: { type: string, enum: [public, lounge, friends, private, group] }
+          items:
+            { type: string, enum: [public, lounge, friends, private, group] }
           description: "Effective destinations available to the current viewer after source privacy, author controls, and sharing suspension checks."
         viewerCanCopyLink: { type: boolean }
         sharingDisabled: { type: boolean }
@@ -9679,11 +11668,24 @@ components:
       required: [text]
       properties:
         text: { type: string, minLength: 1 }
-        mediaUrl: { type: string, description: "Finalized internal storage object" }
-        posterUrl: { type: string, description: "Finalized internal storage image for video poster" }
+        mediaUrl:
+          { type: string, description: "Finalized internal storage object" }
+        posterUrl:
+          {
+            type: string,
+            description: "Finalized internal storage image for video poster",
+          }
         mediaType: { type: string, enum: [none, image, video] }
-        postType: { type: string, enum: [text, photo, video, poll, question, feeling, reel, file] }
-        businessId: { type: integer, description: "Post as a Business Page the user manages" }
+        postType:
+          {
+            type: string,
+            enum: [text, photo, video, poll, question, feeling, reel, file],
+          }
+        businessId:
+          {
+            type: integer,
+            description: "Post as a Business Page the user manages",
+          }
         pollData:
           type: object
           properties:
@@ -9709,7 +11711,8 @@ components:
     GroupPostReactInput:
       type: object
       properties:
-        reactionType: { type: string, enum: [like, heart, laugh, wow, sad, angry] }
+        reactionType:
+          { type: string, enum: [like, heart, laugh, wow, sad, angry] }
 
     GroupPostReactResult:
       type: object
@@ -9728,7 +11731,18 @@ components:
 
     GroupPostComment:
       type: object
-      required: [id, postId, groupId, userId, buddyType, commentText, status, likeCount, createdAt]
+      required:
+        [
+          id,
+          postId,
+          groupId,
+          userId,
+          buddyType,
+          commentText,
+          status,
+          likeCount,
+          createdAt,
+        ]
       properties:
         id: { type: integer }
         postId: { type: integer }
@@ -9736,7 +11750,8 @@ components:
         userId: { type: integer }
         userName: { type: string }
         userPhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         parentCommentId: { type: ["integer", "null"] }
         commentText: { type: string }
         status: { type: string }
@@ -9787,7 +11802,11 @@ components:
       required: [kind, mediaUrl]
       properties:
         kind: { type: string, enum: [photo, video, reel, file] }
-        mediaUrl: { type: string, description: "Finalized internal storage object; external URLs rejected" }
+        mediaUrl:
+          {
+            type: string,
+            description: "Finalized internal storage object; external URLs rejected",
+          }
         posterUrl: { type: string }
         caption: { type: string }
         businessId: { type: integer }
@@ -9797,12 +11816,17 @@ components:
 
     GroupEvent:
       type: object
-      required: [id, groupId, title, startsAt, status, visibility, rsvpCount, createdAt]
+      required:
+        [id, groupId, title, startsAt, status, visibility, rsvpCount, createdAt]
       properties:
         id: { type: integer }
         groupId: { type: integer }
         createdByUserId: { type: integer }
-        businessId: { type: ["integer", "null"], description: "Business Page hosting this event" }
+        businessId:
+          {
+            type: ["integer", "null"],
+            description: "Business Page hosting this event",
+          }
         businessName: { type: ["string", "null"] }
         businessHandle: { type: ["string", "null"] }
         businessLogoUrl: { type: ["string", "null"] }
@@ -9813,7 +11837,11 @@ components:
         imageUrl: { type: ["string", "null"] }
         startsAt: { type: string }
         endsAt: { type: ["string", "null"] }
-        status: { type: string, enum: [draft, active, cancelled, completed, hidden, removed] }
+        status:
+          {
+            type: string,
+            enum: [draft, active, cancelled, completed, hidden, removed],
+          }
         visibility: { type: string, enum: [public, private] }
         rsvpCount: { type: integer }
         hideAttendees: { type: boolean }
@@ -9821,7 +11849,11 @@ components:
         createdAt: { type: string }
         updatedAt: { type: string }
         # Meetup-enriched fields (null on non-meetup group events)
-        eventFormat: { type: ["string", "null"], description: "in_person | online | hybrid" }
+        eventFormat:
+          {
+            type: ["string", "null"],
+            description: "in_person | online | hybrid",
+          }
         venueName: { type: ["string", "null"] }
         address: { type: ["string", "null"] }
         city: { type: ["string", "null"] }
@@ -9839,7 +11871,11 @@ components:
         rsvpOpensAt: { type: ["string", "null"] }
         rsvpClosesAt: { type: ["string", "null"] }
         isPaid: { type: boolean }
-        paidMetadata: { type: ["object", "null"], description: "Provider-neutral payment metadata; present when isPaid=true" }
+        paidMetadata:
+          {
+            type: ["object", "null"],
+            description: "Provider-neutral payment metadata; present when isPaid=true",
+          }
         recurrenceRule: { type: ["string", "null"] }
         recurrenceParentId: { type: ["integer", "null"] }
         viewerGuestCount: { type: integer }
@@ -9847,7 +11883,11 @@ components:
         viewerWaitlistPosition: { type: ["integer", "null"] }
         viewerSaved: { type: boolean }
         # Global event projection fields (set when the event projects into /events)
-        sourceType: { type: ["string", "null"], description: "meetup_event when projected" }
+        sourceType:
+          {
+            type: ["string", "null"],
+            description: "meetup_event when projected",
+          }
         sourceId: { type: ["integer", "null"], description: "group_event id" }
         meetupId: { type: ["integer", "null"], description: "group id" }
         meetupName: { type: ["string", "null"], description: "group name" }
@@ -9857,11 +11897,20 @@ components:
       required: [title, startsAt]
       properties:
         title: { type: string, minLength: 1 }
-        businessId: { type: integer, minimum: 1, description: "Host as an active Business Page the user can manage content for" }
+        businessId:
+          {
+            type: integer,
+            minimum: 1,
+            description: "Host as an active Business Page the user can manage content for",
+          }
         description: { type: string }
         location: { type: string }
         onlineUrl: { type: string }
-        imageUrl: { type: string, description: "Finalized internal storage image object" }
+        imageUrl:
+          {
+            type: string,
+            description: "Finalized internal storage image object",
+          }
         startsAt: { type: string }
         endsAt: { type: string }
         visibility: { type: string, enum: [public, private] }
@@ -9891,19 +11940,36 @@ components:
       type: object
       required: [name, privacy, title, startsAt, endsAt, eventFormat]
       properties:
-        draftId: { type: integer, description: "Organizer-owned draft to publish instead of creating a new Meetup row" }
+        draftId:
+          {
+            type: integer,
+            description: "Organizer-owned draft to publish instead of creating a new Meetup row",
+          }
         name: { type: string, minLength: 1, maxLength: 100 }
-        businessId: { type: integer, minimum: 1, description: "Host the primary event as an active Business Page the user can manage content for" }
+        businessId:
+          {
+            type: integer,
+            minimum: 1,
+            description: "Host the primary event as an active Business Page the user can manage content for",
+          }
         description: { type: string }
         category: { type: string }
         interests: { type: array, items: { type: string } }
         tags: { type: array, items: { type: string } }
-        coverUrl: { type: string, description: "Finalized internal storage image object path" }
+        coverUrl:
+          {
+            type: string,
+            description: "Finalized internal storage image object path",
+          }
         privacy: { type: string, enum: [public, private] }
         visibility: { type: string, enum: [visible, hidden] }
         title: { type: string, minLength: 1 }
         eventDescription: { type: string }
-        imageUrl: { type: string, description: "Finalized internal storage image object path" }
+        imageUrl:
+          {
+            type: string,
+            description: "Finalized internal storage image object path",
+          }
         eventFormat: { type: string, enum: [in_person, online, hybrid] }
         startsAt: { type: string }
         endsAt: { type: string }
@@ -9925,14 +11991,20 @@ components:
         topics: { type: array, items: { type: string } }
         eventTags: { type: array, items: { type: string } }
         howToFind: { type: string }
-        rulesNotes: { type: string, description: "Additional note for the standard Meetup guidelines rule" }
+        rulesNotes:
+          {
+            type: string,
+            description: "Additional note for the standard Meetup guidelines rule",
+          }
         invitedUserIds:
           type: array
           maxItems: 200
-          items: { type: integer }
+          items: { type: integer, format: int32, multipleOf: 1 }
           description: "Buddy and follower accounts to receive pending group invitations"
         loungeId:
           type: integer
+          format: int32
+          multipleOf: 1
           description: "Directory Lounge whose venue details are copied for a physical event"
         isPaid: { type: boolean }
         paidMetadata: { type: object }
@@ -9998,7 +12070,12 @@ components:
       type: object
       properties:
         title: { type: string, minLength: 1 }
-        businessId: { type: ["integer", "null"], minimum: 1, description: "Change or clear Business Page host attribution" }
+        businessId:
+          {
+            type: ["integer", "null"],
+            minimum: 1,
+            description: "Change or clear Business Page host attribution",
+          }
         description: { type: string }
         location: { type: string }
         onlineUrl: { type: string }
@@ -10037,7 +12114,8 @@ components:
         # public intent. Members may only express going/interested/not_going/
         # cancelled. Organizer-driven waitlisting uses set_waitlisted on the
         # separate attendee-management endpoint.
-        rsvpStatus: { type: string, enum: [going, interested, not_going, cancelled] }
+        rsvpStatus:
+          { type: string, enum: [going, interested, not_going, cancelled] }
         isPrivate: { type: boolean }
         guestCount: { type: integer, minimum: 0 }
 
@@ -10049,8 +12127,16 @@ components:
         rsvpCount: { type: integer }
         waitlisted: { type: boolean }
         waitlistPosition: { type: ["integer", "null"] }
-        isMeetup: { type: boolean, description: "Privacy-safe analytics context; true when the parent group is a Meetup" }
-        invitedMember: { type: boolean, description: "Privacy-safe analytics context; true when the RSVP actor previously accepted an invite to this Meetup" }
+        isMeetup:
+          {
+            type: boolean,
+            description: "Privacy-safe analytics context; true when the parent group is a Meetup",
+          }
+        invitedMember:
+          {
+            type: boolean,
+            description: "Privacy-safe analytics context; true when the RSVP actor previously accepted an invite to this Meetup",
+          }
 
     GroupEventAttendee:
       type: object
@@ -10059,7 +12145,8 @@ components:
         userId: { type: integer }
         userName: { type: string }
         userPhotoUrl: { type: ["string", "null"] }
-        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        buddyType:
+          { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         rsvpStatus: { type: string }
         attendanceStatus: { type: ["string", "null"] }
         guestCount: { type: integer }
@@ -10072,7 +12159,16 @@ components:
       properties:
         action:
           type: string
-          enum: [set_going, set_waitlisted, check_in, mark_no_show, mark_not_coming, cancel, set_guest_count]
+          enum:
+            [
+              set_going,
+              set_waitlisted,
+              check_in,
+              mark_no_show,
+              mark_not_coming,
+              cancel,
+              set_guest_count,
+            ]
         guestCount: { type: integer, minimum: 0 }
 
     GroupEventBroadcastInput:
@@ -10089,7 +12185,8 @@ components:
 
     GroupEventBroadcastResult:
       type: object
-      required: [status, recipientCount, deliveredCount, failedCount, skippedCount]
+      required:
+        [status, recipientCount, deliveredCount, failedCount, skippedCount]
       properties:
         status: { type: string, enum: [sent, partial, failed, no_recipients] }
         recipientCount: { type: integer, minimum: 0 }
@@ -10115,12 +12212,23 @@ components:
 
     GroupReport:
       type: object
-      required: [id, groupId, reporterUserId, targetType, targetId, reason, status, createdAt]
+      required:
+        [
+          id,
+          groupId,
+          reporterUserId,
+          targetType,
+          targetId,
+          reason,
+          status,
+          createdAt,
+        ]
       properties:
         id: { type: integer }
         groupId: { type: integer }
         reporterUserId: { type: integer }
-        targetType: { type: string, enum: [group, post, comment, member, event, media] }
+        targetType:
+          { type: string, enum: [group, post, comment, member, event, media] }
         targetId: { type: integer }
         reason: { type: string }
         details: { type: ["string", "null"] }

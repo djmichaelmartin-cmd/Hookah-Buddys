@@ -39,3 +39,4 @@
 - [Browser video metadata is advisory](browser-video-metadata-advisory.md) — browser codec decoding may fail for valid uploads; enforce type, size, and duration authoritatively on the server.
 - [Group-event creation validation parity](group-event-creation-validation-parity.md) — every event creation path needs the same URL, date, and RSVP-window validation, including legacy completion routes.
 - [Async form reset controls](async-form-reset-controls.md) — verify non-default Select/Radio values visually after async reset; uncontrolled Radix labels can retain stale defaults.
+- [Optional-session entitlements](optional-session-entitlements.md) — public paid-content routes must load optional sessions and treat banned/suspended viewers as anonymous.

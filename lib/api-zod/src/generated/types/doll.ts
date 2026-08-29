@@ -10,6 +10,7 @@ import type { DollTier } from './dollTier';
 
 export interface Doll {
   id: number;
+  creatorUserId: number;
   stageName: string;
   city: string;
   state: string;
