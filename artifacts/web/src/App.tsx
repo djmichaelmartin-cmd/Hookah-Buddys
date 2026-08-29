@@ -43,6 +43,7 @@ import GroupCreate from "@/pages/groups/GroupCreate";
 import GroupDetail from "@/pages/groups/GroupDetail";
 import DashboardGroups from "@/pages/dashboard/DashboardGroups";
 import { usePresenceHeartbeatLoop } from "@/hooks/use-presence-heartbeat";
+import { useGuardedBrowserLocation } from "@/hooks/use-unsaved-changes-warning";
 import Events from "@/pages/Events";
 import EventDetail from "@/pages/EventDetail";
 import CommunityFeed from "@/pages/CommunityFeed";
@@ -156,7 +157,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+        <WouterRouter
+          base={import.meta.env.BASE_URL.replace(/\/$/, "")}
+          hook={useGuardedBrowserLocation}
+        >
           <PresenceHeartbeat />
           <Router />
         </WouterRouter>

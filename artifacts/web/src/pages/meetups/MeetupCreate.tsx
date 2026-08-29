@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { uploadImage } from "@/lib/uploadImage";
 import { getErrorMessage } from "@/lib/error";
 import { CalendarDays, Globe, Lock, MapPin, Tent, Image as ImageIcon, Link as LinkIcon, SwitchCamera, Store, Users } from "lucide-react";
+import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 
 const createMeetupCombinedSchema = z.object({
   // Meetup fields
@@ -178,6 +179,7 @@ export default function MeetupCreate() {
   const [eventCoverFile, setEventCoverFile] = useState<File | null>(null);
   const [savedCoverUrl, setSavedCoverUrl] = useState<string | null>(null);
   const [savedEventCoverUrl, setSavedEventCoverUrl] = useState<string | null>(null);
+  const [hasImageChanges, setHasImageChanges] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [businessId, setBusinessId] = useState<number | null>(null);
   const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
@@ -257,6 +259,7 @@ export default function MeetupCreate() {
       communityConfirmation: false,
     }
   });
+  const allowNavigation = useUnsavedChangesWarning(form.formState.isDirty || hasImageChanges);
 
   useEffect(() => {
     if (!draft) return;
@@ -303,6 +306,7 @@ export default function MeetupCreate() {
     });
     setSavedCoverUrl(data.coverUrl ?? null);
     setSavedEventCoverUrl(data.imageUrl ?? null);
+    setHasImageChanges(false);
   }, [draft, form]);
 
   if (isSessionLoading || (draftId !== null && isDraftLoading)) return <Layout><div className="min-h-screen animate-pulse bg-background" /></Layout>;
@@ -391,6 +395,9 @@ export default function MeetupCreate() {
       setSavedEventCoverUrl(saved.data.imageUrl ?? null);
       setCoverFile(null);
       setEventCoverFile(null);
+      form.reset(form.getValues());
+      setHasImageChanges(false);
+      allowNavigation();
       toast({ title: "Meetup draft saved", description: "You can return from My Meetups anytime." });
       if (draftId === null) setLocation(`/meetups/create?draftId=${saved.group.id}`);
     } catch (err: unknown) {
@@ -464,6 +471,7 @@ export default function MeetupCreate() {
       });
 
       toast({ title: "Your Meetup has been created." });
+      allowNavigation();
       setLocation(`/meetups/${group.id}`);
 
     } catch (err: unknown) {
@@ -645,7 +653,7 @@ export default function MeetupCreate() {
                     <div className="h-40 w-full rounded-2xl bg-background/50 border border-orange-500/30 overflow-hidden relative group">
                       <img src={coverFile ? URL.createObjectURL(coverFile) : savedCoverUrl ?? ""} className="w-full h-full object-cover" alt="Cover preview" />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button variant="outline" type="button" onClick={() => { setCoverFile(null); setSavedCoverUrl(null); }} className="border-white/20 text-white">Change Photo</Button>
+                        <Button variant="outline" type="button" onClick={() => { setCoverFile(null); setSavedCoverUrl(null); setHasImageChanges(true); }} className="border-white/20 text-white">Change Photo</Button>
                       </div>
                     </div>
                   ) : (
@@ -659,7 +667,10 @@ export default function MeetupCreate() {
                     id="cover-upload"
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      setCoverFile(e.target.files?.[0] || null);
+                      if (e.target.files?.[0]) setHasImageChanges(true);
+                    }}
                     className="hidden"
                   />
                 </div>
@@ -741,7 +752,7 @@ export default function MeetupCreate() {
                     <div className="h-40 w-full rounded-2xl bg-background/50 border border-orange-500/30 overflow-hidden relative group">
                       <img src={eventCoverFile ? URL.createObjectURL(eventCoverFile) : savedEventCoverUrl ?? ""} className="w-full h-full object-cover" alt="Event cover preview" />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button variant="outline" type="button" onClick={() => { setEventCoverFile(null); setSavedEventCoverUrl(null); }} className="border-white/20 text-white">Remove Photo</Button>
+                        <Button variant="outline" type="button" onClick={() => { setEventCoverFile(null); setSavedEventCoverUrl(null); setHasImageChanges(true); }} className="border-white/20 text-white">Remove Photo</Button>
                       </div>
                     </div>
                   ) : (
@@ -754,7 +765,10 @@ export default function MeetupCreate() {
                     id="event-cover-upload"
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setEventCoverFile(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      setEventCoverFile(e.target.files?.[0] || null);
+                      if (e.target.files?.[0]) setHasImageChanges(true);
+                    }}
                     className="hidden"
                   />
                 </div>
