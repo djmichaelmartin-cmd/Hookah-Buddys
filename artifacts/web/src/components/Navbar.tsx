@@ -229,13 +229,6 @@ export function Navbar() {
 
             Browse Buddys
           </Link>
-          <Link
-            href={PROFILE_ENTRY_PATH}
-            className={`hidden xl:inline-flex items-center h-10 px-5 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
-          >
-            Become a Buddy
-          </Link>
-
           {session?.authenticated && session.user ? (
             <>
               <Link href="/notifications" className="relative h-10 w-10 flex items-center justify-center rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:text-white transition-all mr-1">
@@ -458,14 +451,6 @@ export function Navbar() {
                 {r.label}
               </Link>
             ))}
-            <Link
-              href={PROFILE_ENTRY_PATH}
-              onClick={() => setMenuOpen(false)}
-              className={`mt-3 inline-flex items-center justify-center h-11 rounded-full border text-sm font-medium ${outlineBtn} transition-colors`}
-            >
-
-              Become a Buddy
-            </Link>
             {!isAuthed && (
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <Link

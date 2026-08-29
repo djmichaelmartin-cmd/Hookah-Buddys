@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 
 import { FeedPostCard } from "@/components/FeedPostCard";
+import { LoggedOutBlurGate } from "@/components/LoggedOutBlurGate";
 import { PROFILE_ENTRY_PATH } from "@/lib/routes";
 
 const BASE = import.meta.env.BASE_URL;
@@ -45,7 +46,7 @@ const BLOB_PATH =
 const REVEAL_MS = 1500;
 
 export default function Home() {
-  const { data: session } = useGetCurrentUser();
+  const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
   const hasActiveProfile = Boolean(
     session?.authenticated &&
       session.user &&
@@ -706,14 +707,19 @@ export default function Home() {
               <h3 className="text-xl font-serif text-white mb-6 flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-primary" /> Trending in the Lounge
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {feedPosts.slice(0, 4).map(post => (
-                  <div key={post.id} className="pointer-events-none opacity-80 scale-95 origin-top relative">
-                    <div className="absolute inset-0 z-10 pointer-events-auto cursor-pointer" onClick={() => window.location.href='/feed'} />
-                    <FeedPostCard post={post} onLoginPrompt={() => {}} />
-                  </div>
-                ))}
-              </div>
+              <LoggedOutBlurGate
+                blurred={!isSessionLoading && !hasActiveProfile}
+                className="rounded-2xl"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {feedPosts.slice(0, 4).map(post => (
+                    <div key={post.id} className="pointer-events-none opacity-80 scale-95 origin-top relative">
+                      <div className="absolute inset-0 z-10 pointer-events-auto cursor-pointer" onClick={() => window.location.href='/feed'} />
+                      <FeedPostCard post={post} onLoginPrompt={() => {}} />
+                    </div>
+                  ))}
+                </div>
+              </LoggedOutBlurGate>
             </div>
           ) : (
             <div className="bg-card/30 border border-white/5 rounded-2xl p-12 text-center backdrop-blur-sm">
