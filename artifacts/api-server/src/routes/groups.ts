@@ -69,6 +69,7 @@ import {
 } from "@workspace/db";
 import {
   CreateGroupBody,
+  CreateMeetupBody,
   UpdateGroupBody,
   InviteToGroupBody,
   RespondToGroupInviteBody,
@@ -1655,6 +1656,210 @@ router.get("/groups/invites", requireAuth(), async (req, res): Promise<void> => 
 });
 
 // POST /groups
+// POST /groups/meetups — create the Meetup space and its first event together.
+// This must remain above parameterized /groups/:groupId routes.
+router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const parsed = CreateMeetupBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const data = parsed.data;
+  const startsAt = new Date(data.startsAt);
+  const endsAt = new Date(data.endsAt);
+  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+    res.status(400).json({ error: "startsAt and endsAt must be valid dates" });
+    return;
+  }
+  if (endsAt <= startsAt) {
+    res.status(400).json({ error: "endsAt must be after startsAt" });
+    return;
+  }
+
+  const needsPhysicalLocation = data.eventFormat === "in_person" || data.eventFormat === "hybrid";
+  if (
+    needsPhysicalLocation &&
+    (!data.venueName?.trim() || !data.address?.trim() || !data.city?.trim() ||
+      !data.state?.trim())
+  ) {
+    res.status(400).json({
+      error: "venueName, address, city, and state are required for in-person or hybrid events",
+    });
+    return;
+  }
+  const needsOnlineLocation = data.eventFormat === "online" || data.eventFormat === "hybrid";
+  let onlineUrl: string | null = null;
+  if (data.onlineUrl?.trim()) {
+    try {
+      const parsedOnlineUrl = new URL(data.onlineUrl.trim());
+      if (!["http:", "https:"].includes(parsedOnlineUrl.protocol)) {
+        throw new Error("unsupported protocol");
+      }
+      onlineUrl = parsedOnlineUrl.toString();
+    } catch {
+      res.status(400).json({ error: "onlineUrl must be a valid http or https URL" });
+      return;
+    }
+  }
+  if (needsOnlineLocation && !onlineUrl) {
+    res.status(400).json({ error: "onlineUrl is required for online or hybrid events" });
+    return;
+  }
+  const rsvpOpensAt = data.rsvpOpensAt ? new Date(data.rsvpOpensAt) : null;
+  const rsvpClosesAt = data.rsvpClosesAt ? new Date(data.rsvpClosesAt) : null;
+  if (
+    (rsvpOpensAt && Number.isNaN(rsvpOpensAt.getTime())) ||
+    (rsvpClosesAt && Number.isNaN(rsvpClosesAt.getTime()))
+  ) {
+    res.status(400).json({ error: "RSVP dates must be valid dates" });
+    return;
+  }
+  if (rsvpOpensAt && rsvpClosesAt && rsvpClosesAt <= rsvpOpensAt) {
+    res.status(400).json({ error: "rsvpClosesAt must be after rsvpOpensAt" });
+    return;
+  }
+  if ((rsvpOpensAt && rsvpOpensAt >= startsAt) || (rsvpClosesAt && rsvpClosesAt >= startsAt)) {
+    res.status(400).json({ error: "RSVP dates must be before the event starts" });
+    return;
+  }
+  if (data.isPaid && !data.paidMetadata) {
+    res.status(400).json({ error: "paidMetadata is required when isPaid is true" });
+    return;
+  }
+
+  // Both uploads are finalized before opening the DB transaction, matching the
+  // existing group/event routes and ensuring only owned internal objects are stored.
+  let coverUrl: string | null = null;
+  let imageUrl: string | null = null;
+  try {
+    if (data.coverUrl) coverUrl = await finalizeGroupImageUrl(data.coverUrl, user.id);
+    if (data.imageUrl) imageUrl = await finalizeGroupImageUrl(data.imageUrl, user.id);
+  } catch (err) {
+    if (err instanceof InvalidUploadError) {
+      res.status(400).json({ error: (err as Error).message });
+      return;
+    }
+    throw err;
+  }
+
+  const meetupCoordinates = await resolveCoarseMeetupCoordinates(
+    "meetup",
+    data.city,
+    data.state,
+  );
+  const groupLocation =
+    data.city && data.state ? `${data.city.trim()}, ${data.state.trim()}` : null;
+  const eventLocation = needsPhysicalLocation
+    ? [data.venueName, data.address, data.city, data.state, data.zip].filter(Boolean).join(", ")
+    : null;
+  const eventInstructions = [
+    data.howToFind?.trim() ? `How to find us: ${data.howToFind.trim()}` : null,
+    data.instructions?.trim() ? `Online instructions: ${data.instructions.trim()}` : null,
+  ].filter(Boolean).join("\n\n") || null;
+
+  const [group, event] = await db.transaction(async (tx) => {
+    const [createdGroup] = await tx
+      .insert(groupsTable)
+      .values({
+        creatorUserId: user.id,
+        name: data.name,
+        description: data.description ?? null,
+        category: data.category ?? null,
+        tags: data.tags ?? null,
+        privacy: data.privacy,
+        visibility: data.privacy === "private" ? (data.visibility ?? "visible") : "visible",
+        coverUrl,
+        location: groupLocation,
+        postingPermission: "all_members",
+        postApproval: false,
+        status: "active",
+        memberCount: 1,
+        eventCount: 1,
+        groupType: "meetup",
+        meetupInterests: data.interests ?? null,
+        meetupCity: data.city ?? null,
+        meetupState: data.state ?? null,
+        meetupLat: meetupCoordinates?.lat ?? null,
+        meetupLng: meetupCoordinates?.lng ?? null,
+      })
+      .returning();
+
+    await tx.insert(groupMembersTable).values({
+      groupId: createdGroup.id,
+      userId: user.id,
+      role: "owner",
+      joinedVia: "direct",
+      status: "active",
+    });
+    await tx.insert(groupRulesTable).values([
+      {
+        groupId: createdGroup.id,
+        title: "Be respectful",
+        description: "Treat every Meetup member with respect.",
+        sortOrder: 0,
+      },
+      {
+        groupId: createdGroup.id,
+        title: "Follow Meetup guidelines",
+        description: data.rulesNotes ?? "Follow venue and organizer guidance.",
+        sortOrder: 1,
+      },
+    ]);
+
+    const [createdEvent] = await tx
+      .insert(groupEventsTable)
+      .values({
+        groupId: createdGroup.id,
+        createdByUserId: user.id,
+        title: data.title,
+        description: data.eventDescription ?? null,
+        location: eventLocation,
+        onlineUrl,
+        imageUrl,
+        startsAt,
+        endsAt,
+        status: "active",
+        // Tying event visibility to group privacy avoids a public event being
+        // accidentally exposed from a private Meetup.
+        visibility: data.privacy,
+        hideAttendees: data.hideAttendees ?? false,
+        eventFormat: data.eventFormat,
+        venueName: data.venueName ?? null,
+        address: data.address ?? null,
+        city: data.city ?? null,
+        state: data.state ?? null,
+        eventCategory: data.eventCategory ?? null,
+        topics: data.topics ?? null,
+        eventTags: data.eventTags ?? null,
+        howToFind: eventInstructions,
+        attendeeLimit: data.attendeeLimit ?? null,
+        waitlistEnabled: data.waitlistEnabled ?? false,
+        allowGuests: data.allowGuests ?? false,
+        maxGuestsPerRsvp: data.maxGuestsPerRsvp ?? null,
+        rsvpOpensAt,
+        rsvpClosesAt,
+        isPaid: data.isPaid ?? false,
+        paidMetadata: (data.paidMetadata as Record<string, unknown>) ?? null,
+      })
+      .returning();
+    return [createdGroup, createdEvent] as const;
+  });
+
+  await logGroupActivity(group.id, user.id, "create_group");
+  await logGroupActivity(group.id, user.id, "create_event", {
+    targetType: "event",
+    targetId: event.id,
+  });
+  res.status(201).json({
+    group: serializeGroup(group, { viewerMemberRole: "owner" }),
+    primaryEvent: serializeGroupEvent(event, {
+      viewerRsvpStatus: null,
+      groupIsPrivate: group.privacy === "private",
+    }),
+  });
+});
+
 router.post("/groups", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const parsed = CreateGroupBody.safeParse(req.body);
@@ -4952,6 +5157,55 @@ router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfil
     return;
   }
   const data = parsed.data;
+  const startsAt = new Date(data.startsAt);
+  const endsAt = data.endsAt ? new Date(data.endsAt) : null;
+  if (
+    Number.isNaN(startsAt.getTime()) ||
+    (endsAt && Number.isNaN(endsAt.getTime()))
+  ) {
+    res.status(400).json({ error: "Event dates must be valid dates" });
+    return;
+  }
+  if (endsAt && endsAt <= startsAt) {
+    res.status(400).json({ error: "endsAt must be after startsAt" });
+    return;
+  }
+
+  let onlineUrl: string | null = null;
+  if (data.onlineUrl?.trim()) {
+    try {
+      const parsedOnlineUrl = new URL(data.onlineUrl.trim());
+      if (!["http:", "https:"].includes(parsedOnlineUrl.protocol)) {
+        throw new Error("unsupported protocol");
+      }
+      onlineUrl = parsedOnlineUrl.toString();
+    } catch {
+      res.status(400).json({ error: "onlineUrl must be a valid http or https URL" });
+      return;
+    }
+  }
+  if ((data.eventFormat === "online" || data.eventFormat === "hybrid") && !onlineUrl) {
+    res.status(400).json({ error: "onlineUrl is required for online or hybrid events" });
+    return;
+  }
+
+  const rsvpOpensAt = data.rsvpOpensAt ? new Date(data.rsvpOpensAt) : null;
+  const rsvpClosesAt = data.rsvpClosesAt ? new Date(data.rsvpClosesAt) : null;
+  if (
+    (rsvpOpensAt && Number.isNaN(rsvpOpensAt.getTime())) ||
+    (rsvpClosesAt && Number.isNaN(rsvpClosesAt.getTime()))
+  ) {
+    res.status(400).json({ error: "RSVP dates must be valid dates" });
+    return;
+  }
+  if (rsvpOpensAt && rsvpClosesAt && rsvpClosesAt <= rsvpOpensAt) {
+    res.status(400).json({ error: "rsvpClosesAt must be after rsvpOpensAt" });
+    return;
+  }
+  if ((rsvpOpensAt && rsvpOpensAt >= startsAt) || (rsvpClosesAt && rsvpClosesAt >= startsAt)) {
+    res.status(400).json({ error: "RSVP dates must be before the event starts" });
+    return;
+  }
 
   let imageUrl: string | null = null;
   if (data.imageUrl) {
@@ -4975,10 +5229,10 @@ router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfil
         title: data.title,
         description: data.description ?? null,
         location: data.location ?? null,
-        onlineUrl: data.onlineUrl ?? null,
+        onlineUrl,
         imageUrl,
-        startsAt: new Date(data.startsAt),
-        endsAt: data.endsAt ? new Date(data.endsAt) : null,
+        startsAt,
+        endsAt,
         status: "active",
         visibility: data.visibility ?? "public",
         hideAttendees: data.hideAttendees ?? false,
@@ -4997,8 +5251,8 @@ router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfil
         waitlistEnabled: data.waitlistEnabled ?? false,
         allowGuests: data.allowGuests ?? false,
         maxGuestsPerRsvp: data.maxGuestsPerRsvp ?? null,
-        rsvpOpensAt: data.rsvpOpensAt ? new Date(data.rsvpOpensAt) : null,
-        rsvpClosesAt: data.rsvpClosesAt ? new Date(data.rsvpClosesAt) : null,
+        rsvpOpensAt,
+        rsvpClosesAt,
         isPaid: data.isPaid ?? false,
         paidMetadata: (data.paidMetadata as Record<string, unknown>) ?? null,
         recurrenceRule: data.recurrenceRule ?? null,

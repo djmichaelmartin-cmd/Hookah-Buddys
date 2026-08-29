@@ -251,6 +251,8 @@ import type {
   ManageGroupEventAttendeeBody,
   Media,
   MediaInput,
+  MeetupCreation,
+  MeetupInput,
   MemberProfile,
   MemberRegistration,
   Message,
@@ -19714,6 +19716,79 @@ export const useCreateGroup = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreateGroupMutationOptions(options));
+    }
+
+export const getCreateMeetupUrl = () => {
+
+
+
+
+  return `/api/groups/meetups`
+}
+
+/**
+ * Creates the Meetup, owner membership, standard community rules, and the primary event in one transaction. Meetup creation is published immediately; group drafts are not supported by the current group lifecycle schema.
+
+ * @summary Create a Meetup group and its primary event atomically
+ */
+export const createMeetup = async (meetupInput: MeetupInput, options?: RequestInit): Promise<MeetupCreation> => {
+
+  return customFetch<MeetupCreation>(getCreateMeetupUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      meetupInput,)
+  }
+);}
+
+
+
+
+export const getCreateMeetupMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMeetup>>, TError,{data: BodyType<MeetupInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMeetup>>, TError,{data: BodyType<MeetupInput>}, TContext> => {
+
+const mutationKey = ['createMeetup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMeetup>>, {data: BodyType<MeetupInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createMeetup(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateMeetupMutationResult = NonNullable<Awaited<ReturnType<typeof createMeetup>>>
+    export type CreateMeetupMutationBody = BodyType<MeetupInput>
+    export type CreateMeetupMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a Meetup group and its primary event atomically
+ */
+export const useCreateMeetup = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMeetup>>, TError,{data: BodyType<MeetupInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createMeetup>>,
+        TError,
+        {data: BodyType<MeetupInput>},
+        TContext
+      > => {
+      return useMutation(getCreateMeetupMutationOptions(options));
     }
 
 export const getListMyGroupsUrl = () => {

@@ -112,7 +112,7 @@ export function GroupEvents({
           isMeetup ? (
             <Link href={`/meetups/${groupId}/create-event`}>
               <Button size="sm" className="bg-orange-600 hover:bg-orange-500 text-white" data-testid="add-event-btn">
-                <Plus className="w-4 h-4 mr-2" /> Plan Event
+                <Plus className="w-4 h-4 mr-2" /> {events && events.length > 0 ? "Add Future Event" : "Complete Meetup"}
               </Button>
             </Link>
           ) : (

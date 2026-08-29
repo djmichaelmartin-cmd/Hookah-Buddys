@@ -20,11 +20,17 @@ import type { Server } from "node:http";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { CreateMeetupBody } from "@workspace/api-zod";
 
 // Read the events route source for structural assertions.
 function readEventsRouteSource(): string {
   const here = dirname(fileURLToPath(import.meta.url));
   return readFileSync(join(here, "..", "routes", "events.ts"), "utf8");
+}
+
+function readGroupsRouteSource(): string {
+  const here = dirname(fileURLToPath(import.meta.url));
+  return readFileSync(join(here, "..", "routes", "groups.ts"), "utf8");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -295,6 +301,109 @@ const admin = { id: 1, role: "admin", accountStatus: "active" };
 const owner = { id: 10, role: "user", accountStatus: "active" };
 const member = { id: 11, role: "user", accountStatus: "active" };
 const nonMember = { id: 20, role: "user", accountStatus: "active" };
+
+describe("Meetup combined creation contract", () => {
+  it("accepts a complete primary-event creation input", () => {
+    expect(CreateMeetupBody.safeParse({
+      name: "Saturday Lounge Meetup",
+      privacy: "public",
+      title: "Opening session",
+      eventFormat: "online",
+      onlineUrl: "https://example.test/meet",
+      startsAt: "2030-01-02T18:00:00.000Z",
+      endsAt: "2030-01-02T20:00:00.000Z",
+    }).success).toBe(true);
+  });
+
+  it("rejects a primary event whose end is not after its start", async () => {
+    const res = await req("/groups/meetups", {
+      user: owner,
+      method: "POST",
+      body: {
+        name: "Saturday Lounge Meetup",
+        privacy: "public",
+        title: "Opening session",
+        eventFormat: "online",
+        onlineUrl: "https://example.test/meet",
+        startsAt: "2030-01-02T18:00:00.000Z",
+        endsAt: "2030-01-02T18:00:00.000Z",
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "endsAt must be after startsAt" });
+  });
+
+  it("rejects unsafe online meeting URL schemes", async () => {
+    const res = await req("/groups/meetups", {
+      user: owner,
+      method: "POST",
+      body: {
+        name: "Saturday Lounge Meetup",
+        privacy: "public",
+        title: "Opening session",
+        eventFormat: "online",
+        onlineUrl: "javascript:alert(document.domain)",
+        startsAt: "2030-01-02T18:00:00.000Z",
+        endsAt: "2030-01-02T20:00:00.000Z",
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "onlineUrl must be a valid http or https URL" });
+  });
+
+  it("rejects malformed RSVP dates even when only one is supplied", async () => {
+    const res = await req("/groups/meetups", {
+      user: owner,
+      method: "POST",
+      body: {
+        name: "Saturday Lounge Meetup",
+        privacy: "public",
+        title: "Opening session",
+        eventFormat: "online",
+        onlineUrl: "https://example.test/meet",
+        startsAt: "2030-01-02T18:00:00.000Z",
+        endsAt: "2030-01-02T20:00:00.000Z",
+        rsvpClosesAt: "not-a-date",
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "RSVP dates must be valid dates" });
+  });
+
+  it("requires the RSVP deadline to be strictly before the event starts", async () => {
+    const res = await req("/groups/meetups", {
+      user: owner,
+      method: "POST",
+      body: {
+        name: "Saturday Lounge Meetup",
+        privacy: "public",
+        title: "Opening session",
+        eventFormat: "online",
+        onlineUrl: "https://example.test/meet",
+        startsAt: "2030-01-02T18:00:00.000Z",
+        endsAt: "2030-01-02T20:00:00.000Z",
+        rsvpClosesAt: "2030-01-02T18:00:00.000Z",
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "RSVP dates must be before the event starts" });
+  });
+
+  it("keeps group, owner, standard rules, and primary event in one transaction", () => {
+    const source = readGroupsRouteSource();
+    const routeStart = source.indexOf('router.post("/groups/meetups"');
+    const routeEnd = source.indexOf('router.post("/groups"', routeStart);
+    const route = source.slice(routeStart, routeEnd);
+    expect(routeStart).toBeGreaterThanOrEqual(0);
+    expect(route).toContain("CreateMeetupBody.safeParse");
+    expect(route).toContain("await db.transaction");
+    expect(route).toContain(".insert(groupsTable)");
+    expect(route).toContain(".insert(groupMembersTable)");
+    expect(route).toContain(".insert(groupRulesTable)");
+    expect(route).toContain(".insert(groupEventsTable)");
+    expect(route).toContain('primaryEvent: serializeGroupEvent');
+  });
+});
 
 function meetupGroup(overrides: Record<string, unknown> = {}) {
   return {
@@ -2435,6 +2544,41 @@ describe("#15 Creator access, lock-time re-auth, and global-list exposure", () =
 // #9 Group event notifications (smoke test — notifications are fire-and-forget)
 // ─────────────────────────────────────────────────────────────────────────────
 describe("#9 Group event notifications (fire-and-forget)", () => {
+  it("rejects unsafe online URLs on additional and legacy-completion events", async () => {
+    const g = meetupGroup();
+    h.enqueue(T.groupsTable, [g]);
+    h.enqueue(T.groupMembersTable, [{ role: "owner", status: "active" }]);
+    const res = await req("/groups/1/events", {
+      user: owner,
+      method: "POST",
+      body: {
+        title: "Unsafe online event",
+        eventFormat: "online",
+        onlineUrl: "javascript:alert(document.domain)",
+        startsAt: "2030-01-02T18:00:00.000Z",
+        endsAt: "2030-01-02T20:00:00.000Z",
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "onlineUrl must be a valid http or https URL" });
+  });
+
+  it("rejects malformed dates on additional and legacy-completion events", async () => {
+    const g = meetupGroup();
+    h.enqueue(T.groupsTable, [g]);
+    h.enqueue(T.groupMembersTable, [{ role: "owner", status: "active" }]);
+    const res = await req("/groups/1/events", {
+      user: owner,
+      method: "POST",
+      body: {
+        title: "Malformed event",
+        startsAt: "not-a-date",
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "Event dates must be valid dates" });
+  });
+
   it("creating a group event returns 201 even when notification members list is empty", async () => {
     const g = meetupGroup();
     const e = groupEventRow();

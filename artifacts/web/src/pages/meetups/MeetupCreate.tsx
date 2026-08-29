@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
-import { useCreateGroup, useGetCurrentUser, useCreateGroupRule } from "@workspace/api-client-react";
+import { useCreateMeetup, useGetCurrentUser } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -13,49 +13,190 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Globe, Lock, MapPin, Tent } from "lucide-react";
+import { CalendarDays, Globe, Lock, MapPin, Tent, Image as ImageIcon, Link as LinkIcon, SwitchCamera, Users } from "lucide-react";
 import { uploadImage } from "@/lib/uploadImage";
 import { getErrorMessage } from "@/lib/error";
 
-const createMeetupSchema = z.object({
+const createMeetupCombinedSchema = z.object({
+  // Meetup fields
   name: z.string().min(1, "Name is required").max(100),
   description: z.string().min(10, "Please describe the meetup").max(2000),
-  city: z.string().min(1, "City is required").max(100),
-  state: z.string().length(2, "State must be 2 letters (e.g. NV)").toUpperCase(),
+  category: z.string().default("Hookah"),
   mainInterest: z.string().min(1, "Main interest is required").max(50),
-  tags: z.string().min(1, "At least one tag is required"),
+  tags: z.string().optional(),
   privacy: z.enum(["public", "private"]),
   visibility: z.enum(["visible", "hidden"]),
-  agreed: z.boolean().refine(val => val === true, "You must agree to the group moderation standards"),
-  agreedRules: z.boolean().refine(val => val === true, "You must agree to the platform rules"),
+
+  // Event fields
+  title: z.string().min(1, "Event title is required").max(100),
+  eventDescription: z.string().max(2000).optional(),
+  eventFormat: z.enum(["in_person", "online", "hybrid"]),
+  startsAt: z.string().min(1, "Start time is required"),
+  endsAt: z.string().min(1, "End time is required"),
+
+  // Location
+  venueName: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zip: z.string().optional(),
+
+  // Online
+  onlineUrl: z.string().optional().or(z.literal("")),
+  instructions: z.string().optional(),
+  howToFind: z.string().optional(),
+  rulesNotes: z.string().optional(),
+
+  // Attendance
+  hideAttendees: z.boolean().default(false),
+  attendeeLimit: z.coerce.number().min(0).optional().or(z.literal(0)),
+  waitlistEnabled: z.boolean().default(false),
+  allowGuests: z.boolean().default(false),
+  maxGuestsPerRsvp: z.coerce.number().min(1).optional(),
+
+  rsvpClosesAt: z.string().optional(),
+
+  // Payment
+  isPaid: z.boolean().default(false),
+  ticketPrice: z.string().optional(),
+  refundPolicy: z.string().optional(),
+
+  // Confirmation
+  communityConfirmation: z.boolean().refine(val => val === true, "You must confirm to proceed"),
+}).superRefine((data, ctx) => {
+  if (data.startsAt && data.endsAt) {
+    const startsAt = new Date(data.startsAt);
+    const endsAt = new Date(data.endsAt);
+    if (Number.isNaN(startsAt.getTime())) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["startsAt"],
+        message: "Start time must be a valid date",
+      });
+    }
+    if (Number.isNaN(endsAt.getTime())) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endsAt"],
+        message: "End time must be a valid date",
+      });
+    } else if (!Number.isNaN(startsAt.getTime()) && endsAt <= startsAt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endsAt"],
+        message: "End time must be after start time",
+      });
+    }
+  }
+
+  if (["in_person", "hybrid"].includes(data.eventFormat)) {
+    const requiredLocationFields: Array<[
+      "venueName" | "address" | "city" | "state",
+      string,
+    ]> = [
+      ["venueName", "Venue name is required for physical events"],
+      ["address", "Address is required for physical events"],
+      ["city", "City is required for physical events"],
+      ["state", "State is required for physical events"],
+    ];
+    requiredLocationFields.forEach(([path, message]) => {
+      if (!data[path]) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [path], message });
+      }
+    });
+  }
+  if (["online", "hybrid"].includes(data.eventFormat)) {
+    if (!data.onlineUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["onlineUrl"],
+        message: "Meeting link is required for online events",
+      });
+    } else if (!/^https?:\/\//i.test(data.onlineUrl)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["onlineUrl"],
+        message: "Meeting link must start with http:// or https://",
+      });
+    }
+  }
+
+  if (data.rsvpClosesAt) {
+    const rsvpClosesAt = new Date(data.rsvpClosesAt);
+    const startsAt = new Date(data.startsAt);
+    if (Number.isNaN(rsvpClosesAt.getTime())) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["rsvpClosesAt"],
+        message: "RSVP deadline must be a valid date",
+      });
+    } else if (!Number.isNaN(startsAt.getTime()) && rsvpClosesAt > startsAt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["rsvpClosesAt"],
+        message: "RSVP deadline must be before the event starts",
+      });
+    }
+  }
+
+  if (data.isPaid) {
+    if (!data.ticketPrice) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["ticketPrice"],
+        message: "Ticket price is required for paid events",
+      });
+    }
+  }
 });
 
-type CreateMeetupForm = z.infer<typeof createMeetupSchema>;
+type CreateMeetupCombinedForm = z.infer<typeof createMeetupCombinedSchema>;
 
 export default function MeetupCreate() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [eventCoverFile, setEventCoverFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
 
-  const createGroup = useCreateGroup();
-  const createRule = useCreateGroupRule();
+  const createMeetup = useCreateMeetup();
 
-  const form = useForm<CreateMeetupForm>({
-    resolver: zodResolver(createMeetupSchema),
+  const form = useForm<CreateMeetupCombinedForm>({
+    resolver: zodResolver(createMeetupCombinedSchema),
     defaultValues: {
       name: "",
       description: "",
-      city: "",
-      state: "",
+      category: "Hookah",
       mainInterest: "",
       tags: "",
       privacy: "public",
       visibility: "visible",
-      agreed: false,
-      agreedRules: false,
+      title: "",
+      eventDescription: "",
+      eventFormat: "in_person",
+      venueName: "",
+      address: "",
+      city: "",
+      state: "",
+      zip: "",
+      onlineUrl: "",
+      instructions: "",
+      howToFind: "",
+      rulesNotes: "",
+      startsAt: "",
+      endsAt: "",
+      hideAttendees: false,
+      attendeeLimit: 0,
+      waitlistEnabled: false,
+      allowGuests: false,
+      maxGuestsPerRsvp: 1,
+      rsvpClosesAt: "",
+      isPaid: false,
+      ticketPrice: "",
+      refundPolicy: "",
+      communityConfirmation: false,
     }
   });
 
@@ -78,7 +219,7 @@ export default function MeetupCreate() {
     );
   }
 
-  const onSubmit = async (data: CreateMeetupForm) => {
+  const onSubmit = async (data: CreateMeetupCombinedForm) => {
     if (!coverFile) {
       toast({ title: "Cover photo required", description: "Meetups look better with a banner image.", variant: "destructive" });
       return;
@@ -87,43 +228,74 @@ export default function MeetupCreate() {
     setIsUploading(true);
     try {
       const coverUrl = await uploadImage(coverFile);
-      const tagsArray = data.tags.split(',').map(t => t.trim()).filter(Boolean);
-      
-      const group = await createGroup.mutateAsync({
+
+      let imageUrl;
+      if (eventCoverFile) {
+        imageUrl = await uploadImage(eventCoverFile);
+      }
+
+      const tagsArray = data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+      const { group } = await createMeetup.mutateAsync({
         data: {
           name: data.name,
           description: data.description,
-          category: "events", // Sensible category fallback for old clients
-          groupType: "meetup", // Use new discriminator
-          tags: tagsArray.length > 0 ? tagsArray : undefined,
+          category: data.category,
+          interests: [data.mainInterest],
+          tags: tagsArray,
+          coverUrl,
           privacy: data.privacy,
           visibility: data.visibility,
-          meetupCity: data.city,
-          meetupState: data.state,
-          meetupCountry: "US",
-          location: `${data.city}, ${data.state}`,
-          meetupInterests: [data.mainInterest],
-          postingPermission: "all_members",
-          postApproval: false,
-          coverUrl,
+
+          title: data.title,
+          eventDescription: data.eventDescription,
+          imageUrl,
+          eventFormat: data.eventFormat,
+          startsAt: new Date(data.startsAt).toISOString(),
+          endsAt: new Date(data.endsAt).toISOString(),
+
+          venueName: data.venueName,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          zip: data.zip,
+          onlineUrl: ["online", "hybrid"].includes(data.eventFormat) ? data.onlineUrl || undefined : undefined,
+          instructions: ["online", "hybrid"].includes(data.eventFormat) ? data.instructions || undefined : undefined,
+          howToFind: ["in_person", "hybrid"].includes(data.eventFormat) ? data.howToFind || undefined : undefined,
+          rulesNotes: data.rulesNotes,
+          eventCategory: data.category,
+          topics: [data.mainInterest],
+          eventTags: tagsArray,
+
+          hideAttendees: data.hideAttendees,
+          attendeeLimit: data.attendeeLimit && data.attendeeLimit > 0 ? data.attendeeLimit : undefined,
+          waitlistEnabled: data.waitlistEnabled,
+          allowGuests: data.allowGuests,
+          maxGuestsPerRsvp: data.allowGuests ? (data.maxGuestsPerRsvp || 1) : undefined,
+          rsvpClosesAt: data.rsvpClosesAt ? new Date(data.rsvpClosesAt).toISOString() : undefined,
+
+          isPaid: data.isPaid,
+          paidMetadata: data.isPaid ? {
+            provider: "manual",
+            ticketPrice: data.ticketPrice,
+            refundPolicy: data.refundPolicy
+          } : undefined,
         }
       });
 
-      const groupId = group.id;
+      toast({ title: "Your Meetup has been created." });
+      setLocation(`/meetups/${group.id}`);
 
-      // Automatically set some standard meetup rules
-      await createRule.mutateAsync({ groupId, data: { title: "Respect the space and each other" } });
-      await createRule.mutateAsync({ groupId, data: { title: "RSVP honestly — update if your plans change" } });
-      
-      toast({ title: "Meetup group created!" });
-      setLocation(`/meetups/${groupId}`);
-      
     } catch (err: unknown) {
       toast({ title: "Failed to create meetup", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setIsUploading(false);
     }
   };
+
+  const eventFormat = form.watch("eventFormat");
+  const isPaid = form.watch("isPaid");
+  const allowGuests = form.watch("allowGuests");
 
   return (
     <Layout>
@@ -135,20 +307,38 @@ export default function MeetupCreate() {
             </span>
             Start a Meetup
           </h1>
-          <p className="text-white/70 text-lg ml-[4.5rem]">Gather local buddies, share a session, and build your community.</p>
+          <p className="text-white/70 text-lg ml-[4.5rem]">
+            Create your Meetup with the event details, date, time, location, RSVP settings, and invite options all in one step.
+          </p>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
             <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
-              <h2 className="text-xl font-serif text-orange-400">Meetup Details</h2>
-              
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-serif text-orange-400">Host & Organizer</h2>
+              </div>
+              <div className="flex items-center gap-4 bg-background/50 border border-orange-500/20 p-4 rounded-2xl">
+                <div className="w-14 h-14 rounded-full overflow-hidden bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                  <Users className="w-7 h-7 text-orange-500/50" />
+                </div>
+                <div>
+                  <p className="text-sm text-white/60 mb-0.5">Hosting as</p>
+                  <p className="text-white font-bold text-lg">{session?.user?.name || "Buddy"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
+              <h2 className="text-xl font-serif text-orange-400">Meetup Group Info</h2>
+
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">Meetup Group Name *</FormLabel>
+                    <FormLabel className="text-white">Meetup Name *</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Vegas Weekend Smokes" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
                     </FormControl>
@@ -160,30 +350,26 @@ export default function MeetupCreate() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
-                  name="city"
+                  name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white">City *</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500/60" />
-                          <Input placeholder="Las Vegas" className="pl-9 bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">State (2 letters) *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="NV" maxLength={2} className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500 uppercase" {...field} onChange={e => field.onChange(e.target.value.toUpperCase())} />
-                      </FormControl>
+                      <FormLabel className="text-white">Category *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="bg-background/80 border-orange-500/10 focus:ring-orange-500">
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-card border-orange-500/20">
+                          <SelectItem value="Hookah">Hookah</SelectItem>
+                          <SelectItem value="Food">Food</SelectItem>
+                          <SelectItem value="Music">Music</SelectItem>
+                          <SelectItem value="Business">Business</SelectItem>
+                          <SelectItem value="Nightlife">Nightlife</SelectItem>
+                          <SelectItem value="Outdoors">Outdoors</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -207,8 +393,8 @@ export default function MeetupCreate() {
                   control={form.control}
                   name="tags"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Other Tags (comma separated) *</FormLabel>
+                    <FormItem className="md:col-span-2">
+                      <FormLabel className="text-white">Tags (comma separated)</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g. tangiers, lounge-hops" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
                       </FormControl>
@@ -223,12 +409,12 @@ export default function MeetupCreate() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">Description *</FormLabel>
+                    <FormLabel className="text-white">Meetup Description *</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="What is this meetup group about? What kind of vibe are you looking for?" 
-                        className="bg-background/80 border-orange-500/10 min-h-[120px] focus-visible:ring-orange-500" 
-                        {...field} 
+                      <Textarea
+                        placeholder="What is this meetup group about? What kind of vibe are you looking for?"
+                        className="bg-background/80 border-orange-500/10 min-h-[120px] focus-visible:ring-orange-500"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -250,13 +436,13 @@ export default function MeetupCreate() {
                     <div className="h-40 w-full rounded-2xl border-2 border-dashed border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 transition-colors flex flex-col items-center justify-center cursor-pointer" onClick={() => document.getElementById('cover-upload')?.click()}>
                       <CalendarDays className="w-8 h-8 text-orange-500/50 mb-2" />
                       <p className="text-sm text-orange-400 font-medium">Click to upload a banner image</p>
-                      <p className="text-xs text-orange-500/60 mt-1">Recommended: 1200x400px</p>
+                      <p className="text-xs text-orange-500/60 mt-1">Required</p>
                     </div>
                   )}
-                  <Input 
+                  <Input
                     id="cover-upload"
-                    type="file" 
-                    accept="image/*" 
+                    type="file"
+                    accept="image/*"
                     onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
                     className="hidden"
                   />
@@ -265,111 +451,553 @@ export default function MeetupCreate() {
             </div>
 
             <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
-              <h2 className="text-xl font-serif text-orange-400">Settings</h2>
-              
+              <h2 className="text-xl font-serif text-orange-400">Primary Event Details</h2>
+
               <FormField
                 control={form.control}
-                name="privacy"
+                name="title"
                 render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-white">Privacy Level *</FormLabel>
+                  <FormItem>
+                    <FormLabel className="text-white">Event Title *</FormLabel>
                     <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                      >
-                        <FormItem className="flex items-start space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors">
-                          <FormControl>
-                            <RadioGroupItem value="public" className="mt-1 text-orange-500 border-orange-500" />
-                          </FormControl>
-                          <div className="space-y-1">
-                            <FormLabel className="text-white font-medium flex items-center gap-2">
-                              <Globe className="w-4 h-4 text-orange-400" /> Public Meetup
-                            </FormLabel>
-                            <FormDescription className="text-white/60">
-                              Anyone can see events and RSVP.
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                        <FormItem className="flex items-start space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors">
-                          <FormControl>
-                            <RadioGroupItem value="private" className="mt-1 text-orange-500 border-orange-500" />
-                          </FormControl>
-                          <div className="space-y-1">
-                            <FormLabel className="text-white font-medium flex items-center gap-2">
-                              <Lock className="w-4 h-4 text-orange-400" /> Private (Invite)
-                            </FormLabel>
-                            <FormDescription className="text-white/60">
-                              Requires approval. Only members see events.
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      </RadioGroup>
+                      <Input placeholder="e.g. Friday Night Tangiers Session" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500 text-lg py-6" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="visibility"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-white">Search Visibility *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-background/80 border-orange-500/10 focus:ring-orange-500">
-                          <SelectValue placeholder="Select visibility" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-card border-orange-500/20">
-                        <SelectItem value="visible">Visible (Shows in search)</SelectItem>
-                        <SelectItem value="hidden">Hidden (Invite only)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>Visible meetups can be found by anyone.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="pt-4 border-t border-orange-500/10 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
-                  name="agreed"
+                  name="startsAt"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-orange-500/20 p-4 bg-orange-500/5">
+                    <FormItem>
+                      <FormLabel className="text-white">Start Time *</FormLabel>
                       <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="border-orange-500/40 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-                        />
+                        <Input type="datetime-local" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="text-white font-bold">Community Confirmation *</FormLabel>
-                        <FormDescription className="text-white/70">I agree to host safe, responsible meetups and follow the moderation standards.</FormDescription>
-                      </div>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
 
                 <FormField
                   control={form.control}
-                  name="agreedRules"
+                  name="endsAt"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-orange-500/20 p-4 bg-orange-500/5">
+                    <FormItem>
+                      <FormLabel className="text-white">End Time *</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <p className="text-sm text-white/60 -mt-2">
+                Time zone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+              </p>
+
+              <FormField
+                control={form.control}
+                name="eventDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Event Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="What are we smoking? What should people bring?"
+                        className="bg-background/80 border-orange-500/10 min-h-[120px] focus-visible:ring-orange-500"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-4 pt-4 border-t border-orange-500/10">
+                <label className="text-sm font-medium text-white">Event Image (Optional)</label>
+                <div className="space-y-4">
+                  {eventCoverFile ? (
+                    <div className="h-40 w-full rounded-2xl bg-background/50 border border-orange-500/30 overflow-hidden relative group">
+                      <img src={URL.createObjectURL(eventCoverFile)} className="w-full h-full object-cover" alt="Event cover preview" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button variant="outline" type="button" onClick={() => setEventCoverFile(null)} className="border-white/20 text-white">Remove Photo</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-24 w-full rounded-xl border-2 border-dashed border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 transition-colors flex items-center justify-center cursor-pointer gap-3" onClick={() => document.getElementById('event-cover-upload')?.click()}>
+                      <ImageIcon className="w-6 h-6 text-orange-500/50" />
+                      <span className="text-sm text-orange-400 font-medium">Add an image</span>
+                    </div>
+                  )}
+                  <Input
+                    id="event-cover-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setEventCoverFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
+              <h2 className="text-xl font-serif text-orange-400">Location & Format</h2>
+
+              <FormField
+                control={form.control}
+                name="eventFormat"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors cursor-pointer">
+                          <FormControl>
+                            <RadioGroupItem value="in_person" className="text-orange-500 border-orange-500" />
+                          </FormControl>
+                          <FormLabel className="text-white font-medium flex items-center gap-2 cursor-pointer w-full">
+                            <MapPin className="w-4 h-4 text-orange-400" /> In Person
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors cursor-pointer">
+                          <FormControl>
+                            <RadioGroupItem value="online" className="text-orange-500 border-orange-500" />
+                          </FormControl>
+                          <FormLabel className="text-white font-medium flex items-center gap-2 cursor-pointer w-full">
+                            <LinkIcon className="w-4 h-4 text-orange-400" /> Online
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors cursor-pointer">
+                          <FormControl>
+                            <RadioGroupItem value="hybrid" className="text-orange-500 border-orange-500" />
+                          </FormControl>
+                          <FormLabel className="text-white font-medium flex items-center gap-2 cursor-pointer w-full">
+                            <SwitchCamera className="w-4 h-4 text-orange-400" /> Hybrid
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {["in_person", "hybrid"].includes(eventFormat) && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 p-4 border border-orange-500/10 rounded-xl bg-background/30">
+                  <h3 className="text-orange-400 text-sm font-bold uppercase tracking-wider">Physical Location</h3>
+                  <FormField
+                    control={form.control}
+                    name="venueName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">Venue Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Oasis Hookah Lounge" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">Address *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="123 Lounge St" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem className="col-span-2">
+                          <FormLabel className="text-white">City *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Las Vegas" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">State *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="NV" maxLength={2} className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500 uppercase" {...field} onChange={e => field.onChange(e.target.value.toUpperCase())} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="zip"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">ZIP (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="89109" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="howToFind"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">How to find us</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Look for the group with the orange tent banner" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {["online", "hybrid"].includes(eventFormat) && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 p-4 border border-orange-500/10 rounded-xl bg-background/30">
+                  <h3 className="text-orange-400 text-sm font-bold uppercase tracking-wider">Online Details</h3>
+                  <FormField
+                    control={form.control}
+                    name="onlineUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">Meeting Link *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://zoom.us/..." type="url" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="instructions"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">Connection Instructions</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Password is 'hookah'" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
+              <h2 className="text-xl font-serif text-orange-400">RSVP & Capacity Settings</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="attendeeLimit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Attendee Limit</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="0" placeholder="0 = unlimited" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                      </FormControl>
+                      <FormDescription>Leave at 0 for no limit.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="rsvpClosesAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">RSVP Deadline (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                      </FormControl>
+                      <FormDescription>When do RSVPs close?</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="waitlistEnabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-orange-500/10 p-4 bg-background/50 h-full">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} className="border-orange-500/40 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 mt-1" />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-white">Enable Waitlist</FormLabel>
+                        <FormDescription>Allow members to waitlist if the limit is reached.</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="allowGuests"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-orange-500/10 p-4 bg-background/50">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} className="border-orange-500/40 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 mt-1" />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-white">Allow Guests</FormLabel>
+                          <FormDescription>Members can bring +1s.</FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  {allowGuests && (
+                    <FormField
+                      control={form.control}
+                      name="maxGuestsPerRsvp"
+                      render={({ field }) => (
+                        <FormItem className="animate-in fade-in pl-2">
+                          <FormLabel className="text-white">Max Guests Per RSVP</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="1" max="10" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
+              <h2 className="text-xl font-serif text-orange-400">Privacy & Payment</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="privacy"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-white">Privacy Level *</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-2"
+                        >
+                          <FormItem className="flex items-start space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors">
+                            <FormControl>
+                              <RadioGroupItem value="public" className="mt-1 text-orange-500 border-orange-500" />
+                            </FormControl>
+                            <div className="space-y-1">
+                              <FormLabel className="text-white font-medium flex items-center gap-2">
+                                <Globe className="w-4 h-4 text-orange-400" /> Public Meetup
+                              </FormLabel>
+                              <FormDescription className="text-white/60">
+                                Anyone can see events and RSVP.
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                          <FormItem className="flex items-start space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors">
+                            <FormControl>
+                              <RadioGroupItem value="private" className="mt-1 text-orange-500 border-orange-500" />
+                            </FormControl>
+                            <div className="space-y-1">
+                              <FormLabel className="text-white font-medium flex items-center gap-2">
+                                <Lock className="w-4 h-4 text-orange-400" /> Private (Invite)
+                              </FormLabel>
+                              <FormDescription className="text-white/60">
+                                Requires approval. Only members see events.
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="visibility"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">Search Visibility *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-background/80 border-orange-500/10 focus:ring-orange-500">
+                              <SelectValue placeholder="Select visibility" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-card border-orange-500/20">
+                            <SelectItem value="visible">Visible (Shows in search)</SelectItem>
+                            <SelectItem value="hidden">Hidden (Invite only)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>Visible meetups can be found by anyone.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="hideAttendees"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-orange-500/10 p-4 bg-background/50">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="border-orange-500/40 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-white">Hide Attendees</FormLabel>
+                          <FormDescription>Don't show the RSVP list to regular members.</FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-orange-500/10">
+                <FormField
+                  control={form.control}
+                  name="isPaid"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-white">Is this a free or paid event?</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={(val) => field.onChange(val === "paid")}
+                          defaultValue={field.value ? "paid" : "free"}
+                          className="flex gap-4"
+                        >
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <RadioGroupItem value="free" className="text-orange-500 border-orange-500" />
+                            </FormControl>
+                            <FormLabel className="text-white cursor-pointer font-normal">Free / BYOB</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <RadioGroupItem value="paid" className="text-orange-500 border-orange-500" />
+                            </FormControl>
+                            <FormLabel className="text-white cursor-pointer font-normal">Paid / Cover Charge</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {isPaid && (
+                  <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-top-2 p-4 border border-orange-500/10 rounded-xl bg-background/30">
+                    <FormField
+                      control={form.control}
+                      name="ticketPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">Ticket Price / Cover Amount *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. $10 or $25" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="refundPolicy"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">Refund Policy</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. No refunds within 48 hours" className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
+              <h2 className="text-xl font-serif text-orange-400">Review & Publish</h2>
+
+              <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 flex gap-3">
+                <Users className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-orange-400 font-medium">Inviting Members</p>
+                  <p className="text-white/70 text-sm">Once published, you will be able to share direct invite links and notify your connections immediately from the Meetup page.</p>
+                </div>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="rulesNotes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">House Rules & Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Any specific rules for this meetup? (e.g. Clean up your own coals, BYOB policies)"
+                        className="bg-background/80 border-orange-500/10 focus-visible:ring-orange-500"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="pt-4 border-t border-orange-500/10">
+                <FormField
+                  control={form.control}
+                  name="communityConfirmation"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-5 bg-orange-500/5 transition-colors hover:bg-orange-500/10">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          className="border-orange-500/40 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                          className="border-orange-500/40 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 mt-0.5"
                         />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="text-white font-bold">I agree to the Platform Rules *</FormLabel>
+                      <div className="space-y-1.5 leading-none">
+                        <FormLabel className="text-white font-bold text-base cursor-pointer">Community Confirmation *</FormLabel>
+                        <FormDescription className="text-white/70 text-sm">I confirm this Meetup is appropriate for the HookahBuddys community.</FormDescription>
                       </div>
                     </FormItem>
                   )}
@@ -378,13 +1006,13 @@ export default function MeetupCreate() {
             </div>
 
             <div className="flex justify-end pt-4 pb-20">
-              <Button 
-                type="submit" 
-                size="lg" 
-                disabled={createGroup.isPending || isUploading}
+              <Button
+                type="submit"
+                size="lg"
+                disabled={createMeetup.isPending || isUploading}
                 className="rounded-full bg-orange-600 hover:bg-orange-500 text-white font-bold px-12 h-14 text-lg w-full md:w-auto shadow-[0_0_20px_rgba(249,115,22,0.4)]"
               >
-                {isUploading ? "Uploading..." : createGroup.isPending ? "Creating Meetup..." : "Start Meetup"}
+                {isUploading ? "Uploading..." : createMeetup.isPending ? "Publishing..." : "Publish Meetup"}
               </Button>
             </div>
           </form>

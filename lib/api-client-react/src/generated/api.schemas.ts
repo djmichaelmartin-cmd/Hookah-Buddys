@@ -5388,6 +5388,86 @@ export interface CreateGroupEventBody {
   recurrenceRule?: string;
 }
 
+export type MeetupInputPrivacy = typeof MeetupInputPrivacy[keyof typeof MeetupInputPrivacy];
+
+
+export const MeetupInputPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type MeetupInputVisibility = typeof MeetupInputVisibility[keyof typeof MeetupInputVisibility];
+
+
+export const MeetupInputVisibility = {
+  visible: 'visible',
+  hidden: 'hidden',
+} as const;
+
+export type MeetupInputEventFormat = typeof MeetupInputEventFormat[keyof typeof MeetupInputEventFormat];
+
+
+export const MeetupInputEventFormat = {
+  in_person: 'in_person',
+  online: 'online',
+  hybrid: 'hybrid',
+} as const;
+
+export type MeetupInputPaidMetadata = { [key: string]: unknown };
+
+export interface MeetupInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name: string;
+  description?: string;
+  category?: string;
+  interests?: string[];
+  tags?: string[];
+  /** Finalized internal storage image object path */
+  coverUrl?: string;
+  privacy: MeetupInputPrivacy;
+  visibility?: MeetupInputVisibility;
+  /** @minLength 1 */
+  title: string;
+  eventDescription?: string;
+  /** Finalized internal storage image object path */
+  imageUrl?: string;
+  eventFormat: MeetupInputEventFormat;
+  startsAt: string;
+  endsAt: string;
+  venueName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  onlineUrl?: string;
+  instructions?: string;
+  hideAttendees?: boolean;
+  /** @minimum 1 */
+  attendeeLimit?: number;
+  waitlistEnabled?: boolean;
+  allowGuests?: boolean;
+  /** @minimum 0 */
+  maxGuestsPerRsvp?: number;
+  rsvpOpensAt?: string;
+  rsvpClosesAt?: string;
+  eventCategory?: string;
+  topics?: string[];
+  eventTags?: string[];
+  howToFind?: string;
+  /** Additional note for the standard Meetup guidelines rule */
+  rulesNotes?: string;
+  isPaid?: boolean;
+  paidMetadata?: MeetupInputPaidMetadata;
+}
+
+export interface MeetupCreation {
+  group: GroupDetail;
+  primaryEvent: GroupEvent;
+}
+
 export type UpdateGroupEventBodyStatus = typeof UpdateGroupEventBodyStatus[keyof typeof UpdateGroupEventBodyStatus];
 
 

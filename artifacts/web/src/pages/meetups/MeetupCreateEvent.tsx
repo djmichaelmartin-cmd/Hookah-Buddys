@@ -26,7 +26,11 @@ const createEventSchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  onlineUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  onlineUrl: z.string()
+    .url("Must be a valid URL")
+    .refine((value) => !value || /^https?:\/\//i.test(value), "Meeting link must start with http:// or https://")
+    .optional()
+    .or(z.literal("")),
   onlineUrlProtected: z.boolean().default(false),
   startsAt: z.string().min(1, "Start time is required"),
   endsAt: z.string().optional(),

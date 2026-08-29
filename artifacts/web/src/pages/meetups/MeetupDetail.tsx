@@ -13,7 +13,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { BuddyPill } from "@/components/BuddyPill";
-import { Users, Lock, Globe, MapPin, AlertCircle, Share2, MoreHorizontal, Tent, CalendarPlus, Check } from "lucide-react";
+import { Users, Lock, Globe, MapPin, AlertCircle, Share2, MoreHorizontal, Tent, Settings, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -361,9 +361,9 @@ export default function MeetupDetail() {
               
               <div className="flex items-center gap-3">
                 {isAdmin && (
-                  <Link href={`/meetups/${groupId}/create-event`}>
+                  <Link href={`/meetups/${groupId}/admin`}>
                     <Button className="rounded-full font-bold px-6 bg-orange-600 hover:bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]">
-                      <CalendarPlus className="w-4 h-4 mr-2" /> Plan Event
+                      <Settings className="w-4 h-4 mr-2" /> Manage Meetup
                     </Button>
                   </Link>
                 )}

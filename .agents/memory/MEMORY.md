@@ -37,3 +37,4 @@
 - [Meetup attendee broadcasts](meetup-attendee-broadcasts.md) — organizer updates belong in notifications; direct-message threads remain Buddy-to-member only.
 - [Business deletion serialization](business-deletion-serialization.md) — destructive cleanup and scoped writers must share a lock; never delete reusable member-owned objects.
 - [Browser video metadata is advisory](browser-video-metadata-advisory.md) — browser codec decoding may fail for valid uploads; enforce type, size, and duration authoritatively on the server.
+- [Group-event creation validation parity](group-event-creation-validation-parity.md) — every event creation path needs the same URL, date, and RSVP-window validation, including legacy completion routes.

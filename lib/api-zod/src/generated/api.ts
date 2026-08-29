@@ -6735,6 +6735,60 @@ export const CreateGroupBody = zod.object({
 
 
 /**
+ * Creates the Meetup, owner membership, standard community rules, and the primary event in one transaction. Meetup creation is published immediately; group drafts are not supported by the current group lifecycle schema.
+
+ * @summary Create a Meetup group and its primary event atomically
+ */
+export const createMeetupBodyNameMax = 100;
+
+
+
+export const createMeetupBodyMaxGuestsPerRsvpMin = 0;
+
+
+
+export const CreateMeetupBody = zod.object({
+  "name": zod.string().min(1).max(createMeetupBodyNameMax),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "interests": zod.array(zod.string()).optional(),
+  "tags": zod.array(zod.string()).optional(),
+  "coverUrl": zod.string().optional().describe('Finalized internal storage image object path'),
+  "privacy": zod.enum(['public', 'private']),
+  "visibility": zod.enum(['visible', 'hidden']).optional(),
+  "title": zod.string().min(1),
+  "eventDescription": zod.string().optional(),
+  "imageUrl": zod.string().optional().describe('Finalized internal storage image object path'),
+  "eventFormat": zod.enum(['in_person', 'online', 'hybrid']),
+  "startsAt": zod.string(),
+  "endsAt": zod.string(),
+  "venueName": zod.string().optional(),
+  "address": zod.string().optional(),
+  "city": zod.string().optional(),
+  "state": zod.string().optional(),
+  "zip": zod.string().optional(),
+  "onlineUrl": zod.string().optional(),
+  "instructions": zod.string().optional(),
+  "hideAttendees": zod.boolean().optional(),
+  "attendeeLimit": zod.number().min(1).optional(),
+  "waitlistEnabled": zod.boolean().optional(),
+  "allowGuests": zod.boolean().optional(),
+  "maxGuestsPerRsvp": zod.number().min(createMeetupBodyMaxGuestsPerRsvpMin).optional(),
+  "rsvpOpensAt": zod.string().optional(),
+  "rsvpClosesAt": zod.string().optional(),
+  "eventCategory": zod.string().optional(),
+  "topics": zod.array(zod.string()).optional(),
+  "eventTags": zod.array(zod.string()).optional(),
+  "howToFind": zod.string().optional(),
+  "rulesNotes": zod.string().optional().describe('Additional note for the standard Meetup guidelines rule'),
+  "isPaid": zod.boolean().optional(),
+  "paidMetadata": zod.object({
+
+}).passthrough().optional()
+})
+
+
+/**
  * @summary Groups the current user belongs to
  */
 export const ListMyGroupsResponseItem = zod.object({
