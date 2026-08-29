@@ -1,0 +1,1048 @@
+Replit Agent Follow-Up Instruction: Amend Creator Profiles Content Area, Albums, Unlocks, and Custom Photo/Video Requests
+
+Do not rebuild the HookahBuddys platform. Only amend the existing Creator profile content area and premium/custom content logic.
+
+Use the platform name:
+
+HookahBuddys
+
+Use the term:
+
+Creator
+
+Apply these updates to Creator profile pages and Creator dashboard/content management areas.
+
+Do not remove:
+
+* The Lounge
+* Sparks
+* Groups
+* Meetups
+* Business Pages
+* Member profiles
+* Buddy profiles
+* Credits
+* Memberships
+* Messaging
+* Admin dashboard
+* Existing privacy/moderation rules
+
+Only update the Creator profile content area, album unlock system, and Custom Photo/Video Request feature.
+
+Core Change
+
+On Creator profiles, update the main Content area so it offers exactly 3 primary content options:
+
+1. Free Preview Album
+2. Cloud Vibes Album
+3. Smokin Hot Album
+
+Also remove the old “Premium Exclusive” tile and rename the old “Premium Video” tile to:
+
+Custom Photo/Video Request
+
+Add a short description beside the Content title.
+
+Content Section Header
+
+On the Creator profile page, update the Content section header.
+
+Title:
+
+Content
+
+Description beside title:
+
+“Browse free previews, unlock Creator albums with credits, or request custom photo/video content from online Creators.”
+
+Layout:
+
+* Content title on the left
+* Description beside or below the title
+* 3 album cards
+* 1 Custom Photo/Video Request card/button
+
+Content Option 1: Free Preview Album
+
+Album name:
+
+Free Preview Album
+
+Purpose:
+
+This is a free 5-image album that gives visitors a basic preview of the Creator.
+
+Rules:
+
+* The album contains up to 5 free images.
+* Users click the album card to open/reveal the 5 free photos.
+* No credits required.
+* No unlock required.
+* No subscription required.
+* If fewer than 5 images are uploaded, show only available images.
+* If no free images exist, show an empty state.
+
+Card text:
+
+“View 5 free preview photos from this Creator.”
+
+Button:
+
+“View Free Album”
+
+On click:
+
+* Open album view/modal/page
+* Show the 5 free images
+* Allow normal actions if supported: like, save, report
+* Do not charge credits
+
+Creator Dashboard:
+
+Allow Creators to manage this album:
+
+* Upload free preview images
+* Remove free preview images
+* Reorder images
+* Maximum 5 images
+* Show count: “3 of 5 uploaded”
+
+Content Option 2: Cloud Vibes Album
+
+Rename the mid-tier paid album to:
+
+Cloud Vibes Album
+
+This replaces any generic “Cool Photos/Videos Album” language.
+
+Purpose:
+
+This is a lower-cost locked album for cool, stylish Creator photos/videos.
+
+Unlock cost:
+
+25 credits
+
+Card locked text:
+
+“To view this album, unlock with 25 credits.”
+
+Button:
+
+“Unlock for 25 Credits”
+
+Content allowed:
+
+* Photos
+* Videos
+* Sparks-style short videos if supported
+* Creator-selected media
+
+Unlock behavior:
+
+* If user has at least 25 credits, allow unlock.
+* Deduct 25 credits after confirmation.
+* Grant access to Cloud Vibes Album for that Creator.
+* Access should remain unlocked for that user unless admin later changes unlock duration.
+* If user does not have enough credits, show Buy Credits modal.
+
+Confirmation modal:
+
+Title:
+
+“Unlock Cloud Vibes Album?”
+
+Message:
+
+“This will use 25 credits from your balance and unlock this Creator’s Cloud Vibes Album.”
+
+Buttons:
+
+* Unlock Album
+* Cancel
+
+After unlock:
+
+* Show album contents
+* Replace locked card with unlocked state
+* Show badge: “Unlocked”
+
+Content Option 3: Smokin Hot Album
+
+Rename the higher-tier paid album to:
+
+Smokin Hot Album
+
+Purpose:
+
+This is the higher-value locked album for the Creator’s best photo/video content.
+
+Unlock cost:
+
+100 credits
+
+Card locked text:
+
+“To view this album, unlock with 100 credits.”
+
+Important bundle rule:
+
+Unlocking the Smokin Hot Album also unlocks access to the Cloud Vibes Album for the same Creator.
+
+Card description should clearly state:
+
+“Unlocking Smokin Hot also gives you access to this Creator’s Cloud Vibes Album.”
+
+Button:
+
+“Unlock for 100 Credits”
+
+Unlock behavior:
+
+* If user has at least 100 credits, allow unlock.
+* Deduct 100 credits after confirmation.
+* Grant access to Smokin Hot Album.
+* Also grant access to Cloud Vibes Album for the same Creator.
+* Access should remain unlocked for that user unless admin later changes unlock duration.
+* If user does not have enough credits, show Buy Credits modal.
+
+Confirmation modal:
+
+Title:
+
+“Unlock Smokin Hot Album?”
+
+Message:
+
+“This will use 100 credits from your balance and unlock this Creator’s Smokin Hot Album plus their Cloud Vibes Album.”
+
+Buttons:
+
+* Unlock Album
+* Cancel
+
+Upgrade rule:
+
+If the user already unlocked Cloud Vibes for 25 credits and later unlocks Smokin Hot, charge only the difference if possible.
+
+Preferred upgrade price:
+
+75 credits
+
+Upgrade message:
+
+“You already unlocked Cloud Vibes. Upgrade to Smokin Hot for 75 more credits.”
+
+If this is too complex for the first version, charge 100 credits but leave a TODO comment for discounted upgrade logic.
+
+Preferred behavior is the 75-credit upgrade.
+
+Remove Existing Tiles
+
+Remove the tile/card named:
+
+Premium Exclusive
+
+Do not show Premium Exclusive anywhere in the Creator profile Content area.
+
+Rename the tile/card named:
+
+Premium Video
+
+To:
+
+Custom Photo/Video Request
+
+Do not call it Premium Video anymore.
+
+Custom Photo/Video Request Feature
+
+Add a new Creator profile content option:
+
+Custom Photo/Video Request
+
+Purpose:
+
+Allows a customer/member to request custom photo or video content from a Creator who is actively online.
+
+This feature must use a structured request workflow, credit escrow/hold, mutual agreement rules, delivery through Messages, and custom message labeling.
+
+Card title:
+
+Custom Photo/Video Request
+
+Card description:
+
+“Request custom photo or video content from this Creator while they are online. Details, permissions, credits, and delivery are handled through HookahBuddys.”
+
+Button when Creator is online:
+
+“Request Custom Content”
+
+Button when Creator is offline:
+
+“Creator Offline”
+
+Offline helper text:
+
+“Custom requests are only available when the Creator is actively online.”
+
+Online Creator Rule
+
+Customers can only make Custom Photo/Video Requests to Creators who are actively online.
+
+Define online as:
+
+* Creator online status is active
+* Creator has been active within the last 10 minutes
+* Creator has Custom Requests enabled
+* Creator is not suspended, hidden, banned, or unavailable
+
+If Creator is offline, disable the request button.
+
+Message:
+
+“This Creator must be online to receive custom photo/video requests.”
+
+Custom Request Form
+
+When customer clicks “Request Custom Content,” open a form/modal.
+
+Form title:
+
+“Custom Photo/Video Request”
+
+Fields:
+
+1. Request Type
+
+Options:
+
+* Custom Photo
+* Custom Video
+* Custom Photo + Video
+
+2. Request Details
+
+Label:
+
+“What would you like the Creator to make?”
+
+Textarea placeholder:
+
+“Describe the custom photo or video request clearly. Include style, setting, length, theme, and any details the Creator needs.”
+
+Required.
+
+3. Credit Offer / Price
+
+If Creator has preset custom pricing, show it.
+
+If not, allow a credit amount field or show admin-configured default pricing.
+
+Suggested defaults:
+
+* Custom Photo Request: 50 credits
+* Custom Video Request: 150 credits
+* Custom Photo + Video Request: 200 credits
+
+If Creator can set custom pricing later, allow Creator pricing in dashboard.
+
+4. Permission to Reuse Custom Content
+
+Add a mutual agreement section.
+
+Title:
+
+“Custom Content Reuse Permission”
+
+Explanation:
+
+“Customer-paid custom content cannot be reused by the Creator for promotion, public posts, albums, Sparks, or marketing unless both the customer and Creator agree.”
+
+Customer checkbox:
+
+“I allow the Creator to reuse or promote this custom content.”
+
+Customer second option:
+
+“I do not allow the Creator to reuse or promote this custom content.”
+
+Require customer to choose one.
+
+Creator must also agree or decline on their side before accepting.
+
+Creator checkbox during acceptance:
+
+“I understand that I may only reuse this custom content if the customer gave permission and I also agree to the reuse terms.”
+
+Creator must see the customer’s reuse choice before accepting.
+
+Mutual agreement rule:
+
+* If customer allows reuse and Creator agrees, reuse permission is granted.
+* If customer does not allow reuse, Creator cannot reuse the content.
+* If Creator does not agree to reuse terms, Creator cannot reuse the content.
+* Both customer and Creator must agree for reuse permission to be true.
+
+5. Terms Confirmation
+
+Customer must check:
+
+“I understand the Creator must accept and deliver the custom photo/video through Messages within the required timeframe.”
+
+6. Submit Button
+
+Button:
+
+“Send Custom Request”
+
+Custom Request Rules
+
+Implement these rules:
+
+1. Customer and Creator Mutual Reuse Agreement
+
+The customer and Creator must mutually agree whether or not the Creator can reuse or utilize customer-paid custom content for promotional use.
+
+Do not allow reuse permission unless both agree.
+
+2. Customer Provides Request Details
+
+The customer must provide requested photo/video details to the Creator.
+
+Request details are required before submission.
+
+3. Creator Cannot Reuse Without Permission
+
+Creator cannot use customer-paid custom content for promotional use, public posts, albums, Sparks, previews, advertising, marketing, or any other public purpose without customer permission.
+
+4. Online Creator Response Time
+
+Online Creators must respond to custom photo/video requests in a timely manner.
+
+Required response time:
+
+Within 2 hours of receiving the request.
+
+5. Requests Only to Online Creators
+
+Customers can only send Custom Photo/Video Requests to Creators who are actively online.
+
+If Creator goes offline before request is submitted, block submission and show:
+
+“This Creator is no longer online. Please try again when they are available.”
+
+6. No Credit Capture Without Delivery
+
+Creators cannot accept customer credits without custom photo/video delivery within 2 hours of accepting the request.
+
+Use credit escrow/hold logic:
+
+* When customer submits request, place credits on hold.
+* Do not release credits to Creator immediately.
+* Creator must accept the request.
+* Creator must deliver the custom photo/video within 2 hours after accepting.
+* Credits are released only after delivery is sent.
+* If Creator fails to deliver within 2 hours after accepting, automatically refund or release the held credits back to customer.
+* If Creator declines the request, release credits back to customer.
+* If Creator does not respond within 2 hours, expire request and release credits back to customer.
+
+7. Delivery Through Messages
+
+When Creator delivers the custom photo/video, delivery must be sent to the customer’s Messages.
+
+Label the delivery as:
+
+Custom Message
+
+This must be visually isolated from regular messages.
+
+Custom Message display should include:
+
+* Badge: “Custom Message”
+* Request title/type
+* Delivered media
+* Delivery timestamp
+* Creator name
+* Credit amount
+* Reuse permission status
+* Download/view button if allowed
+* Report issue button
+
+Do not mix this silently into regular chat messages.
+
+It should appear inside the Messages system but clearly labeled and filterable as Custom Messages.
+
+Custom Request Statuses
+
+Add statuses:
+
+* draft
+* submitted
+* pending_creator_response
+* accepted
+* declined
+* expired_no_response
+* in_progress
+* delivered
+* completed
+* refunded
+* cancelled
+* disputed
+* failed_delivery
+
+Recommended status flow:
+
+Customer submits request:
+
+`pending_creator_response`
+
+Creator accepts:
+
+`accepted`
+
+Credit hold remains active.
+
+Creator uploads/sends custom content:
+
+`delivered`
+
+Credits release to Creator.
+
+Customer can mark complete or system auto-completes:
+
+`completed`
+
+If Creator declines:
+
+`declined`
+
+Credits released back to customer.
+
+If Creator does not respond in 2 hours:
+
+`expired_no_response`
+
+Credits released back to customer.
+
+If Creator accepts but does not deliver in 2 hours:
+
+`refunded`
+
+Credits released back to customer.
+
+Creator Request Inbox
+
+Add a Custom Requests section in Creator Dashboard.
+
+Creator should see:
+
+* Pending custom requests
+* Accepted/in-progress requests
+* Delivered requests
+* Expired requests
+* Declined requests
+* Disputed requests
+
+Each request card should show:
+
+* Customer display name
+* Request type
+* Request details
+* Credit amount
+* Reuse permission requested by customer
+* Time remaining to respond
+* Accept button
+* Decline button
+* Message customer button, optional
+* Deliver content button after acceptance
+
+Creator response timer:
+
+Online Creator must respond within 2 hours.
+
+Show countdown:
+
+“Respond within 2 hours”
+
+If expired:
+
+“This request expired because it was not accepted in time.”
+
+Creator Delivery Flow
+
+After Creator accepts, show delivery deadline:
+
+“Deliver within 2 hours of acceptance.”
+
+Creator delivery form:
+
+* Upload photo/video
+* Optional message
+* Confirm content is ready
+* Confirm reuse permission status
+* Send as Custom Message
+
+Delivery button:
+
+“Deliver Custom Content”
+
+Delivery must:
+
+* Upload the media
+* Send it to customer Messages
+* Label it as Custom Message
+* Release held credits to Creator
+* Update request status to delivered/completed
+
+If delivery deadline passes:
+
+* Auto refund/release credits to customer
+* Mark request as refunded or failed_delivery
+* Notify customer and Creator
+
+Messages Update
+
+Update Messages to support Custom Messages.
+
+Custom Messages should be visually distinct from regular messages.
+
+Add:
+
+* Custom Message badge
+* Custom Request details
+* Delivered media attachment
+* Credit amount
+* Reuse permission status
+* Status timeline
+* Report issue button
+
+Add message filters:
+
+* All Messages
+* Regular Messages
+* Custom Messages
+
+Custom Message label:
+
+“Custom Message”
+
+Custom Message helper text:
+
+“This message contains custom photo/video content delivered for a paid request.”
+
+Customer Dashboard Update
+
+Add Custom Requests section to customer/member dashboard.
+
+Show:
+
+* Pending requests
+* Accepted requests
+* Delivered custom content
+* Refunded/expired requests
+* Disputed requests
+
+Each request should show:
+
+* Creator name
+* Request type
+* Credit amount
+* Status
+* Created time
+* Response deadline
+* Delivery deadline, if accepted
+* Reuse permission status
+* View Message button
+
+Notifications
+
+Add notifications:
+
+Customer notifications:
+
+* Custom request sent
+* Creator accepted your custom request
+* Creator declined your custom request
+* Creator did not respond in time; credits returned
+* Creator delivered your custom content
+* Custom request refunded
+* Custom request disputed
+
+Creator notifications:
+
+* New custom photo/video request
+* Custom request expiring soon
+* Customer cancelled request
+* Delivery deadline reminder
+* Custom content delivered successfully
+* Custom request refunded due to missed deadline
+
+Admin notifications:
+
+* Custom request disputed
+* Creator repeatedly misses delivery deadline
+* Reported custom message
+* Reported custom media
+
+Admin Dashboard Updates
+
+Add Custom Requests management to Admin Dashboard.
+
+Admin can:
+
+* View all custom requests
+* Filter by status
+* View customer
+* View Creator
+* View credit amount
+* View request details
+* View timestamps
+* View reuse permission status
+* View delivery status
+* Review disputes
+* Force refund credits
+* Mark request resolved
+* Suspend abusive users
+* Suspend Creators abusing custom requests
+* Disable Custom Requests for a Creator
+* View missed response/delivery metrics
+
+Admin should not expose private custom content publicly.
+
+Admin may view custom content only for moderation, disputes, and safety.
+
+Credit Logic
+
+Use escrow/hold logic.
+
+When customer submits request:
+
+* Check credit balance.
+* If insufficient, show Buy Credits modal.
+* If sufficient, place credits on hold.
+* Do not release credits to Creator yet.
+
+When Creator accepts:
+
+* Keep credits on hold.
+* Start delivery timer.
+
+When Creator delivers within 2 hours:
+
+* Release credits to Creator.
+* Mark as delivered/completed.
+
+When Creator declines:
+
+* Release held credits back to customer.
+
+When Creator does not respond within 2 hours:
+
+* Release held credits back to customer.
+* Mark expired_no_response.
+
+When Creator accepts but fails to deliver within 2 hours:
+
+* Release held credits back to customer.
+* Mark refunded or failed_delivery.
+
+Database Updates
+
+Add or update models as needed.
+
+CreatorAlbum:
+
+* id
+* creatorUserId
+* albumType
+
+  * free_preview
+  * cloud_vibes
+  * smokin_hot
+* title
+* description
+* unlockCredits
+* includesAlbumTypes
+* isActive
+* createdAt
+* updatedAt
+
+CreatorAlbumMedia:
+
+* id
+* albumId
+* creatorUserId
+* mediaType
+
+  * image
+  * video
+* mediaUrl
+* thumbnailUrl
+* caption
+* sortOrder
+* status
+
+  * active
+  * pending_review
+  * hidden
+  * removed
+* createdAt
+* updatedAt
+
+CreatorAlbumUnlock:
+
+* id
+* userId
+* creatorUserId
+* albumId
+* albumType
+* creditsSpent
+* unlockSource
+
+  * direct_unlock
+  * included_with_smokin_hot
+  * upgrade
+  * admin_grant
+* createdAt
+
+CustomContentRequest:
+
+* id
+* customerUserId
+* creatorUserId
+* requestType
+
+  * custom_photo
+  * custom_video
+  * custom_photo_video
+* requestDetails
+* creditAmount
+* creditHoldTransactionId
+* reusePermissionCustomerChoice
+
+  * allow_reuse
+  * do_not_allow_reuse
+* reusePermissionCreatorAgreement
+
+  * agreed
+  * not_agreed
+  * pending
+* reusePermissionFinal
+
+  * allowed
+  * not_allowed
+* status
+
+  * submitted
+  * pending_creator_response
+  * accepted
+  * declined
+  * expired_no_response
+  * in_progress
+  * delivered
+  * completed
+  * refunded
+  * cancelled
+  * disputed
+  * failed_delivery
+* creatorRespondBy
+* creatorAcceptedAt
+* creatorDeliverBy
+* deliveredAt
+* completedAt
+* refundedAt
+* cancelledAt
+* createdAt
+* updatedAt
+
+CustomContentDelivery:
+
+* id
+* customContentRequestId
+* customerUserId
+* creatorUserId
+* messageId
+* mediaType
+
+  * image
+  * video
+  * image_video
+* mediaUrl
+* thumbnailUrl
+* creatorMessage
+* deliveredAt
+* createdAt
+
+Update Message model or add:
+
+Message:
+
+* isCustomMessage
+* customContentRequestId
+* customMessageLabel
+* customContentDeliveryId
+
+CreditTransaction update:
+
+Add transaction sources:
+
+* custom_request_hold
+* custom_request_release_to_creator
+* custom_request_refund_to_customer
+* custom_request_admin_refund
+
+Creator Dashboard Album Management
+
+Creator Dashboard should allow Creator to manage:
+
+Free Preview Album:
+
+* Upload up to 5 images
+* Reorder
+* Remove
+* Preview
+
+Cloud Vibes Album:
+
+* Upload photos/videos
+* Set album active/inactive
+* Preview locked/unlocked view
+* See unlock count
+* See earnings
+
+Smokin Hot Album:
+
+* Upload photos/videos
+* Set album active/inactive
+* Preview locked/unlocked view
+* See unlock count
+* See earnings
+* Show note that unlocking Smokin Hot includes Cloud Vibes access
+
+Creator Dashboard Custom Request Settings
+
+Allow Creator to manage:
+
+* Enable/disable Custom Photo/Video Requests
+* Set online availability
+* Set default custom photo price
+* Set default custom video price
+* Set custom photo + video price
+* View request response time performance
+* View missed delivery warnings
+
+Important default:
+
+Custom Requests should only be available while Creator is online.
+
+Content Moderation
+
+Keep normal moderation and safety rules.
+
+Custom content should not be publicly displayed unless reuse permission is granted.
+
+If reuse permission is granted, Creator may reuse custom content for:
+
+* Promotional use
+* Public posts
+* Albums
+* Sparks
+* Profile previews
+
+Only if:
+
+* Customer allowed reuse
+* Creator agreed to reuse terms
+* Content does not violate platform rules
+
+If reuse permission is not granted:
+
+* Creator cannot use customer-paid custom content publicly.
+* Creator cannot add it to albums.
+* Creator cannot post it to The Lounge.
+* Creator cannot use it in Sparks.
+* Creator cannot use it in ads/promotions.
+
+UI Requirements
+
+Creator Profile Content Area:
+
+Show 3 album cards:
+
+1. Free Preview Album
+2. Cloud Vibes Album
+3. Smokin Hot Album
+
+Show Custom Photo/Video Request card/button.
+
+Use HookahBuddys theme:
+
+* Dark charcoal cards
+* Blue for normal actions
+* Gold for unlock/premium actions
+* Pink/rose accents for Creator content
+* Green for delivered/completed
+* Red only for errors, expired requests, or disputes
+
+Album Cards:
+
+Free Preview Album:
+
+* Unlocked/free visual state
+* Button: View Free Album
+
+Cloud Vibes Album:
+
+* Locked state if not unlocked
+* Lock icon
+* 25 credits
+* Button: Unlock for 25 Credits
+
+Smokin Hot Album:
+
+* Locked state if not unlocked
+* Lock icon
+* 100 credits
+* Button: Unlock for 100 Credits
+* Note: Includes Cloud Vibes Album
+
+Custom Request Card:
+
+* Show online/offline status
+* If online: Request Custom Content
+* If offline: Creator Offline
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove Creator profiles.
+
+Do not remove credits.
+
+Do not remove messages.
+
+Do not remove premium features.
+
+Do not keep the Premium Exclusive tile.
+
+Do not keep the Premium Video tile name.
+
+Do not allow Creators to reuse customer-paid custom content without mutual permission.
+
+Do not release custom request credits to Creators until delivery is sent through Messages as a Custom Message.
+
+Do not allow customers to submit Custom Photo/Video Requests to offline Creators.
+
+Do not allow accepted requests to remain unpaid and undelivered beyond 2 hours.
+
+Final Goal
+
+Creator profiles should have a cleaner Content area with:
+
+1. Free Preview Album — 5 free images
+2. Cloud Vibes Album — unlock with 25 credits
+3. Smokin Hot Album — unlock with 100 credits and includes Cloud Vibes access
+4. Custom Photo/Video Request — online-only custom request workflow with credit escrow, mutual reuse permission, 2-hour response/delivery rules, and delivery through Messages as a labeled Custom Message
