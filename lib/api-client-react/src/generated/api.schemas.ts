@@ -32,6 +32,17 @@ export const UserAccountStatus = {
   banned: 'banned',
 } as const;
 
+/**
+ * @nullable
+ */
+export type UserBuddyType = typeof UserBuddyType[keyof typeof UserBuddyType] | null;
+
+
+export const UserBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface User {
   id: number;
   role: UserRole;
@@ -39,9 +50,22 @@ export interface User {
   name: string;
   accountStatus: UserAccountStatus;
   /** @nullable */
+  buddyType: UserBuddyType;
+  /** @nullable */
   dollId?: number | null;
   createdAt?: string;
 }
+
+/**
+ * @nullable
+ */
+export type MemberProfileBuddyType = typeof MemberProfileBuddyType[keyof typeof MemberProfileBuddyType] | null;
+
+
+export const MemberProfileBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
 
 export interface MemberProfile {
   id: number;
@@ -54,6 +78,8 @@ export interface MemberProfile {
   state?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: MemberProfileBuddyType;
   memberSince?: string;
 }
 
@@ -65,6 +91,14 @@ export interface CurrentUser {
 export interface AuthResponse {
   user: User;
 }
+
+export type DollRegistrationBuddyType = typeof DollRegistrationBuddyType[keyof typeof DollRegistrationBuddyType];
+
+
+export const DollRegistrationBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
 
 export interface DollRegistration {
   /** @minLength 1 */
@@ -91,7 +125,16 @@ export interface DollRegistration {
   governmentIdUrl?: string;
   ageConfirmed: boolean;
   rulesAccepted: boolean;
+  buddyType: DollRegistrationBuddyType;
 }
+
+export type MemberRegistrationBuddyType = typeof MemberRegistrationBuddyType[keyof typeof MemberRegistrationBuddyType];
+
+
+export const MemberRegistrationBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
 
 export interface MemberRegistration {
   /** @minLength 1 */
@@ -108,12 +151,24 @@ export interface MemberRegistration {
   profilePhotoUrl?: string;
   ageConfirmed: boolean;
   rulesAccepted: boolean;
+  buddyType: MemberRegistrationBuddyType;
 }
 
 export interface LoginInput {
   email: string;
   password: string;
 }
+
+/**
+ * @nullable
+ */
+export type DollBuddyType = typeof DollBuddyType[keyof typeof DollBuddyType] | null;
+
+
+export const DollBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
 
 export type DollTier = typeof DollTier[keyof typeof DollTier];
 
@@ -137,6 +192,8 @@ export interface Doll {
   experienceLevel?: string;
   preferences?: string;
   profilePhotoUrl?: string;
+  /** @nullable */
+  buddyType: DollBuddyType;
   verified: boolean;
   featured: boolean;
   elite: boolean;
@@ -392,11 +449,24 @@ export const EventStatus = {
  */
 export type EventPaidMetadata = { [key: string]: unknown } | null;
 
+/**
+ * @nullable
+ */
+export type EventAttendeeBuddyType = typeof EventAttendeeBuddyType[keyof typeof EventAttendeeBuddyType] | null;
+
+
+export const EventAttendeeBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface EventAttendee {
   id: number;
   name: string;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: EventAttendeeBuddyType;
 }
 
 export interface Event {
@@ -729,13 +799,39 @@ export interface VideoChatEstimate {
   totalCredits: number;
 }
 
+/**
+ * @nullable
+ */
+export type MessageThreadDollBuddyType = typeof MessageThreadDollBuddyType[keyof typeof MessageThreadDollBuddyType] | null;
+
+
+export const MessageThreadDollBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
+/**
+ * @nullable
+ */
+export type MessageThreadMemberBuddyType = typeof MessageThreadMemberBuddyType[keyof typeof MessageThreadMemberBuddyType] | null;
+
+
+export const MessageThreadMemberBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface MessageThread {
   id: number;
   dollId?: number;
   dollName?: string;
   dollPhotoUrl?: string;
+  /** @nullable */
+  dollBuddyType: MessageThreadDollBuddyType;
   memberId?: number;
   memberName?: string;
+  /** @nullable */
+  memberBuddyType: MessageThreadMemberBuddyType;
   lastMessage?: string;
   lastMessageAt?: string;
   unreadCount?: number;
@@ -975,12 +1071,25 @@ export const AdminUserAccountStatus = {
   banned: 'banned',
 } as const;
 
+/**
+ * @nullable
+ */
+export type AdminUserBuddyType = typeof AdminUserBuddyType[keyof typeof AdminUserBuddyType] | null;
+
+
+export const AdminUserBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface AdminUser {
   id: number;
   role: AdminUserRole;
   email: string;
   name: string;
   accountStatus: AdminUserAccountStatus;
+  /** @nullable */
+  buddyType: AdminUserBuddyType;
   /** @nullable */
   dollId?: number | null;
   verified?: boolean;
@@ -998,6 +1107,18 @@ export const UserStatusInputAccountStatus = {
 
 export interface UserStatusInput {
   accountStatus: UserStatusInputAccountStatus;
+}
+
+export type BuddyTypeInputBuddyType = typeof BuddyTypeInputBuddyType[keyof typeof BuddyTypeInputBuddyType];
+
+
+export const BuddyTypeInputBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
+export interface BuddyTypeInput {
+  buddyType: BuddyTypeInputBuddyType;
 }
 
 export type CheckoutInputPurpose = typeof CheckoutInputPurpose[keyof typeof CheckoutInputPurpose];
@@ -1157,6 +1278,17 @@ export interface CollectStatus {
   error?: string;
 }
 
+/**
+ * @nullable
+ */
+export type FeedPostBuddyType = typeof FeedPostBuddyType[keyof typeof FeedPostBuddyType] | null;
+
+
+export const FeedPostBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export type FeedPostMediaType = typeof FeedPostMediaType[keyof typeof FeedPostMediaType];
 
 
@@ -1299,6 +1431,8 @@ export interface FeedPost {
   username?: string | null;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: FeedPostBuddyType;
   userVerified?: boolean;
   /** @nullable */
   dollId?: number | null;
@@ -1423,6 +1557,17 @@ export interface TrendingHashtag {
   score: number;
 }
 
+/**
+ * @nullable
+ */
+export type FeedCommentBuddyType = typeof FeedCommentBuddyType[keyof typeof FeedCommentBuddyType] | null;
+
+
+export const FeedCommentBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export type FeedCommentUserRole = typeof FeedCommentUserRole[keyof typeof FeedCommentUserRole];
 
 
@@ -1445,6 +1590,8 @@ export interface FeedComment {
   postId: number;
   userId: number;
   userName: string;
+  /** @nullable */
+  buddyType: FeedCommentBuddyType;
   /** @nullable */
   username?: string | null;
   /** @nullable */
@@ -1788,6 +1935,17 @@ export const FollowUserRole = {
   admin: 'admin',
 } as const;
 
+/**
+ * @nullable
+ */
+export type FollowUserBuddyType = typeof FollowUserBuddyType[keyof typeof FollowUserBuddyType] | null;
+
+
+export const FollowUserBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface FollowUser {
   id: number;
   name: string;
@@ -1796,6 +1954,8 @@ export interface FollowUser {
   role: FollowUserRole;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: FollowUserBuddyType;
   verified?: boolean;
   /** @nullable */
   dollId?: number | null;
@@ -1805,6 +1965,57 @@ export interface FollowUser {
   state?: string | null;
   viewerFollows?: boolean;
 }
+
+export type BlockedUserRole = typeof BlockedUserRole[keyof typeof BlockedUserRole];
+
+
+export const BlockedUserRole = {
+  doll: 'doll',
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+/**
+ * @nullable
+ */
+export type BlockedUserBuddyType = typeof BlockedUserBuddyType[keyof typeof BlockedUserBuddyType] | null;
+
+
+export const BlockedUserBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
+export interface BlockedUser {
+  id: number;
+  name: string;
+  /** @nullable */
+  username?: string | null;
+  role: BlockedUserRole;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: BlockedUserBuddyType;
+  verified?: boolean;
+  /** @nullable */
+  dollId?: number | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  viewerFollows?: boolean;
+}
+
+/**
+ * @nullable
+ */
+export type BroProfileBuddyType = typeof BroProfileBuddyType[keyof typeof BroProfileBuddyType] | null;
+
+
+export const BroProfileBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
 
 export type BroProfileBadgesItem = typeof BroProfileBadgesItem[keyof typeof BroProfileBadgesItem];
 
@@ -1824,6 +2035,8 @@ export interface BroProfile {
   city?: string | null;
   /** @nullable */
   state?: string | null;
+  /** @nullable */
+  buddyType: BroProfileBuddyType;
   /** @nullable */
   bio?: string | null;
   /** @nullable */
@@ -2003,6 +2216,17 @@ export interface FieldPrivacyEntry {
   visibility: FieldPrivacyEntryVisibility;
 }
 
+/**
+ * @nullable
+ */
+export type MyProfileDataBuddyType = typeof MyProfileDataBuddyType[keyof typeof MyProfileDataBuddyType] | null;
+
+
+export const MyProfileDataBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export type MyProfileDataProfileCompletion = {
   percent: number;
   missing: string[];
@@ -2015,15 +2239,26 @@ export interface MyProfileData {
   username?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: MyProfileDataBuddyType;
   details: ProfileDetails;
   fieldPrivacy: FieldPrivacyEntry[];
   profileCompletion?: MyProfileDataProfileCompletion;
 }
 
+export type ProfileUpdateInputBuddyType = typeof ProfileUpdateInputBuddyType[keyof typeof ProfileUpdateInputBuddyType];
+
+
+export const ProfileUpdateInputBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface ProfileUpdateInput {
   name?: string;
   username?: string;
   profilePhotoUrl?: string;
+  buddyType?: ProfileUpdateInputBuddyType;
   details?: ProfileDetails;
   fieldPrivacy?: FieldPrivacyEntry[];
 }
@@ -2035,6 +2270,17 @@ export const EnhancedProfileRole = {
   doll: 'doll',
   member: 'member',
   admin: 'admin',
+} as const;
+
+/**
+ * @nullable
+ */
+export type EnhancedProfileBuddyType = typeof EnhancedProfileBuddyType[keyof typeof EnhancedProfileBuddyType] | null;
+
+
+export const EnhancedProfileBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
 } as const;
 
 export type EnhancedProfileFriendStatus = typeof EnhancedProfileFriendStatus[keyof typeof EnhancedProfileFriendStatus];
@@ -2055,6 +2301,8 @@ export interface EnhancedProfile {
   /** @nullable */
   username?: string | null;
   role: EnhancedProfileRole;
+  /** @nullable */
+  buddyType: EnhancedProfileBuddyType;
   verified?: boolean;
   /** @nullable */
   dollId?: number | null;
@@ -2267,10 +2515,23 @@ export const OnlineUserRole = {
   admin: 'admin',
 } as const;
 
+/**
+ * @nullable
+ */
+export type OnlineUserBuddyType = typeof OnlineUserBuddyType[keyof typeof OnlineUserBuddyType] | null;
+
+
+export const OnlineUserBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface OnlineUser {
   id: number;
   role: OnlineUserRole;
   displayName: string;
+  /** @nullable */
+  buddyType: OnlineUserBuddyType;
   profilePhotoUrl?: string | null;
   city?: string | null;
   state?: string | null;
@@ -2544,6 +2805,17 @@ export const ReelUserRole = {
   admin: 'admin',
 } as const;
 
+/**
+ * @nullable
+ */
+export type ReelBuddyType = typeof ReelBuddyType[keyof typeof ReelBuddyType] | null;
+
+
+export const ReelBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export type ReelCategory = typeof ReelCategory[keyof typeof ReelCategory];
 
 
@@ -2589,6 +2861,8 @@ export interface Reel {
   username?: string | null;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: ReelBuddyType;
   userVerified?: boolean;
   /** @nullable */
   dollId?: number | null;
@@ -4365,6 +4639,17 @@ export interface GroupJoinResult {
   message?: string;
 }
 
+/**
+ * @nullable
+ */
+export type GroupMemberBuddyType = typeof GroupMemberBuddyType[keyof typeof GroupMemberBuddyType] | null;
+
+
+export const GroupMemberBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export type GroupMemberRole = typeof GroupMemberRole[keyof typeof GroupMemberRole];
 
 
@@ -4390,6 +4675,8 @@ export interface GroupMember {
   userName?: string;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: GroupMemberBuddyType;
   role: GroupMemberRole;
   joinedVia?: string;
   status: GroupMemberStatus;
@@ -4563,6 +4850,17 @@ export interface GroupRuleInput {
   sortOrder?: number;
 }
 
+/**
+ * @nullable
+ */
+export type GroupPostBuddyType = typeof GroupPostBuddyType[keyof typeof GroupPostBuddyType] | null;
+
+
+export const GroupPostBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export type GroupPostMediaType = typeof GroupPostMediaType[keyof typeof GroupPostMediaType];
 
 
@@ -4606,6 +4904,8 @@ export interface GroupPost {
   authorName?: string;
   /** @nullable */
   authorPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: GroupPostBuddyType;
   authorRole?: string;
   /** @nullable */
   businessId?: number | null;
@@ -4750,6 +5050,17 @@ export interface GroupPostSaveResult {
   saveCount: number;
 }
 
+/**
+ * @nullable
+ */
+export type GroupPostCommentBuddyType = typeof GroupPostCommentBuddyType[keyof typeof GroupPostCommentBuddyType] | null;
+
+
+export const GroupPostCommentBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface GroupPostComment {
   id: number;
   postId: number;
@@ -4758,6 +5069,8 @@ export interface GroupPostComment {
   userName?: string;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: GroupPostCommentBuddyType;
   /** @nullable */
   parentCommentId?: number | null;
   commentText: string;
@@ -5131,11 +5444,24 @@ export interface GroupEventRsvpResult {
   waitlistPosition?: number | null;
 }
 
+/**
+ * @nullable
+ */
+export type GroupEventAttendeeBuddyType = typeof GroupEventAttendeeBuddyType[keyof typeof GroupEventAttendeeBuddyType] | null;
+
+
+export const GroupEventAttendeeBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
+
 export interface GroupEventAttendee {
   userId: number;
   userName?: string;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: GroupEventAttendeeBuddyType;
   rsvpStatus: string;
   /** @nullable */
   attendanceStatus?: string | null;
@@ -5536,6 +5862,7 @@ minutes?: number;
 
 export type ListUsersParams = {
 role?: ListUsersRole;
+buddyType?: ListUsersBuddyType;
 };
 
 export type ListUsersRole = typeof ListUsersRole[keyof typeof ListUsersRole];
@@ -5545,6 +5872,15 @@ export const ListUsersRole = {
   doll: 'doll',
   member: 'member',
   admin: 'admin',
+} as const;
+
+export type ListUsersBuddyType = typeof ListUsersBuddyType[keyof typeof ListUsersBuddyType];
+
+
+export const ListUsersBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+  missing: 'missing',
 } as const;
 
 export type ListAdminCreditTransactionsParams = {
@@ -5595,7 +5931,16 @@ export type ListMembersParams = {
 search?: string;
 city?: string;
 state?: string;
+buddyType?: ListMembersBuddyType;
 };
+
+export type ListMembersBuddyType = typeof ListMembersBuddyType[keyof typeof ListMembersBuddyType];
+
+
+export const ListMembersBuddyType = {
+  female_buddy: 'female_buddy',
+  male_buddy: 'male_buddy',
+} as const;
 
 export type ListFeedPostsParams = {
 filter?: ListFeedPostsFilter;

@@ -12,6 +12,7 @@ export function toUserResponse(user: User) {
     email: user.email,
     name: user.name,
     accountStatus: user.accountStatus,
+    buddyType: user.buddyType ?? null,
     dollId: user.dollId ?? null,
     createdAt: iso(user.createdAt),
   };
@@ -25,6 +26,7 @@ export function toMemberProfileResponse(user: User) {
     city: user.city ?? null,
     state: user.state ?? null,
     profilePhotoUrl: user.profilePhotoUrl ?? null,
+    buddyType: user.buddyType ?? null,
     memberSince: iso(user.createdAt) ?? "",
   };
 }
@@ -37,7 +39,11 @@ export type DollCounts = {
   favoriteCount: number;
 };
 
-export function toDollResponse(doll: Doll, counts: DollCounts) {
+export function toDollResponse(
+  doll: Doll,
+  counts: DollCounts,
+  buddyType: "female_buddy" | "male_buddy" | null = null,
+) {
   return {
     id: doll.id,
     stageName: doll.stageName,
@@ -49,6 +55,7 @@ export function toDollResponse(doll: Doll, counts: DollCounts) {
     experienceLevel: doll.experienceLevel ?? "",
     preferences: doll.preferences ?? "",
     profilePhotoUrl: doll.profilePhotoUrl ?? "",
+    buddyType,
     verified: doll.verified,
     featured: doll.featured,
     elite: doll.elite,

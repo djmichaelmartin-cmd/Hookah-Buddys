@@ -11,6 +11,7 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { BuddyPill } from "@/components/BuddyPill";
 import { Users, Lock, Globe, MapPin, AlertCircle, Share2, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -93,7 +94,10 @@ function GroupMembers({ groupId, isAdmin }: { groupId: number, isAdmin?: boolean
                 {member.userPhotoUrl ? <img src={member.userPhotoUrl} className="w-full h-full object-cover" /> : <Users className="w-6 h-6 m-auto mt-3 text-primary/50" />}
               </div>
               <div>
-                <p className="font-bold text-white text-sm">{member.userName}</p>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="font-bold text-white text-sm">{member.userName}</p>
+                  <BuddyPill buddyType={member.buddyType} />
+                </div>
                 <p className="text-xs text-muted-foreground capitalize">{member.role}</p>
               </div>
             </div>

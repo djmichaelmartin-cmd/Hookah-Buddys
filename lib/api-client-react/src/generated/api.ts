@@ -43,9 +43,11 @@ import type {
   AdminUser,
   AuthResponse,
   BlockStatus,
+  BlockedUser,
   BoostInput,
   BoostPurchase,
   BroProfile,
+  BuddyTypeInput,
   BusinessAlbum,
   BusinessAlbumInput,
   BusinessAppointmentInput,
@@ -5296,6 +5298,78 @@ export const useUpdateUserStatus = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateUserStatusMutationOptions(options));
+    }
+
+export const getUpdateUserBuddyTypeUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/users/${id}/buddy-type`
+}
+
+/**
+ * @summary Update a personal account Buddy type (Admin)
+ */
+export const updateUserBuddyType = async (id: number,
+    buddyTypeInput: BuddyTypeInput, options?: RequestInit): Promise<AdminUser> => {
+
+  return customFetch<AdminUser>(getUpdateUserBuddyTypeUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      buddyTypeInput,)
+  }
+);}
+
+
+
+
+export const getUpdateUserBuddyTypeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserBuddyType>>, TError,{id: number;data: BodyType<BuddyTypeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUserBuddyType>>, TError,{id: number;data: BodyType<BuddyTypeInput>}, TContext> => {
+
+const mutationKey = ['updateUserBuddyType'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUserBuddyType>>, {id: number;data: BodyType<BuddyTypeInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateUserBuddyType(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateUserBuddyTypeMutationResult = NonNullable<Awaited<ReturnType<typeof updateUserBuddyType>>>
+    export type UpdateUserBuddyTypeMutationBody = BodyType<BuddyTypeInput>
+    export type UpdateUserBuddyTypeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a personal account Buddy type (Admin)
+ */
+export const useUpdateUserBuddyType = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserBuddyType>>, TError,{id: number;data: BodyType<BuddyTypeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateUserBuddyType>>,
+        TError,
+        {id: number;data: BodyType<BuddyTypeInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateUserBuddyTypeMutationOptions(options));
     }
 
 export const getListAdminPlansUrl = () => {
@@ -10902,9 +10976,9 @@ export const getListBlockedUsersUrl = () => {
 /**
  * @summary List users I have blocked
  */
-export const listBlockedUsers = async ( options?: RequestInit): Promise<FollowUser[]> => {
+export const listBlockedUsers = async ( options?: RequestInit): Promise<BlockedUser[]> => {
 
-  return customFetch<FollowUser[]>(getListBlockedUsersUrl(),
+  return customFetch<BlockedUser[]>(getListBlockedUsersUrl(),
   {
     ...options,
     method: 'GET'

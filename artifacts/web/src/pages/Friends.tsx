@@ -16,6 +16,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { BuddyPill } from "@/components/BuddyPill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
@@ -158,13 +159,14 @@ export default function Friends() {
                         </Avatar>
                       </Link>
                       <div className="flex-1 min-w-0">
-                        <Link href={`/bros/${friend.id}`}>
+                        <Link href={`/bros/${friend.id}`} className="flex items-center gap-1.5 flex-wrap">
                           <p className="text-white font-semibold truncate hover:text-primary transition-colors flex items-center gap-1.5">
                             {friend.name}
                             {friend.verified && (
                               <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
                             )}
                           </p>
+                          <BuddyPill buddyType={friend.buddyType} className="scale-[0.8] origin-left" />
                         </Link>
                         <p className="text-sm text-muted-foreground truncate">
                           @{friend.username || `user${friend.id}`}
@@ -321,7 +323,10 @@ export default function Friends() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="text-white font-semibold">{user.name}</p>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <p className="text-white font-semibold">{user.name}</p>
+                        <BuddyPill buddyType={user.buddyType} className="scale-[0.8] origin-left" />
+                      </div>
                       <p className="text-sm text-muted-foreground">
                       @{user.username || `user${user.id}`}
                       </p>

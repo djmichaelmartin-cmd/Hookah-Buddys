@@ -156,6 +156,7 @@ export async function buildEnhancedProfile(
   return {
     userId: user.id,
     name: user.name,
+    buddyType: user.buddyType ?? null,
     username: user.username ?? null,
     role: user.role,
     verified: dollVerified,
@@ -202,6 +203,7 @@ async function buildMyProfileData(userId: number) {
     .where(and(eq(reelsTable.userId, userId), eq(reelsTable.status, "active")));
 
   const checklist: [string, boolean][] = [
+    ["buddyType", user?.role === "admin" || !!user?.buddyType],
     ["profilePhoto", !!user?.profilePhotoUrl],
     ["coverPhoto", !!details.coverPhotoUrl],
     ["cityState", !!(user?.city || details.livesInCity)],
@@ -216,6 +218,7 @@ async function buildMyProfileData(userId: number) {
   return {
     userId,
     name: user?.name ?? "",
+    buddyType: user?.buddyType ?? null,
     username: user?.username ?? null,
     profilePhotoUrl: user?.profilePhotoUrl ?? null,
     details,
@@ -292,6 +295,7 @@ router.put("/profiles/me", requireAuth(), async (req, res): Promise<void> => {
     }
   }
   if (input.profilePhotoUrl !== undefined) userUpdates.profilePhotoUrl = input.profilePhotoUrl;
+  if (input.buddyType !== undefined) userUpdates.buddyType = input.buddyType;
   if (Object.keys(userUpdates).length > 0) {
     await db.update(usersTable).set(userUpdates).where(eq(usersTable.id, user.id));
   }

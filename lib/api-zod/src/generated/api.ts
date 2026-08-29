@@ -70,7 +70,8 @@ export const RegisterDollBody = zod.object({
   "verificationVideoUrl": zod.string().optional(),
   "governmentIdUrl": zod.string().optional(),
   "ageConfirmed": zod.boolean(),
-  "rulesAccepted": zod.boolean()
+  "rulesAccepted": zod.boolean(),
+  "buddyType": zod.enum(['female_buddy', 'male_buddy'])
 })
 
 
@@ -95,7 +96,8 @@ export const RegisterMemberBody = zod.object({
   "password": zod.string().min(registerMemberBodyPasswordMin),
   "profilePhotoUrl": zod.string().optional(),
   "ageConfirmed": zod.boolean(),
-  "rulesAccepted": zod.boolean()
+  "rulesAccepted": zod.boolean(),
+  "buddyType": zod.enum(['female_buddy', 'male_buddy'])
 })
 
 
@@ -114,6 +116,7 @@ export const LoginResponse = zod.object({
   "email": zod.string(),
   "name": zod.string(),
   "accountStatus": zod.enum(['active', 'pending', 'suspended', 'banned']),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "dollId": zod.number().nullish(),
   "createdAt": zod.string().optional()
 })
@@ -139,6 +142,7 @@ export const GetCurrentUserResponse = zod.object({
   "email": zod.string(),
   "name": zod.string(),
   "accountStatus": zod.enum(['active', 'pending', 'suspended', 'banned']),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "dollId": zod.number().nullish(),
   "createdAt": zod.string().optional()
 }),zod.null()]).optional()
@@ -174,6 +178,7 @@ export const ListDollsResponseItem = zod.object({
   "experienceLevel": zod.string().optional(),
   "preferences": zod.string().optional(),
   "profilePhotoUrl": zod.string().optional(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean(),
   "featured": zod.boolean(),
   "elite": zod.boolean(),
@@ -207,6 +212,7 @@ export const ListFeaturedDollsResponseItem = zod.object({
   "experienceLevel": zod.string().optional(),
   "preferences": zod.string().optional(),
   "profilePhotoUrl": zod.string().optional(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean(),
   "featured": zod.boolean(),
   "elite": zod.boolean(),
@@ -244,6 +250,7 @@ export const GetDollResponse = zod.object({
   "experienceLevel": zod.string().optional(),
   "preferences": zod.string().optional(),
   "profilePhotoUrl": zod.string().optional(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean(),
   "featured": zod.boolean(),
   "elite": zod.boolean(),
@@ -298,6 +305,7 @@ export const GetMyDollProfileResponse = zod.object({
   "experienceLevel": zod.string().optional(),
   "preferences": zod.string().optional(),
   "profilePhotoUrl": zod.string().optional(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean(),
   "featured": zod.boolean(),
   "elite": zod.boolean(),
@@ -368,6 +376,7 @@ export const UpdateMyDollProfileResponse = zod.object({
   "experienceLevel": zod.string().optional(),
   "preferences": zod.string().optional(),
   "profilePhotoUrl": zod.string().optional(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean(),
   "featured": zod.boolean(),
   "elite": zod.boolean(),
@@ -624,6 +633,7 @@ export const ListFavoritesResponseItem = zod.object({
   "experienceLevel": zod.string().optional(),
   "preferences": zod.string().optional(),
   "profilePhotoUrl": zod.string().optional(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean(),
   "featured": zod.boolean(),
   "elite": zod.boolean(),
@@ -812,7 +822,8 @@ export const ListEventsResponseItem = zod.object({
   "attendees": zod.array(zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "profilePhotoUrl": zod.string().nullish()
+  "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable()
 })).optional().describe('Preview of RSVP\'d members (detail route only)'),
   "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)'),
   "sourceType": zod.string().nullish().describe('meetup_event when projected from a Meetup group'),
@@ -860,7 +871,8 @@ export const GetEventResponse = zod.object({
   "attendees": zod.array(zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "profilePhotoUrl": zod.string().nullish()
+  "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable()
 })).optional().describe('Preview of RSVP\'d members (detail route only)'),
   "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)'),
   "sourceType": zod.string().nullish().describe('meetup_event when projected from a Meetup group'),
@@ -931,7 +943,8 @@ export const ListAdminEventsResponseItem = zod.object({
   "attendees": zod.array(zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "profilePhotoUrl": zod.string().nullish()
+  "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable()
 })).optional().describe('Preview of RSVP\'d members (detail route only)'),
   "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)'),
   "sourceType": zod.string().nullish().describe('meetup_event when projected from a Meetup group'),
@@ -1030,7 +1043,8 @@ export const UpdateAdminEventResponse = zod.object({
   "attendees": zod.array(zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "profilePhotoUrl": zod.string().nullish()
+  "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable()
 })).optional().describe('Preview of RSVP\'d members (detail route only)'),
   "attendeeCount": zod.number().optional().describe('Total visible attendees under the same eligibility filters as the preview (detail route only)'),
   "sourceType": zod.string().nullish().describe('meetup_event when projected from a Meetup group'),
@@ -1141,8 +1155,10 @@ export const ListThreadsResponseItem = zod.object({
   "dollId": zod.number().optional(),
   "dollName": zod.string().optional(),
   "dollPhotoUrl": zod.string().optional(),
+  "dollBuddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "memberId": zod.number().optional(),
   "memberName": zod.string().optional(),
+  "memberBuddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "lastMessage": zod.string().optional(),
   "lastMessageAt": zod.string().optional(),
   "unreadCount": zod.number().optional()
@@ -1437,7 +1453,8 @@ export const ReviewDollApplicationResponse = zod.object({
  * @summary Manage users (Admin)
  */
 export const ListUsersQueryParams = zod.object({
-  "role": zod.enum(['doll', 'member', 'admin']).optional()
+  "role": zod.enum(['doll', 'member', 'admin']).optional(),
+  "buddyType": zod.enum(['female_buddy', 'male_buddy', 'missing']).optional()
 })
 
 export const ListUsersResponseItem = zod.object({
@@ -1446,6 +1463,7 @@ export const ListUsersResponseItem = zod.object({
   "email": zod.string(),
   "name": zod.string(),
   "accountStatus": zod.enum(['active', 'pending', 'suspended', 'banned']),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "dollId": zod.number().nullish(),
   "verified": zod.boolean().optional(),
   "createdAt": zod.string().optional()
@@ -1470,6 +1488,31 @@ export const UpdateUserStatusResponse = zod.object({
   "email": zod.string(),
   "name": zod.string(),
   "accountStatus": zod.enum(['active', 'pending', 'suspended', 'banned']),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
+  "dollId": zod.number().nullish(),
+  "verified": zod.boolean().optional(),
+  "createdAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Update a personal account Buddy type (Admin)
+ */
+export const UpdateUserBuddyTypeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateUserBuddyTypeBody = zod.object({
+  "buddyType": zod.enum(['female_buddy', 'male_buddy'])
+})
+
+export const UpdateUserBuddyTypeResponse = zod.object({
+  "id": zod.number(),
+  "role": zod.enum(['doll', 'member', 'admin']),
+  "email": zod.string(),
+  "name": zod.string(),
+  "accountStatus": zod.enum(['active', 'pending', 'suspended', 'banned']),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "dollId": zod.number().nullish(),
   "verified": zod.boolean().optional(),
   "createdAt": zod.string().optional()
@@ -1800,7 +1843,8 @@ export const SubmitContactBody = zod.object({
 export const ListMembersQueryParams = zod.object({
   "search": zod.coerce.string().optional(),
   "city": zod.coerce.string().optional(),
-  "state": zod.coerce.string().optional()
+  "state": zod.coerce.string().optional(),
+  "buddyType": zod.enum(['female_buddy', 'male_buddy']).optional()
 })
 
 export const ListMembersResponseItem = zod.object({
@@ -1810,6 +1854,7 @@ export const ListMembersResponseItem = zod.object({
   "city": zod.string().nullish(),
   "state": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "memberSince": zod.string().optional()
 })
 export const ListMembersResponse = zod.array(ListMembersResponseItem)
@@ -1829,6 +1874,7 @@ export const GetMemberProfileResponse = zod.object({
   "city": zod.string().nullish(),
   "state": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "memberSince": zod.string().optional()
 })
 
@@ -1851,6 +1897,7 @@ export const ListFeedPostsResponseItem = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -1970,6 +2017,7 @@ export const GetFeedPostResponse = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -2103,6 +2151,7 @@ export const ListFeedCommentsResponseItem = zod.object({
   "postId": zod.number(),
   "userId": zod.number(),
   "userName": zod.string(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
   "userRole": zod.enum(['doll', 'member', 'admin']),
@@ -2163,6 +2212,7 @@ export const ListSavedFeedPostsResponseItem = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -2245,6 +2295,7 @@ export const ListLikedFeedPostsResponseItem = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -2327,6 +2378,7 @@ export const ListMyFeedPostsResponseItem = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -2440,6 +2492,7 @@ export const ListFollowsResponseItem = zod.object({
   "username": zod.string().nullish(),
   "role": zod.enum(['doll', 'member', 'admin']),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -2462,6 +2515,7 @@ export const GetBroProfileResponse = zod.object({
   "username": zod.string().nullish(),
   "city": zod.string().nullish(),
   "state": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "bio": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
   "memberSince": zod.string().optional(),
@@ -2476,6 +2530,7 @@ export const GetBroProfileResponse = zod.object({
   "username": zod.string().nullish(),
   "role": zod.enum(['doll', 'member', 'admin']),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -2489,6 +2544,7 @@ export const GetBroProfileResponse = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -2636,6 +2692,7 @@ export const ListAdminFeedPostsResponseItem = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -2726,6 +2783,7 @@ export const ModerateFeedPostResponse = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -3228,6 +3286,7 @@ export const GetEnhancedProfileResponse = zod.object({
   "name": zod.string(),
   "username": zod.string().nullish(),
   "role": zod.enum(['doll', 'member', 'admin']),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
@@ -3297,6 +3356,7 @@ export const GetEnhancedProfileAsPublicResponse = zod.object({
   "name": zod.string(),
   "username": zod.string().nullish(),
   "role": zod.enum(['doll', 'member', 'admin']),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
@@ -3370,6 +3430,7 @@ export const GetMyProfileResponse = zod.object({
   "name": zod.string().optional(),
   "username": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "details": zod.object({
   "coverPhotoUrl": zod.string().nullish(),
   "livesInCity": zod.string().nullish(),
@@ -3422,6 +3483,7 @@ export const UpdateMyProfileBody = zod.object({
   "name": zod.string().optional(),
   "username": zod.string().optional(),
   "profilePhotoUrl": zod.string().optional(),
+  "buddyType": zod.enum(['female_buddy', 'male_buddy']).optional(),
   "details": zod.object({
   "coverPhotoUrl": zod.string().nullish(),
   "livesInCity": zod.string().nullish(),
@@ -3467,6 +3529,7 @@ export const UpdateMyProfileResponse = zod.object({
   "name": zod.string().optional(),
   "username": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "details": zod.object({
   "coverPhotoUrl": zod.string().nullish(),
   "livesInCity": zod.string().nullish(),
@@ -3569,6 +3632,7 @@ export const ListOnlineUsersResponseItem = zod.object({
   "id": zod.number(),
   "role": zod.enum(['doll', 'member', 'admin']),
   "displayName": zod.string(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "profilePhotoUrl": zod.string().nullish(),
   "city": zod.string().nullish(),
   "state": zod.string().nullish(),
@@ -3662,6 +3726,7 @@ export const ListFriendsResponseItem = zod.object({
   "username": zod.string().nullish(),
   "role": zod.enum(['doll', 'member', 'admin']),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -3684,6 +3749,7 @@ export const ListMutualFriendsResponseItem = zod.object({
   "username": zod.string().nullish(),
   "role": zod.enum(['doll', 'member', 'admin']),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -3722,6 +3788,7 @@ export const ListBlockedUsersResponseItem = zod.object({
   "username": zod.string().nullish(),
   "role": zod.enum(['doll', 'member', 'admin']),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "verified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "city": zod.string().nullish(),
@@ -3868,6 +3935,7 @@ export const ListPhotoCommentsResponseItem = zod.object({
   "postId": zod.number(),
   "userId": zod.number(),
   "userName": zod.string(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
   "userRole": zod.enum(['doll', 'member', 'admin']),
@@ -3935,6 +4003,7 @@ export const ListReelsResponseItem = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "videoUrl": zod.string(),
@@ -4073,6 +4142,7 @@ export const GetReelResponse = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "videoUrl": zod.string(),
@@ -4173,6 +4243,7 @@ export const ListReelCommentsResponseItem = zod.object({
   "postId": zod.number(),
   "userId": zod.number(),
   "userName": zod.string(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
   "userRole": zod.enum(['doll', 'member', 'admin']),
@@ -4348,6 +4419,7 @@ export const ListAdminReelsResponseItem = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "videoUrl": zod.string(),
@@ -4397,6 +4469,7 @@ export const ModerateReelResponse = zod.object({
   "userName": zod.string(),
   "username": zod.string().nullish(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "userVerified": zod.boolean().optional(),
   "dollId": zod.number().nullish(),
   "videoUrl": zod.string(),
@@ -4439,6 +4512,7 @@ export const GetAdminProfileResponse = zod.object({
   "name": zod.string().optional(),
   "username": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "details": zod.object({
   "coverPhotoUrl": zod.string().nullish(),
   "livesInCity": zod.string().nullish(),
@@ -4500,6 +4574,7 @@ export const ClearProfileFieldsResponse = zod.object({
   "name": zod.string().optional(),
   "username": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "details": zod.object({
   "coverPhotoUrl": zod.string().nullish(),
   "livesInCity": zod.string().nullish(),
@@ -6881,6 +6956,7 @@ export const ListGroupMembersResponseItem = zod.object({
   "userId": zod.number(),
   "userName": zod.string().optional(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "role": zod.enum(['owner', 'admin', 'moderator', 'member']),
   "joinedVia": zod.string().optional(),
   "status": zod.enum(['active', 'suspended']),
@@ -6908,6 +6984,7 @@ export const UpdateGroupMemberResponse = zod.object({
   "userId": zod.number(),
   "userName": zod.string().optional(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "role": zod.enum(['owner', 'admin', 'moderator', 'member']),
   "joinedVia": zod.string().optional(),
   "status": zod.enum(['active', 'suspended']),
@@ -7207,6 +7284,7 @@ export const ListGroupPostsResponseItem = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -7311,6 +7389,7 @@ export const GetGroupPostResponse = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -7394,6 +7473,7 @@ export const UpdateGroupPostResponse = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -7510,6 +7590,7 @@ export const ApproveGroupPostResponse = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -7588,6 +7669,7 @@ export const RejectGroupPostResponse = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -7662,6 +7744,7 @@ export const ToggleGroupPostPinResponse = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -7754,6 +7837,7 @@ export const ListGroupPostCommentsResponseItem = zod.object({
   "userId": zod.number(),
   "userName": zod.string().optional(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "parentCommentId": zod.number().nullish(),
   "commentText": zod.string(),
   "status": zod.string(),
@@ -7811,6 +7895,7 @@ export const ModerateGroupPostCommentResponse = zod.object({
   "userId": zod.number(),
   "userName": zod.string().optional(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "parentCommentId": zod.number().nullish(),
   "commentText": zod.string(),
   "status": zod.string(),
@@ -7832,6 +7917,7 @@ export const ListGroupSavedPostsResponseItem = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -8340,6 +8426,7 @@ export const ListGroupEventAttendeesResponseItem = zod.object({
   "userId": zod.number(),
   "userName": zod.string().optional(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "rsvpStatus": zod.string(),
   "attendanceStatus": zod.string().nullish(),
   "guestCount": zod.number().optional(),
@@ -8424,6 +8511,7 @@ export const ManageGroupEventAttendeeResponse = zod.object({
   "userId": zod.number(),
   "userName": zod.string().optional(),
   "userPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "rsvpStatus": zod.string(),
   "attendanceStatus": zod.string().nullish(),
   "guestCount": zod.number().optional(),
@@ -8578,6 +8666,7 @@ export const GetGroupInsightsResponse = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -8854,6 +8943,7 @@ export const AdminListGroupPostsResponseItem = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),
@@ -8934,6 +9024,7 @@ export const AdminModerateGroupPostResponse = zod.object({
   "authorUserId": zod.number().nullish(),
   "authorName": zod.string().optional(),
   "authorPhotoUrl": zod.string().nullish(),
+  "buddyType": zod.union([zod.literal('female_buddy'),zod.literal('male_buddy'),zod.literal(null)]).nullable(),
   "authorRole": zod.string().optional(),
   "businessId": zod.number().nullish(),
   "businessName": zod.string().nullish(),

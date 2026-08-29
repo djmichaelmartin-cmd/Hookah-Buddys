@@ -7,6 +7,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BuddyPill } from "@/components/BuddyPill";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Messages() {
@@ -95,7 +96,10 @@ export default function Messages() {
                     <AvatarFallback>{(thread.dollName || thread.memberName || "?").charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white truncate">{thread.dollName || thread.memberName}</p>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <p className="font-medium text-white truncate max-w-[120px]">{thread.dollName || thread.memberName}</p>
+                      <BuddyPill buddyType={thread.dollBuddyType || thread.memberBuddyType} className="scale-[0.8] origin-left" />
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">{thread.lastMessage || "No messages yet"}</p>
                   </div>
                 </button>
@@ -115,16 +119,22 @@ export default function Messages() {
                     &larr; Back
                   </Button>
                   {isDoll && activeThread?.memberId ? (
-                    <Link
-                      href={`/members/${activeThread.memberId}`}
-                      className="font-medium text-white hover:text-primary transition-colors underline-offset-4 hover:underline"
-                    >
-                      {activeThread.memberName || "View member profile"}
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/members/${activeThread.memberId}`}
+                        className="font-medium text-white hover:text-primary transition-colors underline-offset-4 hover:underline"
+                      >
+                        {activeThread.memberName || "View member profile"}
+                      </Link>
+                      <BuddyPill buddyType={activeThread?.memberBuddyType} />
+                    </div>
                   ) : (
-                    <h3 className="font-medium text-white">
-                      {activeThread?.dollName || activeThread?.memberName || "Conversation"}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-white">
+                        {activeThread?.dollName || activeThread?.memberName || "Conversation"}
+                      </h3>
+                      <BuddyPill buddyType={activeThread?.dollBuddyType || activeThread?.memberBuddyType} />
+                    </div>
                   )}
                 </div>
                 

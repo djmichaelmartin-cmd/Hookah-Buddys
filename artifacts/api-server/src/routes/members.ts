@@ -17,6 +17,7 @@ router.get("/members", requireAuth("doll", "admin"), async (req, res): Promise<v
   const conditions = [eq(usersTable.role, "member"), eq(usersTable.accountStatus, "active")];
   if (q.city) conditions.push(ilike(usersTable.city, `%${q.city}%`));
   if (q.state) conditions.push(ilike(usersTable.state, `%${q.state}%`));
+  if (q.buddyType) conditions.push(eq(usersTable.buddyType, q.buddyType));
   if (q.search) {
     const term = `%${q.search}%`;
     const match = or(ilike(usersTable.name, term), ilike(usersTable.username, term));

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { FieldPrivacyEntry } from './fieldPrivacyEntry';
+import type { MyProfileDataBuddyType } from './myProfileDataBuddyType';
 import type { MyProfileDataProfileCompletion } from './myProfileDataProfileCompletion';
 import type { ProfileDetails } from './profileDetails';
 
@@ -16,6 +17,8 @@ export interface MyProfileData {
   username?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: MyProfileDataBuddyType;
   details: ProfileDetails;
   fieldPrivacy: FieldPrivacyEntry[];
   profileCompletion?: MyProfileDataProfileCompletion;

@@ -5,10 +5,13 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { EventAttendeeBuddyType } from './eventAttendeeBuddyType';
 
 export interface EventAttendee {
   id: number;
   name: string;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: EventAttendeeBuddyType;
 }

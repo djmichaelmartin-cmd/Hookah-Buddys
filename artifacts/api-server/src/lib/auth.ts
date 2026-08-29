@@ -112,3 +112,5 @@ export function requireAuth(...roles: string[]) {
     next();
   };
 }
+
+/** Blocks creation-only routes until a personal account has chosen a Buddy type. */

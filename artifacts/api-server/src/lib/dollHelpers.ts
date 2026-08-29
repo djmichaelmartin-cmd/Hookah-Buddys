@@ -1,4 +1,4 @@
-import { db, mediaTable, favoritesTable } from "@workspace/db";
+import { db, mediaTable, favoritesTable, usersTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import { toDollResponse, type DollCounts } from "./mappers";
 import type { Doll } from "@workspace/db";
@@ -28,8 +28,11 @@ export async function getDollCounts(dollId: number): Promise<DollCounts> {
 }
 
 export async function dollWithCounts(doll: Doll) {
-  const counts = await getDollCounts(doll.id);
-  return toDollResponse(doll, counts);
+  const [counts, [owner]] = await Promise.all([
+    getDollCounts(doll.id),
+    db.select({ buddyType: usersTable.buddyType }).from(usersTable).where(eq(usersTable.id, doll.userId)),
+  ]);
+  return toDollResponse(doll, counts, owner?.buddyType as "female_buddy" | "male_buddy" | null ?? null);
 }
 
 export interface DollEarnings {

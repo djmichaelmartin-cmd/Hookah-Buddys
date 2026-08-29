@@ -1291,6 +1291,7 @@ paths:
       summary: Manage users (Admin)
       parameters:
         - { name: role, in: query, required: false, schema: { type: string, enum: [doll, member, admin] } }
+        - { name: buddyType, in: query, required: false, schema: { type: string, enum: [female_buddy, male_buddy, missing] } }
       responses:
         "200":
           description: OK
@@ -1314,6 +1315,27 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UserStatusInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{id}/buddy-type:
+    patch:
+      operationId: updateUserBuddyType
+      tags: [admin]
+      summary: Update a personal account Buddy type (Admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BuddyTypeInput"
       responses:
         "200":
           description: OK
@@ -1578,6 +1600,7 @@ paths:
         - { name: search, in: query, required: false, schema: { type: string } }
         - { name: city, in: query, required: false, schema: { type: string } }
         - { name: state, in: query, required: false, schema: { type: string } }
+        - { name: buddyType, in: query, required: false, schema: { type: string, enum: [female_buddy, male_buddy] } }
       responses:
         "200":
           description: OK
@@ -2724,7 +2747,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/FollowUser"
+                  $ref: "#/components/schemas/BlockedUser"
         "401":
           description: Unauthorized
 
@@ -6250,19 +6273,20 @@ components:
 
     User:
       type: object
-      required: [id, role, email, name, accountStatus]
+      required: [id, role, email, name, accountStatus, buddyType]
       properties:
         id: { type: integer }
         role: { type: string, enum: [doll, member, admin] }
         email: { type: string }
         name: { type: string }
         accountStatus: { type: string, enum: [active, pending, suspended, banned] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         dollId: { type: ["integer", "null"] }
         createdAt: { type: string }
 
     MemberProfile:
       type: object
-      required: [id, name]
+      required: [id, name, buddyType]
       properties:
         id: { type: integer }
         name: { type: string }
@@ -6270,6 +6294,7 @@ components:
         city: { type: ["string", "null"] }
         state: { type: ["string", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         memberSince: { type: string }
 
     CurrentUser:
@@ -6302,6 +6327,7 @@ components:
         - experienceLevel
         - ageConfirmed
         - rulesAccepted
+        - buddyType
       properties:
         legalName: { type: string, minLength: 1 }
         stageName: { type: string, minLength: 1 }
@@ -6321,6 +6347,7 @@ components:
         governmentIdUrl: { type: string }
         ageConfirmed: { type: boolean }
         rulesAccepted: { type: boolean }
+        buddyType: { type: string, enum: [female_buddy, male_buddy] }
 
     MemberRegistration:
       type: object
@@ -6331,6 +6358,7 @@ components:
         - password
         - ageConfirmed
         - rulesAccepted
+        - buddyType
       properties:
         name: { type: string, minLength: 1 }
         email: { type: string, minLength: 3 }
@@ -6342,6 +6370,7 @@ components:
         profilePhotoUrl: { type: string }
         ageConfirmed: { type: boolean }
         rulesAccepted: { type: boolean }
+        buddyType: { type: string, enum: [female_buddy, male_buddy] }
 
     LoginInput:
       type: object
@@ -6362,6 +6391,7 @@ components:
         - elite
         - online
         - tier
+        - buddyType
       properties:
         id: { type: integer }
         stageName: { type: string }
@@ -6373,6 +6403,7 @@ components:
         experienceLevel: { type: string }
         preferences: { type: string }
         profilePhotoUrl: { type: string }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         verified: { type: boolean }
         featured: { type: boolean }
         elite: { type: boolean }
@@ -6599,11 +6630,12 @@ components:
 
     EventAttendee:
       type: object
-      required: [id, name]
+      required: [id, name, buddyType]
       properties:
         id: { type: integer }
         name: { type: string }
         profilePhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
 
     EventRsvpResult:
       type: object
@@ -6789,14 +6821,16 @@ components:
 
     MessageThread:
       type: object
-      required: [id]
+      required: [id, dollBuddyType, memberBuddyType]
       properties:
         id: { type: integer }
         dollId: { type: integer }
         dollName: { type: string }
         dollPhotoUrl: { type: string }
+        dollBuddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         memberId: { type: integer }
         memberName: { type: string }
+        memberBuddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         lastMessage: { type: string }
         lastMessageAt: { type: string }
         unreadCount: { type: integer }
@@ -6984,13 +7018,14 @@ components:
 
     AdminUser:
       type: object
-      required: [id, role, email, name, accountStatus]
+      required: [id, role, email, name, accountStatus, buddyType]
       properties:
         id: { type: integer }
         role: { type: string, enum: [doll, member, admin] }
         email: { type: string }
         name: { type: string }
         accountStatus: { type: string, enum: [active, pending, suspended, banned] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         dollId: { type: ["integer", "null"] }
         verified: { type: boolean }
         createdAt: { type: string }
@@ -7000,6 +7035,12 @@ components:
       required: [accountStatus]
       properties:
         accountStatus: { type: string, enum: [active, suspended, banned] }
+
+    BuddyTypeInput:
+      type: object
+      required: [buddyType]
+      properties:
+        buddyType: { type: string, enum: [female_buddy, male_buddy] }
 
     CheckoutInput:
       type: object
@@ -7149,7 +7190,7 @@ components:
 
     FeedPost:
       type: object
-      required: [id, userId, userRole, userName, text, category, status, likeCount, commentCount, saveCount, createdAt]
+      required: [id, userId, userRole, userName, buddyType, text, category, status, likeCount, commentCount, saveCount, createdAt]
       properties:
         id: { type: integer }
         userId: { type: integer }
@@ -7157,6 +7198,7 @@ components:
         userName: { type: string }
         username: { type: ["string", "null"] }
         userPhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         userVerified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         city: { type: ["string", "null"] }
@@ -7252,12 +7294,13 @@ components:
 
     FeedComment:
       type: object
-      required: [id, postId, userId, userName, userRole, commentText, createdAt]
+      required: [id, postId, userId, userName, userRole, buddyType, commentText, createdAt]
       properties:
         id: { type: integer }
         postId: { type: integer }
         userId: { type: integer }
         userName: { type: string }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         username: { type: ["string", "null"] }
         userPhotoUrl: { type: ["string", "null"] }
         userRole: { type: string, enum: [doll, member, admin] }
@@ -7515,13 +7558,30 @@ components:
 
     FollowUser:
       type: object
-      required: [id, name, role]
+      required: [id, name, role, buddyType]
       properties:
         id: { type: integer }
         name: { type: string }
         username: { type: ["string", "null"] }
         role: { type: string, enum: [doll, member, admin] }
         profilePhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
+        verified: { type: boolean }
+        dollId: { type: ["integer", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        viewerFollows: { type: boolean }
+
+    BlockedUser:
+      type: object
+      required: [id, name, role, buddyType]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        username: { type: ["string", "null"] }
+        role: { type: string, enum: [doll, member, admin] }
+        profilePhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         verified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         city: { type: ["string", "null"] }
@@ -7530,13 +7590,14 @@ components:
 
     BroProfile:
       type: object
-      required: [id, name, followerCount, followingCount, postCount]
+      required: [id, name, buddyType, followerCount, followingCount, postCount]
       properties:
         id: { type: integer }
         name: { type: string }
         username: { type: ["string", "null"] }
         city: { type: ["string", "null"] }
         state: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         bio: { type: ["string", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
         memberSince: { type: string }
@@ -7679,12 +7740,13 @@ components:
 
     MyProfileData:
       type: object
-      required: [userId, details, fieldPrivacy]
+      required: [userId, buddyType, details, fieldPrivacy]
       properties:
         userId: { type: integer }
         name: { type: string }
         username: { type: ["string", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         details:
           $ref: "#/components/schemas/ProfileDetails"
         fieldPrivacy:
@@ -7705,6 +7767,7 @@ components:
         name: { type: string }
         username: { type: string }
         profilePhotoUrl: { type: string }
+        buddyType: { type: string, enum: [female_buddy, male_buddy] }
         details:
           $ref: "#/components/schemas/ProfileDetails"
         fieldPrivacy:
@@ -7713,12 +7776,13 @@ components:
 
     EnhancedProfile:
       type: object
-      required: [userId, name, role, followerCount, followingCount, friendCount, postCount, friendStatus]
+      required: [userId, name, role, buddyType, followerCount, followingCount, friendCount, postCount, friendStatus]
       properties:
         userId: { type: integer }
         name: { type: string }
         username: { type: ["string", "null"] }
         role: { type: string, enum: [doll, member, admin] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         verified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         profilePhotoUrl: { type: ["string", "null"] }
@@ -7777,11 +7841,12 @@ components:
 
     OnlineUser:
       type: object
-      required: [id, role, displayName, lastActiveAt]
+      required: [id, role, displayName, buddyType, lastActiveAt]
       properties:
         id: { type: integer }
         role: { type: string, enum: [doll, member, admin] }
         displayName: { type: string }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         profilePhotoUrl: { type: string, nullable: true }
         city: { type: string, nullable: true }
         state: { type: string, nullable: true }
@@ -7944,7 +8009,7 @@ components:
 
     Reel:
       type: object
-      required: [id, userId, userRole, userName, videoUrl, category, hashtags, peopleTags, businessName, businessHandle, businessLogoUrl, visibility, commentsEnabled, sharingEnabled, status, likeCount, commentCount, saveCount, viewCount, createdAt]
+      required: [id, userId, userRole, userName, buddyType, videoUrl, category, hashtags, peopleTags, businessName, businessHandle, businessLogoUrl, visibility, commentsEnabled, sharingEnabled, status, likeCount, commentCount, saveCount, viewCount, createdAt]
       properties:
         id: { type: integer }
         userId: { type: integer }
@@ -7952,6 +8017,7 @@ components:
         userName: { type: string }
         username: { type: ["string", "null"] }
         userPhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         userVerified: { type: boolean }
         dollId: { type: ["integer", "null"] }
         videoUrl: { type: string }
@@ -9284,13 +9350,14 @@ components:
 
     GroupMember:
       type: object
-      required: [id, groupId, userId, role, status, joinedAt]
+      required: [id, groupId, userId, buddyType, role, status, joinedAt]
       properties:
         id: { type: integer }
         groupId: { type: integer }
         userId: { type: integer }
         userName: { type: string }
         userPhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         role: { type: string, enum: [owner, admin, moderator, member] }
         joinedVia: { type: string }
         status: { type: string, enum: [active, suspended] }
@@ -9417,7 +9484,7 @@ components:
 
     GroupPost:
       type: object
-      required: [id, groupId, text, mediaType, postType, status, likeCount, commentCount, saveCount, createdAt]
+      required: [id, groupId, buddyType, text, mediaType, postType, status, likeCount, commentCount, saveCount, createdAt]
       properties:
         id: { type: integer }
         groupId: { type: integer }
@@ -9425,6 +9492,7 @@ components:
         authorUserId: { type: ["integer", "null"] }
         authorName: { type: string }
         authorPhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         authorRole: { type: string }
         # Business attribution (authorUserId never exposed when businessId is set)
         businessId: { type: ["integer", "null"] }
@@ -9530,7 +9598,7 @@ components:
 
     GroupPostComment:
       type: object
-      required: [id, postId, groupId, userId, commentText, status, likeCount, createdAt]
+      required: [id, postId, groupId, userId, buddyType, commentText, status, likeCount, createdAt]
       properties:
         id: { type: integer }
         postId: { type: integer }
@@ -9538,6 +9606,7 @@ components:
         userId: { type: integer }
         userName: { type: string }
         userPhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         parentCommentId: { type: ["integer", "null"] }
         commentText: { type: string }
         status: { type: string }
@@ -9740,11 +9809,12 @@ components:
 
     GroupEventAttendee:
       type: object
-      required: [userId, rsvpStatus]
+      required: [userId, buddyType, rsvpStatus]
       properties:
         userId: { type: integer }
         userName: { type: string }
         userPhotoUrl: { type: ["string", "null"] }
+        buddyType: { type: ["string", "null"], enum: [female_buddy, male_buddy, null] }
         rsvpStatus: { type: string }
         attendanceStatus: { type: ["string", "null"] }
         guestCount: { type: integer }

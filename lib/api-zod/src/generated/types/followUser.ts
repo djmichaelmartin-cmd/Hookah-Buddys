@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { FollowUserBuddyType } from './followUserBuddyType';
 import type { FollowUserRole } from './followUserRole';
 
 export interface FollowUser {
@@ -15,6 +16,8 @@ export interface FollowUser {
   role: FollowUserRole;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: FollowUserBuddyType;
   verified?: boolean;
   /** @nullable */
   dollId?: number | null;

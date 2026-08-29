@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { GroupPostCommentBuddyType } from './groupPostCommentBuddyType';
 
 export interface GroupPostComment {
   id: number;
@@ -14,6 +15,8 @@ export interface GroupPostComment {
   userName?: string;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: GroupPostCommentBuddyType;
   /** @nullable */
   parentCommentId?: number | null;
   commentText: string;

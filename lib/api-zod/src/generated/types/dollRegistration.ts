@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { DollRegistrationBuddyType } from './dollRegistrationBuddyType';
 
 export interface DollRegistration {
   /** @minLength 1 */
@@ -31,4 +32,5 @@ export interface DollRegistration {
   governmentIdUrl?: string;
   ageConfirmed: boolean;
   rulesAccepted: boolean;
+  buddyType: DollRegistrationBuddyType;
 }

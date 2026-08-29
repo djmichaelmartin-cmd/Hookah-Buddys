@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BuddyPill } from "@/components/BuddyPill";
 import { ShieldCheck } from "lucide-react";
 import type { FollowUser } from "@workspace/api-client-react";
 
@@ -26,10 +27,13 @@ export function FriendCard({ friend }: FriendCardProps) {
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="text-white font-semibold truncate group-hover:text-primary transition-colors flex items-center gap-1.5">
-            {friend.name}
-            {friend.verified && <ShieldCheck className="w-4 h-4 text-primary shrink-0" />}
-          </p>
+          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+            <p className="text-white font-semibold truncate group-hover:text-primary transition-colors flex items-center gap-1.5">
+              {friend.name}
+              {friend.verified && <ShieldCheck className="w-4 h-4 text-primary shrink-0" />}
+            </p>
+            <BuddyPill buddyType={friend.buddyType} className="scale-[0.8] origin-left" />
+          </div>
           <p className="text-sm text-muted-foreground truncate">
             @{friend.username || `user${friend.id}`}
           </p>

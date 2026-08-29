@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { AgeGate } from "./AgeGate";
+import { CompleteProfilePrompt } from "./CompleteProfilePrompt";
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,6 +16,7 @@ export function Layout({ children }: LayoutProps) {
       
       <Navbar />
       <AgeGate />
+      <CompleteProfilePrompt />
       
       <main className="flex-grow flex flex-col relative z-10 w-full">
         {children}

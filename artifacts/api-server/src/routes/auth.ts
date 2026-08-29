@@ -53,6 +53,7 @@ router.post("/auth/register/doll", async (req, res): Promise<void> => {
       accountStatus: "pending",
       ageConfirmed: data.ageConfirmed,
       rulesAccepted: data.rulesAccepted,
+      buddyType: data.buddyType,
     })
     .returning();
 
@@ -127,6 +128,7 @@ router.post("/auth/register/member", async (req, res): Promise<void> => {
       accountStatus: "active",
       ageConfirmed: data.ageConfirmed,
       rulesAccepted: data.rulesAccepted,
+      buddyType: data.buddyType,
     })
     .returning();
 

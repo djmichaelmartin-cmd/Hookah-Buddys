@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { GroupPostAllowedShareDestinationsItem } from './groupPostAllowedShareDestinationsItem';
+import type { GroupPostBuddyType } from './groupPostBuddyType';
 import type { GroupPostMediaType } from './groupPostMediaType';
 import type { GroupPostPollData } from './groupPostPollData';
 import type { GroupPostStatus } from './groupPostStatus';
@@ -19,6 +20,8 @@ export interface GroupPost {
   authorName?: string;
   /** @nullable */
   authorPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: GroupPostBuddyType;
   authorRole?: string;
   /** @nullable */
   businessId?: number | null;

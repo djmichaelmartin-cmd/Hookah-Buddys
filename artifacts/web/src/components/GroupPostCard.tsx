@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { BuddyPill } from "@/components/BuddyPill";
 import { Input } from "@/components/ui/input";
 import {
   ThumbsUp,
@@ -227,6 +228,7 @@ export function GroupPostCard({ post, onLoginPrompt }: GroupPostCardProps) {
                     ? `/dolls/${post.authorUserId}`
                     : `/members/${post.authorUserId}`
                 }
+                className="flex items-center gap-1.5 flex-wrap"
               >
                 <span className="font-bold text-white hover:text-primary transition-colors cursor-pointer flex items-center gap-1.5">
                   {post.authorName}
@@ -234,6 +236,7 @@ export function GroupPostCard({ post, onLoginPrompt }: GroupPostCardProps) {
                     <ShieldCheck className="h-3.5 w-3.5 text-primary" />
                   )}
                 </span>
+                <BuddyPill buddyType={post.buddyType} className="scale-[0.85] origin-left" />
               </Link>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 {post.createdAt
@@ -420,11 +423,14 @@ export function GroupPostCard({ post, onLoginPrompt }: GroupPostCardProps) {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 bg-card border border-white/5 rounded-2xl p-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-white text-sm">
-                        {c.userName}
-                      </span>
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between mb-1 gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                        <span className="font-bold text-white text-sm truncate">
+                          {c.userName}
+                        </span>
+                        <BuddyPill buddyType={c.buddyType} className="scale-[0.8] origin-left" />
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
                         <span className="text-[10px] text-muted-foreground">
                           {new Date(c.createdAt).toLocaleDateString()}
                         </span>

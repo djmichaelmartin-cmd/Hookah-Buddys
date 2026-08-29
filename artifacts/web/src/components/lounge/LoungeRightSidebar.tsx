@@ -19,9 +19,11 @@ import {
   useListGroups,
   useListReels,
   getListReelsQueryKey,
+  type Doll,
 } from "@workspace/api-client-react";
 import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check, Users, Lock, AlertCircle, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { BuddyPill } from "@/components/BuddyPill";
 
 type Props = {
   onSelectHashtag?: (tag: string) => void;
@@ -36,7 +38,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
   );
 }
 
-function DollRow({ doll, online }: { doll: any; online?: boolean }) {
+function DollRow({ doll, online }: { doll: Doll; online?: boolean }) {
   return (
     <Link
       href={`/dolls/${doll.id}`}
@@ -57,10 +59,13 @@ function DollRow({ doll, online }: { doll: any; online?: boolean }) {
         )}
       </div>
       <div className="min-w-0">
-        <p className="text-sm text-white truncate group-hover:text-primary transition-colors flex items-center gap-1">
-          {doll.stageName}
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <p className="text-sm text-white truncate group-hover:text-primary transition-colors max-w-[100px]">
+            {doll.stageName}
+          </p>
           {doll.verified && <BadgeCheck className="h-3.5 w-3.5 text-primary shrink-0" />}
-        </p>
+          <BuddyPill buddyType={doll.buddyType} className="scale-[0.8] origin-left" />
+        </div>
         <p className="text-xs text-muted-foreground truncate">
           {doll.city}, {doll.state}
         </p>
@@ -86,12 +91,15 @@ function OnlineUserRow({ user }: { user: OnlineUser }) {
         <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[#31C48D] border-2 border-background" />
       </div>
       <div className="min-w-0">
-        <p className="text-sm text-white truncate group-hover:text-primary transition-colors flex items-center gap-1">
-          {user.displayName}
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <p className="text-sm text-white truncate group-hover:text-primary transition-colors max-w-[100px]">
+            {user.displayName}
+          </p>
           {user.verified && <BadgeCheck className="h-3.5 w-3.5 text-primary shrink-0" />}
-        </p>
+          <BuddyPill buddyType={user.buddyType} className="scale-[0.8] origin-left" />
+        </div>
         <p className="text-xs text-muted-foreground truncate">
-          {user.city && user.state ? `${user.city}, ${user.state}` : user.role === "doll" ? "Buddy" : "Bro"}
+          {user.city && user.state ? `${user.city}, ${user.state}` : "Buddy"}
         </p>
       </div>
     </Link>

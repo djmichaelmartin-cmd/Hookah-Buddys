@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useRegisterMember, useListPlans, getListPlansQueryKey } from "@workspace/api-client-react";
+import { useRegisterMember, useListPlans, getListPlansQueryKey, type MemberRegistrationBuddyType } from "@workspace/api-client-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Coins } from "lucide-react";
@@ -30,6 +31,7 @@ export default function SignupMember() {
     password: "",
     city: "",
     state: "",
+    buddyType: "" as MemberRegistrationBuddyType | "",
     ageConfirmed: false,
     tosAccepted: false,
     privacyAccepted: false,
@@ -55,6 +57,11 @@ export default function SignupMember() {
       return;
     }
 
+    if (!formData.buddyType) {
+      toast({ title: "Action Required", description: "Please select a Buddy Type.", variant: "destructive" });
+      return;
+    }
+
     const combinedName = `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
 
     registerMember.mutate({
@@ -66,6 +73,7 @@ export default function SignupMember() {
         city: formData.city,
         state: formData.state,
         phone: formData.phone,
+        buddyType: formData.buddyType as MemberRegistrationBuddyType,
         ageConfirmed: formData.ageConfirmed,
         rulesAccepted: formData.rulesAccepted
       }
@@ -131,6 +139,19 @@ export default function SignupMember() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2 col-span-2">
+                  <Label htmlFor="buddyType">Buddy Type (Required)</Label>
+                  <Select value={formData.buddyType} onValueChange={(v) => setFormData(prev => ({ ...prev, buddyType: v as MemberRegistrationBuddyType }))}>
+                    <SelectTrigger className="bg-background/50 border-white/10">
+                      <SelectValue placeholder="Select Buddy Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="female_buddy">Female Buddy</SelectItem>
+                      <SelectItem value="male_buddy">Male Buddy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">This only controls the color style of your public Buddy pill (pink or blue).</p>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="city">City (Optional)</Label>
                   <Input id="city" value={formData.city} onChange={handleChange} className="bg-background/50 border-white/10" />

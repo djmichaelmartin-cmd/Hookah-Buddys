@@ -25,6 +25,7 @@ import {
   ReviewUserTagBody,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import { requireCompleteBuddyProfile } from "../lib/buddyProfile";
 import {
   assertOwnedStorageObject,
   getValidatedSparkUpload,
@@ -126,6 +127,7 @@ async function reelsToResponse(reels: Reel[], viewerId: number | null) {
       userName: a?.user?.name ?? "Unknown",
       username: a?.user?.username ?? null,
       userPhotoUrl: a?.user?.profilePhotoUrl ?? null,
+      buddyType: a?.user?.buddyType ?? null,
       userVerified: a?.dollVerified ?? false,
       dollId: a?.user?.dollId ?? null,
       videoUrl:
@@ -249,7 +251,7 @@ router.get("/reels", async (req, res): Promise<void> => {
   res.json(await reelsToResponse(visible, viewer?.id ?? null));
 });
 
-router.post("/reels", requireAuth(), async (req, res): Promise<void> => {
+router.post("/reels", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const parsed = CreateReelBody.safeParse(req.body);
   if (!parsed.success) {
@@ -711,6 +713,7 @@ router.get("/reels/:id/comments", async (req, res): Promise<void> => {
         userName: a?.user?.name ?? "Unknown",
         username: a?.user?.username ?? null,
         userPhotoUrl: a?.user?.profilePhotoUrl ?? null,
+        buddyType: a?.user?.buddyType ?? null,
         userRole: a?.user?.role ?? "member",
         userVerified: a?.dollVerified ?? false,
         commentText: c.commentText,
@@ -765,6 +768,7 @@ router.post("/reels/:id/comments", requireAuth(), async (req, res): Promise<void
     userName: user.name,
     username: user.username ?? null,
     userPhotoUrl: user.profilePhotoUrl ?? null,
+    buddyType: user.buddyType ?? null,
     userRole: user.role,
     userVerified: a?.dollVerified ?? false,
     commentText: comment.commentText,

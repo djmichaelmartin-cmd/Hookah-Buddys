@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { BuddyPill } from "@/components/BuddyPill";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -182,6 +183,9 @@ export function SparkPlayer({ spark, onClose, inline = false }: SparkPlayerProps
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-white font-bold text-lg leading-tight">{spark.userName}</p>
+                {(!spark.businessId) && (
+                  <BuddyPill buddyType={spark.buddyType} className="scale-[0.8] origin-left" />
+                )}
                 {session?.user && session.user.id !== spark.userId && (
                   <Button
                     variant="ghost"

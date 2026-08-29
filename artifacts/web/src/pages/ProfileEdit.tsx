@@ -6,6 +6,7 @@ import {
   useUpdateMyProfile,
   useGetEnhancedProfileAsPublic,
   getGetMyProfileQueryKey,
+  getGetCurrentUserQueryKey,
   type ProfileUpdateInput,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -96,6 +97,7 @@ export default function ProfileEdit() {
   const [bodyType, setBodyType] = useState("");
   const [height, setHeight] = useState("");
   const [favoriteHookahFlavor, setFavoriteHookahFlavor] = useState("");
+  const [buddyType, setBuddyType] = useState<"female_buddy" | "male_buddy" | "">("");
   const [favoriteHookahLounge, setFavoriteHookahLounge] = useState("");
   const [favoriteHookahBrand, setFavoriteHookahBrand] = useState("");
   const [hookahExperienceLevel, setHookahExperienceLevel] = useState("");
@@ -129,6 +131,9 @@ export default function ProfileEdit() {
       setProfilePhoto(myProfile.profilePhotoUrl || "");
       setName(myProfile.name || "");
       setUsername(myProfile.username || "");
+      if (myProfile.buddyType === "female_buddy" || myProfile.buddyType === "male_buddy") {
+        setBuddyType(myProfile.buddyType);
+      }
       
       if (myProfile.details) {
         const d = myProfile.details;
@@ -173,6 +178,7 @@ export default function ProfileEdit() {
       onSuccess: () => {
         toast({ title: "Profile updated", description: "Your changes have been saved." });
         queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
       },
       onError: () => toast({ title: "Failed to update profile", variant: "destructive" }),
     },
@@ -239,6 +245,7 @@ export default function ProfileEdit() {
       name,
       username,
       profilePhotoUrl: profilePhoto,
+      buddyType: buddyType ? buddyType : undefined,
       details: {
         coverPhotoUrl: coverPhoto,
         description,
@@ -451,6 +458,20 @@ export default function ProfileEdit() {
                     onChange={(e) => setUsername(e.target.value)}
                     className="bg-background/50 border-white/10 mt-2"
                   />
+                </div>
+
+                <div>
+                  <Label>Buddy Type</Label>
+                  <Select value={buddyType} onValueChange={(v) => setBuddyType(v as "female_buddy" | "male_buddy" | "")}>
+                    <SelectTrigger className="bg-background/50 border-white/10 mt-2">
+                      <SelectValue placeholder="Select Buddy Type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-white/10">
+                      <SelectItem value="female_buddy">Female Buddy</SelectItem>
+                      <SelectItem value="male_buddy">Male Buddy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">This controls the color style of your public Buddy pill (pink or blue).</p>
                 </div>
 
                 <div>

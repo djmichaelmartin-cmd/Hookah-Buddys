@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useRegisterDoll } from "@workspace/api-client-react";
+import { useRegisterDoll, type DollRegistrationBuddyType } from "@workspace/api-client-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -27,6 +28,7 @@ export default function SignupDoll() {
     favoriteFlavor: "",
     experienceLevel: "Novice",
     preferences: "",
+    buddyType: "" as DollRegistrationBuddyType | "",
     ageConfirmed: false,
     rulesAccepted: false,
   });
@@ -45,10 +47,15 @@ export default function SignupDoll() {
       toast({ title: "Action Required", description: "Please confirm your age and accept the rules.", variant: "destructive" });
       return;
     }
+    if (!formData.buddyType) {
+      toast({ title: "Action Required", description: "Please select a Buddy Type.", variant: "destructive" });
+      return;
+    }
 
     registerDoll.mutate({
       data: {
         ...formData,
+        buddyType: formData.buddyType as DollRegistrationBuddyType,
         age: parseInt(formData.age, 10),
       }
     }, {
@@ -102,6 +109,19 @@ export default function SignupDoll() {
               <div className="space-y-2">
                 <Label htmlFor="favoriteFlavor">Favorite Hookah Flavor</Label>
                 <Input id="favoriteFlavor" required value={formData.favoriteFlavor} onChange={handleChange} className="bg-background/50 border-white/10" />
+              </div>
+              <div className="space-y-2 col-span-1 md:col-span-2">
+                <Label htmlFor="buddyType">Buddy Type (Required)</Label>
+                <Select value={formData.buddyType} onValueChange={(v) => setFormData(prev => ({ ...prev, buddyType: v as DollRegistrationBuddyType }))}>
+                  <SelectTrigger className="bg-background/50 border-white/10">
+                    <SelectValue placeholder="Select Buddy Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="female_buddy">Female Buddy</SelectItem>
+                    <SelectItem value="male_buddy">Male Buddy</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">This only controls the color style of your public Buddy pill (pink or blue).</p>
               </div>
             </div>
 

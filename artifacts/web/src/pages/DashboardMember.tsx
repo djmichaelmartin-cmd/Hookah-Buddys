@@ -16,6 +16,7 @@ import {
 } from "@workspace/api-client-react";
 import { Link, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
+import { BuddyPill } from "@/components/BuddyPill";
 import { BuyCreditsDialog } from "@/components/BuyCreditsDialog";
 import {
   Coins,
@@ -603,9 +604,12 @@ export default function DashboardMember() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium text-white flex items-center gap-1.5">
-                            {user.name}
-                          </p>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="text-sm font-medium text-white flex items-center gap-1.5">
+                              {user.name}
+                            </p>
+                            <BuddyPill buddyType={user.buddyType} className="scale-[0.8] origin-left" />
+                          </div>
                           <p className="text-xs text-muted-foreground capitalize">
                             {user.role}
                           </p>
@@ -643,9 +647,12 @@ export default function DashboardMember() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium text-white flex items-center gap-1.5">
-                            {user.name}
-                          </p>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="text-sm font-medium text-white flex items-center gap-1.5">
+                              {user.name}
+                            </p>
+                            <BuddyPill buddyType={user.buddyType} className="scale-[0.8] origin-left" />
+                          </div>
                           <p className="text-xs text-muted-foreground capitalize">
                             {user.role}
                           </p>

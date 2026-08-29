@@ -7,11 +7,13 @@
  */
 import type { FieldPrivacyEntry } from './fieldPrivacyEntry';
 import type { ProfileDetails } from './profileDetails';
+import type { ProfileUpdateInputBuddyType } from './profileUpdateInputBuddyType';
 
 export interface ProfileUpdateInput {
   name?: string;
   username?: string;
   profilePhotoUrl?: string;
+  buddyType?: ProfileUpdateInputBuddyType;
   details?: ProfileDetails;
   fieldPrivacy?: FieldPrivacyEntry[];
 }

@@ -9,6 +9,7 @@ import {
   subscriptionsTable,
   contentUnlocksTable,
   plansTable,
+  usersTable,
 } from "@workspace/db";
 import { ListDollsQueryParams, GetDollParams, UpdateMyDollProfileBody } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
@@ -74,7 +75,7 @@ router.get("/dolls/me", requireAuth("doll"), async (req, res): Promise<void> => 
     return;
   }
   const counts = await getDollCounts(doll.id);
-  res.json(toDollResponse(doll, counts));
+  res.json(toDollResponse(doll, counts, user.buddyType as "female_buddy" | "male_buddy" | null));
 });
 
 router.patch("/dolls/me", requireAuth("doll"), async (req, res): Promise<void> => {
@@ -94,7 +95,7 @@ router.patch("/dolls/me", requireAuth("doll"), async (req, res): Promise<void> =
     .where(eq(dollsTable.id, user.dollId))
     .returning();
   const counts = await getDollCounts(doll.id);
-  res.json(toDollResponse(doll, counts));
+  res.json(toDollResponse(doll, counts, user.buddyType as "female_buddy" | "male_buddy" | null));
 });
 
 router.get("/dolls/me/analytics", requireAuth("doll"), async (req, res): Promise<void> => {
@@ -153,7 +154,15 @@ router.get("/dolls/:id", async (req, res): Promise<void> => {
     .where(eq(dollsTable.id, id));
 
   const counts = await getDollCounts(id);
-  const base = toDollResponse(doll, counts);
+  const [owner] = await db
+    .select({ buddyType: usersTable.buddyType })
+    .from(usersTable)
+    .where(eq(usersTable.id, doll.userId));
+  const base = toDollResponse(
+    doll,
+    counts,
+    owner?.buddyType as "female_buddy" | "male_buddy" | null ?? null,
+  );
 
   const sessionUser = await getSessionUser(req);
 

@@ -294,6 +294,7 @@ export function toFeedPostResponse(
     userName: isBusiness ? businessAuthor!.name : (u?.name ?? "Unknown"),
     username: isBusiness ? businessAuthor!.handle : (u?.username ?? null),
     userPhotoUrl: isBusiness ? businessAuthor!.logoUrl : (u?.profilePhotoUrl ?? null),
+    buddyType: isBusiness ? null : (u?.buddyType ?? null),
     userVerified: isBusiness ? businessAuthor!.verified : (author?.dollVerified ?? false),
     dollId: isBusiness ? null : (u?.dollId ?? null),
     city: isBusiness ? null : (u?.city ?? null),

@@ -5,8 +5,10 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ListUsersBuddyType } from './listUsersBuddyType';
 import type { ListUsersRole } from './listUsersRole';
 
 export type ListUsersParams = {
 role?: ListUsersRole;
+buddyType?: ListUsersBuddyType;
 };

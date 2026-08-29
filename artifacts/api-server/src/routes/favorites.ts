@@ -3,8 +3,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { db, favoritesTable, dollsTable } from "@workspace/db";
 import { AddFavoriteBody, RemoveFavoriteParams } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth";
-import { getDollCounts } from "../lib/dollHelpers";
-import { toDollResponse } from "../lib/mappers";
+import { dollWithCounts } from "../lib/dollHelpers";
 
 const router: IRouter = Router();
 
@@ -20,7 +19,7 @@ router.get("/favorites", requireAuth("member"), async (req, res): Promise<void> 
     rows.map(async (r) => ({
       id: r.fav.id,
       dollId: r.fav.dollId,
-      doll: r.doll ? toDollResponse(r.doll, await getDollCounts(r.doll.id)) : undefined,
+      doll: r.doll ? await dollWithCounts(r.doll) : undefined,
       createdAt: r.fav.createdAt ? r.fav.createdAt.toISOString() : undefined,
     })),
   );

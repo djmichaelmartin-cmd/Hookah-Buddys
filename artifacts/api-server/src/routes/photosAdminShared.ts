@@ -26,6 +26,7 @@ export async function photosToAdminResponse(photos: Photo[]) {
       userId: p.userId,
       userName: a?.user?.name ?? "Unknown",
       userPhotoUrl: a?.user?.profilePhotoUrl ?? null,
+      buddyType: a?.user?.buddyType ?? null,
       albumId: p.albumId,
       albumTitle: albumMap.get(p.albumId)?.title ?? "",
       imageUrl: p.imageUrl,
@@ -51,6 +52,7 @@ export async function reelsToAdminResponse(reels: Reel[]) {
       userName: a?.user?.name ?? "Unknown",
       username: a?.user?.username ?? null,
       userPhotoUrl: a?.user?.profilePhotoUrl ?? null,
+      buddyType: a?.user?.buddyType ?? null,
       userVerified: a?.dollVerified ?? false,
       dollId: a?.user?.dollId ?? null,
       videoUrl: r.videoUrl,
@@ -87,6 +89,7 @@ export async function buildMyProfileDataForAdmin(userId: number) {
     .from(reelsTable)
     .where(and(eq(reelsTable.userId, userId), eq(reelsTable.status, "active")));
   const checklist: [string, boolean][] = [
+    ["buddyType", user.role === "admin" || !!user.buddyType],
     ["profilePhoto", !!user.profilePhotoUrl],
     ["coverPhoto", !!details.coverPhotoUrl],
     ["cityState", !!(user.city || details.livesInCity)],
@@ -102,6 +105,7 @@ export async function buildMyProfileDataForAdmin(userId: number) {
     name: user.name,
     username: user.username ?? null,
     profilePhotoUrl: user.profilePhotoUrl ?? null,
+    buddyType: user.buddyType ?? null,
     details,
     fieldPrivacy: privacyRows.map((r) => ({ fieldName: r.fieldName, visibility: r.visibility })),
     profileCompletion: {

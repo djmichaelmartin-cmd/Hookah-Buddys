@@ -13,6 +13,7 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BuddyPill } from "@/components/BuddyPill";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -166,17 +167,7 @@ export function ProfileLayout({ profile, children, activeTab, onTabChange }: Pro
                 {profile.verified && (
                   <ShieldCheck className="w-6 h-6 text-primary" />
                 )}
-                {isDoll && (
-                  <span className="px-3 py-1 rounded-full bg-primary/20 border border-primary/40 text-xs font-semibold text-primary uppercase tracking-wider">
-
-                    Buddy
-                  </span>
-                )}
-                {!isDoll && (
-                  <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-white/70 uppercase tracking-wider">
-                    Member
-                  </span>
-                )}
+                <BuddyPill buddyType={profile.buddyType} className="px-3 py-1 text-xs" />
               </div>
               <p className="text-primary font-medium mb-3">
                 @{profile.username || `user${profile.userId}`}

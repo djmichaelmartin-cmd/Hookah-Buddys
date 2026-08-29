@@ -26,13 +26,18 @@ async function threadMessageCount(threadId: number): Promise<number> {
 async function threadView(thread: typeof messageThreadsTable.$inferSelect) {
   const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, thread.dollId));
   const [member] = await db.select().from(usersTable).where(eq(usersTable.id, thread.memberUserId));
+  const [dollUser] = doll
+    ? await db.select().from(usersTable).where(eq(usersTable.id, doll.userId))
+    : [];
   return {
     id: thread.id,
     dollId: thread.dollId,
     dollName: doll?.stageName ?? "",
     dollPhotoUrl: doll?.profilePhotoUrl ?? "",
+    dollBuddyType: dollUser?.buddyType ?? null,
     memberId: thread.memberUserId,
     memberName: member?.name ?? "",
+    memberBuddyType: member?.buddyType ?? null,
     lastMessage: thread.lastMessage ?? "",
     lastMessageAt: thread.lastMessageAt ? thread.lastMessageAt.toISOString() : undefined,
     unreadCount: 0,

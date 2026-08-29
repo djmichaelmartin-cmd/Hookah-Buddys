@@ -98,6 +98,7 @@ import {
   BroadcastGroupEventBody,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import { requireCompleteBuddyProfile } from "../lib/buddyProfile";
 import {
   executeGroupEventRsvp,
   executeOrganizerAttendeeAction,
@@ -893,6 +894,7 @@ async function serializePost(
       name: usersTable.name,
       profilePhotoUrl: usersTable.profilePhotoUrl,
       role: usersTable.role,
+      buddyType: usersTable.buddyType,
     })
     .from(usersTable)
     .where(eq(usersTable.id, post.authorUserId));
@@ -956,6 +958,7 @@ async function serializePost(
     authorPhotoUrl: post.businessId
       ? businessInfo.businessLogoUrl
       : (author?.profilePhotoUrl ?? null),
+    buddyType: post.businessId ? null : (author?.buddyType ?? null),
     authorRole: post.businessId ? "business" : (author?.role ?? "member"),
     businessId: post.businessId,
     businessName: businessInfo.businessName,
@@ -1652,7 +1655,7 @@ router.get("/groups/invites", requireAuth(), async (req, res): Promise<void> => 
 });
 
 // POST /groups
-router.post("/groups", requireAuth(), async (req, res): Promise<void> => {
+router.post("/groups", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const parsed = CreateGroupBody.safeParse(req.body);
   if (!parsed.success) {
@@ -2237,7 +2240,7 @@ router.get("/groups/:groupId/members", async (req, res): Promise<void> => {
 
   const users = visibleUserIds.length
     ? await db
-        .select({ id: usersTable.id, name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl })
+        .select({ id: usersTable.id, name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl, buddyType: usersTable.buddyType })
         .from(usersTable)
         .where(inArray(usersTable.id, visibleUserIds))
     : [];
@@ -2252,6 +2255,7 @@ router.get("/groups/:groupId/members", async (req, res): Promise<void> => {
         userId: m.userId,
         userName: u?.name ?? "Unknown",
         userPhotoUrl: u?.profilePhotoUrl ?? null,
+        buddyType: u?.buddyType ?? null,
         role: m.role,
         joinedVia: m.joinedVia,
         status: m.status,
@@ -2334,7 +2338,7 @@ router.patch("/groups/:groupId/members/:userId", requireAuth(), async (req, res)
   });
 
   const [u] = await db
-    .select({ name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl })
+    .select({ name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl, buddyType: usersTable.buddyType })
     .from(usersTable)
     .where(eq(usersTable.id, targetUserId));
 
@@ -2344,6 +2348,7 @@ router.patch("/groups/:groupId/members/:userId", requireAuth(), async (req, res)
     userId: updated.userId,
     userName: u?.name ?? "Unknown",
     userPhotoUrl: u?.profilePhotoUrl ?? null,
+    buddyType: u?.buddyType ?? null,
     role: updated.role,
     joinedVia: updated.joinedVia,
     status: updated.status,
@@ -4166,7 +4171,7 @@ router.get(
 
     const users = visibleUserIds.length
       ? await db
-          .select({ id: usersTable.id, name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl })
+          .select({ id: usersTable.id, name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl, buddyType: usersTable.buddyType })
           .from(usersTable)
           .where(inArray(usersTable.id, visibleUserIds))
       : [];
@@ -4182,6 +4187,7 @@ router.get(
           userId: c.userId,
           userName: u?.name ?? "Unknown",
           userPhotoUrl: u?.profilePhotoUrl ?? null,
+          buddyType: u?.buddyType ?? null,
           parentCommentId: c.parentCommentId,
           commentText: c.commentText,
           status: c.status,
@@ -4306,6 +4312,7 @@ router.post(
       userId: comment.userId,
       userName: user.name,
       userPhotoUrl: user.profilePhotoUrl ?? null,
+      buddyType: user.buddyType ?? null,
       parentCommentId: comment.parentCommentId,
       commentText: comment.commentText,
       status: comment.status,
@@ -4438,7 +4445,7 @@ router.patch(
     });
 
     const [u] = await db
-      .select({ name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl })
+      .select({ name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl, buddyType: usersTable.buddyType })
       .from(usersTable)
       .where(eq(usersTable.id, updated.userId));
 
@@ -4449,6 +4456,7 @@ router.patch(
       userId: updated.userId,
       userName: u?.name ?? "Unknown",
       userPhotoUrl: u?.profilePhotoUrl ?? null,
+      buddyType: u?.buddyType ?? null,
       parentCommentId: updated.parentCommentId,
       commentText: updated.commentText,
       status: updated.status,
@@ -4918,7 +4926,7 @@ router.get("/groups/:groupId/events", async (req, res): Promise<void> => {
 });
 
 // POST /groups/:groupId/events
-router.post("/groups/:groupId/events", requireAuth(), async (req, res): Promise<void> => {
+router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const groupId = parseId(req.params.groupId);
   const [group] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
@@ -5441,7 +5449,12 @@ router.get("/groups/:groupId/events/:eventId/attendees", async (req, res): Promi
 
   const users = visibleIds.length
     ? await db
-        .select({ id: usersTable.id, name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl })
+        .select({
+          id: usersTable.id,
+          name: usersTable.name,
+          profilePhotoUrl: usersTable.profilePhotoUrl,
+          buddyType: usersTable.buddyType,
+        })
         .from(usersTable)
         .where(inArray(usersTable.id, visibleIds))
     : [];
@@ -5454,6 +5467,7 @@ router.get("/groups/:groupId/events/:eventId/attendees", async (req, res): Promi
         userId: r.userId,
         userName: u?.name ?? "Unknown",
         userPhotoUrl: u?.profilePhotoUrl ?? null,
+        buddyType: u?.buddyType ?? null,
         rsvpStatus: r.rsvpStatus,
         attendanceStatus: r.attendanceStatus ?? null,
         guestCount: r.guestCount,
@@ -5735,7 +5749,11 @@ router.patch(
     }
 
     const [u] = await db
-      .select({ name: usersTable.name, profilePhotoUrl: usersTable.profilePhotoUrl })
+      .select({
+        name: usersTable.name,
+        profilePhotoUrl: usersTable.profilePhotoUrl,
+        buddyType: usersTable.buddyType,
+      })
       .from(usersTable)
       .where(eq(usersTable.id, targetUserId));
 
@@ -5743,6 +5761,7 @@ router.patch(
       userId: targetUserId,
       userName: u?.name ?? "Unknown",
       userPhotoUrl: u?.profilePhotoUrl ?? null,
+      buddyType: u?.buddyType ?? null,
       rsvpStatus: result.rsvp.rsvpStatus,
       attendanceStatus: result.rsvp.attendanceStatus,
       guestCount: result.rsvp.guestCount,

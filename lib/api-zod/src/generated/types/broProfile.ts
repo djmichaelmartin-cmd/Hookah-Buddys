@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BroProfileBadgesItem } from './broProfileBadgesItem';
+import type { BroProfileBuddyType } from './broProfileBuddyType';
 import type { FeedPost } from './feedPost';
 import type { FollowUser } from './followUser';
 
@@ -18,6 +19,8 @@ export interface BroProfile {
   city?: string | null;
   /** @nullable */
   state?: string | null;
+  /** @nullable */
+  buddyType: BroProfileBuddyType;
   /** @nullable */
   bio?: string | null;
   /** @nullable */

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AdminUserAccountStatus } from './adminUserAccountStatus';
+import type { AdminUserBuddyType } from './adminUserBuddyType';
 import type { AdminUserRole } from './adminUserRole';
 
 export interface AdminUser {
@@ -14,6 +15,8 @@ export interface AdminUser {
   email: string;
   name: string;
   accountStatus: AdminUserAccountStatus;
+  /** @nullable */
+  buddyType: AdminUserBuddyType;
   /** @nullable */
   dollId?: number | null;
   verified?: boolean;

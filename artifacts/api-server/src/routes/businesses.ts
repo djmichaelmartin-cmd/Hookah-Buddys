@@ -63,6 +63,7 @@ import {
   DeleteAdminBusinessResponse,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import { requireCompleteBuddyProfile } from "../lib/buddyProfile";
 import {
   weightedRating as spotlightWeightedRating,
   isValidLat as spotlightIsValidLat,
@@ -1265,7 +1266,7 @@ router.get("/businesses", async (req, res): Promise<void> => {
 // Create business page
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.post("/businesses", requireAuth(), async (req, res): Promise<void> => {
+router.post("/businesses", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const body = req.body as Record<string, unknown>;
 
@@ -5438,7 +5439,7 @@ router.get("/businesses/:handle/events", async (req, res): Promise<void> => {
   );
 });
 
-router.post("/businesses/:handle/events", requireAuth(), async (req, res): Promise<void> => {
+router.post("/businesses/:handle/events", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const biz = await getBusinessByHandle(parseHandle(req.params.handle));
   if (!biz) {

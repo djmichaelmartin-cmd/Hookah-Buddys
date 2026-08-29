@@ -5,14 +5,20 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { MessageThreadDollBuddyType } from './messageThreadDollBuddyType';
+import type { MessageThreadMemberBuddyType } from './messageThreadMemberBuddyType';
 
 export interface MessageThread {
   id: number;
   dollId?: number;
   dollName?: string;
   dollPhotoUrl?: string;
+  /** @nullable */
+  dollBuddyType: MessageThreadDollBuddyType;
   memberId?: number;
   memberName?: string;
+  /** @nullable */
+  memberBuddyType: MessageThreadMemberBuddyType;
   lastMessage?: string;
   lastMessageAt?: string;
   unreadCount?: number;

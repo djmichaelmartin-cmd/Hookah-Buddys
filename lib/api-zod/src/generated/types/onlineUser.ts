@@ -5,12 +5,15 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { OnlineUserBuddyType } from './onlineUserBuddyType';
 import type { OnlineUserRole } from './onlineUserRole';
 
 export interface OnlineUser {
   id: number;
   role: OnlineUserRole;
   displayName: string;
+  /** @nullable */
+  buddyType: OnlineUserBuddyType;
   profilePhotoUrl?: string | null;
   city?: string | null;
   state?: string | null;

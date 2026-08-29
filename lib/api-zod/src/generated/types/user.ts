@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { UserAccountStatus } from './userAccountStatus';
+import type { UserBuddyType } from './userBuddyType';
 import type { UserRole } from './userRole';
 
 export interface User {
@@ -14,6 +15,8 @@ export interface User {
   email: string;
   name: string;
   accountStatus: UserAccountStatus;
+  /** @nullable */
+  buddyType: UserBuddyType;
   /** @nullable */
   dollId?: number | null;
   createdAt?: string;

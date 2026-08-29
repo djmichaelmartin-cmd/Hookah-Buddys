@@ -21,6 +21,7 @@ import {
   ReviewFeedReportBody,
 } from "@workspace/api-zod";
 import { requireAuth, getSessionUser } from "../lib/auth";
+import { requireCompleteBuddyProfile } from "../lib/buddyProfile";
 import { finalizeMediaUrl, InvalidUploadError } from "../lib/imageUploads";
 import {
   hydratePosts,
@@ -125,7 +126,7 @@ router.get("/feed/posts", async (req, res): Promise<void> => {
 });
 
 // ---------- Create post ----------
-router.post("/feed/posts", requireAuth(), async (req, res): Promise<void> => {
+router.post("/feed/posts", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const parsed = CreateFeedPostBody.safeParse(req.body);
   if (!parsed.success) {
@@ -592,6 +593,7 @@ router.get("/feed/posts/:id/comments", async (req, res): Promise<void> => {
         userName: a?.user?.name ?? "Unknown",
         username: a?.user?.username ?? null,
         userPhotoUrl: a?.user?.profilePhotoUrl ?? null,
+        buddyType: a?.user?.buddyType ?? null,
         userRole: a?.user?.role ?? "member",
         userVerified: a?.dollVerified ?? false,
         commentText: c.commentText,
@@ -648,6 +650,7 @@ router.post("/feed/posts/:id/comments", requireAuth(), async (req, res): Promise
     userName: user.name,
     username: user.username ?? null,
     userPhotoUrl: user.profilePhotoUrl ?? null,
+    buddyType: user.buddyType ?? null,
     userRole: user.role,
     userVerified: a?.dollVerified ?? false,
     commentText: comment.commentText,

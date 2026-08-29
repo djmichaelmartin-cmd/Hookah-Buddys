@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { GroupMemberBuddyType } from './groupMemberBuddyType';
 import type { GroupMemberRole } from './groupMemberRole';
 import type { GroupMemberStatus } from './groupMemberStatus';
 
@@ -15,6 +16,8 @@ export interface GroupMember {
   userName?: string;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: GroupMemberBuddyType;
   role: GroupMemberRole;
   joinedVia?: string;
   status: GroupMemberStatus;

@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { getErrorMessage } from "@/lib/error";
 import { Layout } from "@/components/Layout";
-import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey, useGetCurrentUser, useAdminListShares, getAdminListSharesQueryKey, useAdminModerateShare, useAdminListSharingSuspensions, getAdminListSharingSuspensionsQueryKey, useAdminSuspendSharing, useAdminRestoreSharing } from "@workspace/api-client-react";
+import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey, useGetCurrentUser, useAdminListShares, getAdminListSharesQueryKey, useAdminModerateShare, useAdminListSharingSuspensions, getAdminListSharingSuspensionsQueryKey, useAdminSuspendSharing, useAdminRestoreSharing, useListUsers, getListUsersQueryKey, useUpdateUserBuddyType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { RevenueBreakdownItem, DollRevenueShare, AdminListSharesSourceType, AdminListSharesDestination } from "@workspace/api-client-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { RevenueBreakdownItem, DollRevenueShare, AdminListSharesSourceType, AdminListSharesDestination, ListUsersParams, ListUsersBuddyType, BuddyTypeInputBuddyType } from "@workspace/api-client-react";
 import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye, CalendarDays, Share2, Lock, Unlock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { BuddyPill } from "@/components/BuddyPill";
 import AdminLeads from "@/pages/AdminLeads";
 import AdminCredits from "@/pages/AdminCredits";
 import AdminPlans from "@/pages/AdminPlans";
@@ -212,6 +214,7 @@ function AdminDashboardContent() {
             <TabsTrigger value="photos"><ImageIcon className="w-4 h-4 mr-2"/> Photos</TabsTrigger>
             <TabsTrigger value="reels"><Video className="w-4 h-4 mr-2"/> Sparks</TabsTrigger>
             <TabsTrigger value="blocks"><AlertTriangle className="w-4 h-4 mr-2"/> Blocks</TabsTrigger>
+            <TabsTrigger value="users"><Users className="w-4 h-4 mr-2"/> Users</TabsTrigger>
             <TabsTrigger value="profiles"><Search className="w-4 h-4 mr-2"/> Profiles</TabsTrigger>
             <TabsTrigger value="credits"><Coins className="w-4 h-4 mr-2"/> Credits</TabsTrigger>
             <TabsTrigger value="plans"><FileText className="w-4 h-4 mr-2"/> Plans</TabsTrigger>
@@ -573,6 +576,10 @@ function AdminDashboardContent() {
 
           <TabsContent value="blocks">
             <BlocksList />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <AdminUsers />
           </TabsContent>
 
           <TabsContent value="profiles">
@@ -1169,6 +1176,115 @@ function DocTile({
           <span className="text-xs">Not provided</span>
         </div>
       )}
+    </div>
+  );
+}
+
+function AdminUsers() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const [buddyTypeFilter, setBuddyTypeFilter] = useState<ListUsersBuddyType | "all">("all");
+
+  const params: ListUsersParams = buddyTypeFilter !== "all"
+    ? { buddyType: buddyTypeFilter }
+    : {};
+
+  const { data: users, isLoading } = useListUsers(params, {
+    query: { queryKey: getListUsersQueryKey(params) },
+  });
+
+  const updateBuddyType = useUpdateUserBuddyType({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Buddy Type updated" });
+        queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+      },
+      onError: () => toast({ title: "Update failed", variant: "destructive" })
+    }
+  });
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-serif text-white mb-4">Users Administration</h2>
+
+      <div className="flex gap-4 items-center">
+        <Label>Filter by Buddy Type:</Label>
+        <Select value={buddyTypeFilter} onValueChange={(v) => setBuddyTypeFilter(v as ListUsersBuddyType | "all")}>
+          <SelectTrigger className="w-[180px] bg-background/50 border-white/10">
+            <SelectValue placeholder="All" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="female_buddy">Female Buddy</SelectItem>
+            <SelectItem value="male_buddy">Male Buddy</SelectItem>
+            <SelectItem value="missing">Missing Buddy Type</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="bg-card/50 border border-white/10 rounded-xl p-6">
+        {isLoading ? (
+          <div className="text-muted-foreground text-sm">Loading users...</div>
+        ) : !users?.length ? (
+          <div className="text-muted-foreground text-sm">No users found.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground border-b border-white/10">
+                  <th className="py-2 px-2 font-medium">ID</th>
+                  <th className="py-2 px-2 font-medium">Name</th>
+                  <th className="py-2 px-2 font-medium">Email</th>
+                  <th className="py-2 px-2 font-medium">Role</th>
+                  <th className="py-2 px-2 font-medium">Buddy Type</th>
+                  <th className="py-2 px-2 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map(user => {
+                  const isPersonalAccount = user.role === "member" || user.role === "doll";
+                  return (
+                  <tr key={user.id} className="border-b border-white/5 hover:bg-white/5">
+                    <td className="py-3 px-2 text-white">{user.id}</td>
+                    <td className="py-3 px-2 text-white">{user.name}</td>
+                    <td className="py-3 px-2 text-white/80">{user.email}</td>
+                    <td className="py-3 px-2 capitalize">{user.role}</td>
+                    <td className="py-3 px-2">
+                      {isPersonalAccount && user.buddyType ? (
+                        <BuddyPill buddyType={user.buddyType} />
+                      ) : isPersonalAccount ? (
+                        <span className="text-destructive font-semibold">Missing</span>
+                      ) : (
+                        <span className="text-muted-foreground">Not applicable</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-2">
+                      <Select
+                         value={user.buddyType || ""}
+                         onValueChange={(v) => updateBuddyType.mutate({
+                           id: user.id,
+                           data: { buddyType: v as BuddyTypeInputBuddyType },
+                         })}
+                         disabled={!isPersonalAccount || updateBuddyType.isPending}
+                      >
+                        <SelectTrigger className="w-[140px] h-8 text-xs bg-background/50 border-white/10">
+                          <SelectValue placeholder="Set Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="female_buddy">Female Buddy</SelectItem>
+                          <SelectItem value="male_buddy">Male Buddy</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

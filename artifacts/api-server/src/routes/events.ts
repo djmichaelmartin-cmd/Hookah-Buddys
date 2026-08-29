@@ -880,6 +880,7 @@ async function loadAttendeePreview(eventId: number, viewer: { id: number } | nul
         name: usersTable.name,
         username: usersTable.username,
         profilePhotoUrl: usersTable.profilePhotoUrl,
+        buddyType: usersTable.buddyType,
       })
       .from(eventRsvpsTable)
       .innerJoin(usersTable, eq(eventRsvpsTable.userId, usersTable.id))
@@ -898,6 +899,7 @@ async function loadAttendeePreview(eventId: number, viewer: { id: number } | nul
       id: r.userId,
       name: r.username ?? r.name,
       profilePhotoUrl: r.profilePhotoUrl ?? null,
+      buddyType: r.buddyType ?? null,
     })),
     attendeeCount: Number(attendeeCount),
   };
@@ -954,6 +956,7 @@ async function loadMeetupAttendeePreview(
         name: usersTable.name,
         username: usersTable.username,
         profilePhotoUrl: usersTable.profilePhotoUrl,
+        buddyType: usersTable.buddyType,
       })
       .from(groupEventRsvpsTable)
       .innerJoin(usersTable, eq(groupEventRsvpsTable.userId, usersTable.id))
@@ -972,6 +975,7 @@ async function loadMeetupAttendeePreview(
       id: r.userId,
       name: r.username ?? r.name,
       profilePhotoUrl: r.profilePhotoUrl ?? null,
+      buddyType: r.buddyType ?? null,
     })),
     attendeeCount: Number(attendeeCount),
   };

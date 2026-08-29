@@ -53,6 +53,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { SharedPostPreviewCard } from "./share/SharedPostPreviewCard";
 import { SharePostDialog } from "./share/SharePostDialog";
+import { BuddyPill } from "./BuddyPill";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { getErrorMessage } from "@/lib/error";
@@ -209,11 +210,6 @@ export function FeedPostCard({
       ? `/dolls/${post.dollId}`
       : `/bros/${post.userId}`;
   const isDoll = post.userRole === "doll";
-  const badgeColor = isDoll
-    ? "text-[#E85D75] border-[#E85D75]/20 bg-[#E85D75]/10"
-    : "text-[#D6B56D] border-[#D6B56D]/20 bg-[#D6B56D]/10";
-  const badgeText = isDoll ? "Buddy" : "Bro";
-
   const displayName = post.business ? post.business.name : post.userName;
   const displayAvatar = post.business
     ? post.business.logoUrl || ""
@@ -258,11 +254,7 @@ export function FeedPostCard({
                 </span>
               )}
               {!post.business && (
-                <span
-                  className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border font-semibold ${badgeColor}`}
-                >
-                  {badgeText}
-                </span>
+                <BuddyPill buddyType={post.buddyType} />
               )}
               <span className="text-muted-foreground/50 text-xs">&bull;</span>
               <span className="text-muted-foreground text-xs">
@@ -698,6 +690,7 @@ function CommentSection({
                     {comment.userVerified && (
                       <ShieldCheck className="h-3 w-3 text-primary shrink-0" />
                     )}
+                    <BuddyPill buddyType={comment.buddyType} className="scale-[0.85] origin-left" />
                     <span className="text-[10px] text-muted-foreground">
                       {formatDistanceToNow(new Date(comment.createdAt))}
                     </span>

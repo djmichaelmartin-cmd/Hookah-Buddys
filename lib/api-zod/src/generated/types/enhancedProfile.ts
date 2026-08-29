@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { EnhancedProfileBuddyType } from './enhancedProfileBuddyType';
 import type { EnhancedProfileFriendStatus } from './enhancedProfileFriendStatus';
 import type { EnhancedProfileRole } from './enhancedProfileRole';
 import type { ProfileDetails } from './profileDetails';
@@ -15,6 +16,8 @@ export interface EnhancedProfile {
   /** @nullable */
   username?: string | null;
   role: EnhancedProfileRole;
+  /** @nullable */
+  buddyType: EnhancedProfileBuddyType;
   verified?: boolean;
   /** @nullable */
   dollId?: number | null;

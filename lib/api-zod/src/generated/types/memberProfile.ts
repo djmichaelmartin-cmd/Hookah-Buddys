@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { MemberProfileBuddyType } from './memberProfileBuddyType';
 
 export interface MemberProfile {
   id: number;
@@ -17,5 +18,7 @@ export interface MemberProfile {
   state?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: MemberProfileBuddyType;
   memberSince?: string;
 }

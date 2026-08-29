@@ -48,6 +48,7 @@ router.get("/presence/online", requireAuth(), async (req, res): Promise<void> =>
       id: user.id,
       role: user.role as "doll" | "member" | "admin",
       displayName: user.role === "doll" && doll ? doll.stageName : user.name,
+      buddyType: user.buddyType ?? null,
       profilePhotoUrl:
         (user.role === "doll" && doll ? doll.profilePhotoUrl : user.profilePhotoUrl) ?? null,
       city: (user.role === "doll" && doll ? doll.city : user.city) ?? null,

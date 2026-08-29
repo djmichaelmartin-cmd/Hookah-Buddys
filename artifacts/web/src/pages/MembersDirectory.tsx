@@ -5,12 +5,15 @@ import {
   useListMembers,
   getListMembersQueryKey,
   type ListMembersParams,
+  type ListMembersBuddyType,
 } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, MapPin, X, Users, ArrowRight, CalendarDays } from "lucide-react";
+import { BuddyPill } from "@/components/BuddyPill";
 
 export default function MembersDirectory() {
   const { data: session, isLoading: loadingSession } = useGetCurrentUser();
@@ -20,14 +23,16 @@ export default function MembersDirectory() {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
+  const [buddyType, setBuddyType] = useState<ListMembersBuddyType | "all">("all");
 
   const params = useMemo<ListMembersParams>(() => {
     const p: ListMembersParams = {};
     if (search.trim()) p.search = search.trim();
     if (city.trim()) p.city = city.trim();
     if (state.trim()) p.state = state.trim();
+    if (buddyType !== "all") p.buddyType = buddyType;
     return p;
-  }, [search, city, state]);
+  }, [search, city, state, buddyType]);
 
   const {
     data: members,
@@ -37,12 +42,13 @@ export default function MembersDirectory() {
     query: { enabled: canView, queryKey: getListMembersQueryKey(params) },
   });
 
-  const hasFilters = !!search || !!city || !!state;
+  const hasFilters = !!search || !!city || !!state || buddyType !== "all";
 
   const clearFilters = () => {
     setSearch("");
     setCity("");
     setState("");
+    setBuddyType("all");
   };
 
   if (loadingSession)
@@ -85,7 +91,7 @@ export default function MembersDirectory() {
 
         {/* Filters */}
         <div className="mb-10 p-5 md:p-6 bg-card/50 border border-white/10 rounded-2xl backdrop-blur-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <Label htmlFor="m-search" className="text-xs text-muted-foreground mb-1.5 block">
                 Name or username
@@ -118,6 +124,21 @@ export default function MembersDirectory() {
                 onChange={(e) => setState(e.target.value)}
                 placeholder="Any state"
               />
+            </div>
+            <div>
+              <Label htmlFor="m-buddy-type" className="text-xs text-muted-foreground mb-1.5 block">
+                Buddy Type
+              </Label>
+              <Select value={buddyType} onValueChange={(v) => setBuddyType(v as ListMembersBuddyType | "all")}>
+                <SelectTrigger id="m-buddy-type">
+                  <SelectValue placeholder="All Buddys" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="female_buddy">Female Buddy</SelectItem>
+                  <SelectItem value="male_buddy">Male Buddy</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -193,9 +214,12 @@ export default function MembersDirectory() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-serif text-lg font-bold text-white truncate">
-                          {member.name}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="font-serif text-lg font-bold text-white truncate max-w-[200px]">
+                            {member.name}
+                          </h3>
+                          <BuddyPill buddyType={member.buddyType} />
+                        </div>
                         {member.username && (
                           <p className="text-primary text-sm truncate">@{member.username}</p>
                         )}

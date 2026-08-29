@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { FeedCommentBuddyType } from './feedCommentBuddyType';
 import type { FeedCommentStatus } from './feedCommentStatus';
 import type { FeedCommentUserRole } from './feedCommentUserRole';
 
@@ -13,6 +14,8 @@ export interface FeedComment {
   postId: number;
   userId: number;
   userName: string;
+  /** @nullable */
+  buddyType: FeedCommentBuddyType;
   /** @nullable */
   username?: string | null;
   /** @nullable */

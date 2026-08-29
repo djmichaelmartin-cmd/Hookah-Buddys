@@ -10,6 +10,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { BuddyPill } from "@/components/BuddyPill";
 import { User, MapPin, CalendarDays, ArrowLeft, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -96,8 +97,11 @@ export default function MemberProfile() {
             </div>
 
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-3xl font-serif text-white font-bold">{member.name}</h1>
-              {member.username && <p className="text-primary">@{member.username}</p>}
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <h1 className="text-3xl font-serif text-white font-bold">{member.name}</h1>
+                <BuddyPill buddyType={member.buddyType} />
+              </div>
+              {member.username && <p className="text-primary mt-1">@{member.username}</p>}
 
               {isDoll && (
                 <Button

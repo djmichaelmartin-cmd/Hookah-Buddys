@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { DollBuddyType } from './dollBuddyType';
 import type { DollTier } from './dollTier';
 
 export interface Doll {
@@ -19,6 +20,8 @@ export interface Doll {
   experienceLevel?: string;
   preferences?: string;
   profilePhotoUrl?: string;
+  /** @nullable */
+  buddyType: DollBuddyType;
   verified: boolean;
   featured: boolean;
   elite: boolean;

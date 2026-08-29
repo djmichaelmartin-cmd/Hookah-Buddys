@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ReelBuddyType } from './reelBuddyType';
 import type { ReelCategory } from './reelCategory';
 import type { ReelStatus } from './reelStatus';
 import type { ReelUserRole } from './reelUserRole';
@@ -19,6 +20,8 @@ export interface Reel {
   username?: string | null;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: ReelBuddyType;
   userVerified?: boolean;
   /** @nullable */
   dollId?: number | null;

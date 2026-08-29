@@ -8,6 +8,7 @@
 import type { FeedBusinessAuthor } from './feedBusinessAuthor';
 import type { FeedPostAllowedShareDestinationsItem } from './feedPostAllowedShareDestinationsItem';
 import type { FeedPostAudience } from './feedPostAudience';
+import type { FeedPostBuddyType } from './feedPostBuddyType';
 import type { FeedPostMediaType } from './feedPostMediaType';
 import type { FeedPostStatus } from './feedPostStatus';
 import type { SharedPostPreview } from './sharedPostPreview';
@@ -21,6 +22,8 @@ export interface FeedPost {
   username?: string | null;
   /** @nullable */
   userPhotoUrl?: string | null;
+  /** @nullable */
+  buddyType: FeedPostBuddyType;
   userVerified?: boolean;
   /** @nullable */
   dollId?: number | null;

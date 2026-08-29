@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import {
   db,
   usersTable,
@@ -9,7 +9,7 @@ import {
   verificationsTable,
   reportsTable,
 } from "@workspace/db";
-import { ReviewDollApplicationParams, ReviewDollApplicationBody, ListUsersQueryParams, UpdateUserStatusParams, UpdateUserStatusBody } from "@workspace/api-zod";
+import { ReviewDollApplicationParams, ReviewDollApplicationBody, ListUsersQueryParams, UpdateUserStatusParams, UpdateUserStatusBody, UpdateUserBuddyTypeParams, UpdateUserBuddyTypeBody } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth";
 import { computeDollEarnings } from "../lib/dollHelpers";
 
@@ -214,8 +214,15 @@ router.get("/admin/users", requireAuth("admin"), async (req, res): Promise<void>
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const rows = parsed.data.role
-    ? await db.select().from(usersTable).where(eq(usersTable.role, parsed.data.role)).orderBy(sql`${usersTable.createdAt} desc`)
+  const conditions = [];
+  if (parsed.data.role) conditions.push(eq(usersTable.role, parsed.data.role));
+  if (parsed.data.buddyType === "missing") {
+    conditions.push(isNull(usersTable.buddyType));
+    conditions.push(inArray(usersTable.role, ["member", "doll"]));
+  }
+  else if (parsed.data.buddyType) conditions.push(eq(usersTable.buddyType, parsed.data.buddyType));
+  const rows = conditions.length
+    ? await db.select().from(usersTable).where(and(...conditions)).orderBy(sql`${usersTable.createdAt} desc`)
     : await db.select().from(usersTable).orderBy(sql`${usersTable.createdAt} desc`);
 
   const result = await Promise.all(
@@ -231,6 +238,7 @@ router.get("/admin/users", requireAuth("admin"), async (req, res): Promise<void>
         email: u.email,
         name: u.name,
         accountStatus: u.accountStatus as "active" | "pending" | "suspended" | "banned",
+        buddyType: u.buddyType ?? null,
         dollId: u.dollId ?? null,
         verified,
         createdAt: u.createdAt ? u.createdAt.toISOString() : undefined,
@@ -266,9 +274,53 @@ router.post("/admin/users/:id/status", requireAuth("admin"), async (req, res): P
     email: u.email,
     name: u.name,
     accountStatus: u.accountStatus as "active" | "pending" | "suspended" | "banned",
+    buddyType: u.buddyType ?? null,
     dollId: u.dollId ?? null,
     verified: false,
     createdAt: u.createdAt ? u.createdAt.toISOString() : undefined,
+  });
+});
+
+router.patch("/admin/users/:id/buddy-type", requireAuth("admin"), async (req, res): Promise<void> => {
+  const params = UpdateUserBuddyTypeParams.safeParse(req.params);
+  const body = UpdateUserBuddyTypeBody.safeParse(req.body);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+  const [existing] = await db.select().from(usersTable).where(eq(usersTable.id, params.data.id));
+  if (!existing) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+  if (existing.role !== "member" && existing.role !== "doll") {
+    res.status(400).json({ error: "Buddy type can only be set for personal accounts" });
+    return;
+  }
+  const [u] = await db
+    .update(usersTable)
+    .set({ buddyType: body.data.buddyType })
+    .where(eq(usersTable.id, existing.id))
+    .returning();
+  let verified = false;
+  if (u.dollId) {
+    const [doll] = await db.select().from(dollsTable).where(eq(dollsTable.id, u.dollId));
+    verified = doll?.verified ?? false;
+  }
+  res.json({
+    id: u.id,
+    role: u.role as "doll" | "member" | "admin",
+    email: u.email,
+    name: u.name,
+    accountStatus: u.accountStatus as "active" | "pending" | "suspended" | "banned",
+    buddyType: u.buddyType,
+    dollId: u.dollId ?? null,
+    verified,
+    createdAt: u.createdAt.toISOString(),
   });
 });
 

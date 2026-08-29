@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { BuddyPill } from "@/components/BuddyPill";
 import { ShieldCheck, Star, X, Video, Circle, ArrowRight } from "lucide-react";
 
 export default function Browse() {
@@ -235,11 +236,12 @@ export default function Browse() {
                     </div>
 
                     <div className="absolute bottom-0 left-0 p-5 w-full">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="font-serif text-xl font-bold text-white">
                           {doll.stageName}
                         </h3>
                         {doll.verified && <ShieldCheck className="w-4 h-4 text-primary" />}
+                        <BuddyPill buddyType={doll.buddyType} className="scale-[0.8] origin-left" />
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {doll.city}, {doll.state}

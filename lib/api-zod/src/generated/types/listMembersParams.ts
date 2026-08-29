@@ -5,9 +5,11 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ListMembersBuddyType } from './listMembersBuddyType';
 
 export type ListMembersParams = {
 search?: string;
 city?: string;
 state?: string;
+buddyType?: ListMembersBuddyType;
 };

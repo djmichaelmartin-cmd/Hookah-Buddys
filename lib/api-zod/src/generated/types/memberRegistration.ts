@@ -5,6 +5,7 @@
  * HookahBuddys platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { MemberRegistrationBuddyType } from './memberRegistrationBuddyType';
 
 export interface MemberRegistration {
   /** @minLength 1 */
@@ -21,4 +22,5 @@ export interface MemberRegistration {
   profilePhotoUrl?: string;
   ageConfirmed: boolean;
   rulesAccepted: boolean;
+  buddyType: MemberRegistrationBuddyType;
 }
