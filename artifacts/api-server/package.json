@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run src/tests --exclude src/tests/business-regressions.test.ts",
     "test:business": "node ./test.mjs",
-    "verify:rsvp-concurrency": "pnpm run build && node ./dist/scripts/verify-rsvp-concurrency.mjs"
+    "verify:rsvp-concurrency": "pnpm run build && node ./dist/scripts/verify-rsvp-concurrency.mjs",
+    "verify:creator-credit-concurrency": "pnpm run build && node ./dist/scripts/verify-creator-credit-concurrency.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.22.0",
