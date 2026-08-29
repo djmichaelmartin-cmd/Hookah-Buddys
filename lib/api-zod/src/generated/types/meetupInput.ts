@@ -11,6 +11,8 @@ import type { MeetupInputPrivacy } from './meetupInputPrivacy';
 import type { MeetupInputVisibility } from './meetupInputVisibility';
 
 export interface MeetupInput {
+  /** Organizer-owned draft to publish instead of creating a new Meetup row */
+  draftId?: number;
   /**
      * @minLength 1
      * @maxLength 100

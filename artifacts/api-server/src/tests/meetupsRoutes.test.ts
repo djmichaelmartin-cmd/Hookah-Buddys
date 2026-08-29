@@ -20,7 +20,7 @@ import type { Server } from "node:http";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { CreateMeetupBody } from "@workspace/api-zod";
+import { CreateMeetupBody, CreateMeetupDraftBody, UpdateMeetupDraftBody } from "@workspace/api-zod";
 
 // Read the events route source for structural assertions.
 function readEventsRouteSource(): string {
@@ -303,6 +303,15 @@ const member = { id: 11, role: "user", accountStatus: "active" };
 const nonMember = { id: 20, role: "user", accountStatus: "active" };
 
 describe("Meetup combined creation contract", () => {
+  it("accepts a completely unfinished draft snapshot", () => {
+    expect(CreateMeetupDraftBody.safeParse({}).success).toBe(true);
+    expect(UpdateMeetupDraftBody.safeParse({
+      name: "Maybe next month",
+      eventFormat: "in_person",
+      city: "Las Vegas",
+    }).success).toBe(true);
+  });
+
   it("accepts a complete primary-event creation input", () => {
     expect(CreateMeetupBody.safeParse({
       name: "Saturday Lounge Meetup",
@@ -403,6 +412,46 @@ describe("Meetup combined creation contract", () => {
     expect(route).toContain(".insert(groupEventsTable)");
     expect(route).toContain('primaryEvent: serializeGroupEvent');
   });
+
+  it("publishes an existing draft by activating it and creating the event in one transaction", () => {
+    const source = readGroupsRouteSource();
+    const routeStart = source.indexOf('router.post("/groups/meetups"');
+    const routeEnd = source.indexOf('router.post("/groups"', routeStart);
+    const route = source.slice(routeStart, routeEnd);
+    expect(route).toContain("data.draftId");
+    expect(route).toContain('candidate.status !== "draft"');
+    expect(route).toContain("await db.transaction");
+    expect(route).toContain(".update(groupsTable)");
+    expect(route).toContain('eq(groupsTable.status, "draft")');
+    expect(route).toContain(".insert(groupEventsTable)");
+    expect(route).toContain("meetupDraftData: null");
+    expect(route).toContain("MeetupDraftPublishConflictError");
+    expect(route).toContain("res.status(409)");
+  });
+
+  it("keeps draft endpoints above parameterized group routes and owner/admin scoped", () => {
+    const source = readGroupsRouteSource();
+    const createDraft = source.indexOf('router.post("/groups/meetup-drafts"');
+    const getDraft = source.indexOf('router.get("/groups/meetup-drafts/:groupId"');
+    const updateDraft = source.indexOf('router.put("/groups/meetup-drafts/:groupId"');
+    const groupDetail = source.indexOf('router.get("/groups/:groupId"');
+    expect(createDraft).toBeGreaterThanOrEqual(0);
+    expect(getDraft).toBeGreaterThan(createDraft);
+    expect(updateDraft).toBeGreaterThan(getDraft);
+    expect(groupDetail).toBeGreaterThan(updateDraft);
+    const draftRoutes = source.slice(createDraft, source.indexOf('router.post("/groups/meetups"', createDraft));
+    expect(draftRoutes).toContain('group.status !== "draft"');
+    expect(draftRoutes).toContain('user.role !== "admin"');
+    expect(draftRoutes).toContain("group.creatorUserId !== user.id");
+  });
+
+  it("treats drafts as restricted on ordinary routes and excludes them from admin lists", () => {
+    const source = readGroupsRouteSource();
+    expect(source).toContain('new Set(["draft", "suspended", "hidden"])');
+    expect(source).toContain("NOT IN ('draft', 'deleted')");
+    expect(source).toContain('group.status === "draft" && ["restore", "hide", "suspend"].includes(action)');
+    expect(source).toContain("Meetup drafts must be completed and published");
+  });
 });
 
 function meetupGroup(overrides: Record<string, unknown> = {}) {
@@ -484,6 +533,46 @@ function groupEventRow(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+
+describe("Meetup draft visibility", () => {
+  const privateVisibleDraft = () => meetupGroup({
+    status: "draft",
+    privacy: "private",
+    visibility: "visible",
+    meetupDraftData: {
+      name: "Secret unfinished Meetup",
+      description: "Not ready for anyone else",
+    },
+  });
+
+  it.each([
+    ["anonymous", undefined],
+    ["non-owner", nonMember],
+    ["member", member],
+    ["owner", owner],
+    ["platform admin", admin],
+  ])("returns 404 from the ordinary group detail route for %s", async (_label, user) => {
+    h.enqueue(T.groupsTable, [privateVisibleDraft()]);
+    const res = await req("/groups/1", { user });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "Group not found" });
+  });
+
+  it("allows only the organizer and platform admins through the dedicated draft route", async () => {
+    h.enqueue(T.groupsTable, [privateVisibleDraft()]);
+    const strangerRes = await req("/groups/meetup-drafts/1", { user: nonMember });
+    expect(strangerRes.status).toBe(404);
+
+    h.enqueue(T.groupsTable, [privateVisibleDraft()]);
+    const ownerRes = await req("/groups/meetup-drafts/1", { user: owner });
+    expect(ownerRes.status).toBe(200);
+    expect((await ownerRes.json() as { data: { name: string } }).data.name).toBe("Secret unfinished Meetup");
+
+    h.enqueue(T.groupsTable, [privateVisibleDraft()]);
+    const adminRes = await req("/groups/meetup-drafts/1", { user: admin });
+    expect(adminRes.status).toBe(200);
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // #1 Meetup discriminator

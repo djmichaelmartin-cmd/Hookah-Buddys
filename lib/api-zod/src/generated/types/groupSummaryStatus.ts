@@ -10,6 +10,7 @@ export type GroupSummaryStatus = typeof GroupSummaryStatus[keyof typeof GroupSum
 
 
 export const GroupSummaryStatus = {
+  draft: 'draft',
   active: 'active',
   hidden: 'hidden',
   suspended: 'suspended',

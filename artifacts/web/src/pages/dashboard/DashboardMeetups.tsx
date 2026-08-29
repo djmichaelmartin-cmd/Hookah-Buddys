@@ -13,7 +13,7 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Users, Globe, Lock, ShieldCheck, Mail, Check, X, Plus, CalendarDays, MapPin } from "lucide-react";
+import { Users, Globe, Lock, ShieldCheck, Mail, Check, X, Plus, CalendarDays, MapPin, FileEdit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -81,9 +81,11 @@ function MyMeetupsContent() {
   const allMeetups = myGroups?.filter(g => g.groupType === 'meetup') || [];
   const meetupInvites = invites?.filter(i => i.group?.groupType === 'meetup') || [];
 
-  const joined = allMeetups.filter(g => g.viewerMemberRole === 'member');
-  const managed = allMeetups.filter(g => g.viewerMemberRole === 'admin' || g.viewerMemberRole === 'owner');
-  const requested = allMeetups.filter(g => g.viewerHasPendingRequest);
+  const drafts = allMeetups.filter(g => g.status === 'draft' && g.viewerMemberRole === 'owner');
+  const publishedMeetups = allMeetups.filter(g => g.status !== 'draft');
+  const joined = publishedMeetups.filter(g => g.viewerMemberRole === 'member');
+  const managed = publishedMeetups.filter(g => g.viewerMemberRole === 'admin' || g.viewerMemberRole === 'owner');
+  const requested = publishedMeetups.filter(g => g.viewerHasPendingRequest);
 
   return (
     <Tabs defaultValue="joined" className="w-full">
@@ -93,6 +95,9 @@ function MyMeetupsContent() {
         </TabsTrigger>
         <TabsTrigger value="managed" className="rounded-xl data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400">
           Organizing ({managed.length})
+        </TabsTrigger>
+        <TabsTrigger value="drafts" className="rounded-xl data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400">
+          Drafts ({drafts.length})
         </TabsTrigger>
         <TabsTrigger value="invites" className="rounded-xl data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400">
           Invites ({meetupInvites.length})
@@ -110,6 +115,10 @@ function MyMeetupsContent() {
         {loadingGroups ? <LoadingGrid /> : <MeetupGrid meetups={managed} emptyMessage="You aren't organizing any meetups." />}
       </TabsContent>
 
+      <TabsContent value="drafts">
+        {loadingGroups ? <LoadingGrid /> : <DraftGrid drafts={drafts} />}
+      </TabsContent>
+
       <TabsContent value="invites">
         {loadingInvites ? <LoadingGrid /> : <InvitesList invites={meetupInvites} />}
       </TabsContent>
@@ -118,6 +127,52 @@ function MyMeetupsContent() {
         {loadingGroups ? <LoadingGrid /> : <MeetupGrid meetups={requested} emptyMessage="No pending join requests." />}
       </TabsContent>
     </Tabs>
+  );
+}
+
+function DraftGrid({ drafts }: { drafts: GroupSummary[] }) {
+  if (drafts.length === 0) {
+    return (
+      <div className="py-24 text-center bg-card/30 border border-orange-500/10 rounded-3xl backdrop-blur-md">
+        <FileEdit className="w-14 h-14 mx-auto text-orange-500/30 mb-4" />
+        <p className="text-white/60 mb-6">You have no unfinished Meetup drafts.</p>
+        <Link href="/meetups/create">
+          <Button variant="outline" className="rounded-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10">
+            Start a Meetup
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {drafts.map((draft) => (
+        <div key={draft.id} className="flex flex-col bg-card border border-orange-500/20 rounded-2xl overflow-hidden shadow-md">
+          <div className="h-24 bg-[#171A21] relative overflow-hidden">
+            {draft.coverUrl ? (
+              <img src={draft.coverUrl} className="w-full h-full object-cover" alt="" />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-amber-500/10" />
+            )}
+            <span className="absolute top-3 left-3 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-orange-300">
+              Draft
+            </span>
+          </div>
+          <div className="p-4 flex flex-col flex-1">
+            <h3 className="text-lg font-bold text-white line-clamp-1">{draft.name || "Untitled Meetup"}</h3>
+            <p className="text-xs text-white/50 mt-1 mb-4">
+              Last saved {draft.updatedAt ? new Date(draft.updatedAt).toLocaleDateString() : new Date(draft.createdAt).toLocaleDateString()}
+            </p>
+            <Link href={`/meetups/create?draftId=${draft.id}`} className="mt-auto">
+              <Button className="w-full rounded-full bg-orange-600 hover:bg-orange-500 text-white font-bold">
+                <FileEdit className="w-4 h-4 mr-2" /> Continue
+              </Button>
+            </Link>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 

@@ -4934,9 +4934,8 @@ paths:
       summary: Create a Meetup group and its primary event atomically
       description: >
         Creates the Meetup, owner membership, standard community rules, and the
-        primary event in one transaction. Meetup creation is published
-        immediately; group drafts are not supported by the current group
-        lifecycle schema.
+        primary event in one transaction. When draftId is supplied, atomically
+        activates that organizer-owned draft and creates its primary event.
       requestBody:
         required: true
         content:
@@ -4950,6 +4949,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MeetupCreation"
+
+  /groups/meetup-drafts:
+    post:
+      operationId: createMeetupDraft
+      tags: [groups]
+      summary: Save a new unfinished Meetup for the current organizer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetupDraftInput"
+      responses:
+        "201":
+          description: Draft saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetupDraft"
+
+  /groups/meetup-drafts/{groupId}:
+    get:
+      operationId: getMeetupDraft
+      tags: [groups]
+      summary: Get an organizer-owned Meetup draft
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetupDraft"
+    put:
+      operationId: updateMeetupDraft
+      tags: [groups]
+      summary: Save changes to an organizer-owned Meetup draft
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetupDraftInput"
+      responses:
+        "200":
+          description: Draft saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetupDraft"
 
   /groups/my:
     get:
@@ -9291,7 +9343,7 @@ components:
         location: { type: ["string", "null"] }
         postingPermission: { type: string }
         postApproval: { type: boolean }
-        status: { type: string, enum: [active, hidden, suspended, deleted] }
+        status: { type: string, enum: [draft, active, hidden, suspended, deleted] }
         isFeatured: { type: boolean }
         memberCount: { type: integer }
         postCount: { type: integer }
@@ -9299,6 +9351,7 @@ components:
         viewerMemberRole: { type: ["string", "null"] }
         viewerHasPendingRequest: { type: boolean }
         createdAt: { type: string }
+        updatedAt: { type: string }
         # Meetup discriminator (group | meetup). Defaults to "group" for all existing records.
         groupType: { type: string, enum: [group, meetup] }
         # Meetup-specific interest/location metadata (null on non-meetup groups)
@@ -9320,7 +9373,6 @@ components:
             # postCount/eventCount) are OMITTED from the sanitized preview so a
             # non-member cannot learn owner identity or internal settings.
             creatorUserId: { type: integer }
-            updatedAt: { type: string }
             # True when returned as a SANITIZED PREVIEW for a non-member of a
             # discoverable (private + visible, or hidden with a valid invite)
             # group. Only public discovery/request fields are included; posts,
@@ -9813,6 +9865,7 @@ components:
       type: object
       required: [name, privacy, title, startsAt, endsAt, eventFormat]
       properties:
+        draftId: { type: integer, description: "Organizer-owned draft to publish instead of creating a new Meetup row" }
         name: { type: string, minLength: 1, maxLength: 100 }
         description: { type: string }
         category: { type: string }
@@ -9848,6 +9901,54 @@ components:
         rulesNotes: { type: string, description: "Additional note for the standard Meetup guidelines rule" }
         isPaid: { type: boolean }
         paidMetadata: { type: object }
+
+    MeetupDraftInput:
+      type: object
+      properties:
+        name: { type: string, maxLength: 100 }
+        description: { type: string }
+        category: { type: string }
+        interests: { type: array, items: { type: string } }
+        tags: { type: array, items: { type: string } }
+        coverUrl: { type: string }
+        privacy: { type: string, enum: [public, private] }
+        visibility: { type: string, enum: [visible, hidden] }
+        title: { type: string }
+        eventDescription: { type: string }
+        imageUrl: { type: string }
+        eventFormat: { type: string, enum: [in_person, online, hybrid] }
+        startsAt: { type: string }
+        endsAt: { type: string }
+        venueName: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zip: { type: string }
+        onlineUrl: { type: string }
+        instructions: { type: string }
+        hideAttendees: { type: boolean }
+        attendeeLimit: { type: integer, minimum: 1 }
+        waitlistEnabled: { type: boolean }
+        allowGuests: { type: boolean }
+        maxGuestsPerRsvp: { type: integer, minimum: 0 }
+        rsvpOpensAt: { type: string }
+        rsvpClosesAt: { type: string }
+        eventCategory: { type: string }
+        topics: { type: array, items: { type: string } }
+        eventTags: { type: array, items: { type: string } }
+        howToFind: { type: string }
+        rulesNotes: { type: string }
+        isPaid: { type: boolean }
+        paidMetadata: { type: object }
+
+    MeetupDraft:
+      type: object
+      required: [group, data]
+      properties:
+        group:
+          $ref: "#/components/schemas/GroupDetail"
+        data:
+          $ref: "#/components/schemas/MeetupDraftInput"
 
     MeetupCreation:
       type: object

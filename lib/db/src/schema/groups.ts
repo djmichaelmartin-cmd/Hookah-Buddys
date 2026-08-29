@@ -10,7 +10,7 @@
  *     Visible – discoverable in search (anyone can request to join).
  *     Hidden  – not discoverable; only invited users can find it.
  *
- * Lifecycle: active | hidden | suspended | deleted
+ * Lifecycle: draft | active | hidden | suspended | deleted
  *
  * Role capability matrix (least-privilege):
  *   owner     – full control, cannot be removed, can delete group
@@ -74,6 +74,9 @@ export const groupsTable = pgTable("groups", {
   postApproval: boolean("post_approval").notNull().default(false),
   // Lifecycle: active | hidden | suspended | deleted
   status: text("status").notNull().default("active"),
+  // Unified Meetup creation form snapshot. Populated only while status="draft"
+  // and cleared atomically when the Meetup and primary event are published.
+  meetupDraftData: jsonb("meetup_draft_data").$type<Record<string, unknown> | null>(),
   // Admin feature/promotion flags (set by platform admin)
   isFeatured: boolean("is_featured").notNull().default(false),
   featuredUntil: timestamp("featured_until", { withTimezone: true }),

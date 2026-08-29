@@ -70,6 +70,8 @@ import {
 import {
   CreateGroupBody,
   CreateMeetupBody,
+  CreateMeetupDraftBody,
+  UpdateMeetupDraftBody,
   UpdateGroupBody,
   InviteToGroupBody,
   RespondToGroupInviteBody,
@@ -151,6 +153,8 @@ function parseId(raw: string | string[]): number {
 
 type GroupRole = "owner" | "admin" | "moderator" | "member";
 const MEETUP_RADIUS_CHOICES = [5, 10, 25, 50, 100] as const;
+
+class MeetupDraftPublishConflictError extends Error {}
 
 function isAllowedMeetupRadius(value: number): value is (typeof MEETUP_RADIUS_CHOICES)[number] {
   return MEETUP_RADIUS_CHOICES.includes(value as (typeof MEETUP_RADIUS_CHOICES)[number]);
@@ -506,7 +510,7 @@ async function deliverEventBroadcastNotification(input: {
  * Only platform admins may inspect these — and only through admin routes,
  * NOT through the ordinary resolveGroupAccess path (which never grants admin access).
  */
-export const RESTRICTED_LIFECYCLE_STATUSES = new Set(["suspended", "hidden"]);
+export const RESTRICTED_LIFECYCLE_STATUSES = new Set(["draft", "suspended", "hidden"]);
 
 /**
  * Pure core for ordinary-route access. Callers resolve the viewer's group
@@ -1655,6 +1659,147 @@ router.get("/groups/invites", requireAuth(), async (req, res): Promise<void> => 
   res.json(result);
 });
 
+// POST /groups/meetup-drafts — persist an incomplete unified form without an event.
+router.post("/groups/meetup-drafts", requireAuth(), requireCompleteBuddyProfile, async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const parsed = CreateMeetupDraftBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const data = parsed.data;
+  let coverUrl = data.coverUrl ?? null;
+  let imageUrl = data.imageUrl ?? null;
+  try {
+    if (coverUrl) coverUrl = await finalizeGroupImageUrl(coverUrl, user.id);
+    if (imageUrl) imageUrl = await finalizeGroupImageUrl(imageUrl, user.id);
+  } catch (err) {
+    if (err instanceof InvalidUploadError) {
+      res.status(400).json({ error: (err as Error).message });
+      return;
+    }
+    throw err;
+  }
+  const draftData = { ...data, coverUrl: coverUrl ?? undefined, imageUrl: imageUrl ?? undefined };
+
+  const [group] = await db.transaction(async (tx) => {
+    const [createdGroup] = await tx
+      .insert(groupsTable)
+      .values({
+        creatorUserId: user.id,
+        name: data.name?.trim() || "Untitled Meetup",
+        description: data.description ?? null,
+        category: data.category ?? null,
+        tags: data.tags ?? null,
+        privacy: data.privacy ?? "public",
+        visibility: data.privacy === "private" ? (data.visibility ?? "visible") : "visible",
+        coverUrl,
+        status: "draft",
+        memberCount: 1,
+        eventCount: 0,
+        groupType: "meetup",
+        meetupInterests: data.interests ?? null,
+        meetupCity: data.city ?? null,
+        meetupState: data.state ?? null,
+        meetupDraftData: draftData,
+      })
+      .returning();
+    await tx.insert(groupMembersTable).values({
+      groupId: createdGroup.id,
+      userId: user.id,
+      role: "owner",
+      joinedVia: "direct",
+      status: "active",
+    });
+    return [createdGroup] as const;
+  });
+
+  res.status(201).json({
+    group: serializeGroup(group, { viewerMemberRole: "owner" }),
+    data: draftData,
+  });
+});
+
+// GET/PUT /groups/meetup-drafts/:groupId — organizer/admin-only draft access.
+router.get("/groups/meetup-drafts/:groupId", requireAuth(), async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const groupId = parseId(req.params.groupId);
+  const [group] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
+  if (
+    !group ||
+    group.groupType !== "meetup" ||
+    group.status !== "draft" ||
+    (user.role !== "admin" && group.creatorUserId !== user.id)
+  ) {
+    res.status(404).json({ error: "Meetup draft not found" });
+    return;
+  }
+  res.json({
+    group: serializeGroup(group, { viewerMemberRole: group.creatorUserId === user.id ? "owner" : "admin" }),
+    data: group.meetupDraftData ?? {},
+  });
+});
+
+router.put("/groups/meetup-drafts/:groupId", requireAuth(), async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const groupId = parseId(req.params.groupId);
+  const parsed = UpdateMeetupDraftBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const [existing] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
+  if (
+    !existing ||
+    existing.groupType !== "meetup" ||
+    existing.status !== "draft" ||
+    existing.creatorUserId !== user.id
+  ) {
+    res.status(404).json({ error: "Meetup draft not found" });
+    return;
+  }
+
+  const data = parsed.data;
+  let coverUrl = data.coverUrl ?? null;
+  let imageUrl = data.imageUrl ?? null;
+  try {
+    if (coverUrl && coverUrl !== existing.coverUrl) {
+      coverUrl = await finalizeGroupImageUrl(coverUrl, user.id);
+    }
+    if (imageUrl) imageUrl = await finalizeGroupImageUrl(imageUrl, user.id);
+  } catch (err) {
+    if (err instanceof InvalidUploadError) {
+      res.status(400).json({ error: (err as Error).message });
+      return;
+    }
+    throw err;
+  }
+  const draftData = { ...data, coverUrl: coverUrl ?? undefined, imageUrl: imageUrl ?? undefined };
+  const [group] = await db
+    .update(groupsTable)
+    .set({
+      name: data.name?.trim() || "Untitled Meetup",
+      description: data.description ?? null,
+      category: data.category ?? null,
+      tags: data.tags ?? null,
+      privacy: data.privacy ?? "public",
+      visibility: data.privacy === "private" ? (data.visibility ?? "visible") : "visible",
+      coverUrl,
+      meetupInterests: data.interests ?? null,
+      meetupCity: data.city ?? null,
+      meetupState: data.state ?? null,
+      meetupDraftData: draftData,
+    })
+    .where(and(eq(groupsTable.id, groupId), eq(groupsTable.status, "draft")))
+    .returning();
+
+  res.json({
+    group: serializeGroup(group, { viewerMemberRole: group.creatorUserId === user.id ? "owner" : "admin" }),
+    data: draftData,
+  });
+});
+
 // POST /groups
 // POST /groups/meetups — create the Meetup space and its first event together.
 // This must remain above parameterized /groups/:groupId routes.
@@ -1666,6 +1811,20 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
     return;
   }
   const data = parsed.data;
+  let draftGroup: typeof groupsTable.$inferSelect | null = null;
+  if (data.draftId !== undefined) {
+    const [candidate] = await db.select().from(groupsTable).where(eq(groupsTable.id, data.draftId));
+    if (
+      !candidate ||
+      candidate.groupType !== "meetup" ||
+      candidate.status !== "draft" ||
+      candidate.creatorUserId !== user.id
+    ) {
+      res.status(404).json({ error: "Meetup draft not found" });
+      return;
+    }
+    draftGroup = candidate;
+  }
   const startsAt = new Date(data.startsAt);
   const endsAt = new Date(data.endsAt);
   if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
@@ -1758,11 +1917,14 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
     data.instructions?.trim() ? `Online instructions: ${data.instructions.trim()}` : null,
   ].filter(Boolean).join("\n\n") || null;
 
-  const [group, event] = await db.transaction(async (tx) => {
-    const [createdGroup] = await tx
-      .insert(groupsTable)
-      .values({
-        creatorUserId: user.id,
+  let publication: readonly [
+    typeof groupsTable.$inferSelect,
+    typeof groupEventsTable.$inferSelect,
+  ];
+  try {
+    publication = await db.transaction(async (tx) => {
+    const groupValues = {
+        creatorUserId: draftGroup?.creatorUserId ?? user.id,
         name: data.name,
         description: data.description ?? null,
         category: data.category ?? null,
@@ -1782,16 +1944,28 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
         meetupState: data.state ?? null,
         meetupLat: meetupCoordinates?.lat ?? null,
         meetupLng: meetupCoordinates?.lng ?? null,
-      })
-      .returning();
+        meetupDraftData: null,
+      };
+    const [createdGroup] = draftGroup
+      ? await tx
+          .update(groupsTable)
+          .set(groupValues)
+          .where(and(eq(groupsTable.id, draftGroup.id), eq(groupsTable.status, "draft")))
+          .returning()
+      : await tx.insert(groupsTable).values(groupValues).returning();
+    if (!createdGroup) {
+      throw new MeetupDraftPublishConflictError("Meetup draft has already been published");
+    }
 
-    await tx.insert(groupMembersTable).values({
-      groupId: createdGroup.id,
-      userId: user.id,
-      role: "owner",
-      joinedVia: "direct",
-      status: "active",
-    });
+    if (!draftGroup) {
+      await tx.insert(groupMembersTable).values({
+        groupId: createdGroup.id,
+        userId: user.id,
+        role: "owner",
+        joinedVia: "direct",
+        status: "active",
+      });
+    }
     await tx.insert(groupRulesTable).values([
       {
         groupId: createdGroup.id,
@@ -1811,7 +1985,7 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
       .insert(groupEventsTable)
       .values({
         groupId: createdGroup.id,
-        createdByUserId: user.id,
+        createdByUserId: draftGroup?.creatorUserId ?? user.id,
         title: data.title,
         description: data.eventDescription ?? null,
         location: eventLocation,
@@ -1844,7 +2018,15 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
       })
       .returning();
     return [createdGroup, createdEvent] as const;
-  });
+    });
+  } catch (err) {
+    if (err instanceof MeetupDraftPublishConflictError) {
+      res.status(409).json({ error: err.message });
+      return;
+    }
+    throw err;
+  }
+  const [group, event] = publication;
 
   await logGroupActivity(group.id, user.id, "create_group");
   await logGroupActivity(group.id, user.id, "create_event", {
@@ -1964,7 +2146,7 @@ router.get("/groups/:groupId", async (req, res): Promise<void> => {
   const viewer = await getSessionUser(req);
   const groupId = parseId(req.params.groupId);
   const [group] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
-  if (!group || group.status === "deleted") {
+  if (!group || group.status === "deleted" || group.status === "draft") {
     res.status(404).json({ error: "Group not found" });
     return;
   }
@@ -5304,7 +5486,11 @@ router.get("/groups/:groupId/events/:eventId", async (req, res): Promise<void> =
     .from(groupEventsTable)
     .where(and(eq(groupEventsTable.id, eventId), eq(groupEventsTable.groupId, groupId)));
 
-  if (!event || event.status === "removed") {
+  if (
+    !event ||
+    event.status === "removed" ||
+    (event.status === "draft" && !access.isAdmin && event.createdByUserId !== viewer?.id)
+  ) {
     res.status(404).json({ error: "Event not found" });
     return;
   }
@@ -6570,7 +6756,7 @@ router.get("/admin/groups", requireAuth("admin"), async (req, res): Promise<void
   if (privacyFilter) conditions.push(eq(groupsTable.privacy, privacyFilter));
   if (categoryFilter) conditions.push(eq(groupsTable.category, categoryFilter));
   if (statusFilter) conditions.push(eq(groupsTable.status, statusFilter));
-  else conditions.push(sql`${groupsTable.status} != 'deleted'`);
+  else conditions.push(sql`${groupsTable.status} NOT IN ('draft', 'deleted')`);
 
   const [countRow] = await db
     .select({ c: sql<number>`count(*)::int` })
@@ -6672,6 +6858,12 @@ router.patch("/admin/groups/:groupId", requireAuth("admin"), async (req, res): P
   }
 
   const { action, reason, featuredUntil } = parsed.data;
+  if (group.status === "draft" && ["restore", "hide", "suspend"].includes(action)) {
+    res.status(409).json({
+      error: "Meetup drafts must be completed and published through the Meetup creation flow",
+    });
+    return;
+  }
   const updates: Partial<typeof groupsTable.$inferInsert> = {};
   let logAction = "update_group_status";
 

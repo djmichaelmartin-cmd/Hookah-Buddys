@@ -4463,6 +4463,7 @@ export type GroupSummaryStatus = typeof GroupSummaryStatus[keyof typeof GroupSum
 
 
 export const GroupSummaryStatus = {
+  draft: 'draft',
   active: 'active',
   hidden: 'hidden',
   suspended: 'suspended',
@@ -4508,6 +4509,7 @@ export interface GroupSummary {
   viewerMemberRole?: string | null;
   viewerHasPendingRequest?: boolean;
   createdAt: string;
+  updatedAt?: string;
   groupType?: GroupSummaryGroupType;
   meetupInterests?: string[] | null;
   /** @nullable */
@@ -4522,7 +4524,6 @@ export interface GroupSummary {
 
 export type GroupDetail = GroupSummary & {
   creatorUserId?: number;
-  updatedAt?: string;
   isPreview?: boolean;
 };
 
@@ -5416,6 +5417,8 @@ export const MeetupInputEventFormat = {
 export type MeetupInputPaidMetadata = { [key: string]: unknown };
 
 export interface MeetupInput {
+  /** Organizer-owned draft to publish instead of creating a new Meetup row */
+  draftId?: number;
   /**
      * @minLength 1
      * @maxLength 100
@@ -5461,6 +5464,79 @@ export interface MeetupInput {
   rulesNotes?: string;
   isPaid?: boolean;
   paidMetadata?: MeetupInputPaidMetadata;
+}
+
+export type MeetupDraftInputPrivacy = typeof MeetupDraftInputPrivacy[keyof typeof MeetupDraftInputPrivacy];
+
+
+export const MeetupDraftInputPrivacy = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type MeetupDraftInputVisibility = typeof MeetupDraftInputVisibility[keyof typeof MeetupDraftInputVisibility];
+
+
+export const MeetupDraftInputVisibility = {
+  visible: 'visible',
+  hidden: 'hidden',
+} as const;
+
+export type MeetupDraftInputEventFormat = typeof MeetupDraftInputEventFormat[keyof typeof MeetupDraftInputEventFormat];
+
+
+export const MeetupDraftInputEventFormat = {
+  in_person: 'in_person',
+  online: 'online',
+  hybrid: 'hybrid',
+} as const;
+
+export type MeetupDraftInputPaidMetadata = { [key: string]: unknown };
+
+export interface MeetupDraftInput {
+  /** @maxLength 100 */
+  name?: string;
+  description?: string;
+  category?: string;
+  interests?: string[];
+  tags?: string[];
+  coverUrl?: string;
+  privacy?: MeetupDraftInputPrivacy;
+  visibility?: MeetupDraftInputVisibility;
+  title?: string;
+  eventDescription?: string;
+  imageUrl?: string;
+  eventFormat?: MeetupDraftInputEventFormat;
+  startsAt?: string;
+  endsAt?: string;
+  venueName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  onlineUrl?: string;
+  instructions?: string;
+  hideAttendees?: boolean;
+  /** @minimum 1 */
+  attendeeLimit?: number;
+  waitlistEnabled?: boolean;
+  allowGuests?: boolean;
+  /** @minimum 0 */
+  maxGuestsPerRsvp?: number;
+  rsvpOpensAt?: string;
+  rsvpClosesAt?: string;
+  eventCategory?: string;
+  topics?: string[];
+  eventTags?: string[];
+  howToFind?: string;
+  rulesNotes?: string;
+  isPaid?: boolean;
+  paidMetadata?: MeetupDraftInputPaidMetadata;
+}
+
+export interface MeetupDraft {
+  group: GroupDetail;
+  data: MeetupDraftInput;
 }
 
 export interface MeetupCreation {

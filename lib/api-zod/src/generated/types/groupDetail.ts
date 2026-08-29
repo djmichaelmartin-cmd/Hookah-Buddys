@@ -9,6 +9,5 @@ import type { GroupSummary } from './groupSummary';
 
 export type GroupDetail = GroupSummary & {
   creatorUserId?: number;
-  updatedAt?: string;
   isPreview?: boolean;
 };

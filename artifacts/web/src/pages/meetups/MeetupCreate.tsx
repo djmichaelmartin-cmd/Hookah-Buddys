@@ -1,14 +1,21 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { useLocation, useSearch } from "wouter";
 import { Layout } from "@/components/Layout";
-import { useCreateMeetup, useGetCurrentUser } from "@workspace/api-client-react";
+import {
+  getGetMeetupDraftQueryKey,
+  useCreateMeetup,
+  useCreateMeetupDraft,
+  useGetCurrentUser,
+  useGetMeetupDraft,
+  useUpdateMeetupDraft,
+  type MeetupDraftInput,
+} from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -154,14 +161,27 @@ type CreateMeetupCombinedForm = z.infer<typeof createMeetupCombinedSchema>;
 
 export default function MeetupCreate() {
   const [_, setLocation] = useLocation();
+  const search = useSearch();
   const { toast } = useToast();
+  const draftIdParam = new URLSearchParams(search).get("draftId");
+  const draftId = draftIdParam && /^\d+$/.test(draftIdParam) ? Number(draftIdParam) : null;
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [eventCoverFile, setEventCoverFile] = useState<File | null>(null);
+  const [savedCoverUrl, setSavedCoverUrl] = useState<string | null>(null);
+  const [savedEventCoverUrl, setSavedEventCoverUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
 
   const createMeetup = useCreateMeetup();
+  const createDraft = useCreateMeetupDraft();
+  const updateDraft = useUpdateMeetupDraft();
+  const { data: draft, isLoading: isDraftLoading } = useGetMeetupDraft(draftId ?? 0, {
+    query: {
+      queryKey: getGetMeetupDraftQueryKey(draftId ?? 0),
+      enabled: draftId !== null,
+    },
+  });
 
   const form = useForm<CreateMeetupCombinedForm>({
     resolver: zodResolver(createMeetupCombinedSchema),
@@ -200,7 +220,54 @@ export default function MeetupCreate() {
     }
   });
 
-  if (isSessionLoading) return <Layout><div className="min-h-screen animate-pulse bg-background" /></Layout>;
+  useEffect(() => {
+    if (!draft) return;
+    const data = draft.data;
+    const toLocalDateTime = (value?: string) => {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+      return local.toISOString().slice(0, 16);
+    };
+    form.reset({
+      name: data.name ?? "",
+      description: data.description ?? "",
+      category: data.category ?? "Hookah",
+      mainInterest: data.interests?.[0] ?? "",
+      tags: data.tags?.join(", ") ?? "",
+      privacy: data.privacy ?? "public",
+      visibility: data.visibility ?? "visible",
+      title: data.title ?? "",
+      eventDescription: data.eventDescription ?? "",
+      eventFormat: data.eventFormat ?? "in_person",
+      venueName: data.venueName ?? "",
+      address: data.address ?? "",
+      city: data.city ?? "",
+      state: data.state ?? "",
+      zip: data.zip ?? "",
+      onlineUrl: data.onlineUrl ?? "",
+      instructions: data.instructions ?? "",
+      howToFind: data.howToFind ?? "",
+      rulesNotes: data.rulesNotes ?? "",
+      startsAt: toLocalDateTime(data.startsAt),
+      endsAt: toLocalDateTime(data.endsAt),
+      hideAttendees: data.hideAttendees ?? false,
+      attendeeLimit: data.attendeeLimit ?? 0,
+      waitlistEnabled: data.waitlistEnabled ?? false,
+      allowGuests: data.allowGuests ?? false,
+      maxGuestsPerRsvp: data.maxGuestsPerRsvp ?? 1,
+      rsvpClosesAt: toLocalDateTime(data.rsvpClosesAt),
+      isPaid: data.isPaid ?? false,
+      ticketPrice: typeof data.paidMetadata?.ticketPrice === "string" ? data.paidMetadata.ticketPrice : "",
+      refundPolicy: typeof data.paidMetadata?.refundPolicy === "string" ? data.paidMetadata.refundPolicy : "",
+      communityConfirmation: false,
+    });
+    setSavedCoverUrl(data.coverUrl ?? null);
+    setSavedEventCoverUrl(data.imageUrl ?? null);
+  }, [draft, form]);
+
+  if (isSessionLoading || (draftId !== null && isDraftLoading)) return <Layout><div className="min-h-screen animate-pulse bg-background" /></Layout>;
 
   if (!session?.authenticated) {
     return (
@@ -219,25 +286,97 @@ export default function MeetupCreate() {
     );
   }
 
+  const uploadDraftImages = async () => {
+    const coverUrl = coverFile ? await uploadImage(coverFile) : savedCoverUrl ?? undefined;
+    const imageUrl = eventCoverFile ? await uploadImage(eventCoverFile) : savedEventCoverUrl ?? undefined;
+    return { coverUrl, imageUrl };
+  };
+
+  const toDraftInput = (
+    data: CreateMeetupCombinedForm,
+    images: { coverUrl?: string; imageUrl?: string },
+  ): MeetupDraftInput => {
+    const tagsArray = data.tags ? data.tags.split(",").map(t => t.trim()).filter(Boolean) : [];
+    const dateOrUndefined = (value?: string) => {
+      if (!value) return undefined;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? value : date.toISOString();
+    };
+    return {
+      name: data.name || undefined,
+      description: data.description || undefined,
+      category: data.category || undefined,
+      interests: data.mainInterest ? [data.mainInterest] : undefined,
+      tags: tagsArray,
+      coverUrl: images.coverUrl,
+      privacy: data.privacy,
+      visibility: data.visibility,
+      title: data.title || undefined,
+      eventDescription: data.eventDescription || undefined,
+      imageUrl: images.imageUrl,
+      eventFormat: data.eventFormat,
+      startsAt: dateOrUndefined(data.startsAt),
+      endsAt: dateOrUndefined(data.endsAt),
+      venueName: data.venueName || undefined,
+      address: data.address || undefined,
+      city: data.city || undefined,
+      state: data.state || undefined,
+      zip: data.zip || undefined,
+      onlineUrl: data.onlineUrl || undefined,
+      instructions: data.instructions || undefined,
+      howToFind: data.howToFind || undefined,
+      rulesNotes: data.rulesNotes || undefined,
+      hideAttendees: data.hideAttendees,
+      attendeeLimit: data.attendeeLimit && data.attendeeLimit > 0 ? data.attendeeLimit : undefined,
+      waitlistEnabled: data.waitlistEnabled,
+      allowGuests: data.allowGuests,
+      maxGuestsPerRsvp: data.allowGuests ? (data.maxGuestsPerRsvp || 1) : undefined,
+      rsvpClosesAt: dateOrUndefined(data.rsvpClosesAt),
+      isPaid: data.isPaid,
+      paidMetadata: data.isPaid ? {
+        provider: "manual",
+        ticketPrice: data.ticketPrice,
+        refundPolicy: data.refundPolicy,
+      } : undefined,
+    };
+  };
+
+  const saveDraft = async () => {
+    setIsUploading(true);
+    try {
+      const images = await uploadDraftImages();
+      const data = toDraftInput(form.getValues(), images);
+      const saved = draftId === null
+        ? await createDraft.mutateAsync({ data })
+        : await updateDraft.mutateAsync({ groupId: draftId, data });
+      setSavedCoverUrl(saved.data.coverUrl ?? null);
+      setSavedEventCoverUrl(saved.data.imageUrl ?? null);
+      setCoverFile(null);
+      setEventCoverFile(null);
+      toast({ title: "Meetup draft saved", description: "You can return from My Meetups anytime." });
+      if (draftId === null) setLocation(`/meetups/create?draftId=${saved.group.id}`);
+    } catch (err: unknown) {
+      toast({ title: "Failed to save draft", description: getErrorMessage(err), variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const onSubmit = async (data: CreateMeetupCombinedForm) => {
-    if (!coverFile) {
+    if (!coverFile && !savedCoverUrl) {
       toast({ title: "Cover photo required", description: "Meetups look better with a banner image.", variant: "destructive" });
       return;
     }
 
     setIsUploading(true);
     try {
-      const coverUrl = await uploadImage(coverFile);
-
-      let imageUrl;
-      if (eventCoverFile) {
-        imageUrl = await uploadImage(eventCoverFile);
-      }
+      const { coverUrl, imageUrl } = await uploadDraftImages();
 
       const tagsArray = data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
 
       const { group } = await createMeetup.mutateAsync({
         data: {
+          draftId: draftId ?? undefined,
           name: data.name,
           description: data.description,
           category: data.category,
@@ -354,22 +493,20 @@ export default function MeetupCreate() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">Category *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="bg-background/80 border-orange-500/10 focus:ring-orange-500">
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="bg-card border-orange-500/20">
-                          <SelectItem value="Hookah">Hookah</SelectItem>
-                          <SelectItem value="Food">Food</SelectItem>
-                          <SelectItem value="Music">Music</SelectItem>
-                          <SelectItem value="Business">Business</SelectItem>
-                          <SelectItem value="Nightlife">Nightlife</SelectItem>
-                          <SelectItem value="Outdoors">Outdoors</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="flex h-9 w-full rounded-md border border-orange-500/10 bg-background/80 px-3 py-2 text-sm text-white shadow-sm outline-none focus:ring-1 focus:ring-orange-500"
+                        >
+                          <option value="Hookah">Hookah</option>
+                          <option value="Food">Food</option>
+                          <option value="Music">Music</option>
+                          <option value="Business">Business</option>
+                          <option value="Nightlife">Nightlife</option>
+                          <option value="Outdoors">Outdoors</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -425,11 +562,11 @@ export default function MeetupCreate() {
               <div className="space-y-4 pt-4 border-t border-orange-500/10">
                 <label className="text-sm font-medium text-white">Cover Photo *</label>
                 <div className="space-y-4">
-                  {coverFile ? (
+                  {coverFile || savedCoverUrl ? (
                     <div className="h-40 w-full rounded-2xl bg-background/50 border border-orange-500/30 overflow-hidden relative group">
-                      <img src={URL.createObjectURL(coverFile)} className="w-full h-full object-cover" alt="Cover preview" />
+                      <img src={coverFile ? URL.createObjectURL(coverFile) : savedCoverUrl ?? ""} className="w-full h-full object-cover" alt="Cover preview" />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button variant="outline" type="button" onClick={() => setCoverFile(null)} className="border-white/20 text-white">Change Photo</Button>
+                        <Button variant="outline" type="button" onClick={() => { setCoverFile(null); setSavedCoverUrl(null); }} className="border-white/20 text-white">Change Photo</Button>
                       </div>
                     </div>
                   ) : (
@@ -521,11 +658,11 @@ export default function MeetupCreate() {
               <div className="space-y-4 pt-4 border-t border-orange-500/10">
                 <label className="text-sm font-medium text-white">Event Image (Optional)</label>
                 <div className="space-y-4">
-                  {eventCoverFile ? (
+                  {eventCoverFile || savedEventCoverUrl ? (
                     <div className="h-40 w-full rounded-2xl bg-background/50 border border-orange-500/30 overflow-hidden relative group">
-                      <img src={URL.createObjectURL(eventCoverFile)} className="w-full h-full object-cover" alt="Event cover preview" />
+                      <img src={eventCoverFile ? URL.createObjectURL(eventCoverFile) : savedEventCoverUrl ?? ""} className="w-full h-full object-cover" alt="Event cover preview" />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button variant="outline" type="button" onClick={() => setEventCoverFile(null)} className="border-white/20 text-white">Remove Photo</Button>
+                        <Button variant="outline" type="button" onClick={() => { setEventCoverFile(null); setSavedEventCoverUrl(null); }} className="border-white/20 text-white">Remove Photo</Button>
                       </div>
                     </div>
                   ) : (
@@ -556,7 +693,7 @@ export default function MeetupCreate() {
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                         className="grid grid-cols-1 md:grid-cols-3 gap-4"
                       >
                         <FormItem className="flex items-center space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors cursor-pointer">
@@ -807,7 +944,7 @@ export default function MeetupCreate() {
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                           className="flex flex-col space-y-2"
                         >
                           <FormItem className="flex items-start space-x-3 space-y-0 rounded-xl border border-orange-500/20 p-4 bg-background/50 [&:has([data-state=checked])]:border-orange-500/60 [&:has([data-state=checked])]:bg-orange-500/5 transition-colors">
@@ -850,17 +987,15 @@ export default function MeetupCreate() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-white">Search Visibility *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-background/80 border-orange-500/10 focus:ring-orange-500">
-                              <SelectValue placeholder="Select visibility" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="bg-card border-orange-500/20">
-                            <SelectItem value="visible">Visible (Shows in search)</SelectItem>
-                            <SelectItem value="hidden">Hidden (Invite only)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <select
+                            {...field}
+                            className="flex h-9 w-full rounded-md border border-orange-500/10 bg-background/80 px-3 py-2 text-sm text-white shadow-sm outline-none focus:ring-1 focus:ring-orange-500"
+                          >
+                            <option value="visible">Visible (Shows in search)</option>
+                            <option value="hidden">Hidden (Invite only)</option>
+                          </select>
+                        </FormControl>
                         <FormDescription>Visible meetups can be found by anyone.</FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -899,7 +1034,7 @@ export default function MeetupCreate() {
                       <FormControl>
                         <RadioGroup
                           onValueChange={(val) => field.onChange(val === "paid")}
-                          defaultValue={field.value ? "paid" : "free"}
+                          value={field.value ? "paid" : "free"}
                           className="flex gap-4"
                         >
                           <FormItem className="flex items-center space-x-2">
@@ -1005,11 +1140,21 @@ export default function MeetupCreate() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 pb-20">
+            <div className="flex flex-col-reverse md:flex-row justify-end gap-3 pt-4 pb-20">
+              <Button
+                type="button"
+                size="lg"
+                variant="outline"
+                onClick={saveDraft}
+                disabled={createDraft.isPending || updateDraft.isPending || createMeetup.isPending || isUploading}
+                className="rounded-full border-orange-500/40 text-orange-300 hover:bg-orange-500/10 font-bold px-10 h-14 text-lg w-full md:w-auto"
+              >
+                {createDraft.isPending || updateDraft.isPending ? "Saving..." : "Save Draft"}
+              </Button>
               <Button
                 type="submit"
                 size="lg"
-                disabled={createMeetup.isPending || isUploading}
+                disabled={createDraft.isPending || updateDraft.isPending || createMeetup.isPending || isUploading}
                 className="rounded-full bg-orange-600 hover:bg-orange-500 text-white font-bold px-12 h-14 text-lg w-full md:w-auto shadow-[0_0_20px_rgba(249,115,22,0.4)]"
               >
                 {isUploading ? "Uploading..." : createMeetup.isPending ? "Publishing..." : "Publish Meetup"}

@@ -41,6 +41,7 @@ export interface GroupSummary {
   viewerMemberRole?: string | null;
   viewerHasPendingRequest?: boolean;
   createdAt: string;
+  updatedAt?: string;
   groupType?: GroupSummaryGroupType;
   meetupInterests?: string[] | null;
   /** @nullable */

@@ -252,6 +252,8 @@ import type {
   Media,
   MediaInput,
   MeetupCreation,
+  MeetupDraft,
+  MeetupDraftInput,
   MeetupInput,
   MemberProfile,
   MemberRegistration,
@@ -19727,7 +19729,7 @@ export const getCreateMeetupUrl = () => {
 }
 
 /**
- * Creates the Meetup, owner membership, standard community rules, and the primary event in one transaction. Meetup creation is published immediately; group drafts are not supported by the current group lifecycle schema.
+ * Creates the Meetup, owner membership, standard community rules, and the primary event in one transaction. When draftId is supplied, atomically activates that organizer-owned draft and creates its primary event.
 
  * @summary Create a Meetup group and its primary event atomically
  */
@@ -19789,6 +19791,226 @@ export const useCreateMeetup = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreateMeetupMutationOptions(options));
+    }
+
+export const getCreateMeetupDraftUrl = () => {
+
+
+
+
+  return `/api/groups/meetup-drafts`
+}
+
+/**
+ * @summary Save a new unfinished Meetup for the current organizer
+ */
+export const createMeetupDraft = async (meetupDraftInput: MeetupDraftInput, options?: RequestInit): Promise<MeetupDraft> => {
+
+  return customFetch<MeetupDraft>(getCreateMeetupDraftUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      meetupDraftInput,)
+  }
+);}
+
+
+
+
+export const getCreateMeetupDraftMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMeetupDraft>>, TError,{data: BodyType<MeetupDraftInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMeetupDraft>>, TError,{data: BodyType<MeetupDraftInput>}, TContext> => {
+
+const mutationKey = ['createMeetupDraft'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMeetupDraft>>, {data: BodyType<MeetupDraftInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createMeetupDraft(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateMeetupDraftMutationResult = NonNullable<Awaited<ReturnType<typeof createMeetupDraft>>>
+    export type CreateMeetupDraftMutationBody = BodyType<MeetupDraftInput>
+    export type CreateMeetupDraftMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save a new unfinished Meetup for the current organizer
+ */
+export const useCreateMeetupDraft = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMeetupDraft>>, TError,{data: BodyType<MeetupDraftInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createMeetupDraft>>,
+        TError,
+        {data: BodyType<MeetupDraftInput>},
+        TContext
+      > => {
+      return useMutation(getCreateMeetupDraftMutationOptions(options));
+    }
+
+export const getGetMeetupDraftUrl = (groupId: number,) => {
+
+
+
+
+  return `/api/groups/meetup-drafts/${groupId}`
+}
+
+/**
+ * @summary Get an organizer-owned Meetup draft
+ */
+export const getMeetupDraft = async (groupId: number, options?: RequestInit): Promise<MeetupDraft> => {
+
+  return customFetch<MeetupDraft>(getGetMeetupDraftUrl(groupId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMeetupDraftQueryKey = (groupId: number,) => {
+    return [
+    `/api/groups/meetup-drafts/${groupId}`
+    ] as const;
+    }
+
+
+export const getGetMeetupDraftQueryOptions = <TData = Awaited<ReturnType<typeof getMeetupDraft>>, TError = ErrorType<unknown>>(groupId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMeetupDraft>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMeetupDraftQueryKey(groupId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMeetupDraft>>> = ({ signal }) => getMeetupDraft(groupId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(groupId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMeetupDraft>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMeetupDraftQueryResult = NonNullable<Awaited<ReturnType<typeof getMeetupDraft>>>
+export type GetMeetupDraftQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get an organizer-owned Meetup draft
+ */
+
+export function useGetMeetupDraft<TData = Awaited<ReturnType<typeof getMeetupDraft>>, TError = ErrorType<unknown>>(
+ groupId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMeetupDraft>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMeetupDraftQueryOptions(groupId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateMeetupDraftUrl = (groupId: number,) => {
+
+
+
+
+  return `/api/groups/meetup-drafts/${groupId}`
+}
+
+/**
+ * @summary Save changes to an organizer-owned Meetup draft
+ */
+export const updateMeetupDraft = async (groupId: number,
+    meetupDraftInput: MeetupDraftInput, options?: RequestInit): Promise<MeetupDraft> => {
+
+  return customFetch<MeetupDraft>(getUpdateMeetupDraftUrl(groupId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      meetupDraftInput,)
+  }
+);}
+
+
+
+
+export const getUpdateMeetupDraftMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMeetupDraft>>, TError,{groupId: number;data: BodyType<MeetupDraftInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMeetupDraft>>, TError,{groupId: number;data: BodyType<MeetupDraftInput>}, TContext> => {
+
+const mutationKey = ['updateMeetupDraft'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMeetupDraft>>, {groupId: number;data: BodyType<MeetupDraftInput>}> = (props) => {
+          const {groupId,data} = props ?? {};
+
+          return  updateMeetupDraft(groupId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMeetupDraftMutationResult = NonNullable<Awaited<ReturnType<typeof updateMeetupDraft>>>
+    export type UpdateMeetupDraftMutationBody = BodyType<MeetupDraftInput>
+    export type UpdateMeetupDraftMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save changes to an organizer-owned Meetup draft
+ */
+export const useUpdateMeetupDraft = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMeetupDraft>>, TError,{groupId: number;data: BodyType<MeetupDraftInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMeetupDraft>>,
+        TError,
+        {groupId: number;data: BodyType<MeetupDraftInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateMeetupDraftMutationOptions(options));
     }
 
 export const getListMyGroupsUrl = () => {
