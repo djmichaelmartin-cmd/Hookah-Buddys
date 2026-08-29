@@ -5,6 +5,7 @@ import {
   useListMyGroups,
   useListMyGroupInvites,
   useRespondToGroupInvite,
+  useDeleteMeetupDraft,
   useGetCurrentUser,
   getListMyGroupsQueryKey,
   getListMyGroupInvitesQueryKey,
@@ -13,12 +14,23 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Users, Globe, Lock, ShieldCheck, Mail, Check, X, Plus, CalendarDays, MapPin, FileEdit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trackEvent } from "@/lib/analytics";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import LoungeLeftSidebar from "@/components/lounge/LoungeLeftSidebar";
+import { Users, Globe, Lock, ShieldCheck, Mail, Check, X, Plus, CalendarDays, MapPin, FileEdit, Trash2 } from "lucide-react";
 
 export default function DashboardMeetups() {
   const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
@@ -132,6 +144,24 @@ function MyMeetupsContent() {
 }
 
 function DraftGrid({ drafts }: { drafts: GroupSummary[] }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const discardDraft = useDeleteMeetupDraft({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Meetup draft discarded" });
+        queryClient.invalidateQueries({ queryKey: getListMyGroupsQueryKey() });
+      },
+      onError: () => {
+        toast({
+          title: "Could not discard draft",
+          description: "Please try again in a moment.",
+          variant: "destructive",
+        });
+      },
+    },
+  });
+
   if (drafts.length === 0) {
     return (
       <div className="py-24 text-center bg-card/30 border border-orange-500/10 rounded-3xl backdrop-blur-md">
@@ -165,11 +195,43 @@ function DraftGrid({ drafts }: { drafts: GroupSummary[] }) {
             <p className="text-xs text-white/50 mt-1 mb-4">
               Last saved {draft.updatedAt ? new Date(draft.updatedAt).toLocaleDateString() : new Date(draft.createdAt).toLocaleDateString()}
             </p>
-            <Link href={`/meetups/create?draftId=${draft.id}`} className="mt-auto">
-              <Button className="w-full rounded-full bg-orange-600 hover:bg-orange-500 text-white font-bold">
-                <FileEdit className="w-4 h-4 mr-2" /> Continue
-              </Button>
-            </Link>
+            <div className="mt-auto flex gap-2">
+              <Link href={`/meetups/create?draftId=${draft.id}`} className="flex-1">
+                <Button className="w-full rounded-full bg-orange-600 hover:bg-orange-500 text-white font-bold">
+                  <FileEdit className="w-4 h-4 mr-2" /> Continue
+                </Button>
+              </Link>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 rounded-full border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                    aria-label={`Discard ${draft.name || "Untitled Meetup"} draft`}
+                    disabled={discardDraft.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Discard this Meetup draft?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently removes “{draft.name || "Untitled Meetup"}”. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep draft</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-red-600 text-white hover:bg-red-500"
+                      onClick={() => discardDraft.mutate({ groupId: draft.id })}
+                    >
+                      Discard draft
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         </div>
       ))}

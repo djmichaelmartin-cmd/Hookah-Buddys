@@ -25,6 +25,10 @@ import {
   verificationsTable,
   reelsTable,
   loungesTable,
+  groupsTable,
+  groupEventsTable,
+  groupPostsTable,
+  groupMediaTable,
 } from "@workspace/db";
 import { ObjectStorageService, objectStorageClient } from "../lib/objectStorage";
 
@@ -59,6 +63,19 @@ async function collectReferencedIds(): Promise<Set<string>> {
   const add = (v: string | null | undefined) => {
     const id = extractUploadId(v);
     if (id) referenced.add(id);
+  };
+  const addNestedStrings = (value: unknown): void => {
+    if (typeof value === "string") {
+      add(value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach(addNestedStrings);
+      return;
+    }
+    if (value && typeof value === "object") {
+      Object.values(value).forEach(addNestedStrings);
+    }
   };
 
   // Every table/column that can hold a storage object URL.
@@ -133,6 +150,40 @@ async function collectReferencedIds(): Promise<Set<string>> {
     .select({ a: loungesTable.imageUrl })
     .from(loungesTable);
   lounges.forEach((r) => add(r.a));
+
+  const groups = await db
+    .select({
+      a: groupsTable.coverUrl,
+      b: groupsTable.iconUrl,
+      draftData: groupsTable.meetupDraftData,
+    })
+    .from(groupsTable);
+  groups.forEach((r) => {
+    add(r.a);
+    add(r.b);
+    addNestedStrings(r.draftData);
+  });
+
+  const groupEvents = await db
+    .select({ a: groupEventsTable.imageUrl })
+    .from(groupEventsTable);
+  groupEvents.forEach((r) => add(r.a));
+
+  const groupPosts = await db
+    .select({ a: groupPostsTable.mediaUrl, b: groupPostsTable.posterUrl })
+    .from(groupPostsTable);
+  groupPosts.forEach((r) => {
+    add(r.a);
+    add(r.b);
+  });
+
+  const groupMedia = await db
+    .select({ a: groupMediaTable.mediaUrl, b: groupMediaTable.posterUrl })
+    .from(groupMediaTable);
+  groupMedia.forEach((r) => {
+    add(r.a);
+    add(r.b);
+  });
 
   return referenced;
 }

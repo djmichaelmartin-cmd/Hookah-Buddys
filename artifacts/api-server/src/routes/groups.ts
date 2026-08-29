@@ -75,6 +75,7 @@ import {
   CreateMeetupBody,
   CreateMeetupDraftBody,
   UpdateMeetupDraftBody,
+  DeleteMeetupDraftParams,
   UpdateGroupBody,
   InviteToGroupBody,
   RespondToGroupInviteBody,
@@ -1737,7 +1738,7 @@ router.post("/groups/meetup-drafts", requireAuth(), requireCompleteBuddyProfile,
   });
 });
 
-// GET/PUT /groups/meetup-drafts/:groupId — organizer/admin-only draft access.
+// GET/PUT/DELETE /groups/meetup-drafts/:groupId — dedicated draft access.
 router.get("/groups/meetup-drafts/:groupId", requireAuth(), async (req, res): Promise<void> => {
   const user = req.currentUser!;
   const groupId = parseId(req.params.groupId);
@@ -1814,6 +1815,75 @@ router.put("/groups/meetup-drafts/:groupId", requireAuth(), async (req, res): Pr
     group: serializeGroup(group, { viewerMemberRole: group.creatorUserId === user.id ? "owner" : "admin" }),
     data: draftData,
   });
+});
+
+router.delete("/groups/meetup-drafts/:groupId", requireAuth(), async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const parsed = DeleteMeetupDraftParams.safeParse(req.params);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const groupId = parsed.data.groupId;
+  const discarded = await db.transaction(async (tx) => {
+    const [draft] = await tx
+      .select({
+        id: groupsTable.id,
+        creatorUserId: groupsTable.creatorUserId,
+        groupType: groupsTable.groupType,
+        status: groupsTable.status,
+      })
+      .from(groupsTable)
+      .where(
+        and(
+          eq(groupsTable.id, groupId),
+          eq(groupsTable.groupType, "meetup"),
+          eq(groupsTable.status, "draft"),
+          eq(groupsTable.creatorUserId, user.id),
+        ),
+      )
+      .for("update");
+
+    if (
+      !draft ||
+      draft.groupType !== "meetup" ||
+      draft.status !== "draft" ||
+      draft.creatorUserId !== user.id
+    ) {
+      return false;
+    }
+
+    // Group tables do not have database-level cascading foreign keys. Remove
+    // the owner membership explicitly so discarding cannot leave a dangling
+    // My Groups record behind.
+    await tx
+      .delete(groupMembersTable)
+      .where(eq(groupMembersTable.groupId, groupId));
+
+    const [deleted] = await tx
+      .delete(groupsTable)
+      .where(
+        and(
+          eq(groupsTable.id, groupId),
+          eq(groupsTable.groupType, "meetup"),
+          eq(groupsTable.status, "draft"),
+          eq(groupsTable.creatorUserId, user.id),
+        ),
+      )
+      .returning({ id: groupsTable.id });
+
+    return Boolean(deleted);
+  });
+
+  if (!discarded) {
+    res.status(404).json({ error: "Meetup draft not found" });
+    return;
+  }
+
+  // Removing the draft releases its finalized upload references for the
+  // reference-aware orphan cleanup process.
+  res.sendStatus(204);
 });
 
 // POST /groups

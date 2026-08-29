@@ -33,6 +33,11 @@ function readGroupsRouteSource(): string {
   return readFileSync(join(here, "..", "routes", "groups.ts"), "utf8");
 }
 
+function readOrphanCleanupSource(): string {
+  const here = dirname(fileURLToPath(import.meta.url));
+  return readFileSync(join(here, "..", "scripts", "cleanupOrphanedUploads.ts"), "utf8");
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Fake DB — identical pattern to groupsRoutes.test.ts
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +65,9 @@ const h = vi.hoisted(() => {
   function lastWhere(table: unknown): unknown {
     const arr = whereCaptures.get(table);
     return arr && arr.length ? arr[arr.length - 1] : undefined;
+  }
+  function pending(table: unknown): number {
+    return queues.get(table)?.length ?? 0;
   }
 
   // ── Behavioral SQL-equality filtering (opt-in per table) ─────────────────────
@@ -133,8 +141,8 @@ const h = vi.hoisted(() => {
     sqlFilteredTables.add(table);
   }
 
-  function makeBuilder() {
-    let fromTable: unknown = null;
+  function makeBuilder(initialTable: unknown = null) {
+    let fromTable: unknown = initialTable;
     let localWhere: unknown = undefined;
     const builder: Record<string, unknown> = {};
     const chain = (fn?: (arg: unknown) => void) => (arg?: unknown) => {
@@ -172,11 +180,11 @@ const h = vi.hoisted(() => {
     select: (_cols?: unknown) => makeBuilder(),
     insert: () => makeBuilder(),
     update: () => makeBuilder(),
-    delete: () => makeBuilder(),
+    delete: (table: unknown) => makeBuilder(table),
     transaction: async (fn: (tx: unknown) => unknown) => fn(db),
   };
 
-  return { queues, enqueue, reset, db, lastWhere, enableSqlFilter };
+  return { queues, enqueue, reset, db, lastWhere, pending, enableSqlFilter };
 });
 
 vi.mock("@workspace/db", async () => {
@@ -442,16 +450,18 @@ describe("Meetup combined creation contract", () => {
     expect(route).toContain("res.status(409)");
   });
 
-  it("keeps draft endpoints above parameterized group routes and owner/admin scoped", () => {
+  it("keeps draft endpoints above parameterized group routes and properly scoped", () => {
     const source = readGroupsRouteSource();
     const createDraft = source.indexOf('router.post("/groups/meetup-drafts"');
     const getDraft = source.indexOf('router.get("/groups/meetup-drafts/:groupId"');
     const updateDraft = source.indexOf('router.put("/groups/meetup-drafts/:groupId"');
+    const deleteDraft = source.indexOf('router.delete("/groups/meetup-drafts/:groupId"');
     const groupDetail = source.indexOf('router.get("/groups/:groupId"');
     expect(createDraft).toBeGreaterThanOrEqual(0);
     expect(getDraft).toBeGreaterThan(createDraft);
     expect(updateDraft).toBeGreaterThan(getDraft);
-    expect(groupDetail).toBeGreaterThan(updateDraft);
+    expect(deleteDraft).toBeGreaterThan(updateDraft);
+    expect(groupDetail).toBeGreaterThan(deleteDraft);
     const draftRoutes = source.slice(createDraft, source.indexOf('router.post("/groups/meetups"', createDraft));
     expect(draftRoutes).toContain('group.status !== "draft"');
     expect(draftRoutes).toContain('user.role !== "admin"');
@@ -584,6 +594,50 @@ describe("Meetup draft visibility", () => {
     h.enqueue(T.groupsTable, [privateVisibleDraft()]);
     const adminRes = await req("/groups/meetup-drafts/1", { user: admin });
     expect(adminRes.status).toBe(200);
+  });
+
+  it("allows only the organizer to discard a draft", async () => {
+    h.enqueue(T.groupsTable, [privateVisibleDraft()]);
+    const strangerRes = await req("/groups/meetup-drafts/1", {
+      user: nonMember,
+      method: "DELETE",
+    });
+    expect(strangerRes.status).toBe(404);
+
+    h.enqueue(T.groupsTable, [privateVisibleDraft()]);
+    const adminRes = await req("/groups/meetup-drafts/1", {
+      user: admin,
+      method: "DELETE",
+    });
+    expect(adminRes.status).toBe(404);
+
+    h.enqueue(T.groupsTable, [privateVisibleDraft()]);
+    h.enqueue(T.groupMembersTable, [{ groupId: 1, userId: owner.id }]);
+    h.enqueue(T.groupsTable, [{ id: 1 }]);
+    const ownerRes = await req("/groups/meetup-drafts/1", {
+      user: owner,
+      method: "DELETE",
+    });
+    expect(ownerRes.status).toBe(204);
+    expect(h.pending(T.groupMembersTable)).toBe(0);
+    expect(h.pending(T.groupsTable)).toBe(0);
+  });
+
+  it("does not delete a published Meetup through the draft endpoint", async () => {
+    h.enqueue(T.groupsTable, [meetupGroup({ status: "active" })]);
+    const res = await req("/groups/meetup-drafts/1", {
+      user: owner,
+      method: "DELETE",
+    });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "Meetup draft not found" });
+  });
+
+  it("keeps draft images referenced until deletion releases them for orphan cleanup", () => {
+    const source = readOrphanCleanupSource();
+    expect(source).toContain("groupsTable.coverUrl");
+    expect(source).toContain("groupsTable.meetupDraftData");
+    expect(source).toContain("addNestedStrings(r.draftData)");
   });
 });
 

@@ -20013,6 +20013,76 @@ export const useUpdateMeetupDraft = <TError = ErrorType<unknown>,
       return useMutation(getUpdateMeetupDraftMutationOptions(options));
     }
 
+export const getDeleteMeetupDraftUrl = (groupId: number,) => {
+
+
+
+
+  return `/api/groups/meetup-drafts/${groupId}`
+}
+
+/**
+ * @summary Permanently discard an organizer-owned Meetup draft
+ */
+export const deleteMeetupDraft = async (groupId: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteMeetupDraftUrl(groupId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteMeetupDraftMutationOptions = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMeetupDraft>>, TError,{groupId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMeetupDraft>>, TError,{groupId: number}, TContext> => {
+
+const mutationKey = ['deleteMeetupDraft'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMeetupDraft>>, {groupId: number}> = (props) => {
+          const {groupId} = props ?? {};
+
+          return  deleteMeetupDraft(groupId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMeetupDraftMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMeetupDraft>>>
+
+    export type DeleteMeetupDraftMutationError = ErrorType<ErrorEnvelope>
+
+    /**
+ * @summary Permanently discard an organizer-owned Meetup draft
+ */
+export const useDeleteMeetupDraft = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMeetupDraft>>, TError,{groupId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMeetupDraft>>,
+        TError,
+        {groupId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteMeetupDraftMutationOptions(options));
+    }
+
 export const getListMyGroupsUrl = () => {
 
 

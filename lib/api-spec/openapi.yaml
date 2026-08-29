@@ -5002,6 +5002,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MeetupDraft"
+    delete:
+      operationId: deleteMeetupDraft
+      tags: [groups]
+      summary: Permanently discard an organizer-owned Meetup draft
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Draft discarded
+        "404":
+          description: Draft not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
 
   /groups/my:
     get:
