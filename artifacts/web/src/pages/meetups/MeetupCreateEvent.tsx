@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarPlus, MapPin, Image as ImageIcon, Link as LinkIcon, DollarSign, SwitchCamera, Info, Store, Users } from "lucide-react";
 import { uploadImage } from "@/lib/uploadImage";
 import { getErrorMessage } from "@/lib/error";
+import { meetupHostType, trackEvent } from "@/lib/analytics";
 
 const createEventSchema = z.object({
   title: z.string().min(1, "Event title is required").max(100),
@@ -102,6 +103,9 @@ export default function MeetupCreateEvent() {
   const createEvent = useCreateGroupEvent({
     mutation: {
       onSuccess: () => {
+        trackEvent("meetup_event_published", {
+          host_type: meetupHostType(businessId),
+        });
         toast({ title: "Event successfully scheduled!" });
         queryClient.invalidateQueries({ queryKey: getListGroupEventsQueryKey(groupId) });
         setLocation(`/meetups/${groupId}`);

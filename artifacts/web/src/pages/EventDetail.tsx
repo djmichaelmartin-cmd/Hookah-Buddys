@@ -24,6 +24,7 @@ import {
   Info
 } from "lucide-react";
 import { EventHost } from "@/components/EventHost";
+import { meetupHostType, trackEvent } from "@/lib/analytics";
 
 function formatEventDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -66,6 +67,11 @@ export default function EventDetail() {
   const rsvp = useToggleEventRsvp({
     mutation: {
       onSuccess: (result) => {
+        if (isMeetup && result.rsvped && !result.waitlisted) {
+          trackEvent("meetup_rsvp_completed", {
+            host_type: meetupHostType((event as { businessId?: number | null } | undefined)?.businessId),
+          });
+        }
         invalidate();
         toast({
           title: result.waitlisted

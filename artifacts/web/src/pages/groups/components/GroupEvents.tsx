@@ -27,6 +27,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import { EventHost } from "@/components/EventHost";
+import { meetupHostType, trackEvent } from "@/lib/analytics";
 
 export function GroupEvents({
   groupId,
@@ -179,7 +180,12 @@ function EventCard({ event, groupId, isAdmin, isMeetup, canMessageAttendees, onD
 
   const rsvpMutation = useRsvpGroupEvent({
     mutation: {
-      onSuccess: () => {
+      onSuccess: (result) => {
+        if (isMeetup && result.rsvpStatus === "going") {
+          trackEvent("meetup_rsvp_completed", {
+            host_type: meetupHostType((event as GroupEvent & { businessId?: number | null }).businessId),
+          });
+        }
         toast({ title: "RSVP updated" });
         queryClient.invalidateQueries({ queryKey: getListGroupEventsQueryKey(groupId, { limit: 20 }) });
       },

@@ -32,6 +32,7 @@ import { uploadImage } from "@/lib/uploadImage";
 import { getErrorMessage } from "@/lib/error";
 import { CalendarDays, Globe, Lock, MapPin, Tent, Image as ImageIcon, Link as LinkIcon, SwitchCamera, Store, Users } from "lucide-react";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
+import { meetupHostType, trackEvent } from "@/lib/analytics";
 
 const createMeetupCombinedSchema = z.object({
   // Meetup fields
@@ -470,6 +471,9 @@ export default function MeetupCreate() {
         }
       });
 
+      trackEvent("meetup_published", {
+        host_type: meetupHostType(businessId),
+      });
       toast({ title: "Your Meetup has been created." });
       allowNavigation();
       setLocation(`/meetups/${group.id}`);
