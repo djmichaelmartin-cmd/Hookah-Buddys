@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "wouter";
+import { EventHost } from "@/components/EventHost";
 
 export function GroupEvents({
   groupId,
@@ -248,6 +249,12 @@ function EventCard({ event, groupId, isAdmin, isMeetup, canMessageAttendees, onD
               </span>
             )}
           </div>
+
+          {isMeetup && (
+            <div className="mb-3">
+              <EventHost event={event} fallbackName="Meetup organizer" compact />
+            </div>
+          )}
 
           {event.description && <p className="text-sm text-white/70 mb-4 line-clamp-2">{event.description}</p>}
 

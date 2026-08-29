@@ -12,4 +12,5 @@ export interface EditableSparkBusiness {
   handle: string;
   /** @nullable */
   logoUrl: string | null;
+  isPublished: boolean;
 }

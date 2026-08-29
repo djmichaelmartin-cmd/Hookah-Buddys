@@ -446,6 +446,9 @@ export const groupEventsTable = pgTable("group_events", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id").notNull(),
   createdByUserId: integer("created_by_user_id").notNull(),
+  // Optional Business Page host attribution. The creating user remains recorded
+  // for audit/permissions, while public serializers expose only the page.
+  businessId: integer("business_id"),
   title: text("title").notNull(),
   description: text("description"),
   location: text("location"),

@@ -20,10 +20,10 @@ import {
   MapPin,
   Share2,
   Users,
-  Tent,
   DollarSign,
   Info
 } from "lucide-react";
+import { EventHost } from "@/components/EventHost";
 
 function formatEventDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -204,11 +204,13 @@ export default function EventDetail() {
                   </div>
                 </div>
 
-                {isMeetup && event.meetupName && (
+                {isMeetup && (event.meetupName || (event as { businessId?: number | null }).businessId) && (
                   <div>
-                    <Link href={`/meetups/${event.meetupId}`} className="inline-flex items-center gap-2 text-sm text-orange-400 hover:text-orange-300 bg-orange-500/10 px-3 py-1.5 rounded-lg transition-colors border border-orange-500/20">
-                      <Tent className="w-4 h-4" /> Hosted by <span className="font-bold">{event.meetupName}</span>
-                    </Link>
+                    <EventHost
+                      event={event}
+                      fallbackName={event.meetupName}
+                      fallbackHref={event.meetupId ? `/meetups/${event.meetupId}` : undefined}
+                    />
                   </div>
                 )}
               </div>

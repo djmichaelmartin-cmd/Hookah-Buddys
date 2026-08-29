@@ -13,6 +13,17 @@ export interface GroupEvent {
   id: number;
   groupId: number;
   createdByUserId?: number;
+  /**
+     * Business Page hosting this event
+     * @nullable
+     */
+  businessId?: number | null;
+  /** @nullable */
+  businessName?: string | null;
+  /** @nullable */
+  businessHandle?: string | null;
+  /** @nullable */
+  businessLogoUrl?: string | null;
   title: string;
   /** @nullable */
   description?: string | null;

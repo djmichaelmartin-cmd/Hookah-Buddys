@@ -6717,6 +6717,10 @@ components:
         sourceId: { type: ["integer", "null"], description: "group_event.id (original source record)" }
         meetupId: { type: ["integer", "null"], description: "groups.id (Meetup group)" }
         meetupName: { type: ["string", "null"], description: "Meetup group name" }
+        businessId: { type: ["integer", "null"], description: "Business Page hosting the Meetup event" }
+        businessName: { type: ["string", "null"] }
+        businessHandle: { type: ["string", "null"] }
+        businessLogoUrl: { type: ["string", "null"] }
         # Additional Meetup-projected fields (null on native events, never includes protected onlineUrl)
         eventFormat: { type: ["string", "null"], description: "in_person | online | hybrid (meetup projected only)" }
         eventCategory: { type: ["string", "null"], description: "Meetup event category" }
@@ -8109,12 +8113,13 @@ components:
 
     EditableSparkBusiness:
       type: object
-      required: [id, name, handle, logoUrl]
+      required: [id, name, handle, logoUrl, isPublished]
       properties:
         id: { type: integer }
         name: { type: string }
         handle: { type: string }
         logoUrl: { type: ["string", "null"] }
+        isPublished: { type: boolean }
 
     Reel:
       type: object
@@ -9781,6 +9786,10 @@ components:
         id: { type: integer }
         groupId: { type: integer }
         createdByUserId: { type: integer }
+        businessId: { type: ["integer", "null"], description: "Business Page hosting this event" }
+        businessName: { type: ["string", "null"] }
+        businessHandle: { type: ["string", "null"] }
+        businessLogoUrl: { type: ["string", "null"] }
         title: { type: string }
         description: { type: ["string", "null"] }
         location: { type: ["string", "null"] }
@@ -9832,6 +9841,7 @@ components:
       required: [title, startsAt]
       properties:
         title: { type: string, minLength: 1 }
+        businessId: { type: integer, minimum: 1, description: "Host as an active Business Page the user can manage content for" }
         description: { type: string }
         location: { type: string }
         onlineUrl: { type: string }
@@ -9867,6 +9877,7 @@ components:
       properties:
         draftId: { type: integer, description: "Organizer-owned draft to publish instead of creating a new Meetup row" }
         name: { type: string, minLength: 1, maxLength: 100 }
+        businessId: { type: integer, minimum: 1, description: "Host the primary event as an active Business Page the user can manage content for" }
         description: { type: string }
         category: { type: string }
         interests: { type: array, items: { type: string } }
@@ -9963,6 +9974,7 @@ components:
       type: object
       properties:
         title: { type: string, minLength: 1 }
+        businessId: { type: ["integer", "null"], minimum: 1, description: "Change or clear Business Page host attribution" }
         description: { type: string }
         location: { type: string }
         onlineUrl: { type: string }

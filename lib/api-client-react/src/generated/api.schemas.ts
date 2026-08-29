@@ -556,6 +556,17 @@ export interface Event {
      */
   meetupName?: string | null;
   /**
+     * Business Page hosting the Meetup event
+     * @nullable
+     */
+  businessId?: number | null;
+  /** @nullable */
+  businessName?: string | null;
+  /** @nullable */
+  businessHandle?: string | null;
+  /** @nullable */
+  businessLogoUrl?: string | null;
+  /**
      * in_person | online | hybrid (meetup projected only)
      * @nullable
      */
@@ -2836,6 +2847,7 @@ export interface EditableSparkBusiness {
   handle: string;
   /** @nullable */
   logoUrl: string | null;
+  isPublished: boolean;
 }
 
 export type ReelUserRole = typeof ReelUserRole[keyof typeof ReelUserRole];
@@ -5246,6 +5258,17 @@ export interface GroupEvent {
   id: number;
   groupId: number;
   createdByUserId?: number;
+  /**
+     * Business Page hosting this event
+     * @nullable
+     */
+  businessId?: number | null;
+  /** @nullable */
+  businessName?: string | null;
+  /** @nullable */
+  businessHandle?: string | null;
+  /** @nullable */
+  businessLogoUrl?: string | null;
   title: string;
   /** @nullable */
   description?: string | null;
@@ -5357,6 +5380,11 @@ export type CreateGroupEventBodyPaidMetadata = { [key: string]: unknown };
 export interface CreateGroupEventBody {
   /** @minLength 1 */
   title: string;
+  /**
+     * Host as an active Business Page the user can manage content for
+     * @minimum 1
+     */
+  businessId?: number;
   description?: string;
   location?: string;
   onlineUrl?: string;
@@ -5424,6 +5452,11 @@ export interface MeetupInput {
      * @maxLength 100
      */
   name: string;
+  /**
+     * Host the primary event as an active Business Page the user can manage content for
+     * @minimum 1
+     */
+  businessId?: number;
   description?: string;
   category?: string;
   interests?: string[];
@@ -5579,6 +5612,12 @@ export type UpdateGroupEventBodyPaidMetadata = { [key: string]: unknown } | null
 export interface UpdateGroupEventBody {
   /** @minLength 1 */
   title?: string;
+  /**
+     * Change or clear Business Page host attribution
+     * @minimum 1
+     * @nullable
+     */
+  businessId?: number | null;
   description?: string;
   location?: string;
   onlineUrl?: string;
@@ -6695,4 +6734,3 @@ export type AdminTransferGroupOwnerBody = {
   newOwnerUserId: number;
   reason?: string;
 };
-

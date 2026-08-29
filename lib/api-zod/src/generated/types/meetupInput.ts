@@ -18,6 +18,11 @@ export interface MeetupInput {
      * @maxLength 100
      */
   name: string;
+  /**
+     * Host the primary event as an active Business Page the user can manage content for
+     * @minimum 1
+     */
+  businessId?: number;
   description?: string;
   category?: string;
   interests?: string[];

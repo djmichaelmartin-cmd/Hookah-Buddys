@@ -24,6 +24,7 @@ import {
 import { BadgeCheck, MapPin, Star, Crown, CalendarDays, Bookmark, Check, Users, Lock, AlertCircle, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BuddyPill } from "@/components/BuddyPill";
+import { EventHost } from "@/components/EventHost";
 
 type Props = {
   onSelectHashtag?: (tag: string) => void;
@@ -162,6 +163,16 @@ function EventRow({ event, loggedIn }: { event: Event; loggedIn: boolean }) {
   return (
     <div className="py-2 border-b border-white/5 last:border-b-0">
       <p className="text-sm text-white font-medium leading-snug">{event.title}</p>
+      {event.sourceType === "meetup_event" && (
+        <div className="mt-1">
+          <EventHost
+            event={event}
+            fallbackName={event.meetupName}
+            fallbackHref={event.meetupId ? `/meetups/${event.meetupId}` : undefined}
+            compact
+          />
+        </div>
+      )}
       <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
         <CalendarDays className="h-3 w-3 shrink-0" />
         {formatEventDate(event.startsAt)}

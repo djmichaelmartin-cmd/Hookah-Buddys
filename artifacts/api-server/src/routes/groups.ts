@@ -139,6 +139,12 @@ import {
   sharingSuspensionsTable,
 } from "@workspace/db";
 import { buildSharedPostPreview, getEffectiveShareDestinations } from "../lib/sharingPolicy";
+import {
+  getAuthorizedEventBusiness,
+  loadBusinessAttributions,
+  serializeEventBusinessAttribution,
+  type BusinessAttribution,
+} from "../lib/businessAttribution";
 
 const router: IRouter = Router();
 
@@ -1149,6 +1155,7 @@ function serializeGroupEvent(
     groupIsPrivate?: boolean;
     viewerRsvp?: typeof groupEventRsvpsTable.$inferSelect | null;
     viewerSaved?: boolean;
+    business?: BusinessAttribution | null;
   } = {},
 ) {
   // Protect the online URL: only reveal it to confirmed attendees
@@ -1162,6 +1169,7 @@ function serializeGroupEvent(
     id: event.id,
     groupId: event.groupId,
     createdByUserId: event.createdByUserId,
+    ...serializeEventBusinessAttribution(event.businessId, opts.business),
     title: event.title,
     description: event.description,
     location: event.location,
@@ -1825,6 +1833,13 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
     }
     draftGroup = candidate;
   }
+  const eventBusiness = data.businessId
+    ? await getAuthorizedEventBusiness(data.businessId, user.id)
+    : null;
+  if (data.businessId && !eventBusiness) {
+    res.status(403).json({ error: "You cannot host events as this Business Page" });
+    return;
+  }
   const startsAt = new Date(data.startsAt);
   const endsAt = new Date(data.endsAt);
   if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
@@ -1986,6 +2001,7 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
       .values({
         groupId: createdGroup.id,
         createdByUserId: draftGroup?.creatorUserId ?? user.id,
+        businessId: eventBusiness?.id ?? null,
         title: data.title,
         description: data.eventDescription ?? null,
         location: eventLocation,
@@ -2038,6 +2054,7 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
     primaryEvent: serializeGroupEvent(event, {
       viewerRsvpStatus: null,
       groupIsPrivate: group.privacy === "private",
+      business: eventBusiness,
     }),
   });
 });
@@ -5267,6 +5284,7 @@ router.get("/groups/:groupId/events", async (req, res): Promise<void> => {
     .where(and(...conditions))
     .orderBy(scope === "past" ? desc(groupEventsTable.startsAt) : asc(groupEventsTable.startsAt))
     .limit(limit);
+  const businessById = await loadBusinessAttributions(events.map((event) => event.businessId));
 
   const viewerId = viewer?.id ?? null;
 
@@ -5306,6 +5324,7 @@ router.get("/groups/:groupId/events", async (req, res): Promise<void> => {
         viewerRsvp,
         viewerSaved,
         groupIsPrivate: group.privacy === "private",
+        business: e.businessId ? businessById.get(e.businessId) ?? null : null,
       });
     }),
   );
@@ -5339,6 +5358,13 @@ router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfil
     return;
   }
   const data = parsed.data;
+  const eventBusiness = data.businessId
+    ? await getAuthorizedEventBusiness(data.businessId, user.id)
+    : null;
+  if (data.businessId && !eventBusiness) {
+    res.status(403).json({ error: "You cannot host events as this Business Page" });
+    return;
+  }
   const startsAt = new Date(data.startsAt);
   const endsAt = data.endsAt ? new Date(data.endsAt) : null;
   if (
@@ -5408,6 +5434,7 @@ router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfil
       .values({
         groupId,
         createdByUserId: user.id,
+        businessId: eventBusiness?.id ?? null,
         title: data.title,
         description: data.description ?? null,
         location: data.location ?? null,
@@ -5459,6 +5486,7 @@ router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfil
     serializeGroupEvent(event, {
       viewerRsvpStatus: null,
       groupIsPrivate: group.privacy === "private",
+      business: eventBusiness,
     }),
   );
 });
@@ -5527,6 +5555,7 @@ router.get("/groups/:groupId/events/:eventId", async (req, res): Promise<void> =
       );
     viewerSaved = !!saveRow;
   }
+  const businessById = await loadBusinessAttributions([event.businessId]);
 
   res.json(
     serializeGroupEvent(event, {
@@ -5534,6 +5563,7 @@ router.get("/groups/:groupId/events/:eventId", async (req, res): Promise<void> =
       viewerRsvp,
       viewerSaved,
       groupIsPrivate: group.privacy === "private",
+      business: event.businessId ? businessById.get(event.businessId) ?? null : null,
     }),
   );
 });
@@ -5572,6 +5602,19 @@ router.patch("/groups/:groupId/events/:eventId", requireAuth(), async (req, res)
     return;
   }
   const data = parsed.data;
+  const changingBusiness =
+    data.businessId !== undefined && data.businessId !== event.businessId;
+  let eventBusiness: BusinessAttribution | null = null;
+  if (changingBusiness && data.businessId != null) {
+    eventBusiness = await getAuthorizedEventBusiness(data.businessId, user.id);
+    if (!eventBusiness) {
+      res.status(403).json({ error: "You cannot host events as this Business Page" });
+      return;
+    }
+  } else if (!changingBusiness && event.businessId !== null) {
+    const businessById = await loadBusinessAttributions([event.businessId]);
+    eventBusiness = businessById.get(event.businessId) ?? null;
+  }
 
   let imageUrl = event.imageUrl;
   if (data.imageUrl !== undefined) {
@@ -5603,6 +5646,10 @@ router.patch("/groups/:groupId/events/:eventId", requireAuth(), async (req, res)
   // Build the full patch once so the transactional and non-transactional paths
   // apply identical field semantics (only whitelisted fields; undefined → keep).
   const patch = {
+    // Omission preserves attribution. Explicit null clears it. A changed,
+    // non-null value has already passed the active page-role check above.
+    businessId:
+      data.businessId !== undefined ? (data.businessId ?? null) : event.businessId,
     title: data.title ?? event.title,
     description:
       data.description !== undefined ? (data.description ?? null) : event.description,
@@ -5717,6 +5764,7 @@ router.patch("/groups/:groupId/events/:eventId", requireAuth(), async (req, res)
     serializeGroupEvent(updated, {
       viewerRsvpStatus: null,
       groupIsPrivate: guard.group.privacy === "private",
+      business: eventBusiness,
     }),
   );
 });

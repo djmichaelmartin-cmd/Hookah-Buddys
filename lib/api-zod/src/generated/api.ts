@@ -49,9 +49,6 @@ export const registerDollBodyEmailMin = 3;
 export const registerDollBodyPasswordMin = 6;
 
 
-
-
-
 export const RegisterDollBody = zod.object({
   "legalName": zod.string().min(1),
   "stageName": zod.string().min(1),
@@ -83,7 +80,6 @@ export const registerMemberBodyEmailMin = 3;
 
 
 export const registerMemberBodyPasswordMin = 6;
-
 
 
 export const RegisterMemberBody = zod.object({
@@ -445,7 +441,6 @@ export const GetMyDollAnalyticsResponse = zod.object({
  */
 
 
-
 export const UploadMediaBody = zod.object({
   "type": zod.enum(['profile', 'free_photo', 'premium_photo', 'premium_video', 'short_video', 'verification']),
   "url": zod.string().min(1),
@@ -541,10 +536,6 @@ export const ModerateMediaResponse = zod.object({
 /**
  * @summary Submit verification materials (Doll)
  */
-
-
-
-
 
 
 export const SubmitVerificationBody = zod.object({
@@ -830,6 +821,10 @@ export const ListEventsResponseItem = zod.object({
   "sourceId": zod.number().nullish().describe('group_event.id (original source record)'),
   "meetupId": zod.number().nullish().describe('groups.id (Meetup group)'),
   "meetupName": zod.string().nullish().describe('Meetup group name'),
+  "businessId": zod.number().nullish().describe('Business Page hosting the Meetup event'),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "eventFormat": zod.string().nullish().describe('in_person | online | hybrid (meetup projected only)'),
   "eventCategory": zod.string().nullish().describe('Meetup event category'),
   "topics": zod.array(zod.string()).nullish().describe('Meetup event topics'),
@@ -879,6 +874,10 @@ export const GetEventResponse = zod.object({
   "sourceId": zod.number().nullish().describe('group_event.id (original source record)'),
   "meetupId": zod.number().nullish().describe('groups.id (Meetup group)'),
   "meetupName": zod.string().nullish().describe('Meetup group name'),
+  "businessId": zod.number().nullish().describe('Business Page hosting the Meetup event'),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "eventFormat": zod.string().nullish().describe('in_person | online | hybrid (meetup projected only)'),
   "eventCategory": zod.string().nullish().describe('Meetup event category'),
   "topics": zod.array(zod.string()).nullish().describe('Meetup event topics'),
@@ -951,6 +950,10 @@ export const ListAdminEventsResponseItem = zod.object({
   "sourceId": zod.number().nullish().describe('group_event.id (original source record)'),
   "meetupId": zod.number().nullish().describe('groups.id (Meetup group)'),
   "meetupName": zod.string().nullish().describe('Meetup group name'),
+  "businessId": zod.number().nullish().describe('Business Page hosting the Meetup event'),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "eventFormat": zod.string().nullish().describe('in_person | online | hybrid (meetup projected only)'),
   "eventCategory": zod.string().nullish().describe('Meetup event category'),
   "topics": zod.array(zod.string()).nullish().describe('Meetup event topics'),
@@ -982,7 +985,6 @@ export const createAdminEventBodyStateMin = 2;
 export const createAdminEventBodyStateMax = 2;
 
 
-
 export const CreateAdminEventBody = zod.object({
   "title": zod.string().min(1).max(createAdminEventBodyTitleMax),
   "description": zod.string().max(createAdminEventBodyDescriptionMax).optional(),
@@ -1009,7 +1011,6 @@ export const updateAdminEventBodyCityMax = 100;
 
 export const updateAdminEventBodyStateMin = 2;
 export const updateAdminEventBodyStateMax = 2;
-
 
 
 export const UpdateAdminEventBody = zod.object({
@@ -1051,6 +1052,10 @@ export const UpdateAdminEventResponse = zod.object({
   "sourceId": zod.number().nullish().describe('group_event.id (original source record)'),
   "meetupId": zod.number().nullish().describe('groups.id (Meetup group)'),
   "meetupName": zod.string().nullish().describe('Meetup group name'),
+  "businessId": zod.number().nullish().describe('Business Page hosting the Meetup event'),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "eventFormat": zod.string().nullish().describe('in_person | online | hybrid (meetup projected only)'),
   "eventCategory": zod.string().nullish().describe('Meetup event category'),
   "topics": zod.array(zod.string()).nullish().describe('Meetup event topics'),
@@ -1202,8 +1207,6 @@ export const SendMessageParams = zod.object({
 })
 
 
-
-
 export const SendMessageBody = zod.object({
   "body": zod.string().min(1)
 })
@@ -1341,7 +1344,6 @@ export const ListReportsResponse = zod.array(ListReportsResponseItem)
 /**
  * @summary Report content or a user
  */
-
 
 
 export const CreateReportBody = zod.object({
@@ -1570,9 +1572,6 @@ export const UpdateAdminPlanParams = zod.object({
 })
 
 
-
-
-
 export const UpdateAdminPlanBody = zod.object({
   "name": zod.string().min(1).optional(),
   "description": zod.string().optional(),
@@ -1620,8 +1619,6 @@ export const UpdateCreditPackageParams = zod.object({
 
 
 export const updateCreditPackageBodyPriceCentsMin = 0;
-
-
 
 
 export const UpdateCreditPackageBody = zod.object({
@@ -1825,8 +1822,6 @@ export const CreateCheckoutBody = zod.object({
 export const submitContactBodyEmailMin = 3;
 
 
-
-
 export const SubmitContactBody = zod.object({
   "name": zod.string().min(1),
   "email": zod.string().min(submitContactBodyEmailMin),
@@ -1845,7 +1840,6 @@ export const listMembersQueryMinAgeMax = 120;
 
 export const listMembersQueryMaxAgeMin = 18;
 export const listMembersQueryMaxAgeMax = 120;
-
 
 
 export const ListMembersQueryParams = zod.object({
@@ -1989,7 +1983,6 @@ export const ListFeedPostsResponse = zod.array(ListFeedPostsResponseItem)
 /**
  * @summary Create a feed post (logged-in users)
  */
-
 
 
 export const CreateFeedPostBody = zod.object({
@@ -2147,8 +2140,6 @@ export const ReportFeedPostParams = zod.object({
 })
 
 
-
-
 export const ReportFeedPostBody = zod.object({
   "reason": zod.string().min(1),
   "notes": zod.string().optional()
@@ -2187,8 +2178,6 @@ export const CreateFeedCommentParams = zod.object({
 })
 
 
-
-
 export const CreateFeedCommentBody = zod.object({
   "commentText": zod.string().min(1)
 })
@@ -2208,8 +2197,6 @@ export const DeleteFeedCommentParams = zod.object({
 export const ReportFeedCommentParams = zod.object({
   "id": zod.coerce.number()
 })
-
-
 
 
 export const ReportFeedCommentBody = zod.object({
@@ -2998,7 +2985,6 @@ export const shareFeedPostBodyRecipientUserIdsMax = 20;
 export const shareFeedPostBodySharerCommentMax = 500;
 
 
-
 export const ShareFeedPostBody = zod.object({
   "destination": zod.enum(['public', 'lounge', 'friends', 'private', 'group']),
   "destinationGroupId": zod.number().optional().describe('Required when destination=group; invalid with other destinations'),
@@ -3137,7 +3123,6 @@ export const shareGroupPostBodyRecipientUserIdsMax = 20;
 export const shareGroupPostBodySharerCommentMax = 500;
 
 
-
 export const ShareGroupPostBody = zod.object({
   "destination": zod.enum(['public', 'lounge', 'friends', 'private', 'group']),
   "destinationGroupId": zod.number().optional().describe('Required when destination=group; invalid with other destinations'),
@@ -3251,8 +3236,6 @@ export const AdminListSharingSuspensionsResponse = zod.array(AdminListSharingSus
 export const AdminSuspendSharingParams = zod.object({
   "userId": zod.coerce.number()
 })
-
-
 
 
 export const AdminSuspendSharingBody = zod.object({
@@ -3840,7 +3823,6 @@ export const ListAlbumsResponse = zod.array(ListAlbumsResponseItem)
  */
 
 
-
 export const CreateAlbumBody = zod.object({
   "title": zod.string().min(1),
   "description": zod.string().optional(),
@@ -3881,8 +3863,6 @@ export const ListAlbumPhotosResponse = zod.array(ListAlbumPhotosResponseItem)
 export const UploadPhotoParams = zod.object({
   "id": zod.coerce.number()
 })
-
-
 
 
 export const UploadPhotoBody = zod.object({
@@ -3971,8 +3951,6 @@ export const CreatePhotoCommentParams = zod.object({
 })
 
 
-
-
 export const CreatePhotoCommentBody = zod.object({
   "commentText": zod.string().min(1)
 })
@@ -3986,8 +3964,6 @@ export const ReportPhotoParams = zod.object({
 })
 
 
-
-
 export const ReportPhotoBody = zod.object({
   "reason": zod.string().min(1),
   "notes": zod.string().optional()
@@ -3999,7 +3975,6 @@ export const ReportPhotoBody = zod.object({
  */
 
 export const listReelsQuerySearchMax = 100;
-
 
 
 export const ListReelsQueryParams = zod.object({
@@ -4068,7 +4043,6 @@ export const createReelBodyLocationMax = 200;
 export const createReelBodyFeelingMax = 100;
 
 
-
 export const CreateReelBody = zod.object({
   "videoUrl": zod.string().min(1),
   "thumbnailUrl": zod.string().optional(),
@@ -4093,7 +4067,6 @@ export const CreateReelBody = zod.object({
 export const listTaggableReelUsersQuerySearchMax = 100;
 
 
-
 export const ListTaggableReelUsersQueryParams = zod.object({
   "search": zod.coerce.string().max(listTaggableReelUsersQuerySearchMax).optional().describe('Case-insensitive name or username search.')
 })
@@ -4114,7 +4087,6 @@ export const ListTaggableReelUsersResponse = zod.array(ListTaggableReelUsersResp
 export const listEditableReelBusinessesQuerySearchMax = 100;
 
 
-
 export const ListEditableReelBusinessesQueryParams = zod.object({
   "search": zod.coerce.string().max(listEditableReelBusinessesQuerySearchMax).optional().describe('Case-insensitive business name or handle search.')
 })
@@ -4123,7 +4095,8 @@ export const ListEditableReelBusinessesResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "handle": zod.string(),
-  "logoUrl": zod.string().nullable()
+  "logoUrl": zod.string().nullable(),
+  "isPublished": zod.boolean()
 })
 export const ListEditableReelBusinessesResponse = zod.array(ListEditableReelBusinessesResponseItem)
 
@@ -4239,8 +4212,6 @@ export const ReportReelParams = zod.object({
 })
 
 
-
-
 export const ReportReelBody = zod.object({
   "reason": zod.string().min(1),
   "notes": zod.string().optional()
@@ -4277,8 +4248,6 @@ export const ListReelCommentsResponse = zod.array(ListReelCommentsResponseItem)
 export const CreateReelCommentParams = zod.object({
   "id": zod.coerce.number()
 })
-
-
 
 
 export const CreateReelCommentBody = zod.object({
@@ -4707,8 +4676,6 @@ export const createBusinessBodyHandleMin = 2;
 export const createBusinessBodyHandleMax = 30;
 
 
-
-
 export const CreateBusinessBody = zod.object({
   "handle": zod.string().min(createBusinessBodyHandleMin).max(createBusinessBodyHandleMax),
   "name": zod.string().min(1),
@@ -4832,8 +4799,6 @@ export const GetBusinessByHandleResponse = zod.object({
 export const UpdateBusinessSettingsParams = zod.object({
   "handle": zod.coerce.string()
 })
-
-
 
 
 export const UpdateBusinessSettingsBody = zod.object({
@@ -5067,7 +5032,6 @@ export const CreateBusinessReviewParams = zod.object({
 export const createBusinessReviewBodyRatingMax = 5;
 
 
-
 export const CreateBusinessReviewBody = zod.object({
   "rating": zod.number().min(1).max(createBusinessReviewBodyRatingMax),
   "text": zod.string().optional()
@@ -5081,8 +5045,6 @@ export const ReplyToBusinessReviewParams = zod.object({
   "handle": zod.coerce.string(),
   "reviewId": zod.coerce.number()
 })
-
-
 
 
 export const ReplyToBusinessReviewBody = zod.object({
@@ -5124,8 +5086,6 @@ export const ListBusinessPostsResponse = zod.array(ListBusinessPostsResponseItem
 export const CreateBusinessPostParams = zod.object({
   "handle": zod.coerce.string()
 })
-
-
 
 
 export const CreateBusinessPostBody = zod.object({
@@ -5222,8 +5182,6 @@ export const ReportBusinessPostParams = zod.object({
 })
 
 
-
-
 export const ReportBusinessPostBody = zod.object({
   "reason": zod.string().min(1),
   "details": zod.string().optional()
@@ -5263,8 +5221,6 @@ export const CreateBusinessPostCommentParams = zod.object({
   "handle": zod.coerce.string(),
   "postId": zod.coerce.number()
 })
-
-
 
 
 export const CreateBusinessPostCommentBody = zod.object({
@@ -5358,8 +5314,6 @@ export const ListBusinessAlbumsResponse = zod.array(ListBusinessAlbumsResponseIt
 export const UpsertBusinessAlbumParams = zod.object({
   "handle": zod.coerce.string()
 })
-
-
 
 
 export const UpsertBusinessAlbumBody = zod.object({
@@ -5539,8 +5493,6 @@ export const UpsertBusinessEventParams = zod.object({
 })
 
 
-
-
 export const UpsertBusinessEventBody = zod.object({
   "id": zod.number().optional(),
   "title": zod.string().min(1),
@@ -5645,8 +5597,6 @@ export const SubmitBusinessVerificationParams = zod.object({
 })
 
 
-
-
 export const SubmitBusinessVerificationBody = zod.object({
   "legalName": zod.string().optional(),
   "contactEmail": zod.string().optional(),
@@ -5736,8 +5686,6 @@ export const UpsertBusinessServiceParams = zod.object({
 })
 
 
-
-
 export const UpsertBusinessServiceBody = zod.object({
   "id": zod.number().optional(),
   "name": zod.string().min(1),
@@ -5821,8 +5769,6 @@ export const ListBusinessProductsResponse = zod.array(ListBusinessProductsRespon
 export const UpsertBusinessProductParams = zod.object({
   "handle": zod.coerce.string()
 })
-
-
 
 
 export const UpsertBusinessProductBody = zod.object({
@@ -5912,8 +5858,6 @@ export const ListBusinessOffersResponse = zod.array(ListBusinessOffersResponseIt
 export const UpsertBusinessOfferParams = zod.object({
   "handle": zod.coerce.string()
 })
-
-
 
 
 export const UpsertBusinessOfferBody = zod.object({
@@ -6098,8 +6042,6 @@ export const SendBusinessMessageParams = zod.object({
   "handle": zod.coerce.string(),
   "conversationId": zod.coerce.number()
 })
-
-
 
 
 export const SendBusinessMessageBody = zod.object({
@@ -6381,7 +6323,6 @@ export const DeleteAdminBusinessParams = zod.object({
 export const deleteAdminBusinessBodyConfirmHandleMax = 64;
 
 
-
 export const DeleteAdminBusinessBody = zod.object({
   "confirmHandle": zod.string().min(1).max(deleteAdminBusinessBodyConfirmHandleMax)
 })
@@ -6481,7 +6422,6 @@ export const CreateBusinessChildCommentParams = zod.object({
 })
 
 export const createBusinessChildCommentBodyTextMax = 2000;
-
 
 
 export const CreateBusinessChildCommentBody = zod.object({
@@ -6712,7 +6652,6 @@ export const ListGroupsResponse = zod.object({
 export const createGroupBodyNameMax = 100;
 
 
-
 export const CreateGroupBody = zod.object({
   "name": zod.string().min(1).max(createGroupBodyNameMax),
   "handle": zod.string().optional(),
@@ -6743,14 +6682,13 @@ export const CreateGroupBody = zod.object({
 export const createMeetupBodyNameMax = 100;
 
 
-
 export const createMeetupBodyMaxGuestsPerRsvpMin = 0;
-
 
 
 export const CreateMeetupBody = zod.object({
   "draftId": zod.number().optional().describe('Organizer-owned draft to publish instead of creating a new Meetup row'),
   "name": zod.string().min(1).max(createMeetupBodyNameMax),
+  "businessId": zod.number().min(1).optional().describe('Host the primary event as an active Business Page the user can manage content for'),
   "description": zod.string().optional(),
   "category": zod.string().optional(),
   "interests": zod.array(zod.string()).optional(),
@@ -6797,7 +6735,6 @@ export const createMeetupDraftBodyNameMax = 100;
 
 
 export const createMeetupDraftBodyMaxGuestsPerRsvpMin = 0;
-
 
 
 export const CreateMeetupDraftBody = zod.object({
@@ -6852,7 +6789,6 @@ export const getMeetupDraftResponseDataNameMax = 100;
 
 
 export const getMeetupDraftResponseDataMaxGuestsPerRsvpMin = 0;
-
 
 
 export const GetMeetupDraftResponse = zod.object({
@@ -6945,7 +6881,6 @@ export const updateMeetupDraftBodyNameMax = 100;
 export const updateMeetupDraftBodyMaxGuestsPerRsvpMin = 0;
 
 
-
 export const UpdateMeetupDraftBody = zod.object({
   "name": zod.string().max(updateMeetupDraftBodyNameMax).optional(),
   "description": zod.string().optional(),
@@ -6990,7 +6925,6 @@ export const updateMeetupDraftResponseDataNameMax = 100;
 
 
 export const updateMeetupDraftResponseDataMaxGuestsPerRsvpMin = 0;
-
 
 
 export const UpdateMeetupDraftResponse = zod.object({
@@ -7189,7 +7123,6 @@ export const UpdateGroupParams = zod.object({
 export const updateGroupBodyNameMax = 100;
 
 
-
 export const UpdateGroupBody = zod.object({
   "name": zod.string().min(1).max(updateGroupBodyNameMax).optional(),
   "handle": zod.string().optional(),
@@ -7261,8 +7194,6 @@ export const DeleteGroupParams = zod.object({
 export const JoinGroupParams = zod.object({
   "groupId": zod.coerce.number()
 })
-
-
 
 
 export const JoinGroupBody = zod.object({
@@ -7525,8 +7456,6 @@ export const SetGroupQuestionsParams = zod.object({
 })
 
 
-
-
 export const SetGroupQuestionsBody = zod.object({
   "questions": zod.array(zod.object({
   "questionText": zod.string().min(1),
@@ -7573,7 +7502,6 @@ export const CreateGroupRuleParams = zod.object({
 export const createGroupRuleBodyTitleMax = 200;
 
 
-
 export const CreateGroupRuleBody = zod.object({
   "title": zod.string().min(1).max(createGroupRuleBodyTitleMax),
   "description": zod.string().optional(),
@@ -7590,7 +7518,6 @@ export const UpdateGroupRuleParams = zod.object({
 })
 
 export const updateGroupRuleBodyTitleMax = 200;
-
 
 
 export const UpdateGroupRuleBody = zod.object({
@@ -7707,8 +7634,6 @@ export const CreateGroupPostParams = zod.object({
 })
 
 
-
-
 export const CreateGroupPostBody = zod.object({
   "text": zod.string().min(1),
   "mediaUrl": zod.string().optional().describe('Finalized internal storage object'),
@@ -7810,8 +7735,6 @@ export const UpdateGroupPostParams = zod.object({
   "groupId": zod.coerce.number(),
   "postId": zod.coerce.number()
 })
-
-
 
 
 export const UpdateGroupPostBody = zod.object({
@@ -8167,8 +8090,6 @@ export const ReportGroupPostParams = zod.object({
 })
 
 
-
-
 export const ReportGroupPostBody = zod.object({
   "reason": zod.string().min(1),
   "details": zod.string().optional()
@@ -8207,8 +8128,6 @@ export const CreateGroupPostCommentParams = zod.object({
   "groupId": zod.coerce.number(),
   "postId": zod.coerce.number()
 })
-
-
 
 
 export const CreateGroupPostCommentBody = zod.object({
@@ -8467,6 +8386,10 @@ export const ListGroupEventsResponseItem = zod.object({
   "id": zod.number(),
   "groupId": zod.number(),
   "createdByUserId": zod.number().optional(),
+  "businessId": zod.number().nullish().describe('Business Page hosting this event'),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "title": zod.string(),
   "description": zod.string().nullish(),
   "location": zod.string().nullish(),
@@ -8524,13 +8447,12 @@ export const CreateGroupEventParams = zod.object({
 })
 
 
-
 export const createGroupEventBodyMaxGuestsPerRsvpMin = 0;
-
 
 
 export const CreateGroupEventBody = zod.object({
   "title": zod.string().min(1),
+  "businessId": zod.number().min(1).optional().describe('Host as an active Business Page the user can manage content for'),
   "description": zod.string().optional(),
   "location": zod.string().optional(),
   "onlineUrl": zod.string().optional(),
@@ -8575,6 +8497,10 @@ export const GetGroupEventResponse = zod.object({
   "id": zod.number(),
   "groupId": zod.number(),
   "createdByUserId": zod.number().optional(),
+  "businessId": zod.number().nullish().describe('Business Page hosting this event'),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "title": zod.string(),
   "description": zod.string().nullish(),
   "location": zod.string().nullish(),
@@ -8632,10 +8558,9 @@ export const UpdateGroupEventParams = zod.object({
 })
 
 
-
-
 export const UpdateGroupEventBody = zod.object({
   "title": zod.string().min(1).optional(),
+  "businessId": zod.number().min(1).nullish().describe('Change or clear Business Page host attribution'),
   "description": zod.string().optional(),
   "location": zod.string().optional(),
   "onlineUrl": zod.string().optional(),
@@ -8672,6 +8597,10 @@ export const UpdateGroupEventResponse = zod.object({
   "id": zod.number(),
   "groupId": zod.number(),
   "createdByUserId": zod.number().optional(),
+  "businessId": zod.number().nullish().describe('Business Page hosting this event'),
+  "businessName": zod.string().nullish(),
+  "businessHandle": zod.string().nullish(),
+  "businessLogoUrl": zod.string().nullish(),
   "title": zod.string(),
   "description": zod.string().nullish(),
   "location": zod.string().nullish(),
@@ -8740,7 +8669,6 @@ export const RsvpGroupEventParams = zod.object({
 export const rsvpGroupEventBodyGuestCountMin = 0;
 
 
-
 export const RsvpGroupEventBody = zod.object({
   "rsvpStatus": zod.enum(['going', 'interested', 'not_going', 'cancelled']),
   "isPrivate": zod.boolean().optional(),
@@ -8801,7 +8729,6 @@ export const GetGroupEventBroadcastAudienceParams = zod.object({
 export const getGroupEventBroadcastAudienceResponseRecipientCountMin = 0;
 
 
-
 export const GetGroupEventBroadcastAudienceResponse = zod.object({
   "recipientCount": zod.number().min(getGroupEventBroadcastAudienceResponseRecipientCountMin)
 })
@@ -8818,7 +8745,6 @@ export const BroadcastGroupEventParams = zod.object({
 export const broadcastGroupEventBodyMessageMax = 500;
 
 
-
 export const BroadcastGroupEventBody = zod.object({
   "message": zod.string().min(1).max(broadcastGroupEventBodyMessageMax)
 })
@@ -8830,7 +8756,6 @@ export const broadcastGroupEventResponseDeliveredCountMin = 0;
 export const broadcastGroupEventResponseFailedCountMin = 0;
 
 export const broadcastGroupEventResponseSkippedCountMin = 0;
-
 
 
 export const BroadcastGroupEventResponse = zod.object({
@@ -8853,7 +8778,6 @@ export const ManageGroupEventAttendeeParams = zod.object({
 })
 
 export const manageGroupEventAttendeeBodyGuestCountMin = 0;
-
 
 
 export const ManageGroupEventAttendeeBody = zod.object({
@@ -8953,8 +8877,6 @@ export const ListGroupKeywordAlertsResponse = zod.array(ListGroupKeywordAlertsRe
 export const CreateGroupKeywordAlertParams = zod.object({
   "groupId": zod.coerce.number()
 })
-
-
 
 
 export const CreateGroupKeywordAlertBody = zod.object({
@@ -9482,5 +9404,4 @@ export const AdminTransferGroupOwnerBody = zod.object({
 export const AdminTransferGroupOwnerResponse = zod.object({
   "message": zod.string()
 })
-
 

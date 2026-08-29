@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import { Layout } from "@/components/Layout";
-import { useGetGroup, getGetGroupQueryKey, useCreateGroupEvent, getListGroupEventsQueryKey } from "@workspace/api-client-react";
+import {
+  getGetGroupQueryKey,
+  getListEditableReelBusinessesQueryKey,
+  getListGroupEventsQueryKey,
+  useCreateGroupEvent,
+  useGetCurrentUser,
+  useGetGroup,
+  useListEditableReelBusinesses,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarPlus, MapPin, Image as ImageIcon, Link as LinkIcon, DollarSign, SwitchCamera, Info } from "lucide-react";
+import { CalendarPlus, MapPin, Image as ImageIcon, Link as LinkIcon, DollarSign, SwitchCamera, Info, Store, Users } from "lucide-react";
 import { uploadImage } from "@/lib/uploadImage";
 import { getErrorMessage } from "@/lib/error";
 
@@ -74,6 +82,18 @@ export default function MeetupCreateEvent() {
   
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [businessId, setBusinessId] = useState<number | null>(null);
+  const { data: session } = useGetCurrentUser();
+  const {
+    data: managedBusinesses,
+    isLoading: areBusinessesLoading,
+    isError: businessesLoadFailed,
+  } = useListEditableReelBusinesses(undefined, {
+    query: {
+      enabled: !!session?.authenticated,
+      queryKey: getListEditableReelBusinessesQueryKey(),
+    },
+  });
 
   const { data: group, isLoading: isGroupLoading } = useGetGroup(groupId, {
     query: { enabled: !!groupId, queryKey: getGetGroupQueryKey(groupId) },
@@ -141,6 +161,7 @@ export default function MeetupCreateEvent() {
         groupId,
         data: {
           title: data.title,
+          ...(businessId ? { businessId } : {}),
           description: data.description || undefined,
           eventFormat: data.eventFormat,
           venueName: data.venueName || undefined,
@@ -195,6 +216,57 @@ export default function MeetupCreateEvent() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
+              <h2 className="text-xl font-serif text-orange-400">Host & Organizer</h2>
+              <RadioGroup
+                value={businessId == null ? "self" : String(businessId)}
+                onValueChange={(value) => setBusinessId(value === "self" ? null : Number(value))}
+                className="grid gap-3"
+                data-testid="meetup-event-host-picker"
+              >
+                <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-orange-500/20 bg-background/50 p-4 transition-colors has-[[data-state=checked]]:border-orange-500/60 has-[[data-state=checked]]:bg-orange-500/5">
+                  <RadioGroupItem value="self" className="border-orange-500 text-orange-500" />
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full border border-orange-500/20 bg-orange-500/10">
+                    <Users className="h-6 w-6 text-orange-500/50" />
+                  </span>
+                  <span>
+                    <span className="block text-sm text-white/60">Host as yourself</span>
+                    <span className="block font-bold text-white">{session?.user?.name || "Buddy"}</span>
+                  </span>
+                </label>
+
+                {areBusinessesLoading && (
+                  <div className="h-20 animate-pulse rounded-2xl border border-white/5 bg-background/30" />
+                )}
+                {businessesLoadFailed && (
+                  <p className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    Your Business Pages could not be loaded. You can still host this event as yourself.
+                  </p>
+                )}
+                {(managedBusinesses ?? []).filter((business) => business.isPublished).map((business) => (
+                  <label
+                    key={business.id}
+                    className="flex cursor-pointer items-center gap-4 rounded-2xl border border-[#D6B56D]/20 bg-background/50 p-4 transition-colors has-[[data-state=checked]]:border-[#D6B56D]/60 has-[[data-state=checked]]:bg-[#D6B56D]/5"
+                    data-testid={`meetup-event-host-business-${business.id}`}
+                  >
+                    <RadioGroupItem value={String(business.id)} className="border-[#D6B56D] text-[#D6B56D]" />
+                    <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#D6B56D]/20 bg-[#D6B56D]/10">
+                      {business.logoUrl ? (
+                        <img src={business.logoUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Store className="h-6 w-6 text-[#D6B56D]/70" />
+                      )}
+                    </span>
+                    <span>
+                      <span className="block text-sm text-white/60">Host as a Business Page</span>
+                      <span className="block font-bold text-white">{business.name}</span>
+                      <span className="block text-xs text-[#D6B56D]">@{business.handle}</span>
+                    </span>
+                  </label>
+                ))}
+              </RadioGroup>
+            </div>
+
             <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
               <h2 className="text-xl font-serif text-orange-400">Event Details</h2>
               

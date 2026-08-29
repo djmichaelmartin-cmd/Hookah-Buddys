@@ -21,7 +21,6 @@ import {
   Check,
   Loader2,
   Users,
-  Tent,
   DollarSign,
   Info,
   Filter,
@@ -31,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDebounce } from "@/hooks/use-debounce";
+import { EventHost } from "@/components/EventHost";
 
 type TabId = "upcoming" | "past" | "going" | "saved";
 
@@ -147,11 +147,14 @@ function EventCard({ event, loggedIn }: { event: Event; loggedIn: boolean }) {
           </div>
         </div>
 
-        {isMeetup && event.meetupName && (
+        {isMeetup && (event.meetupName || (event as { businessId?: number | null }).businessId) && (
           <div className="mb-2">
-            <Link href={`/meetups/${event.meetupId}`} className="inline-flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 bg-orange-500/10 px-2.5 py-1 rounded-md transition-colors">
-              <Tent className="w-3.5 h-3.5" /> Hosted by {event.meetupName}
-            </Link>
+            <EventHost
+              event={event}
+              fallbackName={event.meetupName}
+              fallbackHref={event.meetupId ? `/meetups/${event.meetupId}` : undefined}
+              compact
+            />
           </div>
         )}
 

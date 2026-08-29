@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, MapPin, X, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { EventHost } from "@/components/EventHost";
 
 function toLocalInputValue(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -318,6 +319,16 @@ function EventRow({ event }: { event: Event }) {
         {new Date(event.startsAt).toLocaleString()} · {event.venueName ? `${event.venueName}, ` : ""}
         {event.city}, {event.state}
       </p>
+      {(event.sourceType === "meetup_event" || (event as { businessId?: number | null }).businessId) && (
+        <div className="mb-3">
+          <EventHost
+            event={event}
+            fallbackName={event.meetupName}
+            fallbackHref={event.meetupId ? `/meetups/${event.meetupId}` : undefined}
+            compact
+          />
+        </div>
+      )}
 
       {editing && (
         <div className="mb-4">

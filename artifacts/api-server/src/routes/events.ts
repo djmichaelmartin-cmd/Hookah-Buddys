@@ -78,6 +78,11 @@ import {
 import { getSessionUser, requireAuth } from "../lib/auth";
 import { loadAudienceSets } from "../lib/socialHelpers";
 import { executeGroupEventRsvp } from "../lib/groupEventRsvpService";
+import {
+  loadBusinessAttributions,
+  serializeEventBusinessAttribution,
+  type BusinessAttribution,
+} from "../lib/businessAttribution";
 
 const router: IRouter = Router();
 
@@ -119,6 +124,10 @@ type NativeEventResponse = {
   sourceId: number | null;
   meetupId: number | null;
   meetupName: string | null;
+  businessId: number | null;
+  businessName: string | null;
+  businessHandle: string | null;
+  businessLogoUrl: string | null;
   // Meetup-projected extra fields (all null for native events)
   eventFormat: string | null;
   eventCategory: string | null;
@@ -158,6 +167,7 @@ function eventToResponse(
     sourceId: null,
     meetupId: null,
     meetupName: null,
+    ...serializeEventBusinessAttribution(null, null),
     // Meetup-projected extra fields are null for native events
     eventFormat: null,
     eventCategory: null,
@@ -256,6 +266,7 @@ function meetupEventToResponse(
   rsvped: boolean,
   saved: boolean,
   viewerWaitlistPosition: number | null = null,
+  business: BusinessAttribution | null = null,
 ): NativeEventResponse {
   return {
     id: meetupProjectedId(e.id),
@@ -276,6 +287,7 @@ function meetupEventToResponse(
     sourceId: e.id,
     meetupId: e.groupId,
     meetupName: e.groupName,
+    ...serializeEventBusinessAttribution(e.businessId, business),
     // Extra Meetup fields — never expose onlineUrl in public global feed
     eventFormat: e.eventFormat ?? null,
     eventCategory: e.eventCategory ?? null,
@@ -466,6 +478,7 @@ async function loadMeetupProjections(
   if (!rows.length) return [];
 
   const groupEventIds = rows.map((r) => r.id);
+  const businessById = await loadBusinessAttributions(rows.map((row) => row.businessId));
   const rsvpedSet = new Set<number>();
   const savedSet = new Set<number>();
   const waitlistPositionMap = new Map<number, number | null>();
@@ -510,6 +523,7 @@ async function loadMeetupProjections(
       rsvpedSet.has(e.id),
       savedSet.has(e.id),
       waitlistPositionMap.get(e.id) ?? null,
+      e.businessId ? businessById.get(e.businessId) ?? null : null,
     ),
   );
 
@@ -727,7 +741,14 @@ async function loadMeetupProjectedEvent(
     saved = !!save[0];
   }
 
-  return meetupEventToResponse(row, rsvped, saved, viewerWaitlistPosition);
+  const businessById = await loadBusinessAttributions([row.businessId]);
+  return meetupEventToResponse(
+    row,
+    rsvped,
+    saved,
+    viewerWaitlistPosition,
+    row.businessId ? businessById.get(row.businessId) ?? null : null,
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

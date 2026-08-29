@@ -13,6 +13,12 @@ import type { UpdateGroupEventBodyVisibility } from './updateGroupEventBodyVisib
 export interface UpdateGroupEventBody {
   /** @minLength 1 */
   title?: string;
+  /**
+     * Change or clear Business Page host attribution
+     * @minimum 1
+     * @nullable
+     */
+  businessId?: number | null;
   description?: string;
   location?: string;
   onlineUrl?: string;

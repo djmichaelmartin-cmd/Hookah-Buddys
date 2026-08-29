@@ -453,6 +453,7 @@ router.get("/reels/editable-businesses", requireAuth(), async (req, res): Promis
       name: businessesTable.name,
       handle: businessesTable.handle,
       logoUrl: businessesTable.logoUrl,
+      isPublished: businessesTable.isPublished,
     })
     .from(businessesTable)
     .innerJoin(

@@ -12,6 +12,11 @@ import type { CreateGroupEventBodyVisibility } from './createGroupEventBodyVisib
 export interface CreateGroupEventBody {
   /** @minLength 1 */
   title: string;
+  /**
+     * Host as an active Business Page the user can manage content for
+     * @minimum 1
+     */
+  businessId?: number;
   description?: string;
   location?: string;
   onlineUrl?: string;

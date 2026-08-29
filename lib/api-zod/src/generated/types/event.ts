@@ -54,6 +54,17 @@ export interface Event {
      */
   meetupName?: string | null;
   /**
+     * Business Page hosting the Meetup event
+     * @nullable
+     */
+  businessId?: number | null;
+  /** @nullable */
+  businessName?: string | null;
+  /** @nullable */
+  businessHandle?: string | null;
+  /** @nullable */
+  businessLogoUrl?: string | null;
+  /**
      * in_person | online | hybrid (meetup projected only)
      * @nullable
      */

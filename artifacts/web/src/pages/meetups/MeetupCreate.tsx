@@ -20,9 +20,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Globe, Lock, MapPin, Tent, Image as ImageIcon, Link as LinkIcon, SwitchCamera, Users } from "lucide-react";
 import { uploadImage } from "@/lib/uploadImage";
 import { getErrorMessage } from "@/lib/error";
+import { CalendarDays, Globe, Lock, MapPin, Tent, Image as ImageIcon, Link as LinkIcon, SwitchCamera, Store, Users } from "lucide-react";
 
 const createMeetupCombinedSchema = z.object({
   // Meetup fields
@@ -171,7 +171,21 @@ export default function MeetupCreate() {
   const [savedCoverUrl, setSavedCoverUrl] = useState<string | null>(null);
   const [savedEventCoverUrl, setSavedEventCoverUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [businessId, setBusinessId] = useState<number | null>(null);
   const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
+  const {
+    data: managedBusinesses,
+    isLoading: areBusinessesLoading,
+    isError: businessesLoadFailed,
+  } = useListEditableReelBusinesses(
+    undefined,
+    {
+      query: {
+        enabled: !!session?.authenticated,
+        queryKey: getListEditableReelBusinessesQueryKey(),
+      },
+    },
+  );
 
   const createMeetup = useCreateMeetup();
   const createDraft = useCreateMeetupDraft();
@@ -385,6 +399,7 @@ export default function MeetupCreate() {
           coverUrl,
           privacy: data.privacy,
           visibility: data.visibility,
+          ...(businessId ? { businessId } : {}),
 
           title: data.title,
           eventDescription: data.eventDescription,
@@ -458,15 +473,53 @@ export default function MeetupCreate() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-serif text-orange-400">Host & Organizer</h2>
               </div>
-              <div className="flex items-center gap-4 bg-background/50 border border-orange-500/20 p-4 rounded-2xl">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-                  <Users className="w-7 h-7 text-orange-500/50" />
-                </div>
-                <div>
-                  <p className="text-sm text-white/60 mb-0.5">Hosting as</p>
-                  <p className="text-white font-bold text-lg">{session?.user?.name || "Buddy"}</p>
-                </div>
-              </div>
+              <RadioGroup
+                value={businessId == null ? "self" : String(businessId)}
+                onValueChange={(value) => setBusinessId(value === "self" ? null : Number(value))}
+                className="grid gap-3"
+                data-testid="meetup-host-picker"
+              >
+                <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-orange-500/20 bg-background/50 p-4 transition-colors has-[[data-state=checked]]:border-orange-500/60 has-[[data-state=checked]]:bg-orange-500/5">
+                  <RadioGroupItem value="self" className="border-orange-500 text-orange-500" />
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-orange-500/50" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-white/60">Host as yourself</p>
+                    <p className="text-white font-bold">{session?.user?.name || "Buddy"}</p>
+                  </div>
+                </label>
+
+                {areBusinessesLoading && (
+                  <div className="h-20 animate-pulse rounded-2xl border border-white/5 bg-background/30" />
+                )}
+                {businessesLoadFailed && (
+                  <p className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    Your Business Pages could not be loaded. You can still host this Meetup as yourself.
+                  </p>
+                )}
+                {(managedBusinesses ?? []).filter((business) => business.isPublished).map((business) => (
+                  <label
+                    key={business.id}
+                    className="flex cursor-pointer items-center gap-4 rounded-2xl border border-[#D6B56D]/20 bg-background/50 p-4 transition-colors has-[[data-state=checked]]:border-[#D6B56D]/60 has-[[data-state=checked]]:bg-[#D6B56D]/5"
+                    data-testid={`meetup-host-business-${business.id}`}
+                  >
+                    <RadioGroupItem value={String(business.id)} className="border-[#D6B56D] text-[#D6B56D]" />
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-[#D6B56D]/10 border border-[#D6B56D]/20 flex items-center justify-center">
+                      {business.logoUrl ? (
+                        <img src={business.logoUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Store className="w-6 h-6 text-[#D6B56D]/70" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/60">Host as a Business Page</p>
+                      <p className="text-white font-bold">{business.name}</p>
+                      <p className="text-xs text-[#D6B56D]">@{business.handle}</p>
+                    </div>
+                  </label>
+                ))}
+              </RadioGroup>
             </div>
 
             <div className="bg-card/60 backdrop-blur-md border border-orange-500/20 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
