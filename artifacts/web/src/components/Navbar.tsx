@@ -38,7 +38,6 @@ const NAV_LINKS = [
   { label: "Meetups", href: "/meetups" },
   // Keep the legacy route so existing links continue to work.
   { label: "Sparks", href: "/sparks" },
-  { label: "Browse Buddys", href: "/browse" },
   { label: "Businesses", href: "/businesses" },
 ];
 
