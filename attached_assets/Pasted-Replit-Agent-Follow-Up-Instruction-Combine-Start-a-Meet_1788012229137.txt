@@ -1,0 +1,578 @@
+Replit Agent Follow-Up Instruction: Combine “Start a Meetup” and “Plan Event” Into One Creation Flow
+
+Do not rebuild the HookahBuddys platform. Only update the existing Meetup creation flow.
+
+Current issue:
+
+After a member creates a Meetup, the system shows an option/button to “Plan Event.”
+
+This is incorrect.
+
+Creating a Meetup should already include planning the event. Starting a Meetup and planning the event should be one combined process, not two separate tasks.
+
+Required change:
+
+When a member clicks “Start a Meetup,” the form should collect all Meetup and event details in one creation flow.
+
+Remove the separate post-creation “Plan Event” step.
+
+Core Rule
+
+Starting a Meetup = planning the event.
+
+A Meetup should not be created as an empty shell that requires a second “Plan Event” button afterward.
+
+The Start a Meetup form should ask for:
+
+* Meetup title
+* Description
+* Date
+* Start time
+* End time
+* Event type
+* Venue/location
+* Online link, if applicable
+* Host/organizer
+* RSVP settings
+* Attendee limit
+* Invite options
+* Privacy
+* Free or paid status
+* Cover image
+* Tags/categories
+* Rules/notes
+
+All of this should be part of the initial Start a Meetup process.
+
+Routes
+
+Keep or use the existing route:
+
+/meetups/create
+
+The page title should be:
+
+“Start a Meetup”
+
+Subtitle:
+
+“Create your Meetup with the event details, date, time, location, RSVP settings, and invite options all in one step.”
+
+Do not use a separate required route such as:
+
+/meetups/:id/create-event
+
+unless it is only used internally or for creating additional future events. It should not be shown immediately after initial Meetup creation.
+
+Remove / Replace “Plan Event” Language
+
+Search the project for:
+
+* “Plan Event”
+* “Plan Your Event”
+* “Create Event”
+* “Add Event”
+* “No events yet”
+* “Plan your first event”
+* “This Meetup has no events”
+
+Remove or replace this language where it appears after Meetup creation.
+
+Use replacement labels:
+
+* “Edit Meetup”
+* “Manage Meetup”
+* “Manage RSVPs”
+* “Invite Friends”
+* “Share Meetup”
+* “Create Another Meetup”
+* “Duplicate Meetup”
+
+Do not show “Plan Event” as the next required action after creating a Meetup.
+
+Combined Start Meetup Form
+
+Update the Start Meetup form to include these sections.
+
+Section 1: Meetup Basics
+
+Fields:
+
+* Meetup Title
+* About This Meetup
+* Category
+* Tags
+* Cover image upload
+
+Meetup Title placeholder:
+
+“Example: Vegas Weekend Smoke Sesh”
+
+About placeholder:
+
+“Tell members what this Meetup is about, what to expect, and who should attend.”
+
+Default category:
+
+“Hookah”
+
+Suggested categories:
+
+* Hookah Lounge Night
+* Smoke Session
+* Flavor Tasting
+* Social Meetup
+* Nightlife
+* Food & Hookah
+* Music & Hookah
+* Business Networking
+* Private Gathering
+* Online Hookah Chat
+* Custom
+
+Section 2: Date and Time
+
+Fields:
+
+* Date
+* Start Time
+* End Time
+* Time zone
+
+Date, start time, and end time should be required.
+
+Section 3: Event Type and Location
+
+Event type options:
+
+* In-person
+* Online
+* Hybrid
+
+For In-person Meetups, require:
+
+* Venue name
+* Address
+* City
+* State
+* ZIP code, optional
+* How to find us / meetup instructions
+
+For Online Meetups, require:
+
+* Online meeting link
+* Online instructions
+
+For Hybrid Meetups, show both location and online fields.
+
+Section 4: Host / Organizer
+
+Default host:
+
+Logged-in member.
+
+Allow host options:
+
+* Host as personal profile
+* Host as business profile, if the member owns a Business Page
+
+Optional:
+
+* Add co-hosts
+* Invite friends as co-hosts
+
+Section 5: RSVP Settings
+
+Fields:
+
+* Attendee limit
+* Enable waitlist: yes/no
+* Allow guests: yes/no
+* Max guests per attendee
+* RSVP deadline, optional
+* Require approval for attendees: yes/no
+
+Section 6: Privacy
+
+Options:
+
+Public Meetup:
+
+“Anyone can discover this Meetup, view the details, and RSVP if allowed.”
+
+Private Meetup:
+
+“Only invited or approved members can view full details and RSVP.”
+
+Section 7: Invite Friends
+
+Allow the organizer to optionally invite:
+
+* Friends
+* Followers
+* Group members, if applicable
+* Business followers, if hosting as a business
+* Copy invite link
+
+Section 8: Free or Paid
+
+Options:
+
+* Free Meetup
+* Paid Meetup
+
+If Paid Meetup is selected, show:
+
+* Ticket price
+* Refund policy
+* Payment/checkout placeholder
+
+Keep paid Meetup logic Stripe-ready if payment is not fully active yet.
+
+Section 9: Rules / Notes
+
+Optional fields:
+
+* Meetup rules
+* Venue notes
+* Age requirement notes
+* What to bring
+* Additional instructions
+
+Examples:
+
+* 21+ only
+* Bring ID
+* Respect venue rules
+* Purchase required at lounge
+* No outside food or drink
+* Be respectful
+
+Section 10: Confirmation
+
+Required checkbox:
+
+“I confirm this Meetup is appropriate for the HookahBuddys community.”
+
+Submit buttons:
+
+Primary:
+
+“Publish Meetup”
+
+Secondary:
+
+“Save as Draft”
+
+After Submission
+
+When the user clicks “Publish Meetup”:
+
+1. Create the Meetup.
+2. Store the full event details.
+3. Publish it if no admin approval is required.
+4. Add it to /meetups.
+5. Add it to /events.
+6. Add it to the organizer’s profile activity.
+7. Add it to The Lounge feed if public.
+8. Notify invited members.
+9. Notify followers if allowed.
+10. Show a success page or success message.
+
+Success message:
+
+“Your Meetup has been created.”
+
+Success buttons:
+
+* “View Meetup”
+* “Invite Friends”
+* “Share Meetup”
+* “Manage RSVPs”
+* “Go to Events”
+
+Do not show:
+
+* “Plan Event”
+* “Now plan your event”
+* “Add your first event”
+
+Meetup Detail Page
+
+After creation, the Meetup detail page should already show the scheduled event details.
+
+Show:
+
+* Meetup title
+* Cover image
+* Date
+* Start time
+* End time
+* Location or online link
+* Host
+* Co-hosts
+* Description
+* Category
+* Tags
+* RSVP button
+* Attendee count
+* Attendee limit
+* Invite button
+* Share button
+* Save button
+* Discussion/comments
+* Photos
+* Updates
+* Report button
+
+Organizer controls should be:
+
+* Edit Meetup
+* Manage RSVPs
+* Invite Friends
+* Share Meetup
+* Cancel Meetup
+* Duplicate Meetup
+* Create Another Meetup
+
+Do not make “Plan Event” an organizer control for the initial Meetup.
+
+Events Page Sync
+
+Every published Meetup should automatically appear on the global Events page.
+
+Route:
+
+/events
+
+When a Meetup is created, create or sync a corresponding Event record.
+
+The Event card should show:
+
+* Meetup title
+* Date/time
+* Location
+* Host
+* Category
+* RSVP count
+* Free or paid badge
+* Public/private badge
+* View Meetup button
+* RSVP button
+
+If the Meetup is edited, update the Events page listing.
+
+If the Meetup is cancelled, update the Events page listing.
+
+If the Meetup is deleted or removed, remove or hide it from the Events page according to admin rules.
+
+Database / Model Handling
+
+If the app currently has separate Meetup and MeetupEvent models, do not force the user through two steps.
+
+Instead, when the Start Meetup form is submitted:
+
+* Create the Meetup record
+* Create the primary MeetupEvent record at the same time
+* Link the primary event to the Meetup
+* Display it as the Meetup’s main scheduled event
+
+If using a unified model, include all event fields directly on the Meetup model.
+
+Preferred fields:
+
+* title
+* description
+* category
+* tags
+* coverPhotoUrl
+* eventType
+* startDateTime
+* endDateTime
+* venueName
+* address
+* city
+* state
+* zipCode
+* latitude
+* longitude
+* onlineUrl
+* howToFindUs
+* privacy
+* status
+* attendeeLimit
+* waitlistEnabled
+* allowGuests
+* maxGuestsPerAttendee
+* rsvpDeadline
+* requiresAttendeeApproval
+* isPaid
+* ticketPrice
+* refundPolicy
+* hostType
+* hostUserId
+* hostBusinessId
+* attendeeCount
+* waitlistCount
+* saveCount
+* createdAt
+* updatedAt
+
+Existing Incomplete Meetups
+
+If there are already Meetups in the database that were created without event details:
+
+Do not show “Plan Event.”
+
+Instead, show:
+
+“Complete Meetup Details”
+
+Button:
+
+“Finish Meetup”
+
+This should open the same combined Start Meetup form pre-filled with any existing data.
+
+Once completed, the Meetup should appear on /meetups and /events.
+
+Draft Meetups
+
+If a user saves as draft, show:
+
+“This Meetup is saved as a draft.”
+
+Actions:
+
+* “Finish Meetup”
+* “Edit Draft”
+* “Delete Draft”
+
+Do not show:
+
+“Plan Event”
+
+Dashboard Updates
+
+Update /dashboard/meetups.
+
+Show sections:
+
+* Meetups I’m Hosting
+* Meetups I’m Attending
+* Saved Meetups
+* Draft Meetups
+* Past Meetups
+* Meetup Invitations
+
+Primary button:
+
+“Start a Meetup”
+
+Hosted Meetup actions:
+
+* View
+* Edit
+* Invite
+* Manage RSVPs
+* Share
+* Cancel
+* Duplicate
+
+Do not show “Plan Event.”
+
+The Lounge Integration
+
+When a public Meetup is created, show a feed card in The Lounge.
+
+Feed card label:
+
+“New Meetup”
+
+Example:
+
+“William started a Meetup: Vegas Weekend Smoke Sesh”
+
+Card should show:
+
+* Meetup title
+* Date/time
+* Location
+* RSVP count
+* View Meetup button
+* RSVP button
+
+Do not show any “Plan Event” prompt.
+
+Admin Dashboard Updates
+
+Update Admin Meetup management so admin sees Meetups as scheduled events.
+
+Admin can:
+
+* View Meetups
+* Review flagged Meetups
+* Approve/reject if required
+* Hide Meetup
+* Suspend Meetup
+* Remove Meetup
+* Review RSVPs
+* Review reports
+* View event details
+* View organizer
+* View attendees
+* Feature Meetup
+* Remove featured status
+
+Use labels:
+
+* Meetup
+* Scheduled Meetup
+* Hosted Meetup
+
+Avoid labels that suggest the Meetup is incomplete until an event is planned.
+
+Testing Checklist
+
+Confirm the following:
+
+1. Clicking “Start a Meetup” opens one complete creation form.
+2. The form includes title, description, date, time, location, RSVP settings, privacy, invite options, and free/paid settings.
+3. Publishing the form creates the Meetup immediately.
+4. The created Meetup appears on /meetups.
+5. The created Meetup appears on /events.
+6. The Meetup detail page shows date, time, location, RSVP, and host info immediately.
+7. The user is not asked to click “Plan Event” after creation.
+8. Old “Plan Event” buttons are removed or replaced.
+9. Existing incomplete Meetups show “Finish Meetup,” not “Plan Event.”
+10. Public Meetups appear in The Lounge feed.
+11. Private Meetups respect privacy rules.
+12. RSVP works from both /meetups and /events.
+13. Editing a Meetup updates the Events listing.
+14. Cancelling a Meetup updates the Events listing.
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove Meetups.
+
+Do not remove Events.
+
+Do not remove Groups.
+
+Do not remove Business Pages.
+
+Do not remove The Lounge.
+
+Do not remove member profiles, Sparks, credits, memberships, messaging, verification, or premium features.
+
+Only amend the Meetup flow so creating a Meetup includes planning the full event in one form.
+
+Final Goal
+
+When a member clicks “Start a Meetup,” they should create the entire scheduled Meetup/event immediately.
+
+There should not be a second required “Plan Event” task after the Meetup is created.
+
+Creating the Meetup is planning the event.
