@@ -10034,6 +10034,8 @@ components:
         rsvpCount: { type: integer }
         waitlisted: { type: boolean }
         waitlistPosition: { type: ["integer", "null"] }
+        isMeetup: { type: boolean, description: "Privacy-safe analytics context; true when the parent group is a Meetup" }
+        invitedMember: { type: boolean, description: "Privacy-safe analytics context; true when the RSVP actor previously accepted an invite to this Meetup" }
 
     GroupEventAttendee:
       type: object

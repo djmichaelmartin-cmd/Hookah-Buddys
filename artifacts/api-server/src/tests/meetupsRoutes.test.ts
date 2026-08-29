@@ -2184,14 +2184,22 @@ describe("#14 Event-level private visibility enforcement", () => {
     h.enqueue(T.groupEventsTable, [{ rsvpCount: 1, waitlistCount: 0 }]);
     // route insight insert (groupInsightEventsTable) — no .from(), null queue
     h.enqueue(null, []);
+    // Privacy-safe analytics context: Meetup + accepted invitation, no IDs returned.
+    h.enqueue(T.groupsTable, [{ groupType: "meetup", inviteStatus: "accepted" }]);
     const res = await req("/groups/1/events/200/rsvp", {
       user: member,
       method: "POST",
       body: { rsvpStatus: "going" },
     });
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { rsvpStatus: string };
+    const body = (await res.json()) as {
+      rsvpStatus: string;
+      isMeetup: boolean;
+      invitedMember: boolean;
+    };
     expect(body.rsvpStatus).toBe("going");
+    expect(body.isMeetup).toBe(true);
+    expect(body.invitedMember).toBe(true);
   });
 
   // ── SAVE: POST /groups/:groupId/events/:eventId/save ────────────────────────

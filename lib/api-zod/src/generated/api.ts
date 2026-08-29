@@ -8822,7 +8822,9 @@ export const RsvpGroupEventResponse = zod.object({
   "rsvpStatus": zod.string().nullable(),
   "rsvpCount": zod.number(),
   "waitlisted": zod.boolean().optional(),
-  "waitlistPosition": zod.number().nullish()
+  "waitlistPosition": zod.number().nullish(),
+  "isMeetup": zod.boolean().optional().describe('Privacy-safe analytics context; true when the parent group is a Meetup'),
+  "invitedMember": zod.boolean().optional().describe('Privacy-safe analytics context; true when the RSVP actor previously accepted an invite to this Meetup')
 })
 
 

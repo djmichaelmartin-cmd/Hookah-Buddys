@@ -186,6 +186,14 @@ function EventCard({ event, groupId, isAdmin, isMeetup, canMessageAttendees, onD
             host_type: meetupHostType((event as GroupEvent & { businessId?: number | null }).businessId),
           });
         }
+        if (isMeetup && result.invitedMember) {
+          trackEvent("meetup_invited_member_rsvp", {
+            rsvp_status: result.rsvpStatus ?? "unavailable",
+            waitlisted: result.waitlisted ?? false,
+            event_format: event.eventFormat ?? "unspecified",
+            has_guests: guestCount > 0,
+          });
+        }
         toast({ title: "RSVP updated" });
         queryClient.invalidateQueries({ queryKey: getListGroupEventsQueryKey(groupId, { limit: 20 }) });
       },

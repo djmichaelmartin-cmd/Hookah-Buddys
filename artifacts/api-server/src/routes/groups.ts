@@ -5934,11 +5934,38 @@ router.post(
       });
     }
 
+    let meetupAnalytics = { isMeetup: false, invitedMember: false };
+    try {
+      const [context] = await db
+        .select({
+          groupType: groupsTable.groupType,
+          inviteStatus: groupInvitesTable.status,
+        })
+        .from(groupsTable)
+        .leftJoin(
+          groupInvitesTable,
+          and(
+            eq(groupInvitesTable.groupId, groupsTable.id),
+            eq(groupInvitesTable.invitedUserId, user.id),
+            eq(groupInvitesTable.status, "accepted"),
+          ),
+        )
+        .where(eq(groupsTable.id, groupId))
+        .limit(1);
+      meetupAnalytics = {
+        isMeetup: context?.groupType === "meetup",
+        invitedMember: context?.groupType === "meetup" && context.inviteStatus === "accepted",
+      };
+    } catch (err) {
+      req.log.warn({ err, groupId }, "Meetup RSVP analytics context unavailable");
+    }
+
     res.json({
       rsvpStatus: result.rsvpStatus,
       rsvpCount: result.rsvpCount,
       waitlisted: result.waitlisted,
       waitlistPosition: result.waitlistPosition,
+      ...meetupAnalytics,
     });
   },
 );

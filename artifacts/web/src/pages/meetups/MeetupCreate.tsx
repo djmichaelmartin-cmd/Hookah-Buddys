@@ -473,6 +473,11 @@ export default function MeetupCreate() {
 
       trackEvent("meetup_published", {
         host_type: meetupHostType(businessId),
+        invite_count: invitedUserIds.length,
+        has_invites: invitedUserIds.length > 0,
+        privacy: data.privacy,
+        event_format: data.eventFormat,
+        published_from_draft: draftId !== null,
       });
       toast({ title: "Your Meetup has been created." });
       allowNavigation();

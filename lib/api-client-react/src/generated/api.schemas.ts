@@ -5686,6 +5686,10 @@ export interface GroupEventRsvpResult {
   waitlisted?: boolean;
   /** @nullable */
   waitlistPosition?: number | null;
+  /** Privacy-safe analytics context; true when the parent group is a Meetup */
+  isMeetup?: boolean;
+  /** Privacy-safe analytics context; true when the RSVP actor previously accepted an invite to this Meetup */
+  invitedMember?: boolean;
 }
 
 /**

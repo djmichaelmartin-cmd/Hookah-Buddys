@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Users, Globe, Lock, ShieldCheck, Mail, Check, X, Plus, CalendarDays, MapPin, FileEdit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { trackEvent } from "@/lib/analytics";
 
 import LoungeLeftSidebar from "@/components/lounge/LoungeLeftSidebar";
 
@@ -248,7 +249,12 @@ function InvitesList({ invites }: { invites: GroupInvite[] }) {
   const queryClient = useQueryClient();
   const respond = useRespondToGroupInvite({
     mutation: {
-      onSuccess: () => {
+      onSuccess: (_result, variables) => {
+        if (variables.data.action === "accept") {
+          trackEvent("meetup_invite_accepted", {
+            source: "meetups_dashboard",
+          });
+        }
         toast({ title: "Invitation updated" });
         queryClient.invalidateQueries({ queryKey: getListMyGroupInvitesQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListMyGroupsQueryKey() });
