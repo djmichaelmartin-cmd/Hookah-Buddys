@@ -324,6 +324,19 @@ describe("Meetup combined creation contract", () => {
     }).success).toBe(true);
   });
 
+  it("accepts invitation and directory Lounge inputs but rejects fractional identifiers", () => {
+    const input = { name: "Saturday Lounge Meetup", privacy: "public", title: "Opening session", eventFormat: "online", onlineUrl: "https://example.test/meet", startsAt: "2030-01-02T18:00:00.000Z", endsAt: "2030-01-02T20:00:00.000Z" };
+    expect(CreateMeetupBody.safeParse({ ...input, invitedUserIds: [11], loungeId: 4 }).success).toBe(true);
+    expect(CreateMeetupBody.safeParse({ ...input, invitedUserIds: [11.5] }).success).toBe(false);
+  });
+
+  it("behaviorally rejects an inactive invitee", async () => {
+    h.enqueue(T.usersTable, [{ id: member.id, accountStatus: "banned" }]);
+    const res = await req("/groups/meetups", { user: owner, method: "POST", body: { name: "Saturday Lounge Meetup", privacy: "private", title: "Opening session", eventFormat: "online", onlineUrl: "https://example.test/meet", startsAt: "2030-01-02T18:00:00.000Z", endsAt: "2030-01-02T20:00:00.000Z", invitedUserIds: [member.id] } });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "All invitees must be active accounts" });
+  });
+
   it("rejects a primary event whose end is not after its start", async () => {
     const res = await req("/groups/meetups", {
       user: owner,

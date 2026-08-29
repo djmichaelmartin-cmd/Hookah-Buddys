@@ -64,6 +64,9 @@ import {
   groupFeaturedContentTable,
   notificationsTable,
   blocksTable,
+  friendshipsTable,
+  followsTable,
+  loungesTable,
   businessesTable,
   businessPageRolesTable,
 } from "@workspace/db";
@@ -159,6 +162,11 @@ function parseId(raw: string | string[]): number {
 
 type GroupRole = "owner" | "admin" | "moderator" | "member";
 const MEETUP_RADIUS_CHOICES = [5, 10, 25, 50, 100] as const;
+class MeetupCreationError extends Error { constructor(readonly status: 400 | 409, message: string) { super(message); } }
+function isSerializationFailure(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  return (err as { code?: unknown }).code === "40001" || (err as { cause?: { code?: unknown } }).cause?.code === "40001";
+}
 
 class MeetupDraftPublishConflictError extends Error {}
 
@@ -1852,8 +1860,15 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
   }
 
   const needsPhysicalLocation = data.eventFormat === "in_person" || data.eventFormat === "hybrid";
+  let selectedLounge: typeof loungesTable.$inferSelect | null = null;
+  if (data.loungeId !== undefined) {
+    if (!needsPhysicalLocation) { res.status(400).json({ error: "loungeId is only valid for in-person or hybrid events" }); return; }
+    [selectedLounge] = await db.select().from(loungesTable).where(eq(loungesTable.id, data.loungeId));
+    if (!selectedLounge) { res.status(400).json({ error: "Selected Lounge is not eligible" }); return; }
+  }
   if (
     needsPhysicalLocation &&
+    !selectedLounge &&
     (!data.venueName?.trim() || !data.address?.trim() || !data.city?.trim() ||
       !data.state?.trim())
   ) {
@@ -1917,15 +1932,21 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
     throw err;
   }
 
+  const invitedUserIds = [...new Set(data.invitedUserIds ?? [])].filter((id) => id !== user.id);
   const meetupCoordinates = await resolveCoarseMeetupCoordinates(
     "meetup",
-    data.city,
-    data.state,
+    selectedLounge?.city ?? data.city,
+    selectedLounge?.state ?? data.state,
   );
+  const venueName = selectedLounge?.name ?? data.venueName;
+  const address = selectedLounge?.address ?? data.address;
+  const city = selectedLounge?.city ?? data.city;
+  const state = selectedLounge?.state ?? data.state;
+  const zip = selectedLounge?.zip ?? data.zip;
   const groupLocation =
-    data.city && data.state ? `${data.city.trim()}, ${data.state.trim()}` : null;
+    city && state ? `${city.trim()}, ${state.trim()}` : null;
   const eventLocation = needsPhysicalLocation
-    ? [data.venueName, data.address, data.city, data.state, data.zip].filter(Boolean).join(", ")
+    ? [venueName, address, city, state, zip].filter(Boolean).join(", ")
     : null;
   const eventInstructions = [
     data.howToFind?.trim() ? `How to find us: ${data.howToFind.trim()}` : null,
@@ -1935,10 +1956,37 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
   let publication: readonly [
     typeof groupsTable.$inferSelect,
     typeof groupEventsTable.$inferSelect,
-  ];
+  ] | null = null;
   try {
-    publication = await db.transaction(async (tx) => {
-    const groupValues = {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        publication = await db.transaction(async (tx) => {
+          if (invitedUserIds.length) {
+            const invitees = await tx
+              .select({ id: usersTable.id, accountStatus: usersTable.accountStatus })
+              .from(usersTable)
+              .where(inArray(usersTable.id, invitedUserIds));
+            if (
+              new Set(invitees.filter((invitee) => invitee.accountStatus === "active").map((invitee) => invitee.id)).size
+              !== invitedUserIds.length
+            ) {
+              throw new MeetupCreationError(400, "All invitees must be active accounts");
+            }
+            const [friendships, followers, blockRows] = await Promise.all([
+              tx.select({ userAId: friendshipsTable.userAId, userBId: friendshipsTable.userBId }).from(friendshipsTable).where(or(and(eq(friendshipsTable.userAId, user.id), inArray(friendshipsTable.userBId, invitedUserIds)), and(inArray(friendshipsTable.userAId, invitedUserIds), eq(friendshipsTable.userBId, user.id)))),
+              tx.select({ followerId: followsTable.followerId }).from(followsTable).where(and(inArray(followsTable.followerId, invitedUserIds), eq(followsTable.followingId, user.id))),
+              tx.select({ blockerId: blocksTable.blockerId, blockedUserId: blocksTable.blockedUserId }).from(blocksTable).where(or(and(eq(blocksTable.blockerId, user.id), inArray(blocksTable.blockedUserId, invitedUserIds)), and(inArray(blocksTable.blockerId, invitedUserIds), eq(blocksTable.blockedUserId, user.id)))),
+            ]);
+            const relationshipIds = new Set<number>(followers.map((row) => row.followerId));
+            friendships.forEach((friendship) => relationshipIds.add(friendship.userAId === user.id ? friendship.userBId : friendship.userAId));
+            if (relationshipIds.size !== invitedUserIds.length) {
+              throw new MeetupCreationError(400, "Invitees must be your Buddys or followers");
+            }
+            if (blockedUserIdsPure(user.id, blockRows).size) {
+              throw new MeetupCreationError(409, "Blocked accounts cannot be invited");
+            }
+          }
+          const groupValues = {
         creatorUserId: draftGroup?.creatorUserId ?? user.id,
         name: data.name,
         description: data.description ?? null,
@@ -1955,8 +2003,8 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
         eventCount: 1,
         groupType: "meetup",
         meetupInterests: data.interests ?? null,
-        meetupCity: data.city ?? null,
-        meetupState: data.state ?? null,
+        meetupCity: city ?? null,
+        meetupState: state ?? null,
         meetupLat: meetupCoordinates?.lat ?? null,
         meetupLng: meetupCoordinates?.lng ?? null,
         meetupDraftData: null,
@@ -2015,10 +2063,10 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
         visibility: data.privacy,
         hideAttendees: data.hideAttendees ?? false,
         eventFormat: data.eventFormat,
-        venueName: data.venueName ?? null,
-        address: data.address ?? null,
-        city: data.city ?? null,
-        state: data.state ?? null,
+        venueName: venueName ?? null,
+        address: address ?? null,
+        city: city ?? null,
+        state: state ?? null,
         eventCategory: data.eventCategory ?? null,
         topics: data.topics ?? null,
         eventTags: data.eventTags ?? null,
@@ -2033,16 +2081,42 @@ router.post("/groups/meetups", requireAuth(), requireCompleteBuddyProfile, async
         paidMetadata: (data.paidMetadata as Record<string, unknown>) ?? null,
       })
       .returning();
-    return [createdGroup, createdEvent] as const;
-    });
+    if (invitedUserIds.length) await tx.insert(groupInvitesTable).values(invitedUserIds.map((invitedUserId) => ({ groupId: createdGroup.id, invitedByUserId: user.id, invitedUserId, status: "pending" })));
+          return [createdGroup, createdEvent] as const;
+        }, { isolationLevel: "serializable" });
+        break;
+      } catch (err) {
+        if (err instanceof MeetupCreationError || err instanceof MeetupDraftPublishConflictError || !isSerializationFailure(err) || attempt === 2) throw err;
+      }
+    }
   } catch (err) {
     if (err instanceof MeetupDraftPublishConflictError) {
       res.status(409).json({ error: err.message });
       return;
     }
+    if (err instanceof MeetupCreationError) {
+      res.status(err.status).json({ error: err.message });
+      return;
+    }
+    if (isSerializationFailure(err)) {
+      res.status(409).json({ error: "Meetup creation conflicted with a concurrent update; please try again" });
+      return;
+    }
     throw err;
   }
+  if (!publication) {
+    res.status(409).json({ error: "Meetup creation conflicted with a concurrent update; please try again" });
+    return;
+  }
   const [group, event] = publication;
+
+  if (invitedUserIds.length) {
+    try {
+      await db.insert(notificationsTable).values(invitedUserIds.map((invitedUserId) => ({ userId: invitedUserId, type: "group_invite", title: "Meetup invitation", message: `${user.name} invited you to ${group.name}`, relatedUserId: user.id, relatedGroupId: group.id })));
+    } catch (err) {
+      req.log.error({ err, groupId: group.id }, "Failed to send Meetup invitation notifications");
+    }
+  }
 
   await logGroupActivity(group.id, user.id, "create_group");
   await logGroupActivity(group.id, user.id, "create_event", {

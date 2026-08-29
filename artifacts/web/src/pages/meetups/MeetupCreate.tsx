@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Layout } from "@/components/Layout";
 import {
@@ -7,7 +7,14 @@ import {
   useCreateMeetupDraft,
   useGetCurrentUser,
   useGetMeetupDraft,
+  useListEditableReelBusinesses,
+  useListFriends,
+  useListFollows,
+  useListLounges,
   useUpdateMeetupDraft,
+  getListEditableReelBusinessesQueryKey,
+  getListFriendsQueryKey,
+  getListFollowsQueryKey,
   type MeetupDraftInput,
 } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
@@ -16,6 +23,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -173,6 +181,22 @@ export default function MeetupCreate() {
   const [isUploading, setIsUploading] = useState(false);
   const [businessId, setBusinessId] = useState<number | null>(null);
   const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
+  const currentUserId = session?.user?.id ?? 0;
+  const { data: buddys = [] } = useListFriends(
+    { userId: currentUserId },
+    { query: { enabled: currentUserId > 0, queryKey: getListFriendsQueryKey({ userId: currentUserId }) } },
+  );
+  const { data: followers = [] } = useListFollows(
+    { userId: currentUserId, direction: "followers" },
+    { query: { enabled: currentUserId > 0, queryKey: getListFollowsQueryKey({ userId: currentUserId, direction: "followers" }) } },
+  );
+  const { data: lounges = [] } = useListLounges({ limit: 200 });
+  const [invitedUserIds, setInvitedUserIds] = useState<number[]>([]);
+  const [loungeId, setLoungeId] = useState<number | undefined>();
+  const inviteOptions = useMemo(
+    () => [...new Map([...buddys, ...followers].map((person) => [person.id, person])).values()],
+    [buddys, followers],
+  );
   const {
     data: managedBusinesses,
     isLoading: areBusinessesLoading,
@@ -434,6 +458,8 @@ export default function MeetupCreate() {
             ticketPrice: data.ticketPrice,
             refundPolicy: data.refundPolicy
           } : undefined,
+          invitedUserIds,
+          loungeId,
         }
       });
 
@@ -1151,6 +1177,57 @@ export default function MeetupCreate() {
                   <p className="text-white/70 text-sm">Once published, you will be able to share direct invite links and notify your connections immediately from the Meetup page.</p>
                 </div>
               </div>
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-white">Invite Buddys &amp; Followers (optional)</p>
+                <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-orange-500/20 p-3">
+                  {inviteOptions.map((person) => (
+                    <label key={person.id} className="flex items-center gap-3 text-sm text-white">
+                      <Checkbox
+                        checked={invitedUserIds.includes(person.id)}
+                        onCheckedChange={(checked) => setInvitedUserIds((ids) =>
+                          checked ? [...ids, person.id] : ids.filter((id) => id !== person.id),
+                        )}
+                      />
+                      {person.name}
+                    </label>
+                  ))}
+                  {!inviteOptions.length && <p className="text-sm text-white/60">No Buddys or followers available.</p>}
+                </div>
+              </div>
+              {["in_person", "hybrid"].includes(eventFormat) && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-white">Lounge (optional)</p>
+                  <Select
+                    value={loungeId?.toString() ?? "none"}
+                    onValueChange={(value) => {
+                      const lounge = lounges.find((item) => item.id === Number(value));
+                      setLoungeId(value === "none" ? undefined : Number(value));
+                      if (lounge) {
+                        form.setValue("venueName", lounge.name);
+                        form.setValue("address", lounge.address ?? "");
+                        form.setValue("city", lounge.city);
+                        form.setValue("state", lounge.state);
+                        form.setValue("zip", lounge.zip ?? "");
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="border-orange-500/10 bg-background/80">
+                      <SelectValue placeholder="Select a directory Lounge" />
+                    </SelectTrigger>
+                    <SelectContent className="border-orange-500/20 bg-card">
+                      <SelectItem value="none">No Lounge selected</SelectItem>
+                      {lounges.map((lounge) => (
+                        <SelectItem key={lounge.id} value={lounge.id.toString()}>
+                          {lounge.name} — {lounge.city}, {lounge.state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    Selecting a directory Lounge copies its venue details; it does not create a durable Lounge link.
+                  </p>
+                </div>
+              )}
 
               <FormField
                 control={form.control}

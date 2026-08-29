@@ -61,6 +61,13 @@ export interface MeetupInput {
   howToFind?: string;
   /** Additional note for the standard Meetup guidelines rule */
   rulesNotes?: string;
+  /**
+     * Buddy and follower accounts to receive pending group invitations
+     * @maxItems 200
+     */
+  invitedUserIds?: number[];
+  /** Directory Lounge whose venue details are copied for a physical event */
+  loungeId?: number;
   isPaid?: boolean;
   paidMetadata?: MeetupInputPaidMetadata;
 }

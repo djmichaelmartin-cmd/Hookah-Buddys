@@ -7529,7 +7529,7 @@ components:
           description: Required when destination=group; invalid with other destinations
         recipientUserIds:
           type: array
-          items: { type: integer }
+          items: { type: integer, multipleOf: 1 }
           maxItems: 20
           description: Required when destination=private (1-20 eligible recipients); self excluded automatically
         sharerComment:
@@ -9630,6 +9630,7 @@ components:
         groupShareCount: { type: integer }
         privateShareCount:
           type: integer
+          multipleOf: 1
           nullable: true
           description: "Only returned to the post author or admin."
         linkShareCount:
@@ -9910,6 +9911,14 @@ components:
         eventTags: { type: array, items: { type: string } }
         howToFind: { type: string }
         rulesNotes: { type: string, description: "Additional note for the standard Meetup guidelines rule" }
+        invitedUserIds:
+          type: array
+          maxItems: 200
+          items: { type: integer }
+          description: "Buddy and follower accounts to receive pending group invitations"
+        loungeId:
+          type: integer
+          description: "Directory Lounge whose venue details are copied for a physical event"
         isPaid: { type: boolean }
         paidMetadata: { type: object }
 
