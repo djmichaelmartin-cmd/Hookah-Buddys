@@ -3,6 +3,7 @@ import { useRegisterDoll, type DollRegistrationBuddyType } from "@workspace/api-
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -92,7 +93,7 @@ export default function SignupDoll() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required value={formData.password} onChange={handleChange} className="bg-background/50 border-white/10" />
+                <PasswordInput id="password" autoComplete="new-password" required value={formData.password} onChange={handleChange} className="bg-background/50 border-white/10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>

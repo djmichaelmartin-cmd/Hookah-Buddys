@@ -3,6 +3,7 @@ import { useRegisterMember, useListPlans, getListPlansQueryKey, type MemberRegis
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -135,7 +136,7 @@ export default function SignupMember() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" required minLength={6} value={formData.password} onChange={handleChange} className="bg-background/50 border-white/10" />
+                  <PasswordInput id="password" autoComplete="new-password" required minLength={6} value={formData.password} onChange={handleChange} className="bg-background/50 border-white/10" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
