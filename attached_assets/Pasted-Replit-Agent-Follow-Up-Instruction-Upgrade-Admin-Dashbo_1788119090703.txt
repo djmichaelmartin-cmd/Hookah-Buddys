@@ -1,0 +1,679 @@
+Replit Agent Follow-Up Instruction: Upgrade Admin Dashboard Left Sidebar Navigation
+
+Do not rebuild the HookahBuddys platform. Only upgrade the existing Admin Dashboard layout and navigation.
+
+The Admin Dashboard needs a left-side vertical menu similar to the member profile/dashboard layout.
+
+Important: The current menu appears to be showing labels with “svg” text attached, such as `Applicationssvg`, `Userssvg`, etc. That should not appear. SVG icons may be used visually, but the text “svg” must not display anywhere in the menu labels.
+
+Use the platform name:
+
+HookahBuddys
+
+Admin Dashboard Goal
+
+Create a clean, professional Admin Dashboard with:
+
+* Left sidebar navigation
+* Admin content area on the right
+* Active menu highlighting
+* Icons beside each menu item
+* Mobile responsive collapsible admin menu
+* Badge/count indicators where useful
+* Consistent styling with the HookahBuddys dark social platform theme
+
+Admin Dashboard Left Sidebar Menu
+
+Add these menu items to the left side exactly as clean labels:
+
+1. Applications
+2. Media Moderation
+3. Verifications
+4. Lounge
+5. Shares
+6. Photos
+7. Sparks
+8. Blocks
+9. Users
+10. Profiles
+11. Credits
+12. Plans
+13. Events
+14. Leads
+15. Businesses
+16. Groups
+17. Custom Requests
+
+Do not display:
+
+* Applicationssvg
+* Media Moderationsvg
+* Verificationssvg
+* Loungesvg
+* Sharessvg
+* Photossvg
+* Sparkssvg
+* Blockssvg
+* Userssvg
+* Profilessvg
+* Creditssvg
+* Planssvg
+* Eventssvg
+* Leadssvg
+* Businessessvg
+* Groupssvg
+* Custom Requestssvg
+
+SVG icons should be rendered as actual icons only.
+
+Sidebar Route Structure
+
+Use or create these admin routes:
+
+* `/admin/applications`
+* `/admin/media-moderation`
+* `/admin/verifications`
+* `/admin/lounge`
+* `/admin/shares`
+* `/admin/photos`
+* `/admin/sparks`
+* `/admin/blocks`
+* `/admin/users`
+* `/admin/profiles`
+* `/admin/credits`
+* `/admin/plans`
+* `/admin/events`
+* `/admin/leads`
+* `/admin/businesses`
+* `/admin/groups`
+* `/admin/custom-requests`
+
+If some of these admin pages already exist under different routes, keep the existing routes working and add redirects or update the sidebar links to the correct existing routes.
+
+Admin Layout Requirements
+
+The Admin Dashboard layout should have:
+
+Left Sidebar:
+
+* Fixed or sticky left navigation on desktop
+* Width around 260px to 300px
+* Dark sidebar background
+* Admin logo or “HookahBuddys Admin” heading at top
+* Menu items stacked vertically
+* Icons on the left of each menu label
+* Active route highlighted
+* Hover state for each menu item
+* Optional badge counts on menu items
+* Logout / Back to Site link at bottom
+
+Right Content Area:
+
+* Page title
+* Summary cards
+* Main admin table or content for selected menu item
+* Search/filter tools where appropriate
+* Actions/buttons where appropriate
+
+Mobile:
+
+* Collapse sidebar into hamburger/drawer menu
+* Admin menu should slide in or appear as a mobile panel
+* Content area should remain readable and responsive
+* Active page should still be obvious
+
+Visual Style
+
+Use the existing HookahBuddys theme:
+
+* Primary background: dark charcoal
+* Sidebar background: slightly darker charcoal
+* Cards: dark gray
+* Borders: subtle gray
+* Text: white / light gray
+* Social actions: blue
+* Premium/admin actions: gold
+* Alerts/reports/problems: red
+* Success/approved/active: green
+* Pending/review: amber
+
+Suggested colors:
+
+* Admin background: `#0F1115`
+* Sidebar background: `#171A21`
+* Card background: `#1F232B`
+* Hover background: `#262B35`
+* Border: `#343A46`
+* Primary text: `#F5F7FA`
+* Secondary text: `#C7CBD3`
+* Muted text: `#8E95A3`
+* Active blue: `#1877F2`
+* Premium gold: `#D6B56D`
+* Alert red: `#EF4444`
+* Success green: `#31C48D`
+* Warning amber: `#F59E0B`
+
+Sidebar Menu Behavior
+
+Each menu item should:
+
+* Show an icon
+* Show a clean text label
+* Link to its admin page
+* Highlight when active
+* Support optional count badge
+* Not wrap awkwardly
+* Not show raw SVG text
+* Be keyboard accessible
+
+Example active state:
+
+* Background: `#262B35`
+* Left border: `#1877F2`
+* Icon color: `#1877F2`
+* Text color: `#FFFFFF`
+
+Example hover state:
+
+* Background: `#262B35`
+* Text color: `#FFFFFF`
+
+Icon Requirements
+
+Use a consistent icon set if available, such as Lucide, FontAwesome, Heroicons, or existing project icons.
+
+Suggested icons:
+
+* Applications: ClipboardList
+* Media Moderation: ShieldCheck or ImageCheck
+* Verifications: BadgeCheck
+* Lounge: MessageCircle or Home
+* Shares: Share2
+* Photos: Image
+* Sparks: Video or Flame
+* Blocks: Ban
+* Users: Users
+* Profiles: UserCircle
+* Credits: Coins
+* Plans: CreditCard or Layers
+* Events: Calendar
+* Leads: UserPlus or Inbox
+* Businesses: Building2
+* Groups: UsersRound
+* Custom Requests: FileText or MessageSquareMore
+
+Important:
+
+Render icons properly as components.
+
+Do not concatenate icon names or SVG text into the label.
+
+Admin Page Content Expectations
+
+If any page does not yet have full functionality, create a clean placeholder admin page for now with:
+
+* Page title
+* Short description
+* Basic search/filter area
+* Empty-state message
+* Placeholder table structure
+* “Coming soon” note only if the feature is not ready
+
+Do not leave blank pages.
+
+Applications Page
+
+Route:
+
+`/admin/applications`
+
+Purpose:
+
+Manage pending applications.
+
+Should eventually include:
+
+* Buddy applications
+* Creative Buddy applications
+* Business applications
+* Verification applications
+* Status filters
+* Approve/reject actions
+
+Media Moderation Page
+
+Route:
+
+`/admin/media-moderation`
+
+Purpose:
+
+Central moderation queue for uploaded media.
+
+Include:
+
+* Pending media
+* Reported media
+* Removed media
+* Photos
+* Sparks
+* Album media
+* Business media
+* Group media
+* Meetup media
+* Approve/reject/remove actions
+
+Verifications Page
+
+Route:
+
+`/admin/verifications`
+
+Purpose:
+
+Review verification submissions.
+
+Include:
+
+* Creative Buddy verification
+* Business verification
+* Identity/selfie checks if applicable
+* Pending/approved/rejected filters
+* Admin notes
+
+Lounge Page
+
+Route:
+
+`/admin/lounge`
+
+Purpose:
+
+Manage The Lounge feed.
+
+Include:
+
+* Lounge posts
+* Reported posts
+* Comments
+* Trending content
+* Lounge Spotlight settings
+* Featured feed controls
+
+Shares Page
+
+Route:
+
+`/admin/shares`
+
+Purpose:
+
+Review and manage post shares.
+
+Include:
+
+* Public shares
+* Private shares
+* Shares to Groups
+* Shares to The Lounge
+* Reported shared posts
+* Abuse/spam flags
+
+Photos Page
+
+Route:
+
+`/admin/photos`
+
+Purpose:
+
+Manage photo uploads.
+
+Include:
+
+* Profile photos
+* Album photos
+* Business photos
+* Group photos
+* Meetup/event photos
+* Reported photos
+* Removed photos
+
+Sparks Page
+
+Route:
+
+`/admin/sparks`
+
+Purpose:
+
+Manage short-form videos called Sparks.
+
+Include:
+
+* Uploaded Sparks
+* Recorded Sparks
+* Reported Sparks
+* Pending Sparks
+* Removed Sparks
+* Engagement stats
+
+Blocks Page
+
+Route:
+
+`/admin/blocks`
+
+Purpose:
+
+Review block/report activity.
+
+Include:
+
+* User blocks
+* Reported users
+* Blocked relationships
+* Abuse patterns
+* Admin safety actions
+
+Users Page
+
+Route:
+
+`/admin/users`
+
+Purpose:
+
+Manage user accounts.
+
+Include:
+
+* All users
+* Active users
+* Suspended users
+* Banned users
+* Role filters
+* Membership filters
+* Login/status data
+
+Profiles Page
+
+Route:
+
+`/admin/profiles`
+
+Purpose:
+
+Manage personal profile data and visibility.
+
+Include:
+
+* Female Buddy profiles
+* Male Buddy profiles
+* Creative Buddy profiles
+* Incomplete profiles
+* Profile visibility
+* Buddy Type filters
+* Profile reports
+
+Credits Page
+
+Route:
+
+`/admin/credits`
+
+Purpose:
+
+Manage credit balances and transactions.
+
+Include:
+
+* Credit purchases
+* Credit spending
+* Manual adjustments
+* Refunds
+* Custom request holds
+* Album unlocks
+* Video/session credit activity
+
+Plans Page
+
+Route:
+
+`/admin/plans`
+
+Purpose:
+
+Manage membership and subscription plans.
+
+Include:
+
+* Free Profile
+* Silver
+* Gold
+* Platinum
+* Creative Buddy
+* Plan pricing
+* Monthly credits
+* Stripe price IDs
+* Active/inactive status
+
+Events Page
+
+Route:
+
+`/admin/events`
+
+Purpose:
+
+Manage all platform events.
+
+Include:
+
+* Meetups
+* Group events
+* Business events
+* Event reports
+* RSVPs
+* Featured events
+* Hidden/cancelled events
+
+Leads Page
+
+Route:
+
+`/admin/leads`
+
+Purpose:
+
+Manage inbound leads/contact requests.
+
+Include:
+
+* Contact form leads
+* Business inquiries
+* Support leads
+* Creative Buddy inquiries
+* Advertising/promotional inquiries
+
+Businesses Page
+
+Route:
+
+`/admin/businesses`
+
+Purpose:
+
+Manage Business Pages.
+
+Include:
+
+* Business profiles
+* Business verification
+* Business posts
+* Business promotions
+* Lounge Spotlight eligibility
+* Business reports
+* Business categories/tags
+
+Groups Page
+
+Route:
+
+`/admin/groups`
+
+Purpose:
+
+Manage Groups.
+
+Include:
+
+* All Groups
+* Public/private Groups
+* Reported Groups
+* Group posts
+* Group admins
+* Group member reports
+* Featured Groups
+
+Custom Requests Page
+
+Route:
+
+`/admin/custom-requests`
+
+Purpose:
+
+Manage Creator Custom Photo/Video Requests.
+
+Include:
+
+* Pending custom requests
+* Accepted requests
+* Delivered requests
+* Expired requests
+* Refunded requests
+* Disputed requests
+* Credit holds
+* Delivery timers
+* Reuse permission status
+* Creator/customer details
+
+Badge Counts
+
+Add optional badge counts beside menu items when data exists.
+
+Examples:
+
+* Applications: pending count
+* Media Moderation: pending/report count
+* Verifications: pending count
+* Shares: reported share count
+* Photos: reported/pending count
+* Sparks: reported/pending count
+* Users: active or flagged count
+* Credits: pending refund/issue count
+* Events: reported/pending count
+* Leads: new lead count
+* Businesses: pending approval count
+* Groups: reported count
+* Custom Requests: pending/disputed count
+
+If counts are not wired yet, leave badges hidden or use placeholder logic safely.
+
+Admin Access Control
+
+Only users with admin permissions should access Admin Dashboard pages.
+
+If a non-admin attempts to access an admin page:
+
+* Redirect to login if not authenticated
+* Show unauthorized message if authenticated but not admin
+* Do not expose admin data
+
+Admin Sidebar Component
+
+Create a reusable AdminSidebar component.
+
+Suggested structure:
+
+* `AdminLayout`
+* `AdminSidebar`
+* `AdminHeader`
+* `AdminPageHeader`
+* `AdminStatCard`
+* `AdminTable`
+* `AdminEmptyState`
+
+All admin pages should use the same AdminLayout so the left sidebar remains consistent.
+
+Do not duplicate sidebar code across every admin page.
+
+Responsive Behavior
+
+Desktop:
+
+* Sidebar visible on left
+* Content on right
+
+Tablet:
+
+* Sidebar may collapse to icons or drawer
+
+Mobile:
+
+* Sidebar hidden behind menu button
+* Open/close drawer
+* Tappable menu items
+* Active route visible
+
+Testing Checklist
+
+Confirm:
+
+1. Admin Dashboard has a left sidebar.
+2. Sidebar looks similar in structure to the member profile/dashboard sidebar.
+3. All requested menu items appear on the left side.
+4. No menu label contains the text “svg.”
+5. SVG/icons render as icons only.
+6. Active menu item highlights correctly.
+7. Each menu item links to the correct route.
+8. Pages are not blank.
+9. Mobile sidebar works.
+10. Non-admin users cannot access admin pages.
+11. Existing admin functionality is not removed.
+12. Existing member dashboard/profile layout is not broken.
+
+Important Implementation Notes
+
+Do not rebuild.
+
+Do not remove existing Admin Dashboard features.
+
+Do not remove member profiles, Creator profiles, The Lounge, Business Pages, Groups, Meetups, Events, Sparks, Credits, Plans, or Custom Requests.
+
+Only upgrade the Admin Dashboard layout and navigation so the requested admin menu items appear in a clean left-side sidebar.
+
+Final Result
+
+The Admin Dashboard should have a professional left-side menu similar to the member profile page, with these clean menu labels:
+
+* Applications
+* Media Moderation
+* Verifications
+* Lounge
+* Shares
+* Photos
+* Sparks
+* Blocks
+* Users
+* Profiles
+* Credits
+* Plans
+* Events
+* Leads
+* Businesses
+* Groups
+* Custom Requests
+
+No raw “svg” text should display in any menu item.
