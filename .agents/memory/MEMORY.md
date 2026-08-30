@@ -41,3 +41,4 @@
 - [Async form reset controls](async-form-reset-controls.md) — verify non-default Select/Radio values visually after async reset; uncontrolled Radix labels can retain stale defaults.
 - [Optional-session entitlements](optional-session-entitlements.md) — public paid-content routes must load optional sessions and treat banned/suspended viewers as anonymous.
 - [Route smoke-test fixtures](route-smoke-test-fixtures.md) — mocked APIs must preserve real response envelopes so section render crashes do not masquerade as navigation failures.
+- [Orphaned artifact process groups](orphaned-artifact-process-groups.md) — after merge restarts, healthy old listeners can outlive failed workflow records and block clean replacements.
