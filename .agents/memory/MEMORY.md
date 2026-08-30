@@ -40,3 +40,4 @@
 - [Group-event creation validation parity](group-event-creation-validation-parity.md) — every event creation path needs the same URL, date, and RSVP-window validation, including legacy completion routes.
 - [Async form reset controls](async-form-reset-controls.md) — verify non-default Select/Radio values visually after async reset; uncontrolled Radix labels can retain stale defaults.
 - [Optional-session entitlements](optional-session-entitlements.md) — public paid-content routes must load optional sessions and treat banned/suspended viewers as anonymous.
+- [Route smoke-test fixtures](route-smoke-test-fixtures.md) — mocked APIs must preserve real response envelopes so section render crashes do not masquerade as navigation failures.
