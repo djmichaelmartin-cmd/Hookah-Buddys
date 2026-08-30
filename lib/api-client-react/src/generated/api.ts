@@ -279,6 +279,7 @@ import type {
   MessageThread,
   ModerateGroupCommentBody,
   ModerationInput,
+  MyBusinessPage,
   MyProfileData,
   Notification,
   OnlineUser,
@@ -15776,6 +15777,83 @@ export const useCreateBusiness = <TError = ErrorType<ErrorEnvelope | void>,
       > => {
       return useMutation(getCreateBusinessMutationOptions(options));
     }
+
+export const getListMyBusinessPagesUrl = () => {
+
+
+
+
+  return `/api/businesses/mine`
+}
+
+/**
+ * @summary List Business Pages owned by the current user
+ */
+export const listMyBusinessPages = async ( options?: RequestInit): Promise<MyBusinessPage[]> => {
+
+  return customFetch<MyBusinessPage[]>(getListMyBusinessPagesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyBusinessPagesQueryKey = () => {
+    return [
+    `/api/businesses/mine`
+    ] as const;
+    }
+
+
+export const getListMyBusinessPagesQueryOptions = <TData = Awaited<ReturnType<typeof listMyBusinessPages>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyBusinessPages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyBusinessPagesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyBusinessPages>>> = ({ signal }) => listMyBusinessPages({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyBusinessPages>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMyBusinessPagesQueryResult = NonNullable<Awaited<ReturnType<typeof listMyBusinessPages>>>
+export type ListMyBusinessPagesQueryError = ErrorType<void>
+
+
+/**
+ * @summary List Business Pages owned by the current user
+ */
+
+export function useListMyBusinessPages<TData = Awaited<ReturnType<typeof listMyBusinessPages>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyBusinessPages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMyBusinessPagesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetBusinessByHandleUrl = (handle: string,) => {
 

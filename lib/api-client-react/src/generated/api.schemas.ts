@@ -3334,6 +3334,14 @@ export interface BusinessSummary {
   createdAt?: string;
 }
 
+export interface MyBusinessPage {
+  id: number;
+  handle: string;
+  name: string;
+  status: string;
+  isPublished: boolean;
+}
+
 /**
  * Admin list view: the public business summary augmented with Local Lounge Spotlight diagnostics. Only surfaced to platform admins.
 

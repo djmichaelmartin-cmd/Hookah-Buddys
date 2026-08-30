@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { getErrorMessage } from "@/lib/error";
 import { Layout } from "@/components/Layout";
-import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey, useGetCurrentUser, useAdminListShares, getAdminListSharesQueryKey, useAdminModerateShare, useAdminListSharingSuspensions, getAdminListSharingSuspensionsQueryKey, useAdminSuspendSharing, useAdminRestoreSharing, useListUsers, getListUsersQueryKey, useUpdateUserBuddyType } from "@workspace/api-client-react";
+import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey, useGetCurrentUser, useLogout, useAdminListShares, getAdminListSharesQueryKey, useAdminModerateShare, useAdminListSharingSuspensions, getAdminListSharingSuspensionsQueryKey, useAdminSuspendSharing, useAdminRestoreSharing, useListUsers, getListUsersQueryKey, useUpdateUserBuddyType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { RevenueBreakdownItem, DollRevenueShare, AdminListSharesSourceType, AdminListSharesDestination, ListUsersParams, ListUsersBuddyType, BuddyTypeInputBuddyType } from "@workspace/api-client-react";
 import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye, CalendarDays, Share2, Lock, Unlock } from "lucide-react";
@@ -19,6 +19,7 @@ import AdminEvents from "@/pages/AdminEvents";
 import AdminBusinesses from "@/pages/AdminBusinesses";
 import AdminGroups from "@/pages/AdminGroups";
 import { AdminCustomRequests } from "@/components/admin/AdminCustomRequests";
+import { ADMIN_SECTIONS, AdminSidebar, getAdminSectionFromPath, type AdminSection } from "@/components/admin/AdminSidebar";
 import { Briefcase } from "lucide-react";
 
 import { useLocation } from "wouter";
@@ -61,13 +62,29 @@ export default function AdminDashboard() {
 function AdminDashboardContent() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
+  const logout = useLogout();
+  const activeSection = getAdminSectionFromPath(location);
+  const activeSectionMeta = ADMIN_SECTIONS.find((section) => section.value === activeSection) ?? ADMIN_SECTIONS[0];
 
   const { data: stats } = useGetAdminStats();
   const { data: dollRevenue } = useGetDollRevenueShares();
   const { data: applications } = useListDollApplications();
   const { data: pendingMedia } = useListPendingMedia();
   const { data: verifications } = useListPendingVerifications();
+
+  const navigateToSection = (section: AdminSection) => {
+    navigate(section.path);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleLogout = () => {
+    logout.mutate(undefined, {
+      onSuccess: () => {
+        window.location.href = "/";
+      },
+    });
+  };
 
   const reviewApp = useReviewDollApplication();
   const moderateMedia = useModerateMedia();
@@ -175,10 +192,27 @@ function AdminDashboardContent() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-serif text-white mb-8">Admin Dashboard</h1>
+      <div className="container mx-auto px-4 py-8 lg:py-12">
+        <div className="grid items-start gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <AdminSidebar
+            activeSection={activeSection}
+            counts={{
+              applications: applications?.length ?? 0,
+              media: pendingMedia?.length ?? 0,
+              verifications: verifications?.length ?? 0,
+            }}
+            onNavigate={navigateToSection}
+            onLogout={handleLogout}
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="min-w-0">
+            <div className="mb-8">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#D6B56D]">HookahBuddys Admin</p>
+              <h1 className="text-3xl font-serif text-white">{activeSectionMeta.label}</h1>
+              <p className="mt-2 text-sm text-muted-foreground">{activeSectionMeta.description}</p>
+            </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
           <div className="bg-card/50 border border-white/10 rounded-xl p-6">
             <h3 className="text-sm text-muted-foreground mb-2">Total Revenue</h3>
             <p className="text-3xl font-bold text-primary">{currency(stats?.totalRevenue ?? 0)}</p>
@@ -205,26 +239,10 @@ function AdminDashboardContent() {
 
         <DollRevenueShares dolls={dollRevenue} />
 
-        <Tabs defaultValue={location === "/admin/groups" ? "groups" : "applications"} className="w-full">
-          <TabsList className="bg-card border border-white/10 mb-6 flex flex-wrap h-auto p-1">
-            <TabsTrigger value="applications"><Users className="w-4 h-4 mr-2"/> Applications</TabsTrigger>
-            <TabsTrigger value="media"><ImageIcon className="w-4 h-4 mr-2"/> Media Moderation</TabsTrigger>
-            <TabsTrigger value="verifications"><ShieldCheck className="w-4 h-4 mr-2"/> Verifications</TabsTrigger>
-            <TabsTrigger value="feed"><MessageSquare className="w-4 h-4 mr-2"/> Lounge</TabsTrigger>
-            <TabsTrigger value="shares"><Share2 className="w-4 h-4 mr-2"/> Shares</TabsTrigger>
-            <TabsTrigger value="photos"><ImageIcon className="w-4 h-4 mr-2"/> Photos</TabsTrigger>
-            <TabsTrigger value="reels"><Video className="w-4 h-4 mr-2"/> Sparks</TabsTrigger>
-            <TabsTrigger value="blocks"><AlertTriangle className="w-4 h-4 mr-2"/> Blocks</TabsTrigger>
-            <TabsTrigger value="users"><Users className="w-4 h-4 mr-2"/> Users</TabsTrigger>
-            <TabsTrigger value="profiles"><Search className="w-4 h-4 mr-2"/> Profiles</TabsTrigger>
-            <TabsTrigger value="credits"><Coins className="w-4 h-4 mr-2"/> Credits</TabsTrigger>
-            <TabsTrigger value="plans"><FileText className="w-4 h-4 mr-2"/> Plans</TabsTrigger>
-            <TabsTrigger value="events"><CalendarDays className="w-4 h-4 mr-2"/> Events</TabsTrigger>
-            <TabsTrigger value="leads"><Database className="w-4 h-4 mr-2"/> Leads</TabsTrigger>
-            <TabsTrigger value="businesses"><Briefcase className="w-4 h-4 mr-2"/> Businesses</TabsTrigger>
-            <TabsTrigger value="groups"><Users className="w-4 h-4 mr-2"/> Groups</TabsTrigger>
-            <TabsTrigger value="custom-requests"><MessageSquare className="w-4 h-4 mr-2"/> Custom Requests</TabsTrigger>
-          </TabsList>
+        <Tabs value={activeSection} onValueChange={(value) => {
+          const section = ADMIN_SECTIONS.find((item) => item.value === value);
+          if (section) navigateToSection(section);
+        }} className="w-full">
 
           <TabsContent value="applications" className="space-y-4">
             <h2 className="text-xl font-serif text-white mb-4">Pending Buddy Applications</h2>
@@ -616,6 +634,8 @@ function AdminDashboardContent() {
             <AdminCustomRequests />
           </TabsContent>
         </Tabs>
+          </div>
+        </div>
       </div>
     </Layout>
   );

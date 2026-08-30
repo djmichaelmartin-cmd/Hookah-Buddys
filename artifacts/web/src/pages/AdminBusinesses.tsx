@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, XCircle, MoreVertical, ShieldAlert, Award, Star, ArrowRightLeft, Tag, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminReports } from "@/components/admin/AdminReports";
 
@@ -279,6 +279,14 @@ export default function AdminBusinesses() {
                           <DropdownMenuItem onClick={() => openModDialog(business, 'warn')}><ShieldAlert className="w-4 h-4 mr-2"/> Warn</DropdownMenuItem>
                           {business.status === 'suspended' ? (
                             <DropdownMenuItem onClick={() => openModDialog(business, 'reinstate')} className="text-green-400"><CheckCircle className="w-4 h-4 mr-2"/> Reinstate</DropdownMenuItem>
+                          ) : business.status === 'draft' ? (
+                            <DropdownMenuItem
+                              onClick={() => openModDialog(business, 'reinstate')}
+                              className="text-green-400"
+                              data-testid={`menu-activate-business-${business.handle}`}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" /> Activate
+                            </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem onClick={() => openModDialog(business, 'suspend')} className="text-red-400"><XCircle className="w-4 h-4 mr-2"/> Suspend</DropdownMenuItem>
                           )}
@@ -341,8 +349,14 @@ export default function AdminBusinesses() {
         <DialogContent className="bg-card border-white/10 text-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="capitalize">
-              {modAction?.replace(/_/g, ' ')} — {selectedBusiness?.name}
+              {modAction === "reinstate" && selectedBusiness?.status === "draft"
+                ? "Activate"
+                : modAction?.replace(/_/g, ' ')}{" "}
+              — {selectedBusiness?.name}
             </DialogTitle>
+            <DialogDescription>
+              Review and confirm this business administration action.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">

@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, type MouseEvent } from "react";
 import { Link, useLocation } from "wouter";
-import { useGetCurrentUser, useLogout, useGetUnreadNotificationCount, getGetUnreadNotificationCountQueryKey } from "@workspace/api-client-react";
+import {
+  useGetCurrentUser,
+  useLogout,
+  useGetUnreadNotificationCount,
+  getGetUnreadNotificationCountQueryKey,
+  useListMyBusinessPages,
+  getListMyBusinessPagesQueryKey,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -68,6 +75,12 @@ export function Navbar() {
       queryKey: getGetUnreadNotificationCountQueryKey(),
       refetchInterval: 30000 // Poll every 30s
     }
+  });
+  const { data: myBusinessPages = [] } = useListMyBusinessPages({
+    query: {
+      enabled: !!session?.authenticated,
+      queryKey: getListMyBusinessPagesQueryKey(),
+    },
   });
   const unreadCount = unreadCountObj?.count || 0;
 
@@ -306,6 +319,20 @@ export function Navbar() {
 
                 <DropdownMenuSeparator className="bg-white/10" />
 
+                {myBusinessPages.map((business) => (
+                  <DropdownMenuItem
+                    key={business.id}
+                    asChild
+                    className="cursor-pointer hover:bg-white/5 hover:text-primary"
+                  >
+                    <Link href={`/business/${business.handle}`} className="flex items-center w-full">
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      <span>
+                        {myBusinessPages.length === 1 ? "My Business Page" : business.name}
+                      </span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
                 <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/5 hover:text-primary">
                   <Link href="/business/create" className="flex items-center w-full">
                     <Briefcase className="mr-2 h-4 w-4" />

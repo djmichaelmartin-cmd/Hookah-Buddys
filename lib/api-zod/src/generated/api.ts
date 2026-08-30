@@ -5293,6 +5293,19 @@ export const CreateBusinessBody = zod.object({
 
 
 /**
+ * @summary List Business Pages owned by the current user
+ */
+export const ListMyBusinessPagesResponseItem = zod.object({
+  "id": zod.number(),
+  "handle": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "isPublished": zod.boolean()
+})
+export const ListMyBusinessPagesResponse = zod.array(ListMyBusinessPagesResponseItem)
+
+
+/**
  * @summary Public business page detail by handle
  */
 export const GetBusinessByHandleParams = zod.object({

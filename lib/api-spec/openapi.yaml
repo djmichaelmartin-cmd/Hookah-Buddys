@@ -4448,6 +4448,23 @@ paths:
         "401":
           description: Authentication required
 
+  /businesses/mine:
+    get:
+      operationId: listMyBusinessPages
+      tags: [businesses]
+      summary: List Business Pages owned by the current user
+      responses:
+        "200":
+          description: Business Pages owned by the current user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MyBusinessPage"
+        "401":
+          description: Authentication required
+
   /businesses/{handle}:
     get:
       operationId: getBusinessByHandle
@@ -10176,6 +10193,16 @@ components:
         status: { type: string }
         isPublished: { type: boolean }
         createdAt: { type: string }
+
+    MyBusinessPage:
+      type: object
+      required: [id, handle, name, status, isPublished]
+      properties:
+        id: { type: integer }
+        handle: { type: string }
+        name: { type: string }
+        status: { type: string }
+        isPublished: { type: boolean }
 
     AdminBusinessSummary:
       description: >

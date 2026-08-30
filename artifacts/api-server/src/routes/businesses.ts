@@ -1262,6 +1262,32 @@ router.get("/businesses", async (req, res): Promise<void> => {
   );
 });
 
+router.get("/businesses/mine", requireAuth(), async (req, res): Promise<void> => {
+  const user = req.currentUser!;
+  const businesses = await db
+    .select({
+      id: businessesTable.id,
+      handle: businessesTable.handle,
+      name: businessesTable.name,
+      status: businessesTable.status,
+      isPublished: businessesTable.isPublished,
+    })
+    .from(businessesTable)
+    .innerJoin(
+      businessPageRolesTable,
+      eq(businessPageRolesTable.businessId, businessesTable.id),
+    )
+    .where(
+      and(
+        eq(businessPageRolesTable.userId, user.id),
+        eq(businessPageRolesTable.role, "owner"),
+      ),
+    )
+    .orderBy(asc(businessesTable.name), asc(businessesTable.id));
+
+  res.json(businesses);
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Create business page
 // ─────────────────────────────────────────────────────────────────────────────

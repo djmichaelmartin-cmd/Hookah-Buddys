@@ -99,6 +99,7 @@ function Router() {
       <Route path="/dashboard/doll" component={DashboardDoll} />
       <Route path="/dashboard/member" component={DashboardMember} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/:section" component={AdminDashboard} />
       <Route path="/upload" component={Upload} />
       <Route path="/verification" component={Verification} />
       <Route path="/checkout" component={Checkout} />
@@ -128,7 +129,6 @@ function Router() {
       <Route path="/groups/:id" component={GroupDetail} />
       <Route path="/groups/:id/:tab" component={GroupDetail} />
       <Route path="/dashboard/groups" component={DashboardGroups} />
-      <Route path="/admin/groups" component={AdminDashboard} />
 
       {/* Meetups Routes */}
       <Route path="/meetups" component={MeetupsDiscover} />
@@ -137,7 +137,6 @@ function Router() {
       <Route path="/meetups/:id" component={MeetupDetail} />
       <Route path="/meetups/:id/:tab" component={MeetupDetail} />
       <Route path="/dashboard/meetups" component={DashboardMeetups} />
-      <Route path="/admin/meetups" component={AdminDashboard} />
 
       {/* Legacy topic routes and backward-compatible redirects */}
       <Route path="/communities"><Redirect to="/groups" /></Route>

@@ -498,6 +498,7 @@ export * from './moderateGroupCommentBody';
 export * from './moderateGroupCommentBodyAction';
 export * from './moderationInput';
 export * from './moderationInputDecision';
+export * from './myBusinessPage';
 export * from './myProfileData';
 export * from './myProfileDataBuddyType';
 export * from './myProfileDataProfileCompletion';
