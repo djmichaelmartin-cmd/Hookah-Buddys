@@ -23,7 +23,7 @@ const ALBUM_COPY = {
   },
   smokin_hot: {
     title: "Smokin Hot Album",
-    description: "Unlock permanent access to an album that may include both photos and videos.",
+    description: "Unlock permanent access to photos and videos in this album, plus access to the Cool Album.",
   },
 } as const;
 

@@ -83,7 +83,9 @@ export function CreatorAlbumsManager({ creatorUserId }: { creatorUserId: number 
               <p className="text-xs text-muted-foreground mb-4">
                 {album.albumType === "free_preview"
                   ? "Free photos"
-                  : "May include both photos and videos"}
+                  : album.albumType === "cloud_vibes"
+                    ? "May include both photos and videos"
+                    : "May include both photos and videos, plus access to the Cool Album"}
               </p>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                 <ImageIcon className="w-4 h-4" />
