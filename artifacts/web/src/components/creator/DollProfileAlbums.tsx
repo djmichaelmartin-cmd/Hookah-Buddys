@@ -12,6 +12,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { Image as ImageIcon, Lock, Video, Sparkles, CheckCircle2, WandSparkles } from "lucide-react";
 
+const ALBUM_COPY = {
+  free_preview: {
+    title: "Free Album",
+    description: "Browse this Creator's free photos.",
+  },
+  cloud_vibes: {
+    title: "Cool Album",
+    description: "Unlock permanent access to an album that may include both photos and videos.",
+  },
+  smokin_hot: {
+    title: "Smokin Hot Album",
+    description: "Unlock permanent access to an album that may include both photos and videos.",
+  },
+} as const;
+
 export function DollProfileAlbums({
   creatorUserId,
   onUnlockError,
@@ -58,7 +73,8 @@ export function DollProfileAlbums({
         {freePreview && (
           <AlbumCard 
             album={freePreview} 
-            title="Free Preview" 
+            title={ALBUM_COPY.free_preview.title}
+            description={ALBUM_COPY.free_preview.description}
             price={0} 
             available={freePreview.isActive}
             icon={<ImageIcon className="w-5 h-5 text-green-400" />}
@@ -68,7 +84,8 @@ export function DollProfileAlbums({
         {cloudVibes && (
           <AlbumCard 
             album={cloudVibes} 
-            title="Cloud Vibes" 
+            title={ALBUM_COPY.cloud_vibes.title}
+            description={ALBUM_COPY.cloud_vibes.description}
             price={25} 
             available={cloudVibes.isActive}
             icon={<Sparkles className="w-5 h-5 text-blue-400" />}
@@ -78,7 +95,8 @@ export function DollProfileAlbums({
         {smokinHot && (
           <AlbumCard 
             album={smokinHot} 
-            title="Smokin Hot" 
+            title={ALBUM_COPY.smokin_hot.title}
+            description={ALBUM_COPY.smokin_hot.description}
             price={smokinPrice}
             available={smokinHot.isActive}
             icon={<Video className="w-5 h-5 text-red-400" />}
@@ -120,14 +138,14 @@ export function DollProfileAlbums({
         <DialogContent className="bg-card border-white/10 sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-serif text-white capitalize flex items-center gap-2">
-              {activeAlbum?.title || activeAlbum?.albumType.replace('_', ' ')}
+              {activeAlbum ? ALBUM_COPY[activeAlbum.albumType].title : ""}
               {activeAlbum?.unlocked && <CheckCircle2 className="w-5 h-5 text-green-400" />}
             </DialogTitle>
           </DialogHeader>
 
           {activeAlbum && (
             <div className="space-y-6 pt-4">
-              <p className="text-sm text-muted-foreground">{activeAlbum.description}</p>
+              <p className="text-sm text-muted-foreground">{ALBUM_COPY[activeAlbum.albumType].description}</p>
               
               {!activeAlbum.unlocked ? (
                 <div className="bg-background/50 rounded-xl p-8 text-center border border-white/5 flex flex-col items-center">
@@ -178,7 +196,7 @@ export function DollProfileAlbums({
   );
 }
 
-function AlbumCard({ album, title, price, available, icon, onOpen }: { album: CreatorAlbum; title: string; price: number; available: boolean; icon: React.ReactNode; onOpen: () => void }) {
+function AlbumCard({ album, title, description, price, available, icon, onOpen }: { album: CreatorAlbum; title: string; description: string; price: number; available: boolean; icon: React.ReactNode; onOpen: () => void }) {
   return (
     <button
       type="button"
@@ -196,7 +214,7 @@ function AlbumCard({ album, title, price, available, icon, onOpen }: { album: Cr
           <p className="text-xs text-muted-foreground">{!available ? 'Unavailable' : album.unlocked ? 'Unlocked' : price > 0 ? `${price} Credits` : 'Free'}</p>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground flex-1 mb-4">{album.description || `View ${album.media?.length || 0} items`}</p>
+      <p className="text-xs text-muted-foreground flex-1 mb-4">{description}</p>
       
       <span className="inline-flex h-8 w-full items-center justify-center rounded-md border border-white/10 px-3 text-xs font-medium text-white">
         {!available ? 'Unavailable' : album.unlocked ? 'View Album' : 'Unlock'}

@@ -97,18 +97,18 @@ async function hasBidirectionalBlock(firstUserId: number, secondUserId: number) 
 const DEFAULT_ALBUMS = [
   {
     albumType: "free_preview",
-    title: "Free Preview Album",
-    description: "Up to five free preview images.",
+    title: "Free Album",
+    description: "Browse this Creator's free photos.",
   },
   {
     albumType: "cloud_vibes",
-    title: "Cloud Vibes Album",
-    description: "Permanent access for 25 credits.",
+    title: "Cool Album",
+    description: "May include both photos and videos. Permanent access for 25 credits.",
   },
   {
     albumType: "smokin_hot",
     title: "Smokin Hot Album",
-    description: "Includes Cloud Vibes with permanent access.",
+    description: "May include both photos and videos. Includes the Cool Album with permanent access.",
   },
 ] as const;
 

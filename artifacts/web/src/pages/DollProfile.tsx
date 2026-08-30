@@ -7,7 +7,6 @@ import {
   useListPlans,
   useListSubscriptions,
   getListSubscriptionsQueryKey,
-  useUnlockContent,
   useCreateSubscription,
   useCreateThread,
   useRequestVideoChat,
@@ -21,7 +20,6 @@ import {
   useGetCreatorRequestAvailability,
   getGetCreatorRequestAvailabilityQueryKey,
   ApiError,
-  type Media,
 } from "@workspace/api-client-react";
 import { useParams, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
@@ -39,7 +37,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { BuyCreditsDialog } from "@/components/BuyCreditsDialog";
 import { isCheckoutRequired } from "@/lib/checkoutRequired";
-import { ShieldCheck, MessageSquare, Video, Star, Lock, Play, ImageIcon, Check, Sparkles, Coins, Zap } from "lucide-react";
+import { ShieldCheck, MessageSquare, Video, Star, Check, Sparkles, Coins, Zap } from "lucide-react";
 
 function serverError(err: unknown): string | undefined {
   if (err instanceof ApiError && err.data && typeof err.data === "object" && "error" in err.data) {
@@ -52,9 +50,6 @@ function serverError(err: unknown): string | undefined {
 function isOutOfCredits(err: unknown): boolean {
   return err instanceof ApiError && err.status === 402;
 }
-
-const VIDEO_TYPES = new Set(["premium_video", "short_video"]);
-const isVideo = (media: Media) => VIDEO_TYPES.has(media.type);
 
 import { DollProfileAlbums } from "@/components/creator/DollProfileAlbums";
 import { CustomRequestDialog } from "@/components/creator/CustomRequestDialog";
@@ -102,16 +97,6 @@ export default function DollProfile() {
     }
     toast({ title: fallbackTitle, description: serverError(err) ?? "Please try again.", variant: "destructive" });
   };
-
-  const unlock = useUnlockContent({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "Content unlocked", description: "Enjoy the full content." });
-        refetchDoll();
-      },
-      onError: (err) => handleCreditError(err, "Unlock failed"),
-    },
-  });
 
   const subscribe = useCreateSubscription({
     mutation: {
@@ -221,7 +206,6 @@ export default function DollProfile() {
       </Layout>
     );
 
-  const media = (doll.media ?? []).filter((item) => item.type !== "profile" && item.type !== "verification");
   const subscribed = doll.viewerSubscribed ?? false;
 
   const handleSubscribe = () => {
@@ -254,18 +238,6 @@ export default function DollProfile() {
       return;
     }
     setRequestOpen(true);
-  };
-
-  const handleUnlock = (item: Media) => {
-    if (!session?.user) {
-      navigate("/login");
-      return;
-    }
-    if (!isMember) {
-      toast({ title: "Members only", description: "Sign in as a member to unlock content.", variant: "destructive" });
-      return;
-    }
-    unlock.mutate({ data: { mediaId: item.id } });
   };
 
   const requirePaidMember = (action: () => void) => {
@@ -397,36 +369,15 @@ export default function DollProfile() {
                   </div>
 
                   {creatorUserId ? (
-                    <>
-                      <DollProfileAlbums
-                        creatorUserId={creatorUserId}
-                        onUnlockError={(err) => handleCreditError(err, "Failed to unlock album")}
-                        onRequest={handleRequestContent}
-                        requestsAvailable={Boolean(
-                          requestAvailability?.enabled && requestAvailability.onlineEligible,
-                        )}
-                        requestPrice={requestAvailability?.photoPriceCredits}
-                      />
-                      {media.length > 0 && (
-                        <div className="mt-8 border-t border-white/10 pt-6">
-                          <h3 className="mb-3 text-base font-semibold text-white">Existing Gallery</h3>
-                          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                            {media.map((item) => (
-                              <MediaTile
-                                key={item.id}
-                                media={item}
-                                stageName={doll.stageName}
-                                onUnlock={() => handleUnlock(item)}
-                                unlocking={
-                                  unlock.isPending &&
-                                  unlock.variables?.data.mediaId === item.id
-                                }
-                              />
-                            ))}
-                          </div>
-                        </div>
+                    <DollProfileAlbums
+                      creatorUserId={creatorUserId}
+                      onUnlockError={(err) => handleCreditError(err, "Failed to unlock album")}
+                      onRequest={handleRequestContent}
+                      requestsAvailable={Boolean(
+                        requestAvailability?.enabled && requestAvailability.onlineEligible,
                       )}
-                    </>
+                      requestPrice={requestAvailability?.photoPriceCredits}
+                    />
                   ) : (
                     <p className="text-muted-foreground text-sm">Albums are temporarily unavailable for this creator.</p>
                   )}
@@ -553,69 +504,3 @@ export default function DollProfile() {
   );
 }
 
-function MediaTile({
-  media,
-  stageName,
-  onUnlock,
-  unlocking,
-}: {
-  media: Media;
-  stageName: string;
-  onUnlock: () => void;
-  unlocking: boolean;
-}) {
-  const video = isVideo(media);
-  if (media.locked) {
-    return (
-      <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/10">
-        {media.thumbnailUrl ? (
-          <img
-            src={media.thumbnailUrl}
-            alt={`${stageName} premium content`}
-            className="h-full w-full scale-110 object-cover blur-xl"
-          />
-        ) : (
-          <div className="h-full w-full bg-card" />
-        )}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/60 p-3 text-center">
-          <Lock className="h-6 w-6 text-primary" />
-          <p className="text-[11px] capitalize text-muted-foreground">
-            {media.tier ? `Premium ${media.tier}` : video ? "Premium video" : "Premium photo"}
-          </p>
-          <Button
-            size="sm"
-            className="bg-primary text-xs text-primary-foreground hover:bg-primary/90"
-            onClick={onUnlock}
-            disabled={unlocking}
-          >
-            {unlocking ? "Unlocking..." : `Unlock${media.unlockCost ? ` · ${media.unlockCost} credits` : ""}`}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="relative aspect-square overflow-hidden rounded-lg border border-white/10 bg-card">
-      {video ? (
-        media.url ? (
-          <video src={media.url} controls playsInline className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Play className="h-8 w-8 text-muted-foreground/40" />
-          </div>
-        )
-      ) : media.url ? (
-        <img src={media.url} alt={media.caption || `${stageName} content`} className="h-full w-full object-cover" />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center">
-          <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-        </div>
-      )}
-      {media.premium && (
-        <span className="absolute left-2 top-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
-          Premium
-        </span>
-      )}
-    </div>
-  );
-}

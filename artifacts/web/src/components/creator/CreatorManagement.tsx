@@ -59,7 +59,7 @@ export function CreatorAlbumsManager({ creatorUserId }: { creatorUserId: number 
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-serif text-white">Your Albums</h3>
-          <p className="text-sm text-muted-foreground">Manage your Free Preview, Cloud Vibes, and Smokin Hot albums.</p>
+          <p className="text-sm text-muted-foreground">Manage your Free Album, Cool Album, and Smokin Hot Album.</p>
         </div>
       </div>
 
@@ -73,8 +73,18 @@ export function CreatorAlbumsManager({ creatorUserId }: { creatorUserId: number 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {albums.map(album => (
             <div key={album.id} className="bg-card/50 border border-white/10 rounded-xl p-5">
-              <h4 className="font-semibold text-white capitalize">{album.albumType.replace('_', ' ')}</h4>
-              <p className="text-xs text-muted-foreground mb-4">{album.title}</p>
+              <h4 className="font-semibold text-white">
+                {album.albumType === "free_preview"
+                  ? "Free Album"
+                  : album.albumType === "cloud_vibes"
+                    ? "Cool Album"
+                    : "Smokin Hot Album"}
+              </h4>
+              <p className="text-xs text-muted-foreground mb-4">
+                {album.albumType === "free_preview"
+                  ? "Free photos"
+                  : "May include both photos and videos"}
+              </p>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                 <ImageIcon className="w-4 h-4" />
                 {album.media?.length || 0} items
