@@ -18,24 +18,36 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login.mutate({ data: { email, password } }, {
-      onSuccess: (res) => {
-        toast({ title: "Welcome back", description: "Successfully logged in." });
-        if (res.user.role === 'doll') setLocation("/dashboard/doll");
-        else if (res.user.role === 'member') setLocation("/browse");
-        else if (res.user.role === 'admin') setLocation("/admin");
+    login.mutate(
+      { data: { email, password } },
+      {
+        onSuccess: (res) => {
+          toast({
+            title: "Welcome back",
+            description: "Successfully logged in.",
+          });
+          if (res.user.role === "doll") setLocation("/dashboard/doll");
+          else if (res.user.role === "member") setLocation("/browse");
+          else if (res.user.role === "admin") setLocation("/admin");
+        },
+        onError: (err) => {
+          toast({
+            title: "Login failed",
+            description: "Invalid credentials.",
+            variant: "destructive",
+          });
+        },
       },
-      onError: (err) => {
-        toast({ title: "Login failed", description: "Invalid credentials.", variant: "destructive" });
-      }
-    });
+    );
   };
 
   return (
     <Layout>
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
-          <h1 className="text-3xl font-serif text-white mb-6 text-center">Log In to the Lounge</h1>
+          <h1 className="text-3xl font-serif text-white mb-6 text-center">
+            Log In to the Lounge
+          </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -44,7 +56,7 @@ export default function Login() {
                 type="email"
                 required
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-background/50 border-white/10 text-white focus-visible:ring-primary"
               />
             </div>
@@ -55,7 +67,7 @@ export default function Login() {
                 autoComplete="current-password"
                 required
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 className="bg-background/50 border-white/10 text-white focus-visible:ring-primary"
               />
             </div>
@@ -69,9 +81,19 @@ export default function Login() {
           </form>
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link href={PROFILE_ENTRY_PATH} className="text-primary hover:underline">Create Free Profile</Link>
-            {" "}or{" "}
-            <Link href="/signup/doll" className="text-primary hover:underline">Apply as a Buddy</Link>
+            <Link
+              href={PROFILE_ENTRY_PATH}
+              className="text-primary hover:underline"
+            >
+              Create Free Profile
+            </Link>{" "}
+            or{" "}
+            <Link
+              href={PROFILE_ENTRY_PATH}
+              className="text-primary hover:underline"
+            >
+              Apply as a Buddy
+            </Link>
           </div>
         </div>
       </div>

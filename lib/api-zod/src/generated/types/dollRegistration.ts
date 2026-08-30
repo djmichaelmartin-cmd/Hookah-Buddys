@@ -27,10 +27,8 @@ export interface DollRegistration {
   experienceLevel: string;
   preferences?: string;
   profilePhotoUrl?: string;
-  verificationPhotoUrl?: string;
-  verificationVideoUrl?: string;
-  governmentIdUrl?: string;
   ageConfirmed: boolean;
   rulesAccepted: boolean;
   buddyType: DollRegistrationBuddyType;
+  planId: number;
 }

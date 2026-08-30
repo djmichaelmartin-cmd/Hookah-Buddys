@@ -63,6 +63,12 @@ test("all general profile-entry CTA variants use the shared route", () => {
 
   for (const absolutePath of collectTsxFiles(webSrc)) {
     const relativePath = path.relative(webSrc, absolutePath);
+    if (
+      relativePath === "pages/ChooseMembership.tsx" ||
+      relativePath.startsWith("pages/Signup")
+    ) {
+      continue;
+    }
     const source = readFileSync(absolutePath, "utf8");
     for (const label of labels) {
       let index = source.indexOf(label);
@@ -88,14 +94,17 @@ test("named visitor entry surfaces import and use PROFILE_ENTRY_PATH", () => {
       /import \{ PROFILE_ENTRY_PATH \} from "@\/lib\/routes";/,
       `${relativePath} must import the shared route`,
     );
-    assert.match(source, /(?:href=\{PROFILE_ENTRY_PATH\}|setLocation\(PROFILE_ENTRY_PATH\))/);
+    assert.match(
+      source,
+      /(?:href=\{PROFILE_ENTRY_PATH\}|setLocation\(PROFILE_ENTRY_PATH\))/,
+    );
   }
 
   const navbar = readWeb("components/Navbar.tsx");
   assert.equal(
     (navbar.match(/href=\{PROFILE_ENTRY_PATH\}/g) ?? []).length,
-    4,
-    "desktop/mobile Become a Buddy and Create Free Profile must share the entry route",
+    2,
+    "desktop/mobile free-profile actions must share the entry route",
   );
   const footer = readWeb("components/Footer.tsx");
   assert.equal((footer.match(/href=\{PROFILE_ENTRY_PATH\}/g) ?? []).length, 2);
@@ -103,8 +112,8 @@ test("named visitor entry surfaces import and use PROFILE_ENTRY_PATH", () => {
   const home = readWeb("pages/Home.tsx");
   assert.equal(
     (home.match(/href=\{PROFILE_ENTRY_PATH\}/g) ?? []).length,
-    4,
-    "hero, member tile, generic Buddy, and final free-profile CTAs use the chooser",
+    5,
+    "all home profile-entry CTAs use the chooser",
   );
 
   for (const relativePath of ["pages/Feed.tsx", "pages/CommunityFeed.tsx"]) {
@@ -115,7 +124,7 @@ test("named visitor entry surfaces import and use PROFILE_ENTRY_PATH", () => {
   }
   assert.match(
     readWeb("pages/Login.tsx"),
-    /href=\{PROFILE_ENTRY_PATH\}[^>]*>Create Free Profile<\/Link>/,
+    /href=\{PROFILE_ENTRY_PATH\}[\s\S]*?Create Free Profile/,
   );
   const loungeSidebar = readWeb("components/lounge/LoungeLeftSidebar.tsx");
   assert.match(loungeSidebar, /: PROFILE_ENTRY_PATH;/);
@@ -129,32 +138,35 @@ test("named visitor entry surfaces import and use PROFILE_ENTRY_PATH", () => {
   );
 });
 
-test("explicit application, plan selection, submission, and app routes remain intact", () => {
+test("guided profile paths, checkout handoffs, and app routes remain intact", () => {
   const chooseMembership = readWeb("pages/ChooseMembership.tsx");
-  assert.match(chooseMembership, /`\/signup\/bro\?plan=\$\{slug\}`/);
-  assert.match(chooseMembership, /`\/checkout\?type=membership&plan=\$\{slug\}`/);
-  assert.match(chooseMembership, /: "\/dashboard\/member"/);
+  assert.match(chooseMembership, /setParams\(\{ type: "male" \}\)/);
+  assert.match(chooseMembership, /setParams\(\{ type: "female" \}\)/);
+  assert.match(chooseMembership, /setParams\(\{ plan: "bronze" \}\)/);
+  assert.match(chooseMembership, /\/signup\/member\?type=male&plan=/);
+  assert.match(chooseMembership, /\/signup\/member\?type=female&plan=bronze/);
+  assert.match(chooseMembership, /\/signup\/doll\?type=female&planId=/);
 
   const pricing = readWeb("pages/Pricing.tsx");
   assert.match(pricing, /navigate\(`\/signup\/bro\?plan=\$\{plan\.slug\}`\)/);
-  assert.match(pricing, /navigate\(`\/checkout\?type=membership&plan=\$\{plan\.slug\}`\)/);
+  assert.match(
+    pricing,
+    /navigate\(`\/checkout\?type=membership&plan=\$\{plan\.slug\}`\)/,
+  );
   assert.match(pricing, /navigate\("\/dashboard\/member"\)/);
   assert.match(
     pricing,
-    /<Link href="\/signup\/doll"[\s\S]*?Apply as a Buddy[\s\S]*?<\/Link>/,
+    /<Link href=\{PROFILE_ENTRY_PATH\}[\s\S]*?Apply as a Buddy[\s\S]*?<\/Link>/,
   );
 
   const login = readWeb("pages/Login.tsx");
-  assert.match(
-    login,
-    /<Link href="\/signup\/doll"[^>]*>Apply as a Buddy<\/Link>/,
-  );
+  assert.match(login, /href=\{PROFILE_ENTRY_PATH\}[\s\S]*?Apply as a Buddy/);
 
   const home = readWeb("pages/Home.tsx");
   assert.match(
     home,
-    /<Link href="\/signup\/doll">[\s\S]*?Create my Buddy profile[\s\S]*?Free to apply · Approval after verification/,
-    "the clearly separated Female Buddy application path remains direct",
+    /<Link href=\{PROFILE_ENTRY_PATH\}>[\s\S]*?Create my Buddy profile[\s\S]*?Free to apply · Approval after verification/,
+    "the Female Buddy CTA enters the guided chooser",
   );
 
   const signupMember = readWeb("pages/SignupMember.tsx");
@@ -163,7 +175,20 @@ test("explicit application, plan selection, submission, and app routes remain in
     /setLocation\(`\/checkout\?type=membership&plan=\$\{selectedPlan\.slug\}`\)/,
   );
   assert.match(signupMember, /setLocation\("\/dashboard\/member"\)/);
-  assert.match(readWeb("pages/SignupDoll.tsx"), /setLocation\("\/verification"\)/);
+  const signupDoll = readWeb("pages/SignupDoll.tsx");
+  assert.match(signupDoll, /\/checkout\?type=membership&audience=doll&planId=/);
+  assert.match(signupDoll, /localStorage\.setItem\(\s*"creativeBuddyPlanId"/);
+  for (const consent of [
+    "ageConfirmed",
+    "rulesAccepted",
+    "tosAccepted",
+    "privacyAccepted",
+  ]) {
+    assert.match(signupDoll, new RegExp(`id="${consent}"`));
+  }
+  const verification = readWeb("pages/Verification.tsx");
+  assert.match(verification, /Resume Secure Payment/);
+  assert.match(verification, /refetchInterval:/);
 
   const app = readWeb("App.tsx");
   for (const route of [
@@ -175,13 +200,22 @@ test("explicit application, plan selection, submission, and app routes remain in
     "/dashboard/member",
     "/dashboard/doll",
   ]) {
-    assert.ok(app.includes(`<Route path="${route}"`), `${route} route must remain declared`);
+    assert.ok(
+      app.includes(`<Route path="${route}"`),
+      `${route} route must remain declared`,
+    );
   }
 });
 
 test("general visitor links cannot shortcut member registration or bronze signup", () => {
   for (const absolutePath of collectTsxFiles(webSrc)) {
     const relativePath = path.relative(webSrc, absolutePath);
+    if (
+      relativePath === "pages/ChooseMembership.tsx" ||
+      relativePath.startsWith("pages/Signup")
+    ) {
+      continue;
+    }
     const source = readFileSync(absolutePath, "utf8");
     assert.doesNotMatch(
       source,
@@ -189,4 +223,25 @@ test("general visitor links cannot shortcut member registration or bronze signup
       `${relativePath} must route general visitors through PROFILE_ENTRY_PATH`,
     );
   }
+});
+
+test("Creative Buddy checkout can be resumed after cancellation or webhook delay", () => {
+  const checkoutRoute = readFileSync(
+    path.join(workspaceRoot, "artifacts/api-server/src/routes/checkout.ts"),
+    "utf8",
+  );
+  assert.match(
+    checkoutRoute,
+    /cancel_url:[\s\S]*?\/checkout\?type=membership&audience=doll&planId=\$\{plan\.id\}&checkout=cancelled/,
+  );
+
+  const checkout = readWeb("pages/Checkout.tsx");
+  assert.match(checkout, /Checkout was not completed/);
+  assert.match(checkout, /resume secure payment/i);
+
+  const verification = readWeb("pages/Verification.tsx");
+  assert.match(verification, /Confirming your payment/);
+  assert.match(verification, /Refresh Payment Status/);
+  assert.match(verification, /Resume Secure Payment/);
+  assert.match(verification, /refetchInterval:/);
 });

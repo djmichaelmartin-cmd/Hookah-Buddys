@@ -10,7 +10,12 @@ import {
   type CSSProperties,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { useGetCurrentUser, useListFeaturedDolls, useListFeedPosts, useListGroups } from "@workspace/api-client-react";
+import {
+  useGetCurrentUser,
+  useListFeaturedDolls,
+  useListFeedPosts,
+  useListGroups,
+} from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Star,
@@ -49,15 +54,21 @@ export default function Home() {
   const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
   const hasActiveProfile = Boolean(
     session?.authenticated &&
-      session.user &&
-      session.user.accountStatus === "active" &&
-      (session.user.role === "admin" || session.user.buddyType),
+    session.user &&
+    session.user.accountStatus === "active" &&
+    (session.user.role === "admin" || session.user.buddyType),
   );
   const { data: featuredDolls } = useListFeaturedDolls();
   const dolls = (featuredDolls ?? []).filter((d) => d.profilePhotoUrl);
 
-  const { data: feedPosts } = useListFeedPosts({ limit: 4, filter: "trending" });
-  const { data: featuredGroupsData } = useListGroups({ featured: true, limit: 3 });
+  const { data: feedPosts } = useListFeedPosts({
+    limit: 4,
+    filter: "trending",
+  });
+  const { data: featuredGroupsData } = useListGroups({
+    featured: true,
+    limit: 3,
+  });
   const featuredGroups = featuredGroupsData?.groups || [];
 
   // ---- Featured Dolls marquee ----
@@ -112,13 +123,20 @@ export default function Home() {
   // The next image is "opened up" over the current one with an animated
   // clip-path wipe, mirroring Patreon's hero transition.
   const [current, setCurrent] = useState(0);
-  const [incoming, setIncoming] = useState<{ index: number; dir: 1 | -1 } | null>(null);
+  const [incoming, setIncoming] = useState<{
+    index: number;
+    dir: 1 | -1;
+  } | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [reduced, setReduced] = useState(false);
   // Cursor-tracking preview bubble over the hero.
-  const [pointer, setPointer] = useState<
-    { x: number; y: number; dir: 1 | -1; w: number; h: number } | null
-  >(null);
+  const [pointer, setPointer] = useState<{
+    x: number;
+    y: number;
+    dir: 1 | -1;
+    w: number;
+    h: number;
+  } | null>(null);
   const heroRef = useRef<HTMLElement>(null);
   const pointerRaf = useRef<number | null>(null);
   const moving = useRef(false);
@@ -161,20 +179,17 @@ export default function Home() {
     }
   }, []);
 
-  const start = useCallback(
-    (index: number, dir: 1 | -1) => {
-      if (moving.current || index === currentRef.current) return;
-      // Reduced motion: swap instantly, no animated wipe.
-      if (reducedRef.current) {
-        setCurrent(index);
-        return;
-      }
-      moving.current = true;
-      setIncoming({ index, dir });
-      setRevealed(false);
-    },
-    [],
-  );
+  const start = useCallback((index: number, dir: 1 | -1) => {
+    if (moving.current || index === currentRef.current) return;
+    // Reduced motion: swap instantly, no animated wipe.
+    if (reducedRef.current) {
+      setCurrent(index);
+      return;
+    }
+    moving.current = true;
+    setIncoming({ index, dir });
+    setRevealed(false);
+  }, []);
 
   const go = useCallback(
     (dir: 1 | -1) => start((currentRef.current + dir + N) % N, dir),
@@ -376,7 +391,11 @@ export default function Home() {
         {pointer && (
           <div
             className="pointer-events-none absolute z-30 hidden md:block"
-            style={{ left: pointer.x, top: pointer.y, transform: "translate(-50%, -50%)" }}
+            style={{
+              left: pointer.x,
+              top: pointer.y,
+              transform: "translate(-50%, -50%)",
+            }}
           >
             <div className="animate-in fade-in zoom-in-90 duration-200">
               <div
@@ -418,9 +437,9 @@ export default function Home() {
               </span>
             </h1>
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
-
-              Connect with verified Buddys over a shared love of hookah. Exclusive content, private chats, and
-              intimate video sessions — tasteful, glamorous, always after dark.
+              Connect with verified Buddys over a shared love of hookah.
+              Exclusive content, private chats, and intimate video sessions —
+              tasteful, glamorous, always after dark.
             </p>
             <div className="mt-9 flex flex-col sm:flex-row gap-4">
               <Link href={PROFILE_ENTRY_PATH}>
@@ -446,7 +465,6 @@ export default function Home() {
                   variant="ghost"
                   className="w-full sm:w-auto text-white hover:bg-white/10 hover:text-white font-semibold tracking-widest uppercase h-14 px-9"
                 >
-
                   Browse Buddys
                 </Button>
               </Link>
@@ -462,7 +480,9 @@ export default function Home() {
               onClick={() => goTo(i)}
               aria-label={`Go to slide ${i + 1}`}
               className={`h-1.5 rounded-full transition-all ${
-                i === current ? "w-8 bg-primary" : "w-3 bg-white/30 hover:bg-white/60"
+                i === current
+                  ? "w-8 bg-primary"
+                  : "w-3 bg-white/30 hover:bg-white/60"
               }`}
             />
           ))}
@@ -470,7 +490,12 @@ export default function Home() {
 
         {/* Scroll cue — bold white arrow that drifts down, fades out and reappears */}
         <button
-          onClick={() => window.scrollBy({ top: window.innerHeight * 0.9, behavior: "smooth" })}
+          onClick={() =>
+            window.scrollBy({
+              top: window.innerHeight * 0.9,
+              behavior: "smooth",
+            })
+          }
           aria-label="Scroll to next section"
           className="absolute bottom-8 right-8 z-20 text-white animate-scroll-cue drop-shadow-[0_2px_12px_rgba(0,0,0,0.75)] hidden md:block"
         >
@@ -481,10 +506,19 @@ export default function Home() {
       {/* ============ TRUST STRIP ============ */}
       <section className="border-y border-white/5 bg-card/30 backdrop-blur-md">
         <div className="container mx-auto px-4 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm text-muted-foreground">
-          <span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> 100% Verified Creators</span>
-          <span className="flex items-center gap-2"><Star className="h-4 w-4 text-primary" /> Hookah in Every Post</span>
-          <span className="flex items-center gap-2"><Lock className="h-4 w-4 text-primary" /> Private & Secure</span>
-          <span className="flex items-center gap-2"><Video className="h-4 w-4 text-primary" /> 1-on-1 Video Lounge</span>
+          <span className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" /> 100% Verified
+            Creators
+          </span>
+          <span className="flex items-center gap-2">
+            <Star className="h-4 w-4 text-primary" /> Hookah in Every Post
+          </span>
+          <span className="flex items-center gap-2">
+            <Lock className="h-4 w-4 text-primary" /> Private & Secure
+          </span>
+          <span className="flex items-center gap-2">
+            <Video className="h-4 w-4 text-primary" /> 1-on-1 Video Lounge
+          </span>
         </div>
       </section>
 
@@ -519,16 +553,20 @@ export default function Home() {
                     <Sparkles className="w-7 h-7 text-[#E85D75]" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-serif font-bold text-white">Female Buddys</h3>
-                    <p className="text-sm text-muted-foreground">For verified women creators</p>
+                    <h3 className="text-2xl font-serif font-bold text-white">
+                      Female Buddys
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      For verified women creators
+                    </p>
                   </div>
                 </div>
 
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-
-                  Build a stunning profile, set your own pace, and earn from members
-                  who love hookah culture. Every Buddy is identity-verified, and all
-                  content features a visible hookah — tasteful, glamorous, always after dark.
+                  Build a stunning profile, set your own pace, and earn from
+                  members who love hookah culture. Every Buddy is
+                  identity-verified, and all content features a visible hookah —
+                  tasteful, glamorous, always after dark.
                 </p>
 
                 <p className="text-xs uppercase tracking-[0.2em] text-[#E85D75]/90 font-semibold mb-3">
@@ -541,7 +579,10 @@ export default function Home() {
                     "A short bio that sets your vibe",
                     "Identity verification — 21+ & hookah-in-content agreement",
                   ].map((item) => (
-                    <li key={item} className="flex items-start gap-3 text-sm text-zinc-300">
+                    <li
+                      key={item}
+                      className="flex items-start gap-3 text-sm text-zinc-300"
+                    >
                       <Check className="h-4 w-4 mt-0.5 shrink-0 text-[#E85D75]" />
                       <span>{item}</span>
                     </li>
@@ -549,15 +590,24 @@ export default function Home() {
                 </ul>
 
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-8 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-[#E85D75]" /> Get paid</span>
-                  <span className="flex items-center gap-1.5"><Upload className="h-3.5 w-3.5 text-[#E85D75]" /> Post content</span>
-                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-[#E85D75]" /> Verified badge</span>
+                  <span className="flex items-center gap-1.5">
+                    <DollarSign className="h-3.5 w-3.5 text-[#E85D75]" /> Get
+                    paid
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Upload className="h-3.5 w-3.5 text-[#E85D75]" /> Post
+                    content
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-[#E85D75]" />{" "}
+                    Verified badge
+                  </span>
                 </div>
 
-                <Link href="/signup/doll">
+                <Link href={PROFILE_ENTRY_PATH}>
                   <Button className="w-full h-12 rounded-full border border-[#F28BA0] bg-[#E85D75] text-white font-semibold hover:bg-[#D94A66] transition-colors">
-
-                    Create my Buddy profile <ArrowRight className="ml-2 h-4 w-4" />
+                    Create my Buddy profile{" "}
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <p className="text-center text-xs text-muted-foreground mt-3">
@@ -584,16 +634,19 @@ export default function Home() {
                     <Heart className="w-7 h-7 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-serif font-bold text-white">Male Buddys</h3>
-                    <p className="text-sm text-muted-foreground">For members &amp; fans</p>
+                    <h3 className="text-2xl font-serif font-bold text-white">
+                      Male Buddys
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      For members &amp; fans
+                    </p>
                   </div>
                 </div>
 
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-
-                  Browse verified Buddys, unlock exclusive content, and start private
-                  conversations. Buy credits once and spend them on the connections
-                  and moments that matter most to you.
+                  Browse verified Buddys, unlock exclusive content, and start
+                  private conversations. Buy credits once and spend them on the
+                  connections and moments that matter most to you.
                 </p>
 
                 <p className="text-xs uppercase tracking-[0.2em] text-primary/90 font-semibold mb-3">
@@ -606,7 +659,10 @@ export default function Home() {
                     "A quick 21+ confirmation & Terms agreement",
                     "Add credits whenever you're ready to unlock",
                   ].map((item) => (
-                    <li key={item} className="flex items-start gap-3 text-sm text-zinc-300">
+                    <li
+                      key={item}
+                      className="flex items-start gap-3 text-sm text-zinc-300"
+                    >
                       <Check className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
                       <span>{item}</span>
                     </li>
@@ -614,14 +670,22 @@ export default function Home() {
                 </ul>
 
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-8 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-primary" /> Private chats</span>
-                  <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5 text-primary" /> Unlock media</span>
-                  <span className="flex items-center gap-1.5"><Video className="h-3.5 w-3.5 text-primary" /> Video lounge</span>
+                  <span className="flex items-center gap-1.5">
+                    <MessageSquare className="h-3.5 w-3.5 text-primary" />{" "}
+                    Private chats
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Lock className="h-3.5 w-3.5 text-primary" /> Unlock media
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Video className="h-3.5 w-3.5 text-primary" /> Video lounge
+                  </span>
                 </div>
 
                 <Link href={PROFILE_ENTRY_PATH}>
                   <Button className="w-full h-12 rounded-full bg-primary text-white font-semibold hover:bg-primary/90 transition-colors">
-                    Create my Buddy Profile <ArrowRight className="ml-2 h-4 w-4" />
+                    Create my Buddy Profile{" "}
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <p className="text-center text-xs text-muted-foreground mt-3">
@@ -638,12 +702,15 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-12">
             <div className="max-w-2xl">
-              <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">Groups</p>
+              <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">
+                Groups
+              </p>
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
                 Explore Groups & The Lounge
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Join member-owned Groups to connect over specific interests, or dive into the global Lounge for the latest community updates.
+                Join member-owned Groups to connect over specific interests, or
+                dive into the global Lounge for the latest community updates.
               </p>
             </div>
             <div className="flex gap-4">
@@ -666,12 +733,16 @@ export default function Home() {
                 <Users className="w-5 h-5 text-primary" /> Featured Groups
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {featuredGroups.map(group => (
+                {featuredGroups.map((group) => (
                   <Link key={group.id} href={`/groups/${group.id}`}>
                     <div className="group relative flex flex-col bg-card border border-white/10 hover:border-primary/50 rounded-2xl overflow-hidden transition-all duration-300 hover-elevate shadow-md cursor-pointer">
                       <div className="h-32 bg-[#171A21] relative overflow-hidden shrink-0">
                         {group.coverUrl ? (
-                          <img src={group.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
+                          <img
+                            src={group.coverUrl}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            alt=""
+                          />
                         ) : (
                           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20" />
                         )}
@@ -679,7 +750,11 @@ export default function Home() {
                       <div className="p-5 pt-0 relative flex-grow flex flex-col">
                         <div className="h-16 w-16 rounded-xl overflow-hidden border-4 border-card bg-[#171A21] -mt-8 mb-3 shrink-0 flex items-center justify-center shadow-md relative">
                           {group.iconUrl ? (
-                            <img src={group.iconUrl} className="w-full h-full object-cover" alt="" />
+                            <img
+                              src={group.iconUrl}
+                              className="w-full h-full object-cover"
+                              alt=""
+                            />
                           ) : (
                             <Users className="w-6 h-6 text-white/40" />
                           )}
@@ -689,7 +764,9 @@ export default function Home() {
                           <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors line-clamp-1">
                             {group.name}
                           </h3>
-                          <p className="text-sm text-white/50 mb-2">{group.memberCount} members</p>
+                          <p className="text-sm text-white/50 mb-2">
+                            {group.memberCount} members
+                          </p>
                           <p className="text-sm text-white/80 line-clamp-2 mt-2">
                             {group.description || "A HookahBuddys group."}
                           </p>
@@ -705,16 +782,23 @@ export default function Home() {
           {feedPosts && feedPosts.length > 0 ? (
             <div>
               <h3 className="text-xl font-serif text-white mb-6 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-primary" /> Trending in the Lounge
+                <MessageSquare className="w-5 h-5 text-primary" /> Trending in
+                the Lounge
               </h3>
               <LoggedOutBlurGate
                 blurred={!isSessionLoading && !hasActiveProfile}
                 className="rounded-2xl"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {feedPosts.slice(0, 4).map(post => (
-                    <div key={post.id} className="pointer-events-none opacity-80 scale-95 origin-top relative">
-                      <div className="absolute inset-0 z-10 pointer-events-auto cursor-pointer" onClick={() => window.location.href='/feed'} />
+                  {feedPosts.slice(0, 4).map((post) => (
+                    <div
+                      key={post.id}
+                      className="pointer-events-none opacity-80 scale-95 origin-top relative"
+                    >
+                      <div
+                        className="absolute inset-0 z-10 pointer-events-auto cursor-pointer"
+                        onClick={() => (window.location.href = "/feed")}
+                      />
                       <FeedPostCard post={post} onLoginPrompt={() => {}} />
                     </div>
                   ))}
@@ -723,13 +807,18 @@ export default function Home() {
             </div>
           ) : (
             <div className="bg-card/30 border border-white/5 rounded-2xl p-12 text-center backdrop-blur-sm">
-              <p className="text-muted-foreground">The lounge is opening up. Posts will appear here soon.</p>
+              <p className="text-muted-foreground">
+                The lounge is opening up. Posts will appear here soon.
+              </p>
             </div>
           )}
 
           <div className="mt-12 text-center flex justify-center">
             <Link href="/feed">
-              <Button size="lg" className="rounded-full bg-[#D6B56D] hover:bg-[#C9A456] text-[#111111] shadow-[0_0_20px_rgba(214,181,109,0.3)] font-semibold px-10 h-14">
+              <Button
+                size="lg"
+                className="rounded-full bg-[#D6B56D] hover:bg-[#C9A456] text-[#111111] shadow-[0_0_20px_rgba(214,181,109,0.3)] font-semibold px-10 h-14"
+              >
                 Join the Conversation
               </Button>
             </Link>
@@ -741,7 +830,9 @@ export default function Home() {
       <section id="how-it-works" className="py-24 relative z-10 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mb-16">
-            <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">How it works</p>
+            <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">
+              How it works
+            </p>
             <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
               Everything you need to enjoy the lounge.
             </h2>
@@ -772,8 +863,12 @@ export default function Home() {
                 <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(24,119,242,0.15)] group-hover:scale-110 transition-transform">
                   <f.icon className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="text-xl font-serif font-bold text-white mb-3">{f.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{f.body}</p>
+                <h3 className="text-xl font-serif font-bold text-white mb-3">
+                  {f.title}
+                </h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {f.body}
+                </p>
               </div>
             ))}
           </div>
@@ -805,12 +900,18 @@ export default function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
-              <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">Tonight's lineup</p>
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white">Featured Buddys</h2>
+              <p className="text-primary uppercase tracking-[0.25em] text-xs font-semibold mb-4">
+                Tonight's lineup
+              </p>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white">
+                Featured Buddys
+              </h2>
             </div>
             <Link href="/browse">
-              <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10">
-
+              <Button
+                variant="ghost"
+                className="text-primary hover:text-primary hover:bg-primary/10"
+              >
                 View all Buddys <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -820,72 +921,80 @@ export default function Home() {
             <div className="marquee">
               <div
                 className="marquee-track"
-                style={{ "--marquee-duration": marqueeDuration } as CSSProperties}
+                style={
+                  { "--marquee-duration": marqueeDuration } as CSSProperties
+                }
               >
                 {marqueeLoop.map((doll, i) => (
                   <Link
                     key={`${doll.id}-${i}`}
-                    href={hasActiveProfile ? `/dolls/${doll.id}` : PROFILE_ENTRY_PATH}
+                    href={
+                      hasActiveProfile
+                        ? `/dolls/${doll.id}`
+                        : PROFILE_ENTRY_PATH
+                    }
                     className="group block shrink-0 w-56 sm:w-64 md:w-72 mr-4 md:mr-6"
                     aria-hidden={i >= marqueeBase.length || undefined}
                     tabIndex={i >= marqueeBase.length ? -1 : undefined}
                   >
-                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 group-hover:border-[#E85D75]/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(232,93,117,0.2)] bg-card">
-                    <img
-                      src={doll.profilePhotoUrl!}
-                      alt={doll.stageName}
-                      className="object-cover w-full h-full opacity-90 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-                    <div className="absolute top-3 left-3 flex flex-col gap-2 items-start">
-                      {doll.featured && (
-                        <Badge className="bg-secondary/25 text-secondary border-secondary/50 backdrop-blur-md text-[10px] gap-1">
-                          <Star className="h-3 w-3 fill-current" /> Featured
-                        </Badge>
-                      )}
-                      {doll.verified && (
-                        <Badge className="bg-primary/20 text-primary border-primary/50 backdrop-blur-md text-[10px] gap-1">
-                          <ShieldCheck className="h-3 w-3" /> Verified
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
-                      {doll.online && (
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/50 backdrop-blur-md text-[10px]">
-                          Online
-                        </Badge>
-                      )}
-                      {doll.elite && (
-                        <Badge className="bg-primary/20 text-primary border-primary/50 backdrop-blur-md text-[10px]">
-                          Elite
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="absolute bottom-0 left-0 p-4 w-full">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <h3 className="font-serif text-lg font-bold text-white group-hover:text-primary transition-colors">
-                          {doll.stageName}
-                        </h3>
-                        {doll.verified && <ShieldCheck className="w-4 h-4 text-primary" />}
+                    <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 group-hover:border-[#E85D75]/50 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(232,93,117,0.2)] bg-card">
+                      <img
+                        src={doll.profilePhotoUrl!}
+                        alt={doll.stageName}
+                        className="object-cover w-full h-full opacity-90 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                      <div className="absolute top-3 left-3 flex flex-col gap-2 items-start">
+                        {doll.featured && (
+                          <Badge className="bg-secondary/25 text-secondary border-secondary/50 backdrop-blur-md text-[10px] gap-1">
+                            <Star className="h-3 w-3 fill-current" /> Featured
+                          </Badge>
+                        )}
+                        {doll.verified && (
+                          <Badge className="bg-primary/20 text-primary border-primary/50 backdrop-blur-md text-[10px] gap-1">
+                            <ShieldCheck className="h-3 w-3" /> Verified
+                          </Badge>
+                        )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {doll.city}, {doll.state}
-                      </p>
-                      <Button
-                        size="sm"
-                        className="mt-3 w-full bg-white/10 hover:bg-primary text-white hover:text-primary-foreground border border-white/15 hover:border-primary backdrop-blur-md font-medium tracking-wide uppercase text-[11px] transition-all"
-                      >
-                        View Profile <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                      </Button>
+                      <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+                        {doll.online && (
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/50 backdrop-blur-md text-[10px]">
+                            Online
+                          </Badge>
+                        )}
+                        {doll.elite && (
+                          <Badge className="bg-primary/20 text-primary border-primary/50 backdrop-blur-md text-[10px]">
+                            Elite
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="absolute bottom-0 left-0 p-4 w-full">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <h3 className="font-serif text-lg font-bold text-white group-hover:text-primary transition-colors">
+                            {doll.stageName}
+                          </h3>
+                          {doll.verified && (
+                            <ShieldCheck className="w-4 h-4 text-primary" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {doll.city}, {doll.state}
+                        </p>
+                        <Button
+                          size="sm"
+                          className="mt-3 w-full bg-white/10 hover:bg-primary text-white hover:text-primary-foreground border border-white/15 hover:border-primary backdrop-blur-md font-medium tracking-wide uppercase text-[11px] transition-all"
+                        >
+                          View Profile{" "}
+                          <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
                   </Link>
                 ))}
               </div>
             </div>
           ) : (
             <div className="py-12 text-center text-muted-foreground bg-card/30 rounded-2xl border border-white/5">
-
               No featured Buddys at the moment. Check back soon!
             </div>
           )}
@@ -902,10 +1011,11 @@ export default function Home() {
                 Turn your lounging into income.
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Get verified, earn from premium content, private messages including photos/videos, video sessions, and
-                the ability to set your own prices on custom content. You're in control.
+                Get verified, earn from premium content, private messages
+                including photos/videos, video sessions, and the ability to set
+                your own prices on custom content. You're in control.
               </p>
-              <Link href="/choose-membership">
+              <Link href={PROFILE_ENTRY_PATH}>
                 <Button
                   size="lg"
                   className="h-14 border border-[#F28BA0] bg-[#E85D75] px-9 font-bold uppercase tracking-widest text-white shadow-[0_0_40px_rgba(232,93,117,0.3)] hover:bg-[#D94A66]"
@@ -926,8 +1036,8 @@ export default function Home() {
             The lounge is open.
           </h2>
           <p className="text-lg text-muted-foreground mb-10">
-
-            Join thousands enjoying premium content, private chats, and exclusive connections with verified Hookah Buddys.
+            Join thousands enjoying premium content, private chats, and
+            exclusive connections with verified Hookah Buddys.
           </p>
           <Link href={PROFILE_ENTRY_PATH}>
             <Button
@@ -937,7 +1047,9 @@ export default function Home() {
               Create Free Profile
             </Button>
           </Link>
-          <p className="mt-6 text-xs text-muted-foreground/60 uppercase tracking-widest">Strictly 21+ · Discreet billing</p>
+          <p className="mt-6 text-xs text-muted-foreground/60 uppercase tracking-widest">
+            Strictly 21+ · Discreet billing
+          </p>
         </div>
       </section>
     </Layout>

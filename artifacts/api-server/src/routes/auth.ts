@@ -1,6 +1,12 @@
 import { Router, type IRouter } from "express";
 import { and, eq } from "drizzle-orm";
-import { db, usersTable, dollsTable, creditBalancesTable, plansTable } from "@workspace/db";
+import {
+  db,
+  usersTable,
+  dollsTable,
+  creditBalancesTable,
+  plansTable,
+} from "@workspace/db";
 import {
   RegisterDollBody,
   RegisterMemberBody,
@@ -22,19 +28,47 @@ router.post("/auth/register/doll", async (req, res): Promise<void> => {
   }
   const data = parsed.data;
   if (!data.ageConfirmed || !data.rulesAccepted) {
-    res.status(400).json({ error: "You must confirm you are 21+ and accept the platform rules." });
+    res.status(400).json({
+      error: "You must confirm you are 21+ and accept the platform rules.",
+    });
+    return;
+  }
+  if (data.buddyType !== "female_buddy") {
+    res.status(400).json({
+      error: "Creative Buddy applications require the Female Buddy path.",
+    });
+    return;
+  }
+  const [requiredPlan] = await db
+    .select()
+    .from(plansTable)
+    .where(eq(plansTable.id, data.planId));
+  if (
+    !requiredPlan ||
+    requiredPlan.audience !== "doll" ||
+    requiredPlan.tier !== "featured" ||
+    !requiredPlan.highlighted ||
+    requiredPlan.price <= 0
+  ) {
+    res.status(400).json({ error: "A valid Creative Buddy plan is required." });
     return;
   }
   if (data.profilePhotoUrl) {
     res.status(400).json({
-      error: "Profile photos cannot be set at registration. Upload one from your profile after signing in.",
+      error:
+        "Profile photos cannot be set at registration. Upload one from your profile after signing in.",
     });
     return;
   }
 
-  const existing = await db.select().from(usersTable).where(eq(usersTable.email, data.email));
+  const existing = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, data.email));
   if (existing.length > 0) {
-    res.status(409).json({ error: "An account with that email already exists." });
+    res
+      .status(409)
+      .json({ error: "An account with that email already exists." });
     return;
   }
 
@@ -70,21 +104,25 @@ router.post("/auth/register/doll", async (req, res): Promise<void> => {
       favoriteFlavor: data.favoriteFlavor,
       experienceLevel: data.experienceLevel,
       preferences: data.preferences,
-      verificationPhotoUrl: data.verificationPhotoUrl,
-      verificationVideoUrl: data.verificationVideoUrl,
-      governmentIdUrl: data.governmentIdUrl,
       tier: "free",
       applicationStatus: "pending",
+      requiredPlanId: requiredPlan.id,
       subscriptionPrice: 19.99,
       messagePrice: 1.99,
       videoChatRate: 4.99,
     })
     .returning();
 
-  await db.update(usersTable).set({ dollId: doll.id }).where(eq(usersTable.id, user.id));
+  await db
+    .update(usersTable)
+    .set({ dollId: doll.id })
+    .where(eq(usersTable.id, user.id));
 
   req.session.userId = user.id;
-  const [refreshed] = await db.select().from(usersTable).where(eq(usersTable.id, user.id));
+  const [refreshed] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, user.id));
   res.status(201).json({ user: toUserResponse(refreshed) });
 });
 
@@ -96,19 +134,27 @@ router.post("/auth/register/member", async (req, res): Promise<void> => {
   }
   const data = parsed.data;
   if (!data.ageConfirmed || !data.rulesAccepted) {
-    res.status(400).json({ error: "You must confirm you are 21+ and accept the platform rules." });
+    res.status(400).json({
+      error: "You must confirm you are 21+ and accept the platform rules.",
+    });
     return;
   }
   if (data.profilePhotoUrl) {
     res.status(400).json({
-      error: "Profile photos cannot be set at registration. Upload one from your profile after signing in.",
+      error:
+        "Profile photos cannot be set at registration. Upload one from your profile after signing in.",
     });
     return;
   }
 
-  const existing = await db.select().from(usersTable).where(eq(usersTable.email, data.email));
+  const existing = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, data.email));
   if (existing.length > 0) {
-    res.status(409).json({ error: "An account with that email already exists." });
+    res
+      .status(409)
+      .json({ error: "An account with that email already exists." });
     return;
   }
 
@@ -119,6 +165,8 @@ router.post("/auth/register/member", async (req, res): Promise<void> => {
     .values({
       role: "member",
       name: data.name,
+      firstName: data.firstName,
+      lastName: data.lastName,
       email: data.email,
       passwordHash,
       phone: data.phone,
@@ -132,14 +180,18 @@ router.post("/auth/register/member", async (req, res): Promise<void> => {
     })
     .returning();
 
-  await db.insert(creditBalancesTable).values({ userId: user.id, membershipBalance: 0, purchasedBalance: 0 });
+  await db
+    .insert(creditBalancesTable)
+    .values({ userId: user.id, membershipBalance: 0, purchasedBalance: 0 });
 
   // Every new member starts on the free Bronze membership. Paid plans are
   // activated after checkout via POST /subscriptions.
   const [bronzePlan] = await db
     .select()
     .from(plansTable)
-    .where(and(eq(plansTable.audience, "member"), eq(plansTable.tier, "bronze")));
+    .where(
+      and(eq(plansTable.audience, "member"), eq(plansTable.tier, "bronze")),
+    );
   if (bronzePlan) {
     await activateMembership(user.id, bronzePlan);
   }
@@ -156,7 +208,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
   const { email, password } = parsed.data;
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email));
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     res.status(401).json({ error: "Invalid email or password." });
     return;
@@ -167,7 +222,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
 
   req.session.userId = user.id;
-  await db.update(usersTable).set({ lastActiveAt: new Date() }).where(eq(usersTable.id, user.id));
+  await db
+    .update(usersTable)
+    .set({ lastActiveAt: new Date() })
+    .where(eq(usersTable.id, user.id));
   res.json({ user: toUserResponse(user) });
 });
 
@@ -181,10 +239,17 @@ router.post("/auth/logout", async (req, res): Promise<void> => {
 router.get("/auth/me", async (req, res): Promise<void> => {
   const user = await getSessionUser(req);
   if (!user) {
-    res.json(GetCurrentUserResponse.parse({ authenticated: false, user: null }));
+    res.json(
+      GetCurrentUserResponse.parse({ authenticated: false, user: null }),
+    );
     return;
   }
-  res.json(GetCurrentUserResponse.parse({ authenticated: true, user: toUserResponse(user) }));
+  res.json(
+    GetCurrentUserResponse.parse({
+      authenticated: true,
+      user: toUserResponse(user),
+    }),
+  );
 });
 
 export default router;

@@ -1,4 +1,12 @@
-import { pgTable, serial, text, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  real,
+} from "drizzle-orm/pg-core";
 
 export const dollsTable = pgTable("dolls", {
   id: serial("id").primaryKey(),
@@ -20,14 +28,19 @@ export const dollsTable = pgTable("dolls", {
   featured: boolean("featured").notNull().default(false),
   elite: boolean("elite").notNull().default(false),
   online: boolean("online").notNull().default(false),
-  availableForVideoChat: boolean("available_for_video_chat").notNull().default(false),
+  availableForVideoChat: boolean("available_for_video_chat")
+    .notNull()
+    .default(false),
   tier: text("tier").notNull().default("free"),
   applicationStatus: text("application_status").notNull().default("pending"),
+  requiredPlanId: integer("required_plan_id"),
   subscriptionPrice: real("subscription_price").notNull().default(0),
   messagePrice: real("message_price").notNull().default(0),
   videoChatRate: real("video_chat_rate").notNull().default(0),
   profileViews: integer("profile_views").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export type Doll = typeof dollsTable.$inferSelect;

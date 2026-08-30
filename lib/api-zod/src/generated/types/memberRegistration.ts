@@ -10,6 +10,10 @@ import type { MemberRegistrationBuddyType } from './memberRegistrationBuddyType'
 export interface MemberRegistration {
   /** @minLength 1 */
   name: string;
+  /** @minLength 1 */
+  firstName: string;
+  /** @minLength 1 */
+  lastName: string;
   /** @minLength 3 */
   email: string;
   phone?: string;

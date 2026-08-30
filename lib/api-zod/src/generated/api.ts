@@ -66,18 +66,18 @@ export const RegisterDollBody = zod.object({
   "experienceLevel": zod.string(),
   "preferences": zod.string().optional(),
   "profilePhotoUrl": zod.string().optional(),
-  "verificationPhotoUrl": zod.string().optional(),
-  "verificationVideoUrl": zod.string().optional(),
-  "governmentIdUrl": zod.string().optional(),
   "ageConfirmed": zod.boolean(),
   "rulesAccepted": zod.boolean(),
-  "buddyType": zod.enum(['female_buddy', 'male_buddy'])
+  "buddyType": zod.enum(['female_buddy', 'male_buddy']),
+  "planId": zod.number()
 })
 
 
 /**
  * @summary Register a Member
  */
+
+
 
 export const registerMemberBodyEmailMin = 3;
 
@@ -88,6 +88,8 @@ export const registerMemberBodyPasswordMin = 6;
 
 export const RegisterMemberBody = zod.object({
   "name": zod.string().min(1),
+  "firstName": zod.string().min(1),
+  "lastName": zod.string().min(1),
   "email": zod.string().min(registerMemberBodyEmailMin),
   "phone": zod.string().optional(),
   "city": zod.string().optional(),

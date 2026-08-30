@@ -162,12 +162,10 @@ export interface DollRegistration {
   experienceLevel: string;
   preferences?: string;
   profilePhotoUrl?: string;
-  verificationPhotoUrl?: string;
-  verificationVideoUrl?: string;
-  governmentIdUrl?: string;
   ageConfirmed: boolean;
   rulesAccepted: boolean;
   buddyType: DollRegistrationBuddyType;
+  planId: number;
 }
 
 export type MemberRegistrationBuddyType = typeof MemberRegistrationBuddyType[keyof typeof MemberRegistrationBuddyType];
@@ -181,6 +179,10 @@ export const MemberRegistrationBuddyType = {
 export interface MemberRegistration {
   /** @minLength 1 */
   name: string;
+  /** @minLength 1 */
+  firstName: string;
+  /** @minLength 1 */
+  lastName: string;
   /** @minLength 3 */
   email: string;
   phone?: string;

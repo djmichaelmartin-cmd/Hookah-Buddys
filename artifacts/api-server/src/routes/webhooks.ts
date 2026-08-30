@@ -1,7 +1,13 @@
 import { type Request, type Response } from "express";
 import Stripe from "stripe";
 import { eq } from "drizzle-orm";
-import { db, subscriptionsTable, plansTable, creditPackagesTable } from "@workspace/db";
+import {
+  db,
+  subscriptionsTable,
+  plansTable,
+  creditPackagesTable,
+  stripeProcessedEventsTable,
+} from "@workspace/db";
 import { getStripeClient } from "../lib/stripe";
 import { activateMembership, renewMembership } from "../lib/membership";
 import { grantCredits } from "../lib/credits";
@@ -14,26 +20,42 @@ type InvoiceWithLegacySubscription = Stripe.Invoice & {
   subscription?: string | Stripe.Subscription | null;
 };
 
-export function resolveInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+export function resolveInvoiceSubscriptionId(
+  invoice: Stripe.Invoice,
+): string | null {
   // Stripe webhook endpoints keep the API version they were created with.
   // Newer invoice payloads expose the subscription through `parent`, while
   // older endpoints still send the top-level `subscription` field.
-  const currentSubscription = invoice.parent?.subscription_details?.subscription;
-  const legacySubscription = (invoice as InvoiceWithLegacySubscription).subscription;
+  const currentSubscription =
+    invoice.parent?.subscription_details?.subscription;
+  const legacySubscription = (invoice as InvoiceWithLegacySubscription)
+    .subscription;
   const subscription = currentSubscription ?? legacySubscription;
 
-  return typeof subscription === "string" ? subscription : subscription?.id ?? null;
+  return typeof subscription === "string"
+    ? subscription
+    : (subscription?.id ?? null);
 }
 
 async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session,
   log: Request["log"],
 ): Promise<void> {
+  if (session.payment_status !== "paid") {
+    log.info(
+      { sessionId: session.id, paymentStatus: session.payment_status },
+      "Checkout completed before payment settled; waiting for payment success",
+    );
+    return;
+  }
   const userId = Number(session.client_reference_id);
   const purpose = session.metadata?.purpose;
 
   if (!userId || !purpose) {
-    log.warn({ sessionId: session.id }, "checkout.session.completed: missing userId or purpose in metadata");
+    log.warn(
+      { sessionId: session.id },
+      "checkout.session.completed: missing userId or purpose in metadata",
+    );
     return;
   }
 
@@ -44,19 +66,31 @@ async function handleCheckoutSessionCompleted(
     .where(eq(subscriptionsTable.stripeCheckoutSessionId, session.id))
     .limit(1);
   if (existing.length > 0) {
-    log.info({ sessionId: session.id }, "checkout.session.completed: already processed, skipping");
+    log.info(
+      { sessionId: session.id },
+      "checkout.session.completed: already processed, skipping",
+    );
     return;
   }
 
   if (purpose === "membership") {
     const planId = Number(session.metadata?.planId);
     if (!planId) {
-      log.warn({ sessionId: session.id }, "checkout.session.completed: missing planId");
+      log.warn(
+        { sessionId: session.id },
+        "checkout.session.completed: missing planId",
+      );
       return;
     }
-    const [plan] = await db.select().from(plansTable).where(eq(plansTable.id, planId));
+    const [plan] = await db
+      .select()
+      .from(plansTable)
+      .where(eq(plansTable.id, planId));
     if (!plan) {
-      log.warn({ sessionId: session.id, planId }, "checkout.session.completed: plan not found");
+      log.warn(
+        { sessionId: session.id, planId },
+        "checkout.session.completed: plan not found",
+      );
       return;
     }
     const sub = await activateMembership(userId, plan);
@@ -64,19 +98,29 @@ async function handleCheckoutSessionCompleted(
     await db
       .update(subscriptionsTable)
       .set({
-        stripeSubscriptionId: typeof session.subscription === "string" ? session.subscription : null,
-        stripeCustomerId: typeof session.customer === "string" ? session.customer : null,
+        stripeSubscriptionId:
+          typeof session.subscription === "string"
+            ? session.subscription
+            : null,
+        stripeCustomerId:
+          typeof session.customer === "string" ? session.customer : null,
         stripeCheckoutSessionId: session.id,
       })
       .where(eq(subscriptionsTable.id, sub.id));
-    log.info({ userId, planId, subId: sub.id }, "Membership activated via Stripe checkout");
+    log.info(
+      { userId, planId, subId: sub.id },
+      "Membership activated via Stripe checkout",
+    );
     return;
   }
 
   if (purpose === "credits") {
     const packageId = Number(session.metadata?.packageId);
     if (!packageId) {
-      log.warn({ sessionId: session.id }, "checkout.session.completed: missing packageId");
+      log.warn(
+        { sessionId: session.id },
+        "checkout.session.completed: missing packageId",
+      );
       return;
     }
     const [pkg] = await db
@@ -84,7 +128,10 @@ async function handleCheckoutSessionCompleted(
       .from(creditPackagesTable)
       .where(eq(creditPackagesTable.id, packageId));
     if (!pkg) {
-      log.warn({ sessionId: session.id, packageId }, "checkout.session.completed: package not found");
+      log.warn(
+        { sessionId: session.id, packageId },
+        "checkout.session.completed: package not found",
+      );
       return;
     }
     await grantCredits(userId, pkg.credits, {
@@ -93,11 +140,17 @@ async function handleCheckoutSessionCompleted(
       amountCents: pkg.priceCents,
       packageId: pkg.id,
     });
-    log.info({ userId, packageId, credits: pkg.credits }, "Credits granted via Stripe checkout");
+    log.info(
+      { userId, packageId, credits: pkg.credits },
+      "Credits granted via Stripe checkout",
+    );
     return;
   }
 
-  log.warn({ sessionId: session.id, purpose }, "checkout.session.completed: unrecognised purpose");
+  log.warn(
+    { sessionId: session.id, purpose },
+    "checkout.session.completed: unrecognised purpose",
+  );
 }
 
 export async function handleInvoicePaymentSucceeded(
@@ -122,18 +175,28 @@ export async function handleInvoicePaymentSucceeded(
 
   if (!row) {
     // Expected on the very first invoice (covered by checkout.session.completed).
-    log.info({ stripeSubscriptionId }, "invoice.payment_succeeded: no matching sub yet, skipping renewal");
+    log.info(
+      { stripeSubscriptionId },
+      "invoice.payment_succeeded: no matching sub yet, skipping renewal",
+    );
     return;
   }
 
   const result = await renewMembership(row.memberUserId);
   if (result) {
     log.info(
-      { userId: row.memberUserId, plan: result.plan.name, credits: result.plan.monthlyCredits },
+      {
+        userId: row.memberUserId,
+        plan: result.plan.name,
+        credits: result.plan.monthlyCredits,
+      },
       "Membership renewed via Stripe invoice",
     );
   } else {
-    log.warn({ userId: row.memberUserId }, "invoice.payment_succeeded: no active membership to renew");
+    log.warn(
+      { userId: row.memberUserId },
+      "invoice.payment_succeeded: no active membership to renew",
+    );
   }
 }
 
@@ -142,15 +205,24 @@ export async function handleInvoicePaymentSucceeded(
 // Buffer is preserved for Stripe signature verification).
 // ---------------------------------------------------------------------------
 
-export async function stripeWebhookHandler(req: Request, res: Response): Promise<void> {
+export async function stripeWebhookHandler(
+  req: Request,
+  res: Response,
+): Promise<void> {
   const stripe = getStripeClient();
 
   if (!stripe) {
     if (process.env.NODE_ENV === "production") {
-      res.status(503).json({ error: "Stripe is not configured on this server" });
+      res
+        .status(503)
+        .json({ error: "Stripe is not configured on this server" });
     } else {
       // Dev: no Stripe key — acknowledge silently so local curl tests don't break.
-      res.json({ received: true, handled: false, note: "Stripe not configured" });
+      res.json({
+        received: true,
+        handled: false,
+        note: "Stripe not configured",
+      });
     }
     return;
   }
@@ -181,17 +253,30 @@ export async function stripeWebhookHandler(req: Request, res: Response): Promise
   }
 
   try {
+    const [claimed] = await db
+      .insert(stripeProcessedEventsTable)
+      .values({ eventId: event.id, eventType: event.type })
+      .onConflictDoNothing({ target: stripeProcessedEventsTable.eventId })
+      .returning({ eventId: stripeProcessedEventsTable.eventId });
+    if (!claimed) {
+      res.json({ received: true, duplicate: true });
+      return;
+    }
+
     switch (event.type) {
       case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded":
         await handleCheckoutSessionCompleted(
           event.data.object as Stripe.Checkout.Session,
           req.log,
         );
         break;
 
-      case "invoice.payment_succeeded":
       case "invoice.paid":
-        await handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice, req.log);
+        await handleInvoicePaymentSucceeded(
+          event.data.object as Stripe.Invoice,
+          req.log,
+        );
         break;
 
       default:
@@ -199,7 +284,13 @@ export async function stripeWebhookHandler(req: Request, res: Response): Promise
         break;
     }
   } catch (err) {
-    req.log.error({ err, eventType: event.type }, "Error processing Stripe webhook event");
+    await db
+      .delete(stripeProcessedEventsTable)
+      .where(eq(stripeProcessedEventsTable.eventId, event.id));
+    req.log.error(
+      { err, eventType: event.type },
+      "Error processing Stripe webhook event",
+    );
     res.status(500).json({ error: "Internal error processing webhook" });
     return;
   }

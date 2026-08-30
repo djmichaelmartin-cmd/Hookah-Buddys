@@ -27,61 +27,96 @@ const registrationBase = {
 };
 
 describe("Buddy type contracts", () => {
-  it.each(["female_buddy", "male_buddy"] as const)("accepts %s on both registrations", (buddyType) => {
-    expect(RegisterMemberBody.safeParse({
-      ...registrationBase,
-      name: "Person",
-      username: "person",
-      buddyType,
-    }).success).toBe(true);
-    expect(RegisterDollBody.safeParse({
-      ...registrationBase,
-      legalName: "Person",
-      stageName: "Buddy",
-      city: "Las Vegas",
-      state: "NV",
-      bio: "",
-      favoriteFlavor: "",
-      experienceLevel: "",
-      buddyType,
-    }).success).toBe(true);
-  });
+  it.each(["female_buddy", "male_buddy"] as const)(
+    "accepts %s on both registrations",
+    (buddyType) => {
+      expect(
+        RegisterMemberBody.safeParse({
+          ...registrationBase,
+          firstName: "Test",
+          lastName: "Person",
+          name: "Person",
+          username: "person",
+          buddyType,
+        }).success,
+      ).toBe(true);
+      expect(
+        RegisterDollBody.safeParse({
+          ...registrationBase,
+          legalName: "Person",
+          stageName: "Buddy",
+          city: "Las Vegas",
+          state: "NV",
+          bio: "",
+          favoriteFlavor: "",
+          experienceLevel: "",
+          planId: 80,
+          buddyType,
+        }).success,
+      ).toBe(true);
+    },
+  );
 
-  it.each([undefined, null, "", "female", "other"])("rejects invalid registration value %s", (buddyType) => {
-    expect(RegisterMemberBody.safeParse({
-      ...registrationBase,
-      name: "Person",
-      username: "person",
-      buddyType,
-    }).success).toBe(false);
-  });
+  it.each([undefined, null, "", "female", "other"])(
+    "rejects invalid registration value %s",
+    (buddyType) => {
+      expect(
+        RegisterMemberBody.safeParse({
+          ...registrationBase,
+          name: "Person",
+          username: "person",
+          buddyType,
+        }).success,
+      ).toBe(false);
+    },
+  );
 
   it("allows omission for profile updates but rejects null, empty, and unknown values", () => {
     expect(UpdateMyProfileBody.safeParse({}).success).toBe(true);
-    expect(UpdateMyProfileBody.safeParse({ buddyType: "female_buddy" }).success).toBe(true);
-    expect(UpdateMyProfileBody.safeParse({ buddyType: "male_buddy" }).success).toBe(true);
+    expect(
+      UpdateMyProfileBody.safeParse({ buddyType: "female_buddy" }).success,
+    ).toBe(true);
+    expect(
+      UpdateMyProfileBody.safeParse({ buddyType: "male_buddy" }).success,
+    ).toBe(true);
     for (const buddyType of [null, "", "other"]) {
       expect(UpdateMyProfileBody.safeParse({ buddyType }).success).toBe(false);
     }
   });
 
   it("validates public and admin filters and the admin edit body", () => {
-    expect(ListMembersQueryParams.safeParse({ buddyType: "female_buddy" }).success).toBe(true);
-    expect(ListMembersQueryParams.safeParse({
-      name: "alex",
-      handle: "smoke",
-      city: "Austin",
-      state: "TX",
-      search: "legacy",
-      minAge: 18,
-      maxAge: 120,
-    }).success).toBe(true);
-    expect(ListMembersQueryParams.safeParse({ minAge: 17 }).success).toBe(false);
-    expect(ListMembersQueryParams.safeParse({ maxAge: 121 }).success).toBe(false);
-    expect(ListMembersQueryParams.safeParse({ buddyType: "missing" }).success).toBe(false);
-    expect(ListUsersQueryParams.safeParse({ buddyType: "missing" }).success).toBe(true);
-    expect(UpdateUserBuddyTypeBody.safeParse({ buddyType: null }).success).toBe(false);
-    expect(UpdateUserBuddyTypeBody.safeParse({ buddyType: "male_buddy" }).success).toBe(true);
+    expect(
+      ListMembersQueryParams.safeParse({ buddyType: "female_buddy" }).success,
+    ).toBe(true);
+    expect(
+      ListMembersQueryParams.safeParse({
+        name: "alex",
+        handle: "smoke",
+        city: "Austin",
+        state: "TX",
+        search: "legacy",
+        minAge: 18,
+        maxAge: 120,
+      }).success,
+    ).toBe(true);
+    expect(ListMembersQueryParams.safeParse({ minAge: 17 }).success).toBe(
+      false,
+    );
+    expect(ListMembersQueryParams.safeParse({ maxAge: 121 }).success).toBe(
+      false,
+    );
+    expect(
+      ListMembersQueryParams.safeParse({ buddyType: "missing" }).success,
+    ).toBe(false);
+    expect(
+      ListUsersQueryParams.safeParse({ buddyType: "missing" }).success,
+    ).toBe(true);
+    expect(UpdateUserBuddyTypeBody.safeParse({ buddyType: null }).success).toBe(
+      false,
+    );
+    expect(
+      UpdateUserBuddyTypeBody.safeParse({ buddyType: "male_buddy" }).success,
+    ).toBe(true);
   });
 
   it("uses the privacy-safe union contract for member discovery", () => {
@@ -95,54 +130,95 @@ describe("Buddy type contracts", () => {
       buddyType: null,
       memberSince: "2026-01-01T00:00:00.000Z",
     };
-    expect(ListMembersResponseItem.safeParse({
-      ...common,
-      accountType: "member",
-      dollId: null,
-      name: "Alex",
-      profileUrl: "/bros/7",
-    }).success).toBe(true);
-    expect(ListMembersResponseItem.safeParse({
-      ...common,
-      accountType: "doll",
-      dollId: 11,
-      name: "Stage Name",
-      age: 25,
-      profileUrl: "/dolls/11",
-    }).success).toBe(true);
-    expect(ListMembersResponseItem.safeParse({
-      ...common,
-      accountType: "member",
-      dollId: null,
-      name: "Alex",
-      profileUrl: "/bros/7",
-      email: "private@example.com",
-    }).success).toBe(true);
-    expect(ListMembersResponseItem.safeParse({
-      id: 7,
-      name: "legacy shape",
-      username: "alex",
-      buddyType: null,
-    }).success).toBe(false);
+    expect(
+      ListMembersResponseItem.safeParse({
+        ...common,
+        accountType: "member",
+        dollId: null,
+        name: "Alex",
+        profileUrl: "/bros/7",
+      }).success,
+    ).toBe(true);
+    expect(
+      ListMembersResponseItem.safeParse({
+        ...common,
+        accountType: "doll",
+        dollId: 11,
+        name: "Stage Name",
+        age: 25,
+        profileUrl: "/dolls/11",
+      }).success,
+    ).toBe(true);
+    expect(
+      ListMembersResponseItem.safeParse({
+        ...common,
+        accountType: "member",
+        dollId: null,
+        name: "Alex",
+        profileUrl: "/bros/7",
+        email: "private@example.com",
+      }).success,
+    ).toBe(true);
+    expect(
+      ListMembersResponseItem.safeParse({
+        id: 7,
+        name: "legacy shape",
+        username: "alex",
+        buddyType: null,
+      }).success,
+    ).toBe(false);
   });
 
   it("requires a nullable Buddy type in Doll, online, and follow projections", () => {
     const doll = {
-      id: 1, creatorUserId: 2, stageName: "Buddy", city: "Las Vegas", state: "NV", verified: true,
-      featured: false, elite: false, online: false, tier: "free",
+      id: 1,
+      creatorUserId: 2,
+      stageName: "Buddy",
+      city: "Las Vegas",
+      state: "NV",
+      verified: true,
+      featured: false,
+      elite: false,
+      online: false,
+      tier: "free",
     };
-    expect(ListDollsResponseItem.safeParse({ ...doll, buddyType: null }).success).toBe(true);
+    expect(
+      ListDollsResponseItem.safeParse({ ...doll, buddyType: null }).success,
+    ).toBe(true);
     expect(ListDollsResponseItem.safeParse(doll).success).toBe(false);
-    const online = { id: 1, role: "member", displayName: "Person", lastActiveAt: new Date() };
-    expect(ListOnlineUsersResponseItem.safeParse({ ...online, buddyType: "female_buddy" }).success).toBe(true);
+    const online = {
+      id: 1,
+      role: "member",
+      displayName: "Person",
+      lastActiveAt: new Date(),
+    };
+    expect(
+      ListOnlineUsersResponseItem.safeParse({
+        ...online,
+        buddyType: "female_buddy",
+      }).success,
+    ).toBe(true);
     expect(ListOnlineUsersResponseItem.safeParse(online).success).toBe(false);
     const follow = { id: 1, name: "Person", role: "member" };
-    expect(ListFollowsResponseItem.safeParse({ ...follow, buddyType: null }).success).toBe(true);
+    expect(
+      ListFollowsResponseItem.safeParse({ ...follow, buddyType: null }).success,
+    ).toBe(true);
     expect(ListFollowsResponseItem.safeParse(follow).success).toBe(false);
-    expect(ListBlockedUsersResponseItem.safeParse({ ...follow, buddyType: null }).success).toBe(true);
+    expect(
+      ListBlockedUsersResponseItem.safeParse({ ...follow, buddyType: null })
+        .success,
+    ).toBe(true);
     expect(ListBlockedUsersResponseItem.safeParse(follow).success).toBe(false);
-    const bro = { id: 1, name: "Person", followerCount: 0, followingCount: 0, postCount: 0 };
-    expect(GetBroProfileResponse.safeParse({ ...bro, buddyType: null }).success).toBe(true);
+    const bro = {
+      id: 1,
+      name: "Person",
+      followerCount: 0,
+      followingCount: 0,
+      postCount: 0,
+    };
+    expect(
+      GetBroProfileResponse.safeParse({ ...bro, buddyType: null }).success,
+    ).toBe(true);
     expect(GetBroProfileResponse.safeParse(bro).success).toBe(false);
   });
 });
@@ -196,7 +272,9 @@ describe("requireCompleteBuddyProfile", () => {
     async (identity) => {
       const response = await request("/creation", identity);
       expect(response.status).toBe(403);
-      await expect(response.json()).resolves.toMatchObject({ code: "BUDDY_TYPE_REQUIRED" });
+      await expect(response.json()).resolves.toMatchObject({
+        code: "BUDDY_TYPE_REQUIRED",
+      });
     },
   );
 
@@ -218,19 +296,48 @@ describe("requireCompleteBuddyProfile", () => {
 
 describe("creation route wiring", () => {
   it.each([
-    ["feed.ts", 'router.post("/feed/posts", requireAuth(), requireCompleteBuddyProfile'],
-    ["reels.ts", 'router.post("/reels", requireAuth(), requireCompleteBuddyProfile'],
-    ["groups.ts", 'router.post("/groups", requireAuth(), requireCompleteBuddyProfile'],
-    ["groups.ts", 'router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfile'],
-    ["businesses.ts", 'router.post("/businesses", requireAuth(), requireCompleteBuddyProfile'],
-    ["businesses.ts", 'router.post("/businesses/:handle/events", requireAuth(), requireCompleteBuddyProfile'],
-  ])("wires the completion guard after authentication in %s", (file, expected) => {
-    const source = readFileSync(new URL(`../routes/${file}`, import.meta.url), "utf8");
-    expect(source).toContain(expected);
-  });
+    [
+      "feed.ts",
+      'router.post("/feed/posts", requireAuth(), requireCompleteBuddyProfile',
+    ],
+    [
+      "reels.ts",
+      'router.post("/reels", requireAuth(), requireCompleteBuddyProfile',
+    ],
+    [
+      "groups.ts",
+      'router.post("/groups", requireAuth(), requireCompleteBuddyProfile',
+    ],
+    [
+      "groups.ts",
+      'router.post("/groups/:groupId/events", requireAuth(), requireCompleteBuddyProfile',
+    ],
+    [
+      "businesses.ts",
+      'router.post("/businesses", requireAuth(), requireCompleteBuddyProfile',
+    ],
+    [
+      "businesses.ts",
+      'router.post("/businesses/:handle/events", requireAuth(), requireCompleteBuddyProfile',
+    ],
+  ])(
+    "wires the completion guard after authentication in %s",
+    (file, expected) => {
+      const source = readFileSync(
+        new URL(`../routes/${file}`, import.meta.url),
+        "utf8",
+      );
+      expect(source).toContain(expected);
+    },
+  );
 
   it("does not block feed comments", () => {
-    const source = readFileSync(new URL("../routes/feed.ts", import.meta.url), "utf8");
-    expect(source).toContain('router.post("/feed/posts/:id/comments", requireAuth(), async');
+    const source = readFileSync(
+      new URL("../routes/feed.ts", import.meta.url),
+      "utf8",
+    );
+    expect(source).toContain(
+      'router.post("/feed/posts/:id/comments", requireAuth(), async',
+    );
   });
 });
