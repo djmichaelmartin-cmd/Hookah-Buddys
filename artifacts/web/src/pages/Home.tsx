@@ -502,8 +502,8 @@ export default function Home() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {/* Female Buddy */}
-            <div className="group relative overflow-hidden rounded-3xl border border-[#D6B56D]/20 bg-card/50 backdrop-blur-md p-8 md:p-10 hover:border-[#D6B56D]/50 transition-all duration-500 hover:-translate-y-1">
-              <div className="absolute -top-24 -right-24 h-56 w-56 rounded-full bg-[#D6B56D]/10 blur-3xl pointer-events-none" />
+            <div className="group relative overflow-hidden rounded-3xl border border-[#E85D75]/20 bg-card/50 backdrop-blur-md p-8 md:p-10 hover:border-[#E85D75]/50 transition-all duration-500 hover:-translate-y-1">
+              <div className="absolute -top-24 -right-24 h-56 w-56 rounded-full bg-[#E85D75]/10 blur-3xl pointer-events-none" />
               <div className="relative">
                 <div className="relative mb-6 -mx-8 -mt-8 md:-mx-10 md:-mt-10 overflow-hidden rounded-t-3xl">
                   <img
@@ -515,8 +515,8 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
                 </div>
                 <div className="flex items-center gap-4 mb-5">
-                  <div className="w-14 h-14 rounded-xl bg-[#D6B56D]/10 border border-[#D6B56D]/30 flex items-center justify-center shadow-[0_0_15px_rgba(214,181,109,0.2)] group-hover:scale-110 transition-transform">
-                    <Sparkles className="w-7 h-7 text-[#D6B56D]" />
+                  <div className="w-14 h-14 rounded-xl bg-[#E85D75]/10 border border-[#E85D75]/30 flex items-center justify-center shadow-[0_0_15px_rgba(232,93,117,0.2)] group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-7 h-7 text-[#E85D75]" />
                   </div>
                   <div>
                     <h3 className="text-2xl font-serif font-bold text-white">Female Buddys</h3>
@@ -531,7 +531,7 @@ export default function Home() {
                   content features a visible hookah — tasteful, glamorous, always after dark.
                 </p>
 
-                <p className="text-xs uppercase tracking-[0.2em] text-[#D6B56D]/90 font-semibold mb-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-[#E85D75]/90 font-semibold mb-3">
                   What you'll set up
                 </p>
                 <ul className="space-y-2.5 mb-8">
@@ -542,20 +542,20 @@ export default function Home() {
                     "Identity verification — 21+ & hookah-in-content agreement",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-3 text-sm text-zinc-300">
-                      <Check className="h-4 w-4 mt-0.5 shrink-0 text-[#D6B56D]" />
+                      <Check className="h-4 w-4 mt-0.5 shrink-0 text-[#E85D75]" />
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
 
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-8 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-[#D6B56D]" /> Get paid</span>
-                  <span className="flex items-center gap-1.5"><Upload className="h-3.5 w-3.5 text-[#D6B56D]" /> Post content</span>
-                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-[#D6B56D]" /> Verified badge</span>
+                  <span className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-[#E85D75]" /> Get paid</span>
+                  <span className="flex items-center gap-1.5"><Upload className="h-3.5 w-3.5 text-[#E85D75]" /> Post content</span>
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-[#E85D75]" /> Verified badge</span>
                 </div>
 
                 <Link href="/signup/doll">
-                  <Button className="w-full h-12 rounded-full bg-[#D6B56D] text-[#111111] font-semibold hover:bg-[#C9A456] transition-colors">
+                  <Button className="w-full h-12 rounded-full border border-[#F28BA0] bg-[#E85D75] text-white font-semibold hover:bg-[#D94A66] transition-colors">
 
                     Create my Buddy profile <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -620,8 +620,8 @@ export default function Home() {
                 </div>
 
                 <Link href={PROFILE_ENTRY_PATH}>
-                  <Button className="w-full h-12 rounded-full bg-primary text-zinc-900 font-semibold hover:bg-primary/90 transition-colors">
-                    Create my member profile <ArrowRight className="ml-2 h-4 w-4" />
+                  <Button className="w-full h-12 rounded-full bg-primary text-white font-semibold hover:bg-primary/90 transition-colors">
+                    Create my Buddy Profile <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <p className="text-center text-xs text-muted-foreground mt-3">
