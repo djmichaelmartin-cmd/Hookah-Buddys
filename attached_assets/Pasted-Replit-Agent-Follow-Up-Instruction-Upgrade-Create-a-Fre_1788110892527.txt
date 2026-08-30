@@ -1,0 +1,913 @@
+Replit Agent Follow-Up Instruction: Upgrade Create a Free Profile Workflow
+
+Do not rebuild the HookahBuddys platform. Only upgrade the existing `/choose-membership` and “Create a Free Profile” signup workflow.
+
+Use the platform name:
+
+HookahBuddys
+
+Important:
+
+Any button labeled “Create a Free Profile,” “Become a Buddy,” “Join Free,” “Start Free,” or similar should still route to:
+
+`/choose-membership`
+
+The `/choose-membership` page should become a guided signup wizard instead of immediately showing all plans at once.
+
+Core Goal
+
+When a user clicks “Create a Free Profile” or “Become a Buddy,” the first question should be:
+
+“Are you a Male Buddy or Female Buddy?”
+
+Then the flow should branch based on the user’s answer.
+
+Workflow Overview
+
+Step 1:
+
+Ask:
+
+“Are you a Male Buddy or Female Buddy?”
+
+Options:
+
+1. Male Buddy
+2. Female Buddy
+
+No option should be preselected.
+
+The user must select one before continuing.
+
+If the user selects Male Buddy, continue to the Male Buddy membership upgrade flow.
+
+If the user selects Female Buddy, continue to the Female Buddy Creative Buddy upgrade flow.
+
+Important correction:
+
+Use “Male Buddy,” not “Make Buddy.”
+
+Step 1 UI
+
+Page title:
+
+“Create Your Free Profile”
+
+Subtitle:
+
+“Start free as a Buddy. You can upgrade anytime for more access, credits, and premium features.”
+
+Question:
+
+“Are you a Male Buddy or Female Buddy?”
+
+Option card 1:
+
+Male Buddy
+
+Description:
+
+“Join the HookahBuddys social community, browse Buddys, post in The Lounge, join Groups, attend Meetups, and use credits for premium interactions.”
+
+Button:
+
+“I’m a Male Buddy”
+
+Option card 2:
+
+Female Buddy
+
+Description:
+
+“Join the HookahBuddys social community, post content, connect with Buddys, and optionally upgrade to become a Creative Buddy.”
+
+Button:
+
+“I’m a Female Buddy”
+
+After selection, save:
+
+`buddyType = male_buddy`
+
+or
+
+`buddyType = female_buddy`
+
+This should carry through the signup form and save to the user profile after account creation.
+
+Male Buddy Flow
+
+If user chooses Male Buddy, the next step should ask whether they want to upgrade membership.
+
+Step title:
+
+“Upgrade Your Membership?”
+
+Subtitle:
+
+“Stay free or upgrade for monthly credits, better access, and premium features.”
+
+Show 4 choices:
+
+1. Stay Free
+2. Silver
+3. Gold
+4. Platinum
+
+The paid upgrade cards should explain what each provides.
+
+Option 1: Stay Free
+
+Title:
+
+“Stay Free”
+
+Price:
+
+`$0/month`
+
+Description:
+
+“Create your free Buddy profile and join the HookahBuddys social community.”
+
+Includes:
+
+* Free Buddy profile
+* Access to The Lounge social feed
+* Post, like, comment, and share
+* Upload photos and Sparks
+* Follow Buddys
+* Add friends
+* Join Groups
+* Start or attend Meetups
+* Create Business Pages if eligible
+* Browse public profiles
+* Buy credits anytime
+* Upgrade anytime
+
+Monthly credits:
+
+`0 credits/month`
+
+Button:
+
+“Stay Free”
+
+When clicked, move to the Credit Bundle upsell step.
+
+Option 2: Silver
+
+Title:
+
+“Silver”
+
+Price:
+
+`$9.99/month`
+
+Monthly credits:
+
+`75 credits/month`
+
+Description:
+
+“Good for light premium access and occasional interactions.”
+
+Includes:
+
+* Everything in Free
+* 75 monthly credits
+* Full Browse Buddys access
+* Save favorite Buddys
+* Use credits for private messages
+* Use credits for premium content unlocks
+* Use credits toward video sessions
+* Silver membership badge
+* Buy additional credits anytime
+
+Button:
+
+“Choose Silver”
+
+When clicked, store selected plan as:
+
+`silver`
+
+Then continue to standard signup and payment checkout for recurring subscription.
+
+Option 3: Gold
+
+Title:
+
+“Gold”
+
+Badge:
+
+“Most Popular”
+
+Price:
+
+`$19.99/month`
+
+Monthly credits:
+
+`175 credits/month`
+
+Description:
+
+“Best for active Buddys who want regular access, messaging, content unlocks, and more discovery features.”
+
+Includes:
+
+* Everything in Silver
+* 175 monthly credits
+* Better Buddy discovery
+* More saved favorites
+* Premium previews
+* Better search filters
+* Gold membership badge
+* Buy additional credits anytime
+
+Button:
+
+“Choose Gold”
+
+When clicked, store selected plan as:
+
+`gold`
+
+Then continue to standard signup and payment checkout for recurring subscription.
+
+Option 4: Platinum
+
+Title:
+
+“Platinum”
+
+Badge:
+
+“Best Access”
+
+Price:
+
+`$39.99/month`
+
+Monthly credits:
+
+`400 credits/month`
+
+Description:
+
+“Best for Buddys who want stronger access, more monthly credits, VIP status, and frequent premium interactions.”
+
+Includes:
+
+* Everything in Gold
+* 400 monthly credits
+* VIP Buddy badge
+* Advanced search filters
+* Priority support
+* Best profile visibility
+* Early access to featured Buddys
+* Buy additional credits anytime
+
+Button:
+
+“Choose Platinum”
+
+When clicked, store selected plan as:
+
+`platinum`
+
+Then continue to standard signup and payment checkout for recurring subscription.
+
+Male Buddy Stay Free Credit Bundle Step
+
+If Male Buddy chooses “Stay Free,” show one additional upsell step before the standard signup form.
+
+Step title:
+
+“Want to Add Credits?”
+
+Subtitle:
+
+“Your free profile does not include monthly credits, but you can add a credit bundle now or skip and stay free.”
+
+Explain:
+
+“Credits are used for premium interactions such as private messages, premium content unlocks, custom content requests, and video sessions.”
+
+Show Credit Bundle options:
+
+1. No Credits — Continue Free
+2. Mini Pack
+3. Starter Pack
+4. Social Pack
+5. Popular Pack
+6. VIP Pack
+
+Option 1:
+
+Title:
+
+“No Credits”
+
+Price:
+
+`$0`
+
+Credits:
+
+`0 credits`
+
+Description:
+
+“Continue with your free Buddy profile. You can buy credits anytime later.”
+
+Button:
+
+“Continue Free”
+
+When clicked:
+
+* Continue to standard signup form
+* Selected plan: Free
+* Credit bundle: none
+* No Stripe checkout unless signup process requires no payment
+
+Credit Bundle 1:
+
+Title:
+
+“Mini Pack”
+
+Price:
+
+`$4.99`
+
+Credits:
+
+`50 credits`
+
+Button:
+
+“Add Mini Pack”
+
+Credit Bundle 2:
+
+Title:
+
+“Starter Pack”
+
+Price:
+
+`$9.99`
+
+Credits:
+
+`110 credits`
+
+Button:
+
+“Add Starter Pack”
+
+Credit Bundle 3:
+
+Title:
+
+“Social Pack”
+
+Price:
+
+`$19.99`
+
+Credits:
+
+`240 credits`
+
+Button:
+
+“Add Social Pack”
+
+Credit Bundle 4:
+
+Title:
+
+“Popular Pack”
+
+Badge:
+
+“Best Value”
+
+Price:
+
+`$39.99`
+
+Credits:
+
+`520 credits`
+
+Button:
+
+“Add Popular Pack”
+
+Credit Bundle 5:
+
+Title:
+
+“VIP Pack”
+
+Price:
+
+`$79.99`
+
+Credits:
+
+`1,100 credits`
+
+Button:
+
+“Add VIP Pack”
+
+If the user selects a credit bundle:
+
+* Store selected credit bundle
+* Continue to standard signup form
+* After signup, send user to Stripe checkout for the one-time credit bundle purchase
+* After successful payment, add credits to purchased credit balance
+* Assign Free Profile membership
+
+Credit Value Reminder
+
+Show small helper text:
+
+`1 credit = $0.10`
+
+Also show:
+
+* Starting a private message: 5 credits
+* Premium photo unlocks start at 10 credits
+* Video sessions start at 75 credits
+* Credit bundles can be purchased anytime
+
+Female Buddy Flow
+
+If user chooses Female Buddy, the next step should ask whether she wants to upgrade to Creative Buddy.
+
+Step title:
+
+“Become a Creative Buddy?”
+
+Subtitle:
+
+“Create a free Buddy profile or upgrade to Creative Buddy to earn from premium content, private messages, video sessions, and custom content.”
+
+There should only be one paid upgrade option for Female Buddy:
+
+Creative Buddy
+
+Price:
+
+`$24.99/month`
+
+Do not show Silver, Gold, or Platinum to Female Buddy users during this flow.
+
+Show 2 choices:
+
+1. Stay Free
+2. Creative Buddy
+
+Option 1: Stay Free
+
+Title:
+
+“Stay Free”
+
+Price:
+
+`$0/month`
+
+Description:
+
+“Create your free Buddy profile and join the HookahBuddys social community.”
+
+Includes:
+
+* Free Buddy profile
+* Access to The Lounge social feed
+* Post, like, comment, and share
+* Upload photos and Sparks
+* Follow Buddys
+* Add friends
+* Join Groups
+* Start or attend Meetups
+* Browse public profiles
+* Upgrade to Creative Buddy anytime
+
+Button:
+
+“Continue Free”
+
+When clicked:
+
+* Continue to standard signup form
+* Selected plan: Free
+* Buddy type: Female Buddy
+* Creative Buddy: false
+
+Option 2: Creative Buddy
+
+Title:
+
+“Creative Buddy”
+
+Price:
+
+`$24.99/month`
+
+Badge:
+
+“Creator Upgrade”
+
+Description:
+
+“Upgrade your Female Buddy profile with creator tools to earn from premium content, private messages, video sessions, and custom content.”
+
+Includes:
+
+* Everything in Free
+* Ability to sell premium content
+* Cloud Vibes Album access tools
+* Smokin Hot Album access tools
+* Custom content pricing
+* Custom Photo/Video Request tools
+* Private messages including photos/videos
+* Video chat/session tools
+* Ability to set your own prices on custom content
+* Creator dashboard
+* Earnings tracking
+* Dedicated support
+* Verification tools
+* Creator profile badge
+* Ability to receive paid custom content requests while online
+
+Button:
+
+“Upgrade to Creative Buddy”
+
+When clicked:
+
+* Store selected plan as `creative_buddy`
+* Continue to standard signup form
+* After signup, route to Stripe checkout for `$24.99/month` recurring subscription
+* After successful payment, enable Creative Buddy features
+
+Creative Buddy Description
+
+Use this copy where helpful:
+
+“Creative Buddy gives you the tools to earn from premium content, private messages including photos/videos, video sessions, and custom photo/video requests with custom pricing.”
+
+Female Buddy Signup Rule
+
+Female Buddy users can remain free.
+
+Do not force Female Buddy users to become Creative Buddys.
+
+If Female Buddy chooses Stay Free, allow standard signup with a free profile.
+
+If Female Buddy chooses Creative Buddy, require recurring subscription checkout after standard signup form.
+
+Standard Signup Form
+
+After the user completes the Buddy type and upgrade/credit bundle choices, show the standard signup form.
+
+The standard signup form should collect:
+
+* First name
+* Last name
+* Display name
+* Handle / username
+* Email
+* Phone number
+* City
+* State
+* Password
+* Confirm password
+* Profile photo upload, optional
+* 21+ age confirmation
+* Agreement to Terms
+* Agreement to Privacy Policy
+* Agreement to Community Rules
+
+The Buddy Type field should already be selected from Step 1 and should be shown as read-only or editable before submission.
+
+Show selected path summary at the top of the signup form.
+
+For Male Buddy Free:
+
+“Male Buddy — Free Profile”
+
+For Male Buddy with credit bundle:
+
+“Male Buddy — Free Profile + [Credit Bundle Name]”
+
+For Male Buddy paid plan:
+
+“Male Buddy — [Silver/Gold/Platinum]”
+
+For Female Buddy Free:
+
+“Female Buddy — Free Profile”
+
+For Female Buddy Creative:
+
+“Female Buddy — Creative Buddy”
+
+Signup Submission Logic
+
+After the standard signup form:
+
+Male Buddy + Stay Free + No Credits:
+
+* Create account
+* Assign `buddyType = male_buddy`
+* Assign Free Profile / Bronze
+* No payment required
+* Redirect to onboarding/dashboard
+
+Male Buddy + Stay Free + Credit Bundle:
+
+* Create account
+* Assign `buddyType = male_buddy`
+* Assign Free Profile / Bronze
+* Send to Stripe checkout for selected one-time credit bundle
+* After payment, add purchased credits
+* Redirect to onboarding/dashboard
+
+Male Buddy + Silver/Gold/Platinum:
+
+* Create account
+* Assign `buddyType = male_buddy`
+* Send to Stripe checkout for selected recurring subscription
+* After successful payment:
+
+  * Assign selected membership
+  * Add monthly credits based on plan
+  * Set subscription status active
+  * Redirect to onboarding/dashboard
+
+Female Buddy + Stay Free:
+
+* Create account
+* Assign `buddyType = female_buddy`
+* Assign Free Profile / Bronze
+* Creative Buddy: false
+* No payment required
+* Redirect to onboarding/dashboard
+
+Female Buddy + Creative Buddy:
+
+* Create account
+* Assign `buddyType = female_buddy`
+* Send to Stripe checkout for `$24.99/month` recurring Creative Buddy subscription
+* After successful payment:
+
+  * Enable Creative Buddy features
+  * Enable Creator dashboard
+  * Enable premium album tools
+  * Enable custom content request tools
+  * Enable video session tools
+  * Set subscription status active
+  * Redirect to Creative Buddy onboarding/dashboard
+
+Stripe-Ready Products
+
+Create or update placeholder Stripe price IDs for:
+
+Male Buddy memberships:
+
+* Silver Monthly: `$9.99/month`
+* Gold Monthly: `$19.99/month`
+* Platinum Monthly: `$39.99/month`
+
+Female Buddy upgrade:
+
+* Creative Buddy Monthly: `$24.99/month`
+
+Credit bundles:
+
+* Mini Pack: `$4.99`
+* Starter Pack: `$9.99`
+* Social Pack: `$19.99`
+* Popular Pack: `$39.99`
+* VIP Pack: `$79.99`
+
+Use placeholder values in config that can be replaced later with real Stripe price IDs.
+
+UI / Design Requirements
+
+Use a guided wizard UI.
+
+Recommended steps:
+
+Step 1:
+
+Buddy Type
+
+Step 2A:
+
+Male Buddy Membership Options
+
+Step 2B:
+
+Female Buddy Creative Buddy Option
+
+Step 3A:
+
+Male Buddy Credit Bundle Upsell, only if Stay Free selected
+
+Step 4:
+
+Standard Signup Form
+
+Step 5:
+
+Payment checkout, if selected option requires payment
+
+Step 6:
+
+Success / onboarding
+
+Use progress indicator:
+
+* Step 1: Buddy Type
+* Step 2: Options
+* Step 3: Signup
+* Step 4: Payment, if applicable
+
+Do not make the free flow feel like a paywall.
+
+Important copy:
+
+“Creating a profile is free. Paid upgrades are optional.”
+
+For Male Buddy membership step, add:
+
+“You can stay free and still use the social side of HookahBuddys.”
+
+For Female Buddy Creative Buddy step, add:
+
+“You can create a free Female Buddy profile now and upgrade to Creative Buddy anytime.”
+
+Button Styling
+
+Male Buddy button/card:
+
+* Use blue accent
+* Suggested color: `#1877F2`
+
+Female Buddy button/card:
+
+* Use pink accent
+* Suggested color: `#E85D75`
+
+Silver card:
+
+* Silver/gray accent
+
+Gold card:
+
+* Gold accent
+* Mark as Most Popular
+
+Platinum card:
+
+* Purple/gold accent
+* Mark as Best Access
+
+Creative Buddy card:
+
+* Pink/rose and gold accents
+* Mark as Creator Upgrade
+
+Free option:
+
+* Blue or neutral social styling
+
+Data Model Updates
+
+Make sure user/profile model supports:
+
+* `buddyType`
+
+  * `male_buddy`
+  * `female_buddy`
+
+Membership/plan should support:
+
+* `free`
+* `silver`
+* `gold`
+* `platinum`
+* `creative_buddy`
+
+Creative Buddy flags:
+
+* `isCreativeBuddy`
+* `creativeBuddyStatus`
+
+  * inactive
+  * active
+  * cancelled
+  * past_due
+* `creativeBuddySubscriptionId`
+* `creativeBuddyStartedAt`
+
+Credit bundle purchase should support:
+
+* selected bundle
+* credits purchased
+* Stripe payment ID
+* credit transaction record
+
+Admin Updates
+
+Admin should be able to view:
+
+* Buddy Type
+* Free / Silver / Gold / Platinum membership
+* Creative Buddy status
+* Credit bundle purchase
+* Signup path selected
+* Subscription status
+* Payment status
+
+Admin filters:
+
+* Male Buddy
+* Female Buddy
+* Creative Buddy
+* Free Profile
+* Silver
+* Gold
+* Platinum
+
+Important Rules
+
+Do not rebuild.
+
+Do not remove `/choose-membership`.
+
+Do not remove Free Profile.
+
+Do not force all users into paid membership.
+
+Do not show Male Buddy Silver/Gold/Platinum upgrade options to Female Buddy users in this guided signup flow.
+
+Do not show Creative Buddy as an option to Male Buddy users in this guided signup flow.
+
+Do not show credit bundle upsell before the Male Buddy user chooses Stay Free.
+
+Do not force Female Buddy users to buy credits during signup.
+
+Do not remove the ability to buy credits later.
+
+Do not remove existing pricing, credits, memberships, The Lounge, Groups, Meetups, Business Pages, Sparks, messaging, premium content, video sessions, or admin dashboard.
+
+Testing Checklist
+
+Test the following:
+
+1. Clicking “Create a Free Profile” opens `/choose-membership`.
+2. First screen asks “Are you a Male Buddy or Female Buddy?”
+3. Male Buddy selection opens membership upgrade options.
+4. Male Buddy sees Stay Free, Silver, Gold, Platinum.
+5. Male Buddy choosing Stay Free opens Credit Bundle upsell.
+6. Male Buddy can choose no credits and continue free.
+7. Male Buddy can choose a credit bundle and proceed to signup/payment.
+8. Male Buddy paid plan routes to signup then subscription checkout.
+9. Female Buddy selection opens Creative Buddy upgrade question.
+10. Female Buddy sees only Stay Free and Creative Buddy.
+11. Female Buddy Stay Free routes to standard signup with no payment.
+12. Female Buddy Creative Buddy routes to signup then `$24.99/month` checkout.
+13. Buddy Type saves correctly to profile.
+14. Female Buddy displays pink Buddy pill.
+15. Male Buddy displays blue Buddy pill.
+16. No orange Bro pill appears.
+17. Free signup does not require Stripe.
+18. Paid memberships require Stripe checkout.
+19. Credit bundle purchases are one-time purchases.
+20. Creative Buddy enables creator tools after successful payment.
+
+Final Goal
+
+The Create a Free Profile workflow should feel guided, simple, and free-first.
+
+The user clicks Create a Free Profile, chooses Male Buddy or Female Buddy, then sees only the upgrade path that makes sense for that choice.
+
+Male Buddy users can stay free, upgrade to Silver/Gold/Platinum, or optionally buy credits after choosing Stay Free.
+
+Female Buddy users can stay free or upgrade to Creative Buddy for `$24.99/month`.
+
+All paths eventually lead to the standard signup form and then payment only if the user selected a paid option.
