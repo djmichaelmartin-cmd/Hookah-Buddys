@@ -319,18 +319,18 @@ export default function ChooseMembership() {
           </div>
 
           {/* Creative Buddy */}
-          <div className="bg-card/40 backdrop-blur-xl border border-[#D6B56D]/50 shadow-[0_0_40px_rgba(214,181,109,0.15)] rounded-[2rem] p-10 flex flex-col relative overflow-hidden">
+          <div className="min-h-[680px] bg-card/40 backdrop-blur-xl border border-[#E85D75]/50 shadow-[0_0_40px_rgba(232,93,117,0.18)] rounded-[2rem] px-10 py-12 flex flex-col relative overflow-hidden">
             <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-              <Crown className="w-48 h-48 text-[#D6B56D]" />
+              <Crown className="w-48 h-48 text-[#E85D75]" />
             </div>
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#D6B56D] text-[#111] text-[10px] uppercase tracking-wider font-bold px-4 py-1 rounded-full flex items-center gap-1">
+            <span className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#E85D75] text-white text-[10px] uppercase tracking-wider font-bold px-4 py-1 rounded-full flex items-center gap-1">
               <Sparkles className="w-3 h-3" /> Creator Program
             </span>
-            <h2 className="text-3xl font-serif text-white mb-2 relative z-10">
+            <h2 className="text-3xl font-serif text-white mt-4 mb-2 relative z-10">
               Creative Buddy
             </h2>
             <div className="flex items-baseline gap-1 mb-6 relative z-10">
-              <span className="text-3xl font-bold text-[#D6B56D]">
+              <span className="text-3xl font-bold text-[#E85D75]">
                 {creatorPlan ? `$${creatorPlan.price}` : "Loading…"}
               </span>
               {creatorPlan && (
@@ -345,7 +345,7 @@ export default function ChooseMembership() {
             <ul className="space-y-4 mb-10 flex-1 relative z-10">
               {creatorPlan?.features?.map((f, i) => (
                 <li key={i} className="text-zinc-300 flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#D6B56D] shrink-0 mt-0.5" />{" "}
+                  <Check className="w-5 h-5 text-[#E85D75] shrink-0 mt-0.5" />{" "}
                   <span>{f}</span>
                 </li>
               ))}
@@ -360,7 +360,7 @@ export default function ChooseMembership() {
             >
               <Button
                 disabled={!creatorPlan}
-                className="w-full bg-[#D6B56D] hover:bg-[#C9A456] text-[#111] font-bold h-14 rounded-xl text-lg"
+                className="w-full bg-[#E85D75] hover:bg-[#D94A66] text-white font-bold h-14 rounded-xl text-lg"
               >
                 Upgrade to Creative Buddy
               </Button>
