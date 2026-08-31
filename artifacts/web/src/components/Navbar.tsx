@@ -429,9 +429,10 @@ export function Navbar() {
               </Link>
               <Link
                 href={PROFILE_ENTRY_PATH}
-                className={`inline-flex items-center h-10 px-6 rounded-full text-sm font-semibold ${ctaBtn} transition-colors`}
+                className={`inline-flex items-center h-10 px-4 sm:px-6 rounded-full text-sm font-semibold whitespace-nowrap ${ctaBtn} transition-colors`}
               >
-                Create Free Profile
+                <span className="sm:hidden">Create Profile</span>
+                <span className="hidden sm:inline">Create Free Profile</span>
               </Link>
             </>
           )}

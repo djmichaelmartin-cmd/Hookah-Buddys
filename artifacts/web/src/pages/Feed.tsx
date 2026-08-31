@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Link } from "wouter";
-import { useListFeedPosts } from "@workspace/api-client-react";
+import { useGetCurrentUser, useListFeedPosts } from "@workspace/api-client-react";
 import { FeedPostCard } from "@/components/FeedPostCard";
 import { CreatePostForm } from "@/components/CreatePostForm";
+import { LoggedOutBlurGate } from "@/components/LoggedOutBlurGate";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,6 +36,13 @@ export default function Feed() {
   const [hashtag, setHashtag] = useState<string | undefined>(undefined);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
+  const { data: session, isLoading: isSessionLoading } = useGetCurrentUser();
+  const hasActiveProfile = Boolean(
+    session?.authenticated &&
+    session.user &&
+    session.user.accountStatus === "active" &&
+    (session.user.role === "admin" || session.user.buddyType),
+  );
   const { data: posts, isLoading } = useListFeedPosts({ filter, hashtag });
 
   const selectHashtag = (tag: string) => {
@@ -97,30 +105,35 @@ export default function Feed() {
           )}
         </div>
 
-        <div className="space-y-6">
-          {isLoading ? (
-            <div className="py-20 flex flex-col items-center justify-center text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p>Loading the Lounge...</p>
-            </div>
-          ) : posts?.length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center text-center bg-card/20 rounded-2xl border border-white/5 backdrop-blur-md">
-              <Frown className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <h3 className="font-serif text-xl text-white mb-2">It's quiet in here.</h3>
-              <p className="text-muted-foreground max-w-sm">
-                No posts found for this filter. Be the first to pack a bowl and start the conversation!
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-6">
-              {posts?.map((post) => (
-                <div key={post.id} className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '100ms' }}>
-                  <FeedPostCard post={post} onLoginPrompt={handleLoginPrompt} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <LoggedOutBlurGate
+          blurred={!isSessionLoading && !hasActiveProfile}
+          className="rounded-2xl"
+        >
+          <div className="space-y-6">
+            {isLoading ? (
+              <div className="py-20 flex flex-col items-center justify-center text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                <p>Loading the Lounge...</p>
+              </div>
+            ) : posts?.length === 0 ? (
+              <div className="py-20 flex flex-col items-center justify-center text-center bg-card/20 rounded-2xl border border-white/5 backdrop-blur-md">
+                <Frown className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <h3 className="font-serif text-xl text-white mb-2">It's quiet in here.</h3>
+                <p className="text-muted-foreground max-w-sm">
+                  No posts found for this filter. Be the first to pack a bowl and start the conversation!
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6">
+                {posts?.map((post) => (
+                  <div key={post.id} className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '100ms' }}>
+                    <FeedPostCard post={post} onLoginPrompt={handleLoginPrompt} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </LoggedOutBlurGate>
 
         {/* Discover content below the feed on mobile/tablet */}
         <div className="xl:hidden mt-10">
