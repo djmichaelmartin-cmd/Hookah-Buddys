@@ -1,0 +1,5 @@
+const base = import.meta.env.BASE_URL;
+export default function Slide6() { return (<div className="w-screen h-screen overflow-hidden relative deck-frame"><p className="eyebrow">User types</p><h1 className="deck-title">Built for Members, Creators, Businesses, and Local Communities</h1><div className="deck-content"><div className="grid grid-cols-4 gap-[1.8vw]"><div className="panel"><h2 className="blue">Male Buddy</h2><p>Free profile • Social feed • Browse Buddys • Credits • Groups and Meetups • Events</p></div>
+<div className="panel"><h2 className="pink">Female Buddy</h2><p>Free profile • Social presence • Optional Creative Buddy upgrade • Content monetization tools</p></div>
+<div className="panel"><h2 className="pink">Creative Buddy</h2><p>Premium content • Custom pricing • Private media messages • Video sessions • Creator dashboard</p></div>
+<div className="panel"><h2 className="gold">Businesses</h2><p>Business Pages • Lounge discovery • Posts and events • Local Spotlight • Promotions and leads</p></div></div></div><footer className="deck-footer"><span>HookahBuddys · Investor Pitch Deck</span><span>06 / 16</span></footer></div>); }

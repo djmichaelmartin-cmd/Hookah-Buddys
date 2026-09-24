@@ -1,0 +1,130 @@
+[
+  {
+    "id": "3d50410b-48f6-4c8b-9e95-d75073b8296c",
+    "position": 1,
+    "filepath": "src/pages/slides/Slide1.tsx",
+    "title": "HookahBuddys",
+    "description": "Cover",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nCover\r\n\r\nTitle:\r\n\r\n“HookahBuddys”\r\n\r\nSubtitle:\r\n\r\n“The Social Platform for Hookah Culture, Creators, Businesses, Meetups, and Local Communities”\r\n\r\nFooter:\r\n\r\n“Investor Pitch Deck | Continued Platform Development”\r\n\r\nVisual:\r\n\r\n* HookahBuddys logo\r\n* Dark lounge/smoke background\r\n* Accent colors: blue, pink, gold, small red logo accent\r\n\r"
+  },
+  {
+    "id": "71adfa1b-0c0b-4e03-9ea7-b7a87733164f",
+    "position": 2,
+    "filepath": "src/pages/slides/Slide2.tsx",
+    "title": "HookahBuddys Is Building the Social Hub for Hookah Culture",
+    "description": "The big idea",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nThe Big Idea\r\n\r\nTitle:\r\n\r\n“HookahBuddys Is Building the Social Hub for Hookah Culture”\r\n\r\nMain copy:\r\n\r\n“HookahBuddys combines a free social network, creator monetization tools, local lounge discovery, business pages, groups, meetups, events, and premium content into one platform built around hookah culture and social connection.”\r\n\r\nKey bullets:\r\n\r\n* Free member profiles\r\n* The Lounge social feed\r\n* Browse Buddys\r\n* Sparks short videos\r\n* Groups\r\n* Meetups and Events\r\n* Business Pages and Lounges\r\n* Creative Buddy monetization\r\n* Credits and premium access\r\n\r"
+  },
+  {
+    "id": "10b7473a-84bd-4ef6-816f-23644d61bc26",
+    "position": 3,
+    "filepath": "src/pages/slides/Slide3.tsx",
+    "title": "Hookah Culture Is Social, But the Online Experience Is Fragmented",
+    "description": "The problem",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nThe Problem\r\n\r\nTitle:\r\n\r\n“Hookah Culture Is Social, But the Online Experience Is Fragmented”\r\n\r\nUse problem statements:\r\n\r\n* Hookah enthusiasts are scattered across general social media platforms.\r\n* Local lounge discovery is limited and inconsistent.\r\n* Creators lack a niche platform built around their audience and monetization needs.\r\n* Businesses need better ways to promote lounges, events, specials, and local visibility.\r\n* Meetup-style hookah events are difficult to organize and discover in one place.\r\n* General platforms are not built specifically for hookah culture, lounge nights, local connections, and creator-driven premium content.\r\n\r"
+  },
+  {
+    "id": "a32a6f93-387b-4386-86a8-4310d501a8a4",
+    "position": 4,
+    "filepath": "src/pages/slides/Slide4.tsx",
+    "title": "HookahBuddys Brings the Entire Ecosystem Together",
+    "description": "The solution",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nThe Solution\r\n\r\nTitle:\r\n\r\n“HookahBuddys Brings the Entire Ecosystem Together”\r\n\r\nShow 5 pillars:\r\n\r\n1. Social Network\r\n\r\n   * Free profiles, posts, photos, Sparks, comments, shares, friends, follows\r\n\r\n2. Creator Platform\r\n\r\n   * Creative Buddy profiles, premium albums, custom content, messages, video sessions\r\n\r\n3. Local Discovery\r\n\r\n   * Lounges, business pages, 25-mile Lounge Spotlight, events near you\r\n\r\n4. Groups and Meetups\r\n\r\n   * Member-created groups, hookah meetups, event planning, RSVPs\r\n\r\n5. Monetization Layer\r\n\r\n   * Credits, subscriptions, unlocks, business promotions, featured placement\r\n\r"
+  },
+  {
+    "id": "dbd31852-0ead-453a-ba4e-0e6e1586a1a0",
+    "position": 5,
+    "filepath": "src/pages/slides/Slide5.tsx",
+    "title": "Core Platform Features",
+    "description": "Product overview",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nProduct Overview\r\n\r\nTitle:\r\n\r\n“Core Platform Features”\r\n\r\nCreate a clean grid with feature cards:\r\n\r\n* Free Buddy Profiles\r\n* The Lounge Feed\r\n* Browse Buddys\r\n* Sparks\r\n* Groups\r\n* Meetups\r\n* Events\r\n* Business Pages\r\n* Lounge Spotlight\r\n* Creative Buddy Profiles\r\n* Premium Albums\r\n* Custom Photo/Video Requests\r\n* Credits\r\n* Admin Dashboard\r\n\r\nAdd short note:\r\n\r\n“HookahBuddys is designed as a social platform first, with optional premium features layered into the experience.”\r\n\r"
+  },
+  {
+    "id": "036c189b-fe5d-437a-9ea1-1fa3d04e23e9",
+    "position": 6,
+    "filepath": "src/pages/slides/Slide6.tsx",
+    "title": "Built for Members, Creators, Businesses, and Local Communities",
+    "description": "User types",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nUser Types\r\n\r\nTitle:\r\n\r\n“Built for Members, Creators, Businesses, and Local Communities”\r\n\r\nCreate 4 columns:\r\n\r\n1. Male Buddy\r\n\r\n   * Free profile\r\n   * Social feed\r\n   * Browse Buddys\r\n   * Credits\r\n   * Groups and Meetups\r\n   * Events\r\n\r\n2. Female Buddy\r\n\r\n   * Free profile\r\n   * Social presence\r\n   * Optional Creative Buddy upgrade\r\n   * Content monetization tools\r\n\r\n3. Creative Buddy\r\n\r\n   * Premium content\r\n   * Custom content pricing\r\n   * Private messages with photos/videos\r\n   * Video sessions\r\n   * Creator dashboard\r\n\r\n4. Businesses\r\n\r\n   * Business Pages\r\n   * Lounge discovery\r\n   * Posts, events, offers, services\r\n   * Local Spotlight\r\n   * Promotions and leads\r\n\r"
+  },
+  {
+    "id": "07a5a3f9-e4fd-4c5b-960a-5f7f0c13f30c",
+    "position": 7,
+    "filepath": "src/pages/slides/Slide7.tsx",
+    "title": "Creative Buddys Can Earn Inside the Platform",
+    "description": "Creator monetization",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nCreator Monetization\r\n\r\nTitle:\r\n\r\n“Creative Buddys Can Earn Inside the Platform”\r\n\r\nHighlight:\r\n\r\nCreative Buddy upgrade:\r\n\r\n`$24.99/month`\r\n\r\nCreator tools:\r\n\r\n* Premium content sales\r\n* Cool Album unlocks\r\n* Smokin Hot Album unlocks\r\n* Custom Photo/Video Requests\r\n* Private messages including photos/videos\r\n* Video session tools\r\n* Ability to set custom content pricing\r\n* Creator dashboard\r\n* Earnings tracking\r\n* Dedicated support\r\n* Verification tools\r\n\r\nAlbum model:\r\n\r\n* Free Album: 5 free images\r\n* Cool Album: unlock with 25 credits\r\n* Smokin Hot Album: unlock with 100 credits and includes Cool Album access\r\n\r\nCustom Request model:\r\n\r\n* Customer submits request\r\n* Credits placed on hold\r\n* Creator accepts\r\n* Creator delivers through Messages as a Custom Message\r\n* Credits release after delivery\r\n* Reuse permission requires mutual agreement\r\n\r"
+  },
+  {
+    "id": "bff4cad5-e5bd-4ffa-8f9d-4787b7140c0c",
+    "position": 8,
+    "filepath": "src/pages/slides/Slide8.tsx",
+    "title": "Credits Power Premium Interactions",
+    "description": "Credit economy",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nCredit Economy\r\n\r\nTitle:\r\n\r\n“Credits Power Premium Interactions”\r\n\r\nUse simple credit value:\r\n\r\n`1 credit = $0.10`\r\n\r\nShow examples:\r\n\r\n* Private messages\r\n* Premium content unlocks\r\n* Custom photo/video requests\r\n* Video sessions\r\n* Album unlocks\r\n\r\nSuggested credit bundles:\r\n\r\n* Mini Pack: $4.99 / 50 credits\r\n* Starter Pack: $9.99 / 110 credits\r\n* Social Pack: $19.99 / 240 credits\r\n* Popular Pack: $39.99 / 520 credits\r\n* VIP Pack: $79.99 / 1,100 credits\r\n\r\nAdd note:\r\n\r\n“Credits create a flexible microtransaction system that allows users to start free and pay only for premium access.”\r\n\r"
+  },
+  {
+    "id": "3abce59c-86d5-436b-b134-e769f1f7b7fd",
+    "position": 9,
+    "filepath": "src/pages/slides/Slide9.tsx",
+    "title": "Free to Join, Optional Paid Upgrades",
+    "description": "Membership model",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nMembership Model\r\n\r\nTitle:\r\n\r\n“Free to Join, Optional Paid Upgrades”\r\n\r\nShow flow:\r\n\r\nUser clicks Create Free Profile → chooses Male Buddy or Female Buddy → selects free or optional upgrade.\r\n\r\nMale Buddy options:\r\n\r\n* Free Profile: $0/month\r\n* Silver: $9.99/month with 75 credits\r\n* Gold: $19.99/month with 175 credits\r\n* Platinum: $39.99/month with 400 credits\r\n\r\nFemale Buddy options:\r\n\r\n* Free Profile: $0/month\r\n* Creative Buddy: $24.99/month\r\n\r\nKey message:\r\n\r\n“HookahBuddys is not a pay-only environment. The free social network drives adoption, while optional premium upgrades drive revenue.”\r\n\r"
+  },
+  {
+    "id": "99f77c2b-197e-4cdc-9d94-09b17b7afb75",
+    "position": 10,
+    "filepath": "src/pages/slides/Slide10.tsx",
+    "title": "Businesses Create Another Revenue Engine",
+    "description": "Business monetization",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nBusiness and Lounge Monetization\r\n\r\nTitle:\r\n\r\n“Businesses Create Another Revenue Engine”\r\n\r\nBusiness Page features:\r\n\r\n* Business profiles\r\n* Posts\r\n* Photos and Sparks\r\n* Services\r\n* Products/catalog\r\n* Offers and specials\r\n* Events\r\n* Reviews/recommendations\r\n* Check-ins\r\n* Messaging\r\n* Insights\r\n* Promotions\r\n* Featured placement\r\n\r\nLounge Spotlight:\r\n\r\n* Shows local businesses within 25 miles of the logged-in user\r\n* Rotates 3 highest-rated businesses daily\r\n* Drives traffic to `/lounges`\r\n* Creates future sponsored placement opportunities\r\n\r\nPotential business monetization:\r\n\r\n* Featured business placement\r\n* Sponsored Lounge Spotlight\r\n* Boosted posts\r\n* Event promotion\r\n* Lead generation\r\n* Business subscriptions\r\n* Advertising packages\r\n\r"
+  },
+  {
+    "id": "90f10404-6ff4-4d85-a612-832ec5eba0bb",
+    "position": 11,
+    "filepath": "src/pages/slides/Slide11.tsx",
+    "title": "Meetups Turn Online Interest Into Local Activity",
+    "description": "Local network effects",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nMeetups, Events, and Local Network Effects\r\n\r\nTitle:\r\n\r\n“Meetups Turn Online Interest Into Local Activity”\r\n\r\nExplain:\r\n\r\n“Members can start a Meetup by creating the full event in one flow: title, date, time, location, RSVP rules, privacy, and invites.”\r\n\r\nFeatures:\r\n\r\n* Hookah meetups\r\n* Lounge nights\r\n* Smoke sessions\r\n* Business networking\r\n* RSVP tracking\r\n* Attendee management\r\n* Event discovery\r\n* Global Events page\r\n* The Lounge feed integration\r\n\r\nWhy this matters:\r\n\r\n* Drives repeat engagement\r\n* Supports local community growth\r\n* Helps businesses promote real-world events\r\n* Makes HookahBuddys more than just a content app\r\n\r"
+  },
+  {
+    "id": "ac31db93-e611-4e39-a312-78f8879fdfac",
+    "position": 12,
+    "filepath": "src/pages/slides/Slide12.tsx",
+    "title": "HookahBuddys Combines Multiple Proven Platform Models",
+    "description": "Competitive positioning",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nCompetitive Positioning\r\n\r\nTitle:\r\n\r\n“HookahBuddys Combines Multiple Proven Platform Models”\r\n\r\nCreate comparison table:\r\n\r\nColumns:\r\n\r\n* Platform Type\r\n* What It Does\r\n* HookahBuddys Advantage\r\n\r\nRows:\r\n\r\n1. Facebook-style social network\r\n\r\n   * Profiles, feed, friends, groups\r\n   * Hookah-focused niche community\r\n\r\n2. Creator platform\r\n\r\n   * Premium content, custom requests\r\n   * Creative Buddy tools tied to social discovery\r\n\r\n3. Meetup-style events\r\n\r\n   * Local gatherings and RSVPs\r\n   * Hookah-first meetups and lounge nights\r\n\r\n4. Business directory\r\n\r\n   * Local business discovery\r\n   * Business Pages, Lounge Spotlight, offers, events\r\n\r\n5. Short video platform\r\n\r\n   * Short-form video\r\n   * Sparks for HookahBuddys culture and creator discovery\r\n\r"
+  },
+  {
+    "id": "b9f73976-4fbc-4485-ae9b-7d023d632019",
+    "position": 13,
+    "filepath": "src/pages/slides/Slide13.tsx",
+    "title": "Platform Development Is Underway",
+    "description": "Development status",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nDevelopment Status\r\n\r\nTitle:\r\n\r\n“Platform Development Is Underway”\r\n\r\nUse honest status language.\r\n\r\nSuggested copy:\r\n\r\n“HookahBuddys is currently in active development. The platform architecture includes social profiles, The Lounge, Browse Buddys, Sparks, Groups, Meetups, Business Pages, Events, Credits, Creator tools, and Admin controls.”\r\n\r\nAdd placeholders:\r\n\r\n* Current app URL: `[Insert current Replit/App URL]`\r\n* Current build stage: `[Insert MVP / Beta / Internal Testing]`\r\n* Current completed features: `[Insert completed feature list]`\r\n* Features in progress: `[Insert in-progress items]`\r\n* Screenshots: `[Insert screenshots of homepage, Lounge, profile, admin dashboard]`\r\n\r\nDo not invent traction.\r\n\r\nIf no traction exists yet, say:\r\n\r\n“Pre-launch / development-stage platform.”\r\n\r"
+  },
+  {
+    "id": "78697690-3c0f-4345-ad0b-44e3008fa6d4",
+    "position": 14,
+    "filepath": "src/pages/slides/Slide14.tsx",
+    "title": "Development Roadmap",
+    "description": "Roadmap",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nRoadmap\r\n\r\nTitle:\r\n\r\n“Development Roadmap”\r\n\r\nUse 3 phases:\r\n\r\nPhase 1: MVP Completion\r\n\r\n* Free profiles\r\n* Buddy type onboarding\r\n* The Lounge feed\r\n* Browse Buddys\r\n* Sparks upload/recording\r\n* Admin dashboard\r\n* Credits and plans\r\n* Creator profile content area\r\n\r\nPhase 2: Monetization and Local Growth\r\n\r\n* Creative Buddy subscriptions\r\n* Album unlocks\r\n* Custom Photo/Video Requests\r\n* Video sessions\r\n* Business Pages\r\n* Lounge Spotlight\r\n* Meetups and Events\r\n\r\nPhase 3: Scale and Partnerships\r\n\r\n* Mobile app readiness\r\n* Business advertising tools\r\n* Sponsored placements\r\n* Local lounge partnerships\r\n* Advanced analytics\r\n* Payment/payout automation\r\n* Growth campaigns\r\n* Moderation and compliance scaling\r\n\r"
+  },
+  {
+    "id": "567cf964-f221-4a9c-b9eb-664efc9d36c3",
+    "position": 15,
+    "filepath": "src/pages/slides/Slide15.tsx",
+    "title": "Funding Will Accelerate Continued Development",
+    "description": "Use of funds",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nUse of Funds\r\n\r\nTitle:\r\n\r\n“Funding Will Accelerate Continued Development”\r\n\r\nShow funding buckets.\r\n\r\nUse placeholder amounts unless real numbers are provided.\r\n\r\nRecommended categories:\r\n\r\n* Product development\r\n* UI/UX design\r\n* Mobile optimization\r\n* Payment/credit system\r\n* Video/session infrastructure\r\n* Creator tools\r\n* Admin/moderation systems\r\n* Security and compliance\r\n* Marketing and user acquisition\r\n* Business/lounges onboarding\r\n* Legal and operational setup\r\n\r\nUse placeholder:\r\n\r\n`[Insert funding target]`\r\n\r\nExample language:\r\n\r\n“Investor funding will be used to complete the MVP, harden the platform, support launch, onboard early users and businesses, and accelerate monetization features.”\r\n\r"
+  },
+  {
+    "id": "a3edb4d2-1368-4b12-98fb-63287146aa04",
+    "position": 16,
+    "filepath": "src/pages/slides/Slide16.tsx",
+    "title": "Opportunity to Help Build the Social Platform for Hookah Culture",
+    "description": "Investment opportunity",
+    "speakerNotes": "- Source: user-provided investor brief. Development-stage presentation; no verified traction, revenue, commitments, or partnerships are claimed.\n- Pricing on slides 7–9 is proposed from the brief, not a verified live offer. Current app configuration differs; reconcile before circulation. Payment processing and payouts require validation.\n- Album names reflect current Free Album / Cool Album / Smokin Hot Album terminology.\n\nPresenter detail from supplied brief:\nInvestment Opportunity / Next Steps\r\n\r\nTitle:\r\n\r\n“Opportunity to Help Build the Social Platform for Hookah Culture”\r\n\r\nKey points:\r\n\r\n* Niche social platform with multiple monetization channels\r\n* Free social network creates user adoption path\r\n* Credits and premium access create transaction revenue\r\n* Creative Buddy tools create creator-side revenue\r\n* Businesses and lounges create local advertising opportunities\r\n* Meetups and events create real-world engagement\r\n* Continued development funding can accelerate launch and growth\r\n\r\nCall to action:\r\n\r\n“Seeking strategic investors to help fund continued development, launch preparation, and early growth.”\r\n\r\nAdd contact placeholders:\r\n\r\n* Founder: `[Insert founder name]`\r\n* Email: `[Insert email]`\r\n* Phone: `[Insert phone]`\r\n* Website/App: `[Insert URL]`\r\n\r\nAdd small disclaimer:\r\n\r\n“This presentation is for discussion purposes only and does not constitute an offer to sell securities. Financial projections, if added, should be reviewed with legal and financial advisors.”\r\n\r"
+  }
+]

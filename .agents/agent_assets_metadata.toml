@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "JgqLlasBfk7ZEZthvN406"
@@ -96,3 +95,17 @@ id = "uTuOtFlYQLTcvSrTSjrhY"
 uri = "file://artifacts/web/public/join/i-love-dolls.png"
 type = "image"
 title = "couple hookah lounge"
+
+[[outputs]]
+id = "6xjT3CqntCwYEmVkrzvUK"
+uri = "file://.local/outputs/HookahBuddys-Investor-Pitch-Deck.pptx"
+type = "slides"
+title = "HookahBuddys Investor Pitch Deck (PowerPoint)"
+description = "16-slide investor presentation with speaker notes, proposed pricing labels, and funding/contact placeholders."
+logical_id = "f2f19d26-5527-4d6c-a1ea-4d05c9613bd9"
+content_hash = "sha256:200ca4badde99c763f27a38c33878dd413c6a9f1b2c811e5c40d4d1e1e55eb1b"
+size = 6704007
+mtime_ms = 1790228960767
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:974249d3-4ed5-4420-9831-d5953b5f2754/f2f19d26-5527-4d6c-a1ea-4d05c9613bd9/86f7487e-f697-4593-895b-74924559efb4"
+storage_version_token = "1790228961515752"
+content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"

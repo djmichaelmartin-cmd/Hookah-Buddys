@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/investor-deck/"
+title = "HookahBuddys Investor Pitch Deck"
+description = "A 16-slide investor presentation covering the HookahBuddys social platform, creator tools, local communities, business model, roadmap, and funding opportunity."
+version = "1.0.0"
+id = "artifacts/investor-deck"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/investor-deck/" ]
+localPort = 18285
+
+[services.development]
+run = "pnpm --filter @workspace/investor-deck run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/investor-deck", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/investor-deck/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18285"
+BASE_PATH = "/investor-deck/"

@@ -99,6 +99,7 @@ function Router() {
       <Route path="/dashboard/doll" component={DashboardDoll} />
       <Route path="/dashboard/member" component={DashboardMember} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/investor-deck" component={AdminDashboard} />
       <Route path="/admin/:section" component={AdminDashboard} />
       <Route path="/upload" component={Upload} />
       <Route path="/verification" component={Verification} />

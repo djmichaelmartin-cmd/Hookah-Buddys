@@ -1,0 +1,713 @@
+Replit Agent Instruction: Create HookahBuddys Investor Pitch Deck PowerPoint
+
+Do not rebuild the HookahBuddys platform. Create a professional PowerPoint investor pitch deck that explains HookahBuddys and helps attract potential investors to fund continued development.
+
+Deliverable:
+
+Create a downloadable PowerPoint file:
+
+`HookahBuddys-Investor-Pitch-Deck.pptx`
+
+Preferred location:
+
+`/public/downloads/HookahBuddys-Investor-Pitch-Deck.pptx`
+
+If needed, create a script such as:
+
+`scripts/generate-investor-deck.js`
+
+Use PptxGenJS or another reliable PowerPoint generation package available in the project.
+
+Also add a simple download link/button in the Admin Dashboard or a temporary internal page:
+
+`/admin/investor-deck`
+
+Button text:
+
+“Download Investor Pitch Deck”
+
+Important
+
+Do not invent fake traction, fake user numbers, fake revenue, fake investor commitments, or fake partnerships.
+
+If real numbers are not available, use placeholder text such as:
+
+* `[Insert current user count]`
+* `[Insert monthly active users]`
+* `[Insert development budget needed]`
+* `[Insert current build status]`
+* `[Insert founder/team info]`
+* `[Insert screenshots]`
+
+Tone
+
+The deck should feel:
+
+* Investor-ready
+* Premium
+* Social-media focused
+* Creator-platform focused
+* Hookah culture focused
+* Clear and concise
+* Professional but visually exciting
+
+Use the new brand name:
+
+HookahBuddys
+
+Do not use HookahDolls anywhere.
+
+Visual Brand Style
+
+Use a modern dark social platform style.
+
+Colors:
+
+* Primary background: `#0F1115`
+* Secondary background: `#171A21`
+* Card background: `#1F232B`
+* Text white: `#F5F7FA`
+* Muted text: `#C7CBD3`
+* Social blue: `#1877F2`
+* Buddy pink: `#E85D75`
+* Premium gold: `#D6B56D`
+* Success green: `#31C48D`
+* Alert red/logo accent: `#E11931`
+
+Use red only as a brand accent, not the dominant deck color.
+
+Use:
+
+* Dark gradients
+* Smoke-inspired background accents
+* Blue for social/community features
+* Pink for Creative Buddy features
+* Gold for monetization/investor highlights
+* Clean charts and icons
+* Screenshot placeholders where app screenshots are not available
+
+Logo
+
+Use the HookahBuddys logo if available in the project.
+
+Search common paths:
+
+* `/public/logo.png`
+* `/public/hookahbuddys-logo.png`
+* `/src/assets/logo.png`
+* `/assets/hookahbuddys-logo.png`
+
+If no logo file exists, use text branding:
+
+“HookahBuddys”
+
+Subtitle:
+
+“Social Hookah Platform”
+
+Deck Size
+
+Use 16:9 widescreen PowerPoint format.
+
+Create approximately 14 to 16 slides.
+
+Investor Deck Structure
+
+Slide 1: Cover
+
+Title:
+
+“HookahBuddys”
+
+Subtitle:
+
+“The Social Platform for Hookah Culture, Creators, Businesses, Meetups, and Local Communities”
+
+Footer:
+
+“Investor Pitch Deck | Continued Platform Development”
+
+Visual:
+
+* HookahBuddys logo
+* Dark lounge/smoke background
+* Accent colors: blue, pink, gold, small red logo accent
+
+Slide 2: The Big Idea
+
+Title:
+
+“HookahBuddys Is Building the Social Hub for Hookah Culture”
+
+Main copy:
+
+“HookahBuddys combines a free social network, creator monetization tools, local lounge discovery, business pages, groups, meetups, events, and premium content into one platform built around hookah culture and social connection.”
+
+Key bullets:
+
+* Free member profiles
+* The Lounge social feed
+* Browse Buddys
+* Sparks short videos
+* Groups
+* Meetups and Events
+* Business Pages and Lounges
+* Creative Buddy monetization
+* Credits and premium access
+
+Slide 3: The Problem
+
+Title:
+
+“Hookah Culture Is Social, But the Online Experience Is Fragmented”
+
+Use problem statements:
+
+* Hookah enthusiasts are scattered across general social media platforms.
+* Local lounge discovery is limited and inconsistent.
+* Creators lack a niche platform built around their audience and monetization needs.
+* Businesses need better ways to promote lounges, events, specials, and local visibility.
+* Meetup-style hookah events are difficult to organize and discover in one place.
+* General platforms are not built specifically for hookah culture, lounge nights, local connections, and creator-driven premium content.
+
+Slide 4: The Solution
+
+Title:
+
+“HookahBuddys Brings the Entire Ecosystem Together”
+
+Show 5 pillars:
+
+1. Social Network
+
+   * Free profiles, posts, photos, Sparks, comments, shares, friends, follows
+
+2. Creator Platform
+
+   * Creative Buddy profiles, premium albums, custom content, messages, video sessions
+
+3. Local Discovery
+
+   * Lounges, business pages, 25-mile Lounge Spotlight, events near you
+
+4. Groups and Meetups
+
+   * Member-created groups, hookah meetups, event planning, RSVPs
+
+5. Monetization Layer
+
+   * Credits, subscriptions, unlocks, business promotions, featured placement
+
+Slide 5: Product Overview
+
+Title:
+
+“Core Platform Features”
+
+Create a clean grid with feature cards:
+
+* Free Buddy Profiles
+* The Lounge Feed
+* Browse Buddys
+* Sparks
+* Groups
+* Meetups
+* Events
+* Business Pages
+* Lounge Spotlight
+* Creative Buddy Profiles
+* Premium Albums
+* Custom Photo/Video Requests
+* Credits
+* Admin Dashboard
+
+Add short note:
+
+“HookahBuddys is designed as a social platform first, with optional premium features layered into the experience.”
+
+Slide 6: User Types
+
+Title:
+
+“Built for Members, Creators, Businesses, and Local Communities”
+
+Create 4 columns:
+
+1. Male Buddy
+
+   * Free profile
+   * Social feed
+   * Browse Buddys
+   * Credits
+   * Groups and Meetups
+   * Events
+
+2. Female Buddy
+
+   * Free profile
+   * Social presence
+   * Optional Creative Buddy upgrade
+   * Content monetization tools
+
+3. Creative Buddy
+
+   * Premium content
+   * Custom content pricing
+   * Private messages with photos/videos
+   * Video sessions
+   * Creator dashboard
+
+4. Businesses
+
+   * Business Pages
+   * Lounge discovery
+   * Posts, events, offers, services
+   * Local Spotlight
+   * Promotions and leads
+
+Slide 7: Creator Monetization
+
+Title:
+
+“Creative Buddys Can Earn Inside the Platform”
+
+Highlight:
+
+Creative Buddy upgrade:
+
+`$24.99/month`
+
+Creator tools:
+
+* Premium content sales
+* Cloud Vibes Album unlocks
+* Smokin Hot Album unlocks
+* Custom Photo/Video Requests
+* Private messages including photos/videos
+* Video session tools
+* Ability to set custom content pricing
+* Creator dashboard
+* Earnings tracking
+* Dedicated support
+* Verification tools
+
+Album model:
+
+* Free Preview Album: 5 free images
+* Cloud Vibes Album: unlock with 25 credits
+* Smokin Hot Album: unlock with 100 credits and includes Cloud Vibes access
+
+Custom Request model:
+
+* Customer submits request
+* Credits placed on hold
+* Creator accepts
+* Creator delivers through Messages as a Custom Message
+* Credits release after delivery
+* Reuse permission requires mutual agreement
+
+Slide 8: Credit Economy
+
+Title:
+
+“Credits Power Premium Interactions”
+
+Use simple credit value:
+
+`1 credit = $0.10`
+
+Show examples:
+
+* Private messages
+* Premium content unlocks
+* Custom photo/video requests
+* Video sessions
+* Album unlocks
+
+Suggested credit bundles:
+
+* Mini Pack: $4.99 / 50 credits
+* Starter Pack: $9.99 / 110 credits
+* Social Pack: $19.99 / 240 credits
+* Popular Pack: $39.99 / 520 credits
+* VIP Pack: $79.99 / 1,100 credits
+
+Add note:
+
+“Credits create a flexible microtransaction system that allows users to start free and pay only for premium access.”
+
+Slide 9: Membership Model
+
+Title:
+
+“Free to Join, Optional Paid Upgrades”
+
+Show flow:
+
+User clicks Create Free Profile → chooses Male Buddy or Female Buddy → selects free or optional upgrade.
+
+Male Buddy options:
+
+* Free Profile: $0/month
+* Silver: $9.99/month with 75 credits
+* Gold: $19.99/month with 175 credits
+* Platinum: $39.99/month with 400 credits
+
+Female Buddy options:
+
+* Free Profile: $0/month
+* Creative Buddy: $24.99/month
+
+Key message:
+
+“HookahBuddys is not a pay-only environment. The free social network drives adoption, while optional premium upgrades drive revenue.”
+
+Slide 10: Business and Lounge Monetization
+
+Title:
+
+“Businesses Create Another Revenue Engine”
+
+Business Page features:
+
+* Business profiles
+* Posts
+* Photos and Sparks
+* Services
+* Products/catalog
+* Offers and specials
+* Events
+* Reviews/recommendations
+* Check-ins
+* Messaging
+* Insights
+* Promotions
+* Featured placement
+
+Lounge Spotlight:
+
+* Shows local businesses within 25 miles of the logged-in user
+* Rotates 3 highest-rated businesses daily
+* Drives traffic to `/lounges`
+* Creates future sponsored placement opportunities
+
+Potential business monetization:
+
+* Featured business placement
+* Sponsored Lounge Spotlight
+* Boosted posts
+* Event promotion
+* Lead generation
+* Business subscriptions
+* Advertising packages
+
+Slide 11: Meetups, Events, and Local Network Effects
+
+Title:
+
+“Meetups Turn Online Interest Into Local Activity”
+
+Explain:
+
+“Members can start a Meetup by creating the full event in one flow: title, date, time, location, RSVP rules, privacy, and invites.”
+
+Features:
+
+* Hookah meetups
+* Lounge nights
+* Smoke sessions
+* Business networking
+* RSVP tracking
+* Attendee management
+* Event discovery
+* Global Events page
+* The Lounge feed integration
+
+Why this matters:
+
+* Drives repeat engagement
+* Supports local community growth
+* Helps businesses promote real-world events
+* Makes HookahBuddys more than just a content app
+
+Slide 12: Competitive Positioning
+
+Title:
+
+“HookahBuddys Combines Multiple Proven Platform Models”
+
+Create comparison table:
+
+Columns:
+
+* Platform Type
+* What It Does
+* HookahBuddys Advantage
+
+Rows:
+
+1. Facebook-style social network
+
+   * Profiles, feed, friends, groups
+   * Hookah-focused niche community
+
+2. Creator platform
+
+   * Premium content, custom requests
+   * Creative Buddy tools tied to social discovery
+
+3. Meetup-style events
+
+   * Local gatherings and RSVPs
+   * Hookah-first meetups and lounge nights
+
+4. Business directory
+
+   * Local business discovery
+   * Business Pages, Lounge Spotlight, offers, events
+
+5. Short video platform
+
+   * Short-form video
+   * Sparks for HookahBuddys culture and creator discovery
+
+Slide 13: Development Status
+
+Title:
+
+“Platform Development Is Underway”
+
+Use honest status language.
+
+Suggested copy:
+
+“HookahBuddys is currently in active development. The platform architecture includes social profiles, The Lounge, Browse Buddys, Sparks, Groups, Meetups, Business Pages, Events, Credits, Creator tools, and Admin controls.”
+
+Add placeholders:
+
+* Current app URL: `[Insert current Replit/App URL]`
+* Current build stage: `[Insert MVP / Beta / Internal Testing]`
+* Current completed features: `[Insert completed feature list]`
+* Features in progress: `[Insert in-progress items]`
+* Screenshots: `[Insert screenshots of homepage, Lounge, profile, admin dashboard]`
+
+Do not invent traction.
+
+If no traction exists yet, say:
+
+“Pre-launch / development-stage platform.”
+
+Slide 14: Roadmap
+
+Title:
+
+“Development Roadmap”
+
+Use 3 phases:
+
+Phase 1: MVP Completion
+
+* Free profiles
+* Buddy type onboarding
+* The Lounge feed
+* Browse Buddys
+* Sparks upload/recording
+* Admin dashboard
+* Credits and plans
+* Creator profile content area
+
+Phase 2: Monetization and Local Growth
+
+* Creative Buddy subscriptions
+* Album unlocks
+* Custom Photo/Video Requests
+* Video sessions
+* Business Pages
+* Lounge Spotlight
+* Meetups and Events
+
+Phase 3: Scale and Partnerships
+
+* Mobile app readiness
+* Business advertising tools
+* Sponsored placements
+* Local lounge partnerships
+* Advanced analytics
+* Payment/payout automation
+* Growth campaigns
+* Moderation and compliance scaling
+
+Slide 15: Use of Funds
+
+Title:
+
+“Funding Will Accelerate Continued Development”
+
+Show funding buckets.
+
+Use placeholder amounts unless real numbers are provided.
+
+Recommended categories:
+
+* Product development
+* UI/UX design
+* Mobile optimization
+* Payment/credit system
+* Video/session infrastructure
+* Creator tools
+* Admin/moderation systems
+* Security and compliance
+* Marketing and user acquisition
+* Business/lounges onboarding
+* Legal and operational setup
+
+Use placeholder:
+
+`[Insert funding target]`
+
+Example language:
+
+“Investor funding will be used to complete the MVP, harden the platform, support launch, onboard early users and businesses, and accelerate monetization features.”
+
+Slide 16: Investment Opportunity / Next Steps
+
+Title:
+
+“Opportunity to Help Build the Social Platform for Hookah Culture”
+
+Key points:
+
+* Niche social platform with multiple monetization channels
+* Free social network creates user adoption path
+* Credits and premium access create transaction revenue
+* Creative Buddy tools create creator-side revenue
+* Businesses and lounges create local advertising opportunities
+* Meetups and events create real-world engagement
+* Continued development funding can accelerate launch and growth
+
+Call to action:
+
+“Seeking strategic investors to help fund continued development, launch preparation, and early growth.”
+
+Add contact placeholders:
+
+* Founder: `[Insert founder name]`
+* Email: `[Insert email]`
+* Phone: `[Insert phone]`
+* Website/App: `[Insert URL]`
+
+Add small disclaimer:
+
+“This presentation is for discussion purposes only and does not constitute an offer to sell securities. Financial projections, if added, should be reviewed with legal and financial advisors.”
+
+Optional Appendix Slides
+
+If time permits, add appendix slides:
+
+Appendix A: Feature Screenshots
+
+* Homepage
+* The Lounge
+* Browse Buddys
+* Creator Profile
+* Admin Dashboard
+
+Appendix B: Revenue Model Detail
+
+Revenue streams:
+
+* Membership subscriptions
+* Creative Buddy subscriptions
+* Credit bundles
+* Album unlocks
+* Custom content requests
+* Video sessions
+* Business promotions
+* Featured placements
+* Sponsored Lounge Spotlight
+* Event promotions
+* Future advertising
+
+Appendix C: Admin and Safety Infrastructure
+
+Admin controls:
+
+* Applications
+* Media Moderation
+* Verifications
+* Lounge
+* Shares
+* Photos
+* Sparks
+* Blocks
+* Users
+* Profiles
+* Credits
+* Plans
+* Events
+* Leads
+* Businesses
+* Groups
+* Custom Requests
+
+Design Requirements
+
+Each slide should be visually polished.
+
+Use:
+
+* Large bold titles
+* Short bullet points
+* Icons
+* Cards
+* Clean spacing
+* Dark premium background
+* Blue/pink/gold accents
+* Screenshot placeholders
+* Investor-friendly visuals
+* No crowded slides
+
+Avoid:
+
+* Long paragraphs
+* Tiny text
+* Too much red
+* Fake numbers
+* Unsupported claims
+* Explicit adult positioning
+* Cluttered layouts
+
+PowerPoint Build Requirements
+
+Create the PPTX programmatically.
+
+Use reusable theme settings:
+
+* Font: Inter, Aptos, or Arial
+* Slide size: 16:9
+* Consistent margins
+* Consistent footer
+* Page numbers
+* HookahBuddys logo or text mark on each slide
+* Dark background with subtle smoke/gradient accents
+* Consistent title placement
+
+Include speaker notes where useful.
+
+If using market data or any outside data, include citations in speaker notes.
+
+Do not include uncited market size numbers unless they are placeholders.
+
+Output
+
+After generation, confirm the file exists at:
+
+`/public/downloads/HookahBuddys-Investor-Pitch-Deck.pptx`
+
+Add a note in README or console output:
+
+“Investor pitch deck generated successfully.”
+
+Final Goal
+
+The final PowerPoint should clearly explain what HookahBuddys is, why it matters, how it makes money, what has been built, what funding will support, and why potential investors should consider funding continued development.

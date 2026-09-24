@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Coins,
   CreditCard,
+  Download,
   FileText,
   Flame,
   Home,
@@ -51,6 +52,7 @@ export const ADMIN_SECTIONS: AdminSection[] = [
   { value: "businesses", label: "Businesses", path: "/admin/businesses", description: "Manage business pages and moderation.", icon: Building2 },
   { value: "groups", label: "Groups", path: "/admin/groups", description: "Manage Groups and community activity.", icon: UsersRound },
   { value: "custom-requests", label: "Custom Requests", path: "/admin/custom-requests", description: "Review custom Creator content requests.", icon: FileText },
+  { value: "investor-deck", label: "Investor Deck", path: "/admin/investor-deck", description: "Download the investor pitch deck.", icon: Download },
 ];
 
 const PATH_TO_SECTION = new Map(ADMIN_SECTIONS.map((section) => [section.path, section.value]));

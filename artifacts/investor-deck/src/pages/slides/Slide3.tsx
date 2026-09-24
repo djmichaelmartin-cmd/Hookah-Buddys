@@ -1,0 +1,5 @@
+const base = import.meta.env.BASE_URL;
+export default function Slide3() { return (<div className="w-screen h-screen overflow-hidden relative deck-frame"><p className="eyebrow">The problem</p><h1 className="deck-title">Hookah Culture Is Social, But the Online Experience Is Fragmented</h1><div className="deck-content"><div className="grid grid-cols-2 gap-[1.8vw]"><div className="panel"><h2 className="blue">Scattered communities</h2><p>Hookah enthusiasts are scattered across general social media platforms.</p></div>
+<div className="panel"><h2 className="blue">Inconsistent discovery</h2><p>Local lounge discovery is limited and inconsistent.</p></div>
+<div className="panel"><h2 className="pink">Limited creator fit</h2><p>Creators lack a niche platform built around their audience and monetization needs.</p></div>
+<div className="panel"><h2 className="gold">Disconnected local activity</h2><p>Businesses need better promotion. Hookah events are difficult to organize and discover in one place.</p></div></div></div><footer className="deck-footer"><span>HookahBuddys · Investor Pitch Deck</span><span>03 / 16</span></footer></div>); }

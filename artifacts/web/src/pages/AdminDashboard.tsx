@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getErrorMessage } from "@/lib/error";
 import { Layout } from "@/components/Layout";
 import { useGetAdminStats, useListDollApplications, useListPendingMedia, useListPendingVerifications, useReviewDollApplication, useModerateMedia, useReviewVerification, useGetDollRevenueShares, getGetAdminStatsQueryKey, getListDollApplicationsQueryKey, getListPendingMediaQueryKey, getListPendingVerificationsQueryKey, useListAdminFeedPosts, useListFeedReports, useModerateFeedPost, useReviewFeedReport, useGetFeedAnalytics, getListAdminFeedPostsQueryKey, getListFeedReportsQueryKey, getGetFeedAnalyticsQueryKey, useListAdminPhotos, useModeratePhoto, useListAdminReels, useModerateReel, useListAdminBlocks, useGetAdminProfile, useClearProfileFields, getListAdminPhotosQueryKey, getListAdminReelsQueryKey, getListAdminBlocksQueryKey, getGetAdminProfileQueryKey, useGetCurrentUser, useLogout, useAdminListShares, getAdminListSharesQueryKey, useAdminModerateShare, useAdminListSharingSuspensions, getAdminListSharingSuspensionsQueryKey, useAdminSuspendSharing, useAdminRestoreSharing, useListUsers, getListUsersQueryKey, useUpdateUserBuddyType } from "@workspace/api-client-react";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { RevenueBreakdownItem, DollRevenueShare, AdminListSharesSourceType, AdminListSharesDestination, ListUsersParams, ListUsersBuddyType, BuddyTypeInputBuddyType } from "@workspace/api-client-react";
-import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye, CalendarDays, Share2, Lock, Unlock } from "lucide-react";
+import { ShieldCheck, Image as ImageIcon, Users, AlertTriangle, Database, Coins, ExternalLink, Video, FileText, TrendingUp, MessageSquare, Flag, Search, Eye, CalendarDays, Share2, Lock, Unlock, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BuddyPill } from "@/components/BuddyPill";
 import AdminLeads from "@/pages/AdminLeads";
@@ -26,6 +26,7 @@ import { useLocation } from "wouter";
 
 export default function AdminDashboard() {
   const { data: session, isLoading } = useGetCurrentUser();
+  const [location] = useLocation();
 
   if (isLoading) {
     return (
@@ -56,7 +57,50 @@ export default function AdminDashboard() {
     );
   }
 
-  return <AdminDashboardContent />;
+  return location === "/admin/investor-deck" ? <AdminInvestorDeck /> : <AdminDashboardContent />;
+}
+
+function AdminInvestorDeck() {
+  const [, navigate] = useLocation();
+  const logout = useLogout();
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = "Investor Pitch Deck | HookahBuddys Admin";
+    return () => { document.title = previousTitle; };
+  }, []);
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-4 py-8 lg:py-12">
+        <div className="grid items-start gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <AdminSidebar
+            activeSection="investor-deck"
+            counts={{}}
+            onNavigate={(section) => navigate(section.path)}
+            onLogout={() => logout.mutate(undefined, {
+              onSuccess: () => { window.location.href = "/"; },
+            })}
+          />
+          <main className="min-w-0">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#D6B56D]">HookahBuddys Admin</p>
+            <h1 className="text-3xl font-serif text-white">Investor Deck</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Download the HookahBuddys investor pitch deck as a PowerPoint file.</p>
+            <div className="mt-8 rounded-xl border border-white/10 bg-card/50 p-6 sm:p-8">
+              <h2 className="text-xl font-semibold text-white">HookahBuddys Investor Pitch Deck</h2>
+              <p className="mt-2 text-sm text-muted-foreground">PowerPoint presentation (.pptx)</p>
+              <Button asChild className="mt-6">
+                <a href={`${import.meta.env.BASE_URL}downloads/HookahBuddys-Investor-Pitch-Deck.pptx`} download>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Investor Pitch Deck
+                </a>
+              </Button>
+            </div>
+          </main>
+        </div>
+      </div>
+    </Layout>
+  );
 }
 
 function AdminDashboardContent() {

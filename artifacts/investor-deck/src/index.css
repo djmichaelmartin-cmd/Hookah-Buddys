@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --color-primary: var(--slide-primary);
+  --color-accent: var(--slide-accent);
+  --color-bg: var(--slide-bg);
+  --color-text: var(--slide-text);
+  --color-muted: var(--slide-muted);
+  --font-display: var(--font-display-family);
+  --font-body: var(--font-body-family);
+}
+
+:root {
+  /* Replace these with brand colors */
+  --slide-primary: #1877F2;
+  --slide-accent: #D6B56D;
+  --slide-bg: #0F1115;
+  --slide-text: #F5F7FA;
+  --slide-muted: #C7CBD3;
+  --font-display-family: 'Inter', system-ui, sans-serif;
+  --font-body-family: 'Inter', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--slide-bg);
+  color: var(--slide-text);
+}
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.slide-viewer {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.deck-frame { background: radial-gradient(ellipse at 90% 0%, #202938 0%, #0F1115 60%); color: #F5F7FA; font-family: Inter, sans-serif; padding: 4.5vh 5vw; }
+.eyebrow { color: #D6B56D; font-size: 1.5vw; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 2vh; }
+.deck-title { font-size: 3.5vw; line-height: 1.12; font-weight: 800; letter-spacing: -.035em; max-width: 87vw; text-wrap: balance; }
+.deck-content { margin-top: 4vh; }
+.deck-footer { position: absolute; bottom: 3vh; left: 5vw; right: 5vw; display: flex; justify-content: space-between; font-size: 1.5vw; color: #C7CBD3; border-top: .08vw solid #343A46; padding-top: 1.5vh; }
+.panel { background: #1F232B; border: .08vw solid #343A46; padding: 2.2vw; border-radius: .7vw; }
+.panel h2 { font-size: 2.3vw; line-height: 1.2; font-weight: 700; margin-bottom: 2vh; }
+.panel p, .copy { font-size: 2vw; line-height: 1.45; color: #C7CBD3; }
+.small { font-size: 1.5vw; line-height: 1.4; color: #C7CBD3; }
+.blue { color: #5E9FF5; } .pink { color: #E85D75; } .gold { color: #D6B56D; } .green { color: #31C48D; }
+.row { display:flex; align-items:baseline; justify-content:space-between; border-bottom:.08vw solid #343A46; padding:1.4vh 0; font-size:2vw; gap:2vw; }
+.deck-content > .grid.grid-cols-\[1fr_1fr_1\.5fr\] p { padding-block: .7vh; line-height: 1.15; }
